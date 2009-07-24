@@ -1,0 +1,22 @@
+#!/usr/bin/make -f
+
+alpha := 64
+amd64 := 64
+ia64 := 64
+ppc64 := 64
+DEB_PATCHDIRS = debian/patches/common debian/patches/$($(DEB_HOST_ARCH_CPU))
+
+DEB_DH_MAKESHLIBS_ARGS_ALL := -Xjni
+
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/class/makefile.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+
+include /usr/share/gcj/debian_defaults
+
+makecleanbuildir::patch
+
+ifneq (,$(filter $(DEB_HOST_ARCH), $(gcj_native_archs)))
+common-binary-post-install-arch::
+	dh_nativejava -a
+endif

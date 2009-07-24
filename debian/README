@@ -1,0 +1,153 @@
+SWT
+
+The most succinct description of the Standard Widget Toolkit component
+is this:
+
+	The SWT component is designed to provide efficient, portable
+	access to the user-interface facilities of the operating systems
+	on which it is implemented.
+
+The SWT component implementors take each of the terms in this
+statement to have a very specific meaning:
+
+"efficient"
+	implies that SWT must be as thin a layer on top of the operating
+	system facilities as possible. So, for example, SWT avoids the use
+	of a separate peer layer as is found in the Sun AWT class library,
+	thereby gaining increased speed and space efficiency at the cost
+	of some amount of implementation flexibility. SWT also attempts to
+	avoid "sugar coating" the limitations of the underlying operating
+	system, since doing this always implies significant overhead in
+	addition to introducing the potential for subtle failures and
+	incompatabilities; this is the "sometimes you have to let the o/s
+	win" rule. An example of the kind of problem that SWT would not
+	attempt to hide is the existence of limitations on cross-threaded
+	access to widgets.
+
+	The only exceptions to the rule are cases where a particular
+	operating system is missing features that are required for it to
+	be a candidate Eclipse platform. If some small set of specific,
+	clearly defined "workarounds" can be made to enable Eclipse to run
+	on this target, then they will be implemented. For example, the
+	lack of a ToolBar type widget on Motif was addressed by providing
+	an "emulated" version on that window system, since ToolBars are
+	fundamental to the Eclipse look and feel.
+
+"portable"
+	implies both that it must be possible to create applications
+	(Eclipse, in particular) which will run on all of the supported
+	operating systems, and that SWT itself must be simple to port to
+	new operating systems.
+
+	The former case is supported by providing a common programming
+	interface. By coding to this API, applications can be created that
+	run everywhere where SWT will run. It is important to note that,
+	because SWT uses the native (i.e. operating system provided)
+	widgets, the look and feel of applications built with SWT will
+	vary on each operating system so that they match the expectations
+	of users of that operating system.
+
+	The later case, the porting of SWT itself, is supported by
+	ensuring that all but the lowest-level, direct interface to the
+	operating system is written in Java. In SWT there truly is
+	"nothing interesting in the C natives", which makes the initial
+	porting (and subsequent debugging) of SWT considerably easier
+	since it can largely be done using the facilities of Eclipse,
+	including the built in remote debugging. In addition, the coding
+	style of SWT is such that it is easy for programmers that are
+	familiar with a particular operating system to understand and
+	implement the code.
+
+	A side-effect of the SWT implementation strategy is that it is
+	relatively simple to create operating system specific extensions
+	to SWT to support particularly important features. An example of
+	this would be ActiveX on Windows, which Eclipse uses (protected by
+	appropriate platform checks) to support embedded ActiveX controls
+	and documents. It was felt that to be competitive on that
+	platform, support for ActiveX was a requirement, even though it
+	was not available elsewhere. Because SWT is "close" to the
+	platform, this was not a difficult task.
+
+"access to the user-interface facilities of the operating system"
+	Although this has already been stated, it is worth reiterating
+	that the widgets that the SWT component provides are those that
+	are provided by the operating systems on which SWT runs. The
+	intent is to allow access to these native widgets (and the other
+	operating system user-interface facilities), not to "roll our own"
+	new widget system. As such, although the SWT component
+	implementors try very hard to make it possible for consumers of
+	SWT to be able to ignore which operating system they are running
+	on, developers need to understand that applications can
+	potentially behave differently to match the operating system
+	behavior. For example, programatically giving focus to a "radio"
+	button on Windows will cause it to be selected. Period. Since it
+	would be exceedingly difficult (and is counter to the Windows
+	user-interface look and feel) to prevent this behavior, the
+	Windows version of SWT generates events as if the user had
+	"clicked" the radio button when it is given focus. This means that
+	well-written applications can ignore the differences, but also
+	means that smart developers will test SWT applications on every
+	platform which they are to be delivered on.
+
+
+Custom Widgets
+
+If that was all there was to this story, then everything would be
+clear cut. However, in addition to the work described above, the SWT
+component is responsible for one additional aspect of Eclipse: the
+implementation of the custom widgets which provide the specific look
+and feel (i.e. the "branding") of Eclipse. This is a complex task,
+since it requires a delicate balance between the particular vision of
+the user-interface designers, and the desire for the widgets to have
+appearance and behavior that is consistant with the user-interface
+guidelines of the operating system.
+
+It is important to note that, if Eclipse were to be built entirely
+from custom widgets and used no native widgets, then the SWT component
+implementors would consider their work to be a failure. The intent is
+to provide a small set of carefully considered custom widgets to give
+Eclipse its distinguishing features in a way that is still strongly
+oriented towards the look and feel of the platform. For example, when
+the user modifies the appearance of their desktop using platform
+provided mechanisms (setting default window background colors, border
+widths, "skinning", etc.) the custom widgets should reflect these
+changes whenever (a) the changes can be detected and (b) they do not
+specifically contradict the brand appearance.
+
+Currently, all custom widgets are coded in terms of existing SWT
+widget and graphics APIs. They are portable and use underlying SWT
+mechanisms to ensure that they have correct appearance. Although this
+already works quite well, one of the research areas for the SWT
+component is to further improve the ability to match the platform
+appearance, for example in the presence of "programatic skinning" as
+provided by window systems such as GTk.
+
+
+Embedded Systems
+
+Another exciting aspect of SWT is that it is also being used as part
+of the underlying implementation for several embedded systems efforts
+because of its small size and focus on efficiency. The most notable of
+these, currently at least, is in the AWT implementation provided as
+part of the VisualAge/MicroEdition class libraries, where SWT
+effectively becomes the peer layer for AWT. Further effort is ongoing
+to improve SWT's utility in this area.
+
+And finally, one last aside: The above discussion blurs and sometimes
+ignores the distinction between operating systems and window systems.
+We do understand the difference, but wanted to avoid making things
+even more verbose than they already were.
+
+
+Get Involved!
+
+If you are interested in participating in the development of the SWT
+component, check out the developer's mailing list:
+platform-swt-dev@eclipse.org. Chat with people there about your
+problems and interests, and find out what you can do to help.
+
+Hey! The SWT component implementors are always looking for smart,
+dedicated people who "share the vision" to help us. If you are one
+such, please do drop us a line.
+
+For more detailed information, check out the Development Resources.

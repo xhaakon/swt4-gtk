@@ -1,0 +1,2 @@
+swt-gtk-*.jar usr/lib/java
+debian/java-config/libswt-gtk* usr/share/java-config

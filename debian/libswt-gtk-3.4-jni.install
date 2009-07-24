@@ -1,0 +1,4 @@
+libswt-atk-*[0-9].so usr/lib/jni
+libswt-awt-*[0-9].so usr/lib/jni
+libswt-gtk-*[0-9].so usr/lib/jni
+libswt-pi-*[0-9].so usr/lib/jni

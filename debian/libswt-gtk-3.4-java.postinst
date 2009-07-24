@@ -1,0 +1,29 @@
+#! /bin/sh
+set -e
+
+case "$1" in
+    configure)
+        update-alternatives --install \
+                /usr/share/java-config/libswt-3.4-java \
+                libswt-3.4-java \
+                /usr/share/java-config/libswt-gtk-3.4-java \
+                103
+        update-alternatives --install \
+                /usr/share/java/swt.jar \
+                swt.jar \
+                /usr/lib/java/swt-gtk-3.4.2.jar \
+                103
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0
