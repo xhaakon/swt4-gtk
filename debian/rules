@@ -16,6 +16,8 @@ include /usr/share/gcj/debian_defaults
 
 makecleanbuildir::patch
 
+DEB_MAKE_MAKEFILE = debian/Makefile
+
 ifneq (,$(filter $(DEB_HOST_ARCH), $(gcj_native_archs)))
 common-binary-post-install-arch::
 	dh_nativejava -a
