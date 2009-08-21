@@ -6,7 +6,7 @@ Build-Depends: default-jdk-builddep, libgnomeui-dev, libxtst-dev,
  xulrunner-dev, libxcb-render-util0-dev, libxt-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev,
  fastjar, cdbs, patchutils, debhelper (>> 7.0)
-Standards-Version: 3.8.2
+Standards-Version: 3.8.3
 Homepage: http://www.eclipse.org/swt/
 
 Package: libswt-gtk-3.4-java
