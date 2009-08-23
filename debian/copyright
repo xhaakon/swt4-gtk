@@ -1,315 +1,311 @@
-This package was adopted by Adrian Perez 
-<adrianperez.deb@gmail.com> on Wed, 24 Jun 2009 21:23:28 -0400.
-
-The upstream SWT distribution was repackaged.
-
-This package was debianized by Shaun Jackman <sjackman@debian.org> on
-Mon, 26 Jul 2004 09:39:10 -0700.
-
-It was downloaded from http://www.eclipse.org/swt/.
-
-Upstream Author: IBM Corporation <platform-swt-dev@eclipse.org>
-
-Copyright (c) 2000, 2007 IBM Corporation and others.
-Portions created by Netscape are Copyright (C) 1998-1999
-
-Parts of SWT are licensed under the Common Public License, Version 1.0;
-Mozilla Public License, Version 1.1; and the GNU Lesser General Public
-License, Version 2.1.
-
-
-About This Content
-
-24 June, 2004
-
-License
-
-Eclipse.org makes available all content in this plug-in ("Content").
-With the exception of the files listed below, all Content should be
-defined as the "SWT" and is provided to you under the terms and
-conditions of the Common Public License Version 1.0 ("CPL"). A copy of
-the CPL is available at http://www.eclipse.org/legal/cpl-v10.html. For
-purposes of the CPL, "Program" shall mean the SWT.
-
-Third Party Content
-
-GTK+ Binding
-
-The following files shall be defined as the "GTK+ Binding": 
-
-os/linux/x86/libswt-atk-gtk-3062.so
-os/linux/x86/libswt-pi-gtk-3062.so
-ws/gtk/swt-pi.jar
-ws/gtk/swt-pisrc.zip
-
-The GTK+ Binding contains portions of GTK+ ("Library"). GTK+ is made
-available by The Free Software Foundation. Use of the Library is
-governed by the terms and conditions of the GNU Lesser General Public
-License Version 2.1 ("LGPL"). Use of the GTK+ Binding on a standalone
-basis, is also governed by the terms and conditions of the LGPL. A
-copy of the LGPL is provided with the Content and is also available at
-http://www.gnu.org/licenses/lgpl.html.
-
-In accordance with Section 6 of the LGPL, you may combine or link a
-"work that uses the Library" (e.g. the SWT) with the Library to
-produce a work containing portions of the Library (e.g. the GTK+
-Binding) and distribute that work under the terms of your choice (e.g.
-the CPL) provided you comply with all other terms and conditions of
-Section 6 as well as other Sections of the LGPL. Please note, if you
-modify the GTK+ Binding such modifications shall be governed by the
-terms and conditions of the LGPL. Also note, the terms of the CPL
-permit you to modify the combined work and the source code of the
-combined work is provided for debugging purposes so there is no need
-to reverse engineer the combined work.
-
-Mozilla Binding
-
-The following files shall be defined as the "Mozilla Binding": 
-
-os/linux/x86/libswt-mozilla-gtk-3062.so
-ws/gtk/swt-mozilla.jar
-ws/gtk/swt-mozillasrc.zip
-
-The Mozilla Binding contains portions of Mozilla ("Mozilla"). Mozilla
-is made available by Mozilla.org. Use of Mozilla is governed by the
-terms and conditions of the Mozilla Public License Version 1.1
-("MPL"). A copy of the MPL is provided with the Content and is also
-available at http://www.mozilla.org/MPL/MPL-1.1.html.
-
-Contributions
-
-If you wish to provide Contributions related to the SWT, such
-Contributions shall be made under the terms of the CPL. If you wish to
-make Contributions related to the GTK+ Binding such Contributions
-shall be made under the terms of the LGPL and the CPL (with respect to
-portions of the contribution for which you are the copyright holder).
-If you wish to make Contributions related to the Mozilla Binding such
-Contributions shall be made under the terms of the MPL.
-
-
-On Debian systems, the complete text of the GNU Lesser General
-Public License Version 2 can be found in `/usr/share/common-licenses/LGPL-2'.
-
-
-Common Public License - v 1.0
-
-THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS COMMON PUBLIC
-LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM
-CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
-
-1. DEFINITIONS
-
-"Contribution" means:
-
-a) in the case of the initial Contributor, the initial code and documentation
-distributed under this Agreement, and
-
-b) in the case of each subsequent Contributor:
-
-i) changes to the Program, and
-
-ii) additions to the Program;
-
-where such changes and/or additions to the Program originate from and are
-distributed by that particular Contributor. A Contribution 'originates' from a
-Contributor if it was added to the Program by such Contributor itself or anyone
-acting on such Contributor's behalf. Contributions do not include additions to
-the Program which: (i) are separate modules of software distributed in
-conjunction with the Program under their own license agreement, and (ii) are
-not derivative works of the Program.
-
-"Contributor" means any person or entity that distributes the Program.
-
-"Licensed Patents " mean patent claims licensable by a Contributor which are
-necessarily infringed by the use or sale of its Contribution alone or when
-combined with the Program.
-
-"Program" means the Contributions distributed in accordance with this
-Agreement.
-
-"Recipient" means anyone who receives the Program under this Agreement,
-including all Contributors.
-
-2. GRANT OF RIGHTS
-
-a) Subject to the terms of this Agreement, each Contributor hereby grants
-Recipient a non-exclusive, worldwide, royalty-free copyright license to
-reproduce, prepare derivative works of, publicly display, publicly perform,
-distribute and sublicense the Contribution of such Contributor, if any, and
-such derivative works, in source code and object code form.
-
-b) Subject to the terms of this Agreement, each Contributor hereby grants
-Recipient a non-exclusive, worldwide, royalty-free patent license under
-Licensed Patents to make, use, sell, offer to sell, import and otherwise
-transfer the Contribution of such Contributor, if any, in source code and
-object code form. This patent license shall apply to the combination of the
-Contribution and the Program if, at the time the Contribution is added by the
-Contributor, such addition of the Contribution causes such combination to be
-covered by the Licensed Patents. The patent license shall not apply to any
-other combinations which include the Contribution. No hardware per se is
-licensed hereunder.
-
-c) Recipient understands that although each Contributor grants the licenses to
-its Contributions set forth herein, no assurances are provided by any
-Contributor that the Program does not infringe the patent or other intellectual
-property rights of any other entity. Each Contributor disclaims any liability
-to Recipient for claims brought by any other entity based on infringement of
-intellectual property rights or otherwise. As a condition to exercising the
-rights and licenses granted hereunder, each Recipient hereby assumes sole
-responsibility to secure any other intellectual property rights needed, if any.
-For example, if a third party patent license is required to allow Recipient to
-distribute the Program, it is Recipient's responsibility to acquire that
-license before distributing the Program.
-
-d) Each Contributor represents that to its knowledge it has sufficient copyright rights in its Contribution, if any, to grant the copyright license set forth in this Agreement.
-
-3. REQUIREMENTS
-
-A Contributor may choose to distribute the Program in object code form under its own license agreement, provided that:
-
-a) it complies with the terms and conditions of this Agreement; and
-
-b) its license agreement:
-
-i) effectively disclaims on behalf of all Contributors all warranties and
-conditions, express and implied, including warranties or conditions of title
-and non-infringement, and implied warranties or conditions of merchantability
-and fitness for a particular purpose;
-
-ii) effectively excludes on behalf of all Contributors all liability for
-damages, including direct, indirect, special, incidental and consequential
-damages, such as lost profits;
-
-iii) states that any provisions which differ from this Agreement are offered by
-that Contributor alone and not by any other party; and
-
-iv) states that source code for the Program is available from such Contributor,
-and informs licensees how to obtain it in a reasonable manner on or through a
-medium customarily used for software exchange.
-
-When the Program is made available in source code form:
-
-a) it must be made available under this Agreement; and
-
-b) a copy of this Agreement must be included with each copy of the Program.
-
-Contributors may not remove or alter any copyright notices contained within the Program.
-
-Each Contributor must identify itself as the originator of its Contribution, if any, in a manner that reasonably allows subsequent Recipients to identify the originator of the Contribution.
-
-4. COMMERCIAL DISTRIBUTION
-
-Commercial distributors of software may accept certain responsibilities with
-respect to end users, business partners and the like. While this license is
-intended to facilitate the commercial use of the Program, the Contributor who
-includes the Program in a commercial product offering should do so in a manner
-which does not create potential liability for other Contributors. Therefore, if
-a Contributor includes the Program in a commercial product offering, such
-Contributor ("Commercial Contributor") hereby agrees to defend and indemnify
-every other Contributor ("Indemnified Contributor") against any losses, damages
-and costs (collectively "Losses") arising from claims, lawsuits and other legal
-actions brought by a third party against the Indemnified Contributor to the
-extent caused by the acts or omissions of such Commercial Contributor in
-connection with its distribution of the Program in a commercial product
-offering. The obligations in this section do not apply to any claims or Losses
-relating to any actual or alleged intellectual property infringement. In order
-to qualify, an Indemnified Contributor must: a) promptly notify the Commercial
-Contributor in writing of such claim, and b) allow the Commercial Contributor
-to control, and cooperate with the Commercial Contributor in, the defense and
-any related settlement negotiations. The Indemnified Contributor may
-participate in any such claim at its own expense.
-
-For example, a Contributor might include the Program in a commercial product
-offering, Product X. That Contributor is then a Commercial Contributor. If that
-Commercial Contributor then makes performance claims, or offers warranties
-related to Product X, those performance claims and warranties are such
-Commercial Contributor's responsibility alone. Under this section, the
-Commercial Contributor would have to defend claims against the other
-Contributors related to those performance claims and warranties, and if a court
-requires any other Contributor to pay any damages as a result, the Commercial
-Contributor must pay those damages.
-
-5. NO WARRANTY
-
-EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED ON AN
-"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
-IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE,
-NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each
-Recipient is solely responsible for determining the appropriateness of using
-and distributing the Program and assumes all risks associated with its exercise
-of rights under this Agreement, including but not limited to the risks and
-costs of program errors, compliance with applicable laws, damage to or loss of
-data, programs or equipment, and unavailability or interruption of operations.
-
-6. DISCLAIMER OF LIABILITY
-
-EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, NEITHER RECIPIENT NOR ANY
-CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST
-PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
-WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS
-GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-
-7. GENERAL
-
-If any provision of this Agreement is invalid or unenforceable under applicable
-law, it shall not affect the validity or enforceability of the remainder of the
-terms of this Agreement, and without further action by the parties hereto, such
-provision shall be reformed to the minimum extent necessary to make such
-provision valid and enforceable.
-
-If Recipient institutes patent litigation against a Contributor with respect to
-a patent applicable to software (including a cross-claim or counterclaim in a
-lawsuit), then any patent licenses granted by that Contributor to such
-Recipient under this Agreement shall terminate as of the date such litigation
-is filed. In addition, if Recipient institutes patent litigation against any
-entity (including a cross-claim or counterclaim in a lawsuit) alleging that the
-Program itself (excluding combinations of the Program with other software or
-hardware) infringes such Recipient's patent(s), then such Recipient's rights
-granted under Section 2(b) shall terminate as of the date such litigation is
-filed.
-
-All Recipient's rights under this Agreement shall terminate if it fails to
-comply with any of the material terms or conditions of this Agreement and does
-not cure such failure in a reasonable period of time after becoming aware of
-such noncompliance. If all Recipient's rights under this Agreement terminate,
-Recipient agrees to cease use and distribution of the Program as soon as
-reasonably practicable. However, Recipient's obligations under this Agreement
-and any licenses granted by Recipient relating to the Program shall continue
-and survive.
-
-Everyone is permitted to copy and distribute copies of this Agreement, but in
-order to avoid inconsistency the Agreement is copyrighted and may only be
-modified in the following manner. The Agreement Steward reserves the right to
-publish new versions (including revisions) of this Agreement from time to time.
-No one other than the Agreement Steward has the right to modify this Agreement.
-IBM is the initial Agreement Steward. IBM may assign the responsibility to
-serve as the Agreement Steward to a suitable separate entity. Each new version
-of the Agreement will be given a distinguishing version number. The Program
-(including Contributions) may always be distributed subject to the version of
-the Agreement under which it was received. In addition, after a new version of
-the Agreement is published, Contributor may elect to distribute the Program
-(including its Contributions) under the new version. Except as expressly stated
-in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to
-the intellectual property of any Contributor under this Agreement, whether
-expressly, by implication, estoppel or otherwise. All rights in the Program not
-expressly granted under this Agreement are reserved.
-
-This Agreement is governed by the laws of the State of New York and the
-intellectual property laws of the United States of America. No party to this
-Agreement will bring a legal action under this Agreement more than one year
-after the cause of action arose. Each party waives its rights to a jury trial
-in any resulting litigation.
-
-
+Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=59  
+Name: SWT
+Maintainer: The Eclipse Foundation <platform-swt-dev@eclipse.org>
+Source: http://www.eclipse.org/swt/
+
+Files: *
+Copyright: 2000-2009, IBM Corporation and others
+License: EPL-1.0
+
+Files: debian/*
+Copyright: 2009, Adrian Perez <adrianperez.deb@gmail.com>
+           2004-2009, Shaun Jackman <sjackman@debian.org>
+License: GPL-3+
+
+Files: gnome*.[c|h], os*[.c|h], atk*.[c|h]
+Copyright: 2000-2008, IBM Corporation and others
+License: LGPL-2.1
+
+Files: cairo*.[c|h], org/eclipse/swt/internal/cairo/*
+Copyright: 2000-2007, IBM Corporation
+License: MPL-1.1
+
+Files: org/eclipse/swt/internal/mozilla/[^GRE]*.java
+Copyright: 2003-2008, IBM Corporation
+           1998-1999, Netscape Communications Corporation
+License: MPL-1.1
+
+Files: org/eclipse/swt/internal/accessibility/gtk/*
+Copyright: 2000-2006, IBM Corporation
+License: LGPL-2.1
+
+Files: org/eclipse/swt/internal/gtk/[^X]*.java
+Copyright: 2000-2007, IBM Corporation and others
+License: LGPL-2.1
+
+Files: org/eclipse/swt/internal/image/JPEGFileFormat.java
+Copyright: 2000-2008, IBM Corporation and others
+License: other
+
+
+License: GPL-3+
+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+ 
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this package. If not, see <http://www.gnu.org/licenses/>.
+ 
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in /usr/share/common-licenses/GPL-3.
+
+License: LGPL-2.1
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ 
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ 
+ On Debian systems, the complete text of the GNU General Public
+ License can be found in /usr/share/common-licenses/LGPL-2.1.
+
+
+License: EPL-1.0
+
+ Eclipse Public License - v 1.0
+
+ THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE
+ PUBLIC LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF
+ THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT.
+  
+  1. DEFINITIONS
+
+  "Contribution" means:
+
+  a) in the case of the initial Contributor, the initial code and
+  documentation distributed under this Agreement, and b) in the case of
+  each subsequent Contributor:
+
+  i) changes to the Program, and
+
+  ii) additions to the Program;
+
+  where such changes and/or additions to the Program originate from and are
+  distributed by that particular Contributor. A Contribution 'originates'
+  from a Contributor if it was added to the Program by such Contributor
+  itself or anyone acting on such Contributor's behalf. Contributions do
+  not include additions to the Program which: (i) are separate modules of
+  software distributed in conjunction with the Program under their own
+  license agreement, and (ii) are not derivative works of the Program.
+
+  "Contributor" means any person or entity that distributes the Program.
+
+  "Licensed Patents " mean patent claims licensable by a Contributor which
+  are necessarily infringed by the use or sale of its Contribution alone or
+  when combined with the Program.
+
+  "Program" means the Contributions distributed in accordance with this
+  Agreement.
+
+  "Recipient" means anyone who receives the Program under this Agreement,
+  including all Contributors.
+
+  2. GRANT OF RIGHTS
+
+  a) Subject to the terms of this Agreement, each Contributor hereby grants
+  Recipient a non-exclusive, worldwide, royalty-free copyright license to
+  reproduce, prepare derivative works of, publicly display, publicly
+  perform, distribute and sublicense the Contribution of such Contributor,
+  if any, and such derivative works, in source code and object code form.
+
+  b) Subject to the terms of this Agreement, each Contributor hereby grants
+  Recipient a non-exclusive, worldwide, royalty-free patent license under
+  Licensed Patents to make, use, sell, offer to sell, import and otherwise
+  transfer the Contribution of such Contributor, if any, in source code and
+  object code form. This patent license shall apply to the combination of
+  the Contribution and the Program if, at the time the Contribution is
+  added by the Contributor, such addition of the Contribution causes such
+  combination to be covered by the Licensed Patents. The patent license
+  shall not apply to any other combinations which include the
+  Contribution. No hardware per se is licensed hereunder.
+
+  c) Recipient understands that although each Contributor grants the
+  licenses to its Contributions set forth herein, no assurances are
+  provided by any Contributor that the Program does not infringe the patent
+  or other intellectual property rights of any other entity. Each
+  Contributor disclaims any liability to Recipient for claims brought by
+  any other entity based on infringement of intellectual property rights or
+  otherwise. As a condition to exercising the rights and licenses granted
+  hereunder, each Recipient hereby assumes sole responsibility to secure
+  any other intellectual property rights needed, if any. For example, if a
+  third party patent license is required to allow Recipient to distribute
+  the Program, it is Recipient's responsibility to acquire that license
+  before distributing the Program.
+
+  d) Each Contributor represents that to its knowledge it has sufficient
+  copyright rights in its Contribution, if any, to grant the copyright
+  license set forth in this Agreement.
+
+  3. REQUIREMENTS
+
+  A Contributor may choose to distribute the Program in object code form
+  under its own license agreement, provided that:
+
+  a) it complies with the terms and conditions of this Agreement; and
+
+  b) its license agreement:
+
+  i) effectively disclaims on behalf of all Contributors all warranties and
+  conditions, express and implied, including warranties or conditions of
+  title and non-infringement, and implied warranties or conditions of
+  merchantability and fitness for a particular purpose;
+
+  ii) effectively excludes on behalf of all Contributors all liability for
+  damages, including direct, indirect, special, incidental and
+  consequential damages, such as lost profits;
+
+  iii) states that any provisions which differ from this Agreement are
+  offered by that Contributor alone and not by any other party; and
+
+  iv) states that source code for the Program is available from such
+  Contributor, and informs licensees how to obtain it in a reasonable
+  manner on or through a medium customarily used for software exchange.
+
+  When the Program is made available in source code form:
+
+  a) it must be made available under this Agreement; and
+
+  b) a copy of this Agreement must be included with each copy of the
+  Program.
+
+  Contributors may not remove or alter any copyright notices contained
+  within the Program.
+
+  Each Contributor must identify itself as the originator of its
+  Contribution, if any, in a manner that reasonably allows subsequent
+  Recipients to identify the originator of the Contribution.
+
+  4. COMMERCIAL DISTRIBUTION
+
+  Commercial distributors of software may accept certain responsibilities
+  with respect to end users, business partners and the like. While this
+  license is intended to facilitate the commercial use of the Program, the
+  Contributor who includes the Program in a commercial product offering
+  should do so in a manner which does not create potential liability for
+  other Contributors. Therefore, if a Contributor includes the Program in a
+  commercial product offering, such Contributor ("Commercial Contributor")
+  hereby agrees to defend and indemnify every other Contributor
+  ("Indemnified Contributor") against any losses, damages and costs
+  (collectively "Losses") arising from claims, lawsuits and other legal
+  actions brought by a third party against the Indemnified Contributor to
+  the extent caused by the acts or omissions of such Commercial Contributor
+  in connection with its distribution of the Program in a commercial
+  product offering. The obligations in this section do not apply to any
+  claims or Losses relating to any actual or alleged intellectual property
+  infringement. In order to qualify, an Indemnified Contributor must: a)
+  promptly notify the Commercial Contributor in writing of such claim, and
+  b) allow the Commercial Contributor to control, and cooperate with the
+  Commercial Contributor in, the defense and any related settlement
+  negotiations. The Indemnified Contributor may participate in any such
+  claim at its own expense.
+
+  For example, a Contributor might include the Program in a commercial
+  product offering, Product X. That Contributor is then a Commercial
+  Contributor. If that Commercial Contributor then makes performance
+  claims, or offers warranties related to Product X, those performance
+  claims and warranties are such Commercial Contributor's responsibility
+  alone. Under this section, the Commercial Contributor would have to
+  defend claims against the other Contributors related to those performance
+  claims and warranties, and if a court requires any other Contributor to
+  pay any damages as a result, the Commercial Contributor must pay those
+  damages.
+
+  5. NO WARRANTY
+
+  EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED
+  ON AN "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER
+  EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR
+  CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+  PARTICULAR PURPOSE. Each Recipient is solely responsible for determining
+  the appropriateness of using and distributing the Program and assumes all
+  risks associated with its exercise of rights under this Agreement ,
+  including but not limited to the risks and costs of program errors,
+  compliance with applicable laws, damage to or loss of data, programs or
+  equipment, and unavailability or interruption of operations.
+
+  6. DISCLAIMER OF LIABILITY
+
+  EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, NEITHER RECIPIENT NOR
+  ANY CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING
+  WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR
+  DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED
+  HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+  7. GENERAL
+
+  If any provision of this Agreement is invalid or unenforceable under
+  applicable law, it shall not affect the validity or enforceability of the
+  remainder of the terms of this Agreement, and without further action by
+  the parties hereto, such provision shall be reformed to the minimum
+  extent necessary to make such provision valid and enforceable.
+
+  If Recipient institutes patent litigation against any entity (including a
+  cross-claim or counterclaim in a lawsuit) alleging that the Program
+  itself (excluding combinations of the Program with other software or
+  hardware) infringes such Recipient's patent(s), then such Recipient's
+  rights granted under Section 2(b) shall terminate as of the date such
+  litigation is filed.
+
+  All Recipient's rights under this Agreement shall terminate if it fails
+  to comply with any of the material terms or conditions of this Agreement
+  and does not cure such failure in a reasonable period of time after
+  becoming aware of such noncompliance. If all Recipient's rights under
+  this Agreement terminate, Recipient agrees to cease use and distribution
+  of the Program as soon as reasonably practicable. However, Recipient's
+  obligations under this Agreement and any licenses granted by Recipient
+  relating to the Program shall continue and survive.
+
+  Everyone is permitted to copy and distribute copies of this Agreement,
+  but in order to avoid inconsistency the Agreement is copyrighted and may
+  only be modified in the following manner. The Agreement Steward reserves
+  the right to publish new versions (including revisions) of this Agreement
+  from time to time. No one other than the Agreement Steward has the right
+  to modify this Agreement. The Eclipse Foundation is the initial Agreement
+  Steward. The Eclipse Foundation may assign the responsibility to serve as
+  the Agreement Steward to a suitable separate entity. Each new version of
+  the Agreement will be given a distinguishing version number. The Program
+  (including Contributions) may always be distributed subject to the
+  version of the Agreement under which it was received. In addition, after
+  a new version of the Agreement is published, Contributor may elect to
+  distribute the Program (including its Contributions) under the new
+  version. Except as expressly stated in Sections 2(a) and 2(b) above,
+  Recipient receives no rights or licenses to the intellectual property of
+  any Contributor under this Agreement, whether expressly, by implication,
+  estoppel or otherwise. All rights in the Program not expressly granted
+  under this Agreement are reserved.
+
+  This Agreement is governed by the laws of the State of New York and the
+  intellectual property laws of the United States of America. No party to
+  this Agreement will bring a legal action under this Agreement more than
+  one year after the cause of action arose. Each party waives its rights to
+  a jury trial in any resulting litigation.
+ 
+License: MPL-1.1
+ 
                           MOZILLA PUBLIC LICENSE
                                 Version 1.1
-
                               ---------------
 
-1. Definitions.
-
+ 1. Definitions.
+ 
      1.0.1. "Commercial Use" means distribution or otherwise making the
      Covered Code available to a third party.
 
@@ -384,8 +380,8 @@ in any resulting litigation.
      (50%) of the outstanding shares or beneficial ownership of such
      entity.
 
-2. Source Code License.
-
+ 2. Source Code License.
+ 
      2.1. The Initial Developer Grant.
      The Initial Developer hereby grants You a world-wide, royalty-free,
      non-exclusive license, subject to third party intellectual property
@@ -445,7 +441,7 @@ in any resulting litigation.
           infringed by Covered Code in the absence of Modifications made by
           that Contributor.
 
-3. Distribution Obligations.
+ 3. Distribution Obligations.
 
      3.1. Application of License.
      The Modifications which You create or to which You contribute are
@@ -561,7 +557,7 @@ in any resulting litigation.
      Work as a single product. In such a case, You must make sure the
      requirements of this License are fulfilled for the Covered Code.
 
-4. Inability to Comply Due to Statute or Regulation.
+ 4. Inability to Comply Due to Statute or Regulation.
 
      If it is impossible for You to comply with any of the terms of this
      License with respect to some or all of the Covered Code due to
@@ -574,12 +570,12 @@ in any resulting litigation.
      sufficiently detailed for a recipient of ordinary skill to be able to
      understand it.
 
-5. Application of this License.
+ 5. Application of this License.
 
      This License applies to code to which the Initial Developer has
      attached the notice in Exhibit A and to related Covered Code.
 
-6. Versions of the License.
+ 6. Versions of the License.
 
      6.1. New Versions.
      Netscape Communications Corporation ("Netscape") may publish revised
@@ -608,7 +604,7 @@ in any resulting litigation.
      Exhibit A shall not of themselves be deemed to be modifications of
      this License.)
 
-7. DISCLAIMER OF WARRANTY.
+ 7. DISCLAIMER OF WARRANTY.
 
      COVERED CODE IS PROVIDED UNDER THIS LICENSE ON AN "AS IS" BASIS,
      WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING,
@@ -621,7 +617,7 @@ in any resulting litigation.
      OF WARRANTY CONSTITUTES AN ESSENTIAL PART OF THIS LICENSE. NO USE OF
      ANY COVERED CODE IS AUTHORIZED HEREUNDER EXCEPT UNDER THIS DISCLAIMER.
 
-8. TERMINATION.
+ 8. TERMINATION.
 
      8.1.  This License and the rights granted hereunder will terminate
      automatically if You fail to comply with terms herein and fail to cure
@@ -672,7 +668,7 @@ in any resulting litigation.
      which have been validly granted by You or any distributor hereunder
      prior to termination shall survive termination.
 
-9. LIMITATION OF LIABILITY.
+ 9. LIMITATION OF LIABILITY.
 
      UNDER NO CIRCUMSTANCES AND UNDER NO LEGAL THEORY, WHETHER TORT
      (INCLUDING NEGLIGENCE), CONTRACT, OR OTHERWISE, SHALL YOU, THE INITIAL
@@ -689,7 +685,7 @@ in any resulting litigation.
      EXCLUSION OR LIMITATION OF INCIDENTAL OR CONSEQUENTIAL DAMAGES, SO
      THIS EXCLUSION AND LIMITATION MAY NOT APPLY TO YOU.
 
-10. U.S. GOVERNMENT END USERS.
+ 10. U.S. GOVERNMENT END USERS.
 
      The Covered Code is a "commercial item," as that term is defined in
      48 C.F.R. 2.101 (Oct. 1995), consisting of "commercial computer
@@ -699,7 +695,7 @@ in any resulting litigation.
      all U.S. Government End Users acquire Covered Code with only those
      rights set forth herein.
 
-11. MISCELLANEOUS.
+ 11. MISCELLANEOUS.
 
      This License represents the complete agreement concerning subject
      matter hereof. If any provision of this License is held to be
@@ -720,7 +716,7 @@ in any resulting litigation.
      shall be construed against the drafter shall not apply to this
      License.
 
-12. RESPONSIBILITY FOR CLAIMS.
+ 12. RESPONSIBILITY FOR CLAIMS.
 
      As between Initial Developer and the Contributors, each party is
      responsible for claims and damages arising, directly or indirectly,
@@ -729,10 +725,108 @@ in any resulting litigation.
      responsibility on an equitable basis. Nothing herein is intended or
      shall be deemed to constitute any admission of liability.
 
-13. MULTIPLE-LICENSED CODE.
+ 13. MULTIPLE-LICENSED CODE.
 
      Initial Developer may designate portions of the Covered Code as
      "Multiple-Licensed".  "Multiple-Licensed" means that the Initial
      Developer permits you to utilize portions of the Covered Code under
      Your choice of the NPL or the alternative licenses, if any, specified
      by the Initial Developer in the file described in Exhibit A.
+
+ EXHIBIT A -Mozilla Public License.
+
+     ``The contents of this file are subject to the Mozilla Public License
+     Version 1.1 (the "License"); you may not use this file except in
+     compliance with the License. You may obtain a copy of the License at
+     http://www.mozilla.org/MPL/
+
+     Software distributed under the License is distributed on an "AS IS"
+     basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+     License for the specific language governing rights and limitations
+     under the License.
+
+     The Original Code is ______________________________________.
+
+     The Initial Developer of the Original Code is ________________________.
+     Portions created by ______________________ are Copyright (C) ______
+     _______________________. All Rights Reserved.
+
+     Contributor(s): ______________________________________.
+
+     Alternatively, the contents of this file may be used under the terms
+     of the _____ license (the  "[___] License"), in which case the
+     provisions of [______] License are applicable instead of those
+     above.  If you wish to allow use of your version of this file only
+     under the terms of the [____] License and not to allow others to use
+     your version of this file under the MPL, indicate your decision by
+     deleting  the provisions above and replace  them with the notice and
+     other provisions required by the [___] License.  If you do not delete
+     the provisions above, a recipient may use your version of this file
+     under either the MPL or the [___] License."
+
+     [NOTE: The text of this Exhibit A may differ slightly from the text of
+     the notices in the Source Code files of the Original Code. You should
+     use the text of this Exhibit A rather than the text found in the
+     Original Code Source Code for Your Modifications.]
+
+License: other
+
+ The class org.eclipse.swt.internal.image.JPEGFileFormat is based in part
+ on the work of the Independent JPEG Group's JPEG software release 6b
+ ("LIBJPEG"). LIBJPEG was used to implement the decoding of JPEG format
+ files in Java (TM). The Content does NOT include any portion of the
+ LIBJPEG file ansi2knr.c.
+ 
+ Your use of LIBJPEG is subject to the the terms and conditions located
+ in the about_files/IJG_README which is included with the Content (and
+ portions follow below).
+
+ LEGAL ISSUES
+ ============
+
+ In plain English:
+
+ 1. We don't promise that this software works.  (But if you find any bugs,
+    please let us know!)
+ 2. You can use this software for whatever you want.  You don't have to pay us.
+ 3. You may not pretend that you wrote this software.  If you use it in a
+    program, you must acknowledge somewhere in your documentation that
+    you've used the IJG code.
+          
+ In legalese:
+
+ The authors make NO WARRANTY or representation, either express or implied,
+ with respect to this software, its quality, accuracy, merchantability, or
+ fitness for a particular purpose.  This software is provided "AS IS", and you,
+ its user, assume the entire risk as to its quality and accuracy.
+
+ This software is copyright (C) 1991-1998, Thomas G. Lane.
+ All Rights Reserved except as specified below.
+
+ Permission is hereby granted to use, copy, modify, and distribute this
+ software (or portions thereof) for any purpose, without fee, subject to these
+ conditions:
+ (1) If any part of the source code for this software is distributed, then this
+ README file must be included, with this copyright and no-warranty notice
+ unaltered; and any additions, deletions, or changes to the original files
+ must be clearly indicated in accompanying documentation.
+ (2) If only executable code is distributed, then the accompanying
+ documentation must state that "this software is based in part on the work of
+ the Independent JPEG Group".
+ (3) Permission for use of this software is granted only if the user accepts
+ full responsibility for any undesirable consequences; the authors accept
+ NO LIABILITY for damages of any kind.
+
+ These conditions apply to any software derived from or based on the IJG code,
+ not just to the unmodified library.  If you use our work, you ought to
+ acknowledge us. 
+
+ Permission is NOT granted for the use of any IJG author's name or company name
+ in advertising or publicity relating to this software or products derived from
+ it.  This software may be referred to only as "the Independent JPEG Group's
+ software".
+
+ We specifically permit and encourage the use of this software as the basis of
+ commercial products, provided that all warranty or liability claims are
+ assumed by the product vendor.
+
