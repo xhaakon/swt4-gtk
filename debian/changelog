@@ -1,3 +1,18 @@
+swt-gtk (3.4.2-3) unstable; urgency=medium
+
+  * debian/control: 
+    - Build-Depend on libxt-dev. Fixes FTBFS with openjdk. Closes: #542990.
+    - Update Standards-Version to 3.8.3.
+  * debian/rules: 
+    - Set makefile to debian/Makefile.
+    - Pass AWT_LIB_PATH dinamically to Makefile.
+  * debian/copyright: 
+    - Update copyright holders and licenses.
+    - Use machine-readable format.
+  * debian/patches/01-make_linux.patch: Remove AWT_LIB_PATH from patch.
+
+ -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 24 Aug 2009 10:19:55 -0400
+
 swt-gtk (3.4.2-2) unstable; urgency=low
 
   * Architecture-dependent package libswt-gtk-3.4-java installs to 

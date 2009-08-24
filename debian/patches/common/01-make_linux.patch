@@ -1,13 +1,5 @@
 --- swt-gtk-3.4.2.orig/make_linux.mak
 +++ swt-gtk-3.4.2/make_linux.mak
-@@ -50,6 +50,7 @@
- 
- CDE_LIBS = -L$(CDE_HOME)/lib -R$(CDE_HOME)/lib -lXt -lX11 -lDtSvc
- 
-+AWT_LIB_PATH=/usr/lib/jvm/default-java/lib
- AWT_LIBS = -L$(AWT_LIB_PATH) -ljawt -shared
- 
- ATKCFLAGS = `pkg-config --cflags atk gtk+-2.0`
 @@ -64,6 +65,7 @@
  # Uncomment for Native Stats tool
  #NATIVE_STATS = -DNATIVE_STATS
