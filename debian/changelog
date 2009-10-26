@@ -1,3 +1,10 @@
+swt-gtk (3.5.1-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+  * Add Vcs-* fields to debian/control.
+
+ -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 26 Oct 2009 18:28:21 -0500
+
 swt-gtk (3.4.2-3) unstable; urgency=medium
 
   * debian/control: 
