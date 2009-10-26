@@ -11,7 +11,7 @@ Vcs-Git: git://git.debian.org/git/pkg-java/swt-gtk.git
 Vcs-Browser: http://git.debian.org/?p=pkg-java/swt-gtk.git
 Homepage: http://www.eclipse.org/swt/
 
-Package: libswt-gtk-3.4-java
+Package: libswt-gtk-3.5-java
 Architecture: any
 Section: java
 Depends: libswt-gtk-3.4-jni (= ${binary:Version})
@@ -24,7 +24,7 @@ Description: Standard Widget Toolkit for GTK+ Java library
  .
  This package includes the SWT JAR libraries.
 
-Package: libswt-gtk-3.4-jni
+Package: libswt-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libswt-gnome-gtk-3.4-jni
@@ -36,7 +36,7 @@ Description: Standard Widget Toolkit for GTK+ JNI library
  .
  This package includes the JNI libraries.
 
-Package: libswt-gnome-gtk-3.4-jni
+Package: libswt-gnome-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libswt3.4-gtk-jni 
@@ -47,7 +47,7 @@ Description: Standard Widget Toolkit for GTK+ GNOME JNI library
  .
  This package includes the GNOME JNI library.
 
-Package: libswt-mozilla-gtk-3.4-jni
+Package: libswt-mozilla-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libswt3.4-gtk-jni
@@ -58,7 +58,7 @@ Description: Standard Widget Toolkit for GTK+ Mozilla JNI library
  .
  This package includes the Mozilla JNI libraries.
 
-Package: libswt-cairo-gtk-3.4-jni
+Package: libswt-cairo-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libswt3.4-gtk-jni
@@ -69,7 +69,7 @@ Description: Standard Widget Toolkit for GTK+ Cairo JNI library
  .
  This package includes the Cairo JNI libraries.
 
-Package: libswt-glx-gtk-3.4-jni
+Package: libswt-glx-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Conflicts: libswt3.4-gtk-jni
@@ -80,7 +80,7 @@ Description: Standard Widget Toolkit for GTK+ GLX JNI library
  .
  This package includes the GLX JNI libraries.
 
-Package: libswt-gtk-3.4-java-gcj
+Package: libswt-gtk-3.5-java-gcj
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
  libswt-cairo-gtk-3.4-jni (= ${binary:Version}),
