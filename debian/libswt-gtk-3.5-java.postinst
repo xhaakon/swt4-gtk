@@ -4,14 +4,14 @@ set -e
 case "$1" in
     configure)
         update-alternatives --install \
-                /usr/share/java-config/libswt-3.4-java \
-                libswt-3.4-java \
-                /usr/share/java-config/libswt-gtk-3.4-java \
+                /usr/share/java-config/libswt-3.5-java \
+                libswt-3.5-java \
+                /usr/share/java-config/libswt-gtk-3.5-java \
                 103
         update-alternatives --install \
                 /usr/share/java/swt.jar \
                 swt.jar \
-                /usr/lib/java/swt-gtk-3.4.2.jar \
+                /usr/lib/java/swt-gtk-3.5.1.jar \
                 103
     ;;
 

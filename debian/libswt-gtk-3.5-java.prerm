@@ -3,10 +3,10 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-		update-alternatives --remove libswt-3.4-java \
-                /usr/share/java-config/libswt-gtk-3.4-java
+		update-alternatives --remove libswt-3.5-java \
+                /usr/share/java-config/libswt-gtk-3.5-java
 		update-alternatives --remove swt.jar \
-                /usr/lib/java/swt-gtk-3.4.2.jar
+                /usr/lib/java/swt-gtk-3.5.1.jar
 	;;
     failed-upgrade)
 	;;
