@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+* Copyright (c) 2000, 2009 IBM Corporation and others. All rights reserved.
 * The contents of this file are made available under the terms
 * of the GNU Lesser General Public License (LGPL) Version 2.1 that
 * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -55,18 +55,24 @@
 #define gtk_combo_box_popup_LIB "libgtk-x11-2.0.so.0"
 #define gtk_combo_box_popdown_LIB "libgtk-x11-2.0.so.0"
 #define gtk_entry_text_index_to_layout_index_LIB "libgtk-x11-2.0.so.0"
+#define gtk_entry_get_inner_border_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_add_filter_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_dialog_new_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_get_current_folder_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_get_filename_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_get_filenames_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_get_filter_LIB "libgtk-x11-2.0.so.0"
+#define gtk_file_chooser_get_uri_LIB "libgtk-x11-2.0.so.0"
+#define gtk_file_chooser_get_uris_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_set_current_folder_LIB "libgtk-x11-2.0.so.0"
+#define gtk_file_chooser_set_current_folder_uri_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_set_current_name_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_set_do_overwrite_confirmation_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_set_extra_widget_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_set_filename_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_set_filter_LIB "libgtk-x11-2.0.so.0"
+#define gtk_file_chooser_set_local_only_LIB "libgtk-x11-2.0.so.0"
+#define gtk_file_chooser_set_uri_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_chooser_set_select_multiple_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_filter_add_pattern_LIB "libgtk-x11-2.0.so.0"
 #define gtk_file_filter_new_LIB "libgtk-x11-2.0.so.0"
@@ -85,18 +91,25 @@
 #define gtk_tree_selection_count_selected_rows_LIB "libgtk-x11-2.0.so.0"
 #define gtk_tree_selection_get_selected_rows_LIB "libgtk-x11-2.0.so.0"
 #define gtk_tree_view_column_cell_get_position_LIB "libgtk-x11-2.0.so.0"
+#define gtk_tree_view_set_grid_lines_LIB "libgtk-x11-2.0.so.0"
 #define gtk_entry_set_alignment_LIB "libgtk-x11-2.0.so.0"
 #define gdk_cursor_new_from_pixbuf_LIB "libgdk-x11-2.0.so.0"
 #define gdk_display_get_default_LIB "libgdk-x11-2.0.so.0"
 #define gdk_display_supports_cursor_color_LIB "libgdk-x11-2.0.so.0"
 #define gdk_draw_pixbuf_LIB "libgdk-x11-2.0.so.0"
-#define gdk_pixbuf_save_to_buffer_LIB "libgdk-x11-2.0.so.0"
+#define gdk_pixbuf_save_to_bufferv_LIB "libgdk-x11-2.0.so.0"
 #define gdk_screen_get_default_LIB "libgdk-x11-2.0.so.0"
 #define gdk_screen_get_monitor_at_point_LIB "libgdk-x11-2.0.so.0"
 #define gdk_screen_get_monitor_at_window_LIB "libgdk-x11-2.0.so.0"
 #define gdk_screen_get_monitor_geometry_LIB "libgdk-x11-2.0.so.0"
 #define gdk_screen_get_n_monitors_LIB "libgdk-x11-2.0.so.0"
 #define gdk_screen_get_number_LIB "libgdk-x11-2.0.so.0"
+#define gtk_status_icon_get_geometry_LIB "libgtk-x11-2.0.so.0"
+#define gtk_status_icon_get_visible_LIB "libgtk-x11-2.0.so.0"
+#define gtk_status_icon_new_LIB "libgtk-x11-2.0.so.0"
+#define gtk_status_icon_set_from_pixbuf_LIB "libgtk-x11-2.0.so.0"
+#define gtk_status_icon_set_visible_LIB "libgtk-x11-2.0.so.0"
+#define gtk_status_icon_set_tooltip_LIB "libgtk-x11-2.0.so.0"
 #define gtk_window_get_group_LIB "libgtk-x11-2.0.so.0"
 #define gtk_window_get_opacity_LIB "libgtk-x11-2.0.so.0"
 #define gdk_window_set_keep_above_LIB "libgdk-x11-2.0.so.0"
@@ -127,6 +140,7 @@
 #define pango_cairo_font_map_set_resolution_LIB "libpangocairo-1.0.so.0"
 #define gdk_cairo_set_source_color_LIB "libgdk-x11-2.0.so.0"
 #define gdk_cairo_region_LIB "libgdk-x11-2.0.so.0"
+#define gdk_cairo_create_LIB "libgdk-x11-2.0.so.0"
 #define gtk_enumerate_printers_LIB "libgtk-x11-2.0.so.0"
 #define gtk_page_setup_get_bottom_margin_LIB "libgtk-x11-2.0.so.0"
 #define gtk_page_setup_get_left_margin_LIB "libgtk-x11-2.0.so.0"
@@ -197,6 +211,8 @@
 #define FcConfigAppFontAddFile_LIB "libfontconfig.so.1"
 
 /* Field accessors */
+#define G_OBJECT_CLASS_CONSTRUCTOR(arg0) (arg0)->constructor
+#define G_OBJECT_CLASS_SET_CONSTRUCTOR(arg0, arg1) (arg0)->constructor = (GObject* (*) (GType, guint, GObjectConstructParam *))arg1
 #define GTK_ACCEL_LABEL_SET_ACCEL_STRING(arg0, arg1) (arg0)->accel_string = arg1
 #define GTK_ACCEL_LABEL_GET_ACCEL_STRING(arg0) (arg0)->accel_string
 #define GTK_SCROLLED_WINDOW_HSCROLLBAR(arg0) (arg0)->hscrollbar
