@@ -1,7 +1,11 @@
 swt-gtk (3.5.1-1) UNRELEASED; urgency=low
 
   * New upstream release.
-  * Add Vcs-* fields to debian/control.
+  * debian/control: 
+    - Add Version Control fields.
+    - Bump inter-package dependencies versions.
+  * debian/patches: 
+    - Refresh x86_64 patch.
 
  -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 26 Oct 2009 18:28:21 -0500
 
