@@ -1,13 +1,13 @@
-swt-gtk (3.5.1-1) UNRELEASED; urgency=low
+swt-gtk (3.5.1-1~1.gbp0a3f85) UNRELEASED; urgency=low
 
-  * New upstream release.
-  * debian/control: 
-    - Add Version Control fields.
-    - Bump inter-package dependencies versions.
-  * debian/patches: 
-    - Refresh x86_64 patch.
+  ** SNAPSHOT build @0a3f850e24cad4b963bd8f17cc5d61fc84281088 **
 
- -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 26 Oct 2009 18:28:21 -0500
+  * New upstream release. Closes: #XXXXX.
+  * debian/control: Add Vcs-* fields for Git repository.
+  * debian/copyright: Minor updates.
+  * debian/rules: Fix default-java path around AWT_LIB_PATH.
+
+ -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 30 Nov 2009 23:13:20 -0500
 
 swt-gtk (3.4.2-3) unstable; urgency=medium
 
