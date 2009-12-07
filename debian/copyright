@@ -20,6 +20,11 @@ Files: cairo*.[c|h], org/eclipse/swt/internal/cairo/*
 Copyright: 2000-2007, IBM Corporation
 License: MPL-1.1
 
+Files: nsIScript*
+Copyright: 2009, IBM Corporation and others
+           1998-1999, Netscape Communications Corporation
+License: MPL-1.1
+
 Files: org/eclipse/swt/internal/mozilla/[^GRE]*.java
 Copyright: 2003-2008, IBM Corporation
            1998-1999, Netscape Communications Corporation
