@@ -15,7 +15,7 @@ Package: libswt-gtk-3.5-java
 Architecture: any
 Section: java
 Depends: libswt-gtk-3.5-jni (= ${binary:Version}), ${misc:Depends}
-Suggests: libswt-gtk-3.4-java-gcj
+Suggests: libswt-gtk-3.5-java-gcj
 Description: Standard Widget Toolkit for GTK+ Java library
  The SWT component is designed to provide efficient, portable access to
  the user-interface facilities of the operating systems on which it is

@@ -1,35 +1,7 @@
-diff --git a/.topdeps b/.topdeps
-new file mode 100644
-index 0000000..1f7391f
---- /dev/null
-+++ b/.topdeps
-@@ -0,0 +1 @@
-+master
-diff --git a/.topmsg b/.topmsg
-new file mode 100644
-index 0000000..b315ddc
---- /dev/null
-+++ b/.topmsg
-@@ -0,0 +1,6 @@
-+From: Adrian Perez <adrianperez.deb@gmail.com>
-+Subject: [PATCH] debian/makefile
-+
-+Tweak Linux Makefile.
-+
-+Signed-off-by: Adrian Perez <adrianperez.deb@gmail.com>
-diff --git a/make_linux.mak b/make_linux.mak
-index c1bc1a1..f410762 100644
---- a/make_linux.mak
-+++ b/make_linux.mak
-@@ -50,6 +50,7 @@ GTKLIBS = `pkg-config --libs-only-L gtk+-2.0 gthread-2.0` -lgtk-x11-2.0 -lgthrea
- 
- CDE_LIBS = -L$(CDE_HOME)/lib -R$(CDE_HOME)/lib -lXt -lX11 -lDtSvc
- 
-+AWT_LIB_PATH=/usr/lib/jvm/default-java/lib
- AWT_LIBS = -L$(AWT_LIB_PATH) -ljawt -shared
- 
- ATKCFLAGS = `pkg-config --cflags atk gtk+-2.0`
-@@ -64,6 +65,7 @@ GLXLIBS = -shared -fPIC -L/usr/X11R6/lib -lGL -lGLU -lm
+diff -Nur -x '*.orig' -x '*~' swt-gtk/make_linux.mak swt-gtk.new/make_linux.mak
+--- swt-gtk/make_linux.mak	2011-12-06 19:13:57.054148957 -0500
++++ swt-gtk.new/make_linux.mak	2011-12-06 20:07:00.554197279 -0500
+@@ -64,6 +64,7 @@
  # Uncomment for Native Stats tool
  #NATIVE_STATS = -DNATIVE_STATS
  
@@ -37,20 +9,19 @@ index c1bc1a1..f410762 100644
  MOZILLACFLAGS = -O \
  	-DSWT_VERSION=$(SWT_VERSION) \
  	$(NATIVE_STATS) \
-@@ -76,8 +78,11 @@ MOZILLACFLAGS = -O \
+@@ -76,8 +77,10 @@
  	-I. \
  	-I$(JAVA_HOME)/include \
  	-I$(JAVA_HOME)/include/linux \
 +	`pkg-config --cflags libxul-embedding` \
  	${SWT_PTR_CFLAGS}
 -MOZILLALIBS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic
-+
 +MOZILLALIBS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic \
-+	`pkg-config --libs libxul-embedding`
++ 	`pkg-config --libs libxul-embedding`
  MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
  	-DNO__1XPCOMGlueStartup \
  	-DNO__1XPCOMGlueLoadXULFunctions \
-@@ -101,7 +106,7 @@ XULRUNNER_OBJECTS = swt.o xpcomxul.o xpcomxul_custom.o xpcomxul_structs.o xpcomx
+@@ -101,7 +104,7 @@
  XPCOMINIT_OBJECTS = swt.o xpcominit.o xpcominit_structs.o xpcominit_stats.o
  GLX_OBJECTS = swt.o glx.o glx_structs.o glx_stats.o
  
@@ -59,7 +30,7 @@ index c1bc1a1..f410762 100644
  		-DSWT_VERSION=$(SWT_VERSION) \
  		$(NATIVE_STATS) \
  		-DLINUX -DGTK \
-@@ -111,6 +116,7 @@ CFLAGS = -O -Wall \
+@@ -111,6 +114,7 @@
  		${SWT_PTR_CFLAGS}
  LIBS = -shared -fPIC
  
