@@ -1,13 +1,14 @@
-swt-gtk (3.5.1-1~1.gbp0a3f85) UNRELEASED; urgency=low
+swt-gtk (3.5.1-1) unstable; urgency=low
 
-  ** SNAPSHOT build @0a3f850e24cad4b963bd8f17cc5d61fc84281088 **
-
-  * New upstream release. Closes: #XXXXX.
-  * debian/control: Add Vcs-* fields for Git repository.
-  * debian/copyright: Minor updates.
+  * New upstream release. Closes: #558663.
+  * debian/control: 
+    - Add Vcs-* fields for Git repository.
+    - Allow DM-Uploads.
+    - Remove "Conflicts", package should live with eclipse.
   * debian/rules: Fix default-java path around AWT_LIB_PATH.
+  * debian/copyright: Minor update.
 
- -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 30 Nov 2009 23:13:20 -0500
+ -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 07 Dec 2009 10:22:24 -0500
 
 swt-gtk (3.4.2-3) unstable; urgency=medium
 
