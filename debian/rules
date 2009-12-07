@@ -18,7 +18,7 @@ ifneq (,$(filter $(DEB_HOST_ARCH), powerpc))
 	AWT_LIB_DIR = ppc
 endif 
 
-DEB_MAKE_INVOKE += -DAWT_LIB_PATH=/usr/lib/java/jvm/default-java/jvm/\
+DEB_MAKE_INVOKE += -DAWT_LIB_PATH=/usr/lib/jvm/default-java/jre/lib/\
 	$(AWT_LIB_DIR)
 
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
