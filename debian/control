@@ -28,7 +28,6 @@ Package: libswt-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libswt-gnome-gtk-3.5-jni
-Conflicts: libswt3.4-gtk-jni
 Description: Standard Widget Toolkit for GTK+ JNI library
  The SWT component is designed to provide efficient, portable access to
  the user-interface facilities of the operating systems on which it is
@@ -39,7 +38,6 @@ Description: Standard Widget Toolkit for GTK+ JNI library
 Package: libswt-gnome-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: libswt3.4-gtk-jni 
 Description: Standard Widget Toolkit for GTK+ GNOME JNI library
  The SWT component is designed to provide efficient, portable access to
  the user-interface facilities of the operating systems on which it is
@@ -50,7 +48,6 @@ Description: Standard Widget Toolkit for GTK+ GNOME JNI library
 Package: libswt-mozilla-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: libswt3.4-gtk-jni
 Description: Standard Widget Toolkit for GTK+ Mozilla JNI library
  The SWT component is designed to provide efficient, portable access to
  the user-interface facilities of the operating systems on which it is
@@ -61,7 +58,6 @@ Description: Standard Widget Toolkit for GTK+ Mozilla JNI library
 Package: libswt-cairo-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: libswt3.4-gtk-jni
 Description: Standard Widget Toolkit for GTK+ Cairo JNI library
  The SWT component is designed to provide efficient, portable access to
  the user-interface facilities of the operating systems on which it is
@@ -72,7 +68,6 @@ Description: Standard Widget Toolkit for GTK+ Cairo JNI library
 Package: libswt-glx-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Conflicts: libswt3.4-gtk-jni
 Description: Standard Widget Toolkit for GTK+ GLX JNI library
  The SWT component is designed to provide efficient, portable access to
  the user-interface facilities of the operating systems on which it is
