@@ -18,9 +18,10 @@ Section: java
 Depends: libswt-gtk-3.5-jni (= ${binary:Version}), ${misc:Depends}
 Suggests: libswt-gtk-3.5-java-gcj
 Description: Standard Widget Toolkit for GTK+ Java library
- The SWT component is designed to provide efficient, portable access to
- the user-interface facilities of the operating systems on which it is
- implemented.
+ The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
+ programming language. SWT provides efficient, portable and fast access to
+ native controls and user interface facilities on the platforms where it has
+ been implemented.
  .
  This package includes the SWT JAR libraries.
 
@@ -29,19 +30,21 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libswt-gnome-gtk-3.5-jni
 Description: Standard Widget Toolkit for GTK+ JNI library
- The SWT component is designed to provide efficient, portable access to
- the user-interface facilities of the operating systems on which it is
- implemented.
+ The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
+ programming language. SWT provides efficient, portable and fast access to
+ native controls and user interface facilities on the platforms where it has
+ been implemented.
  .
- This package includes the JNI libraries.
+ This package includes the JNI libraries (atk, awt, gtk, pi).
 
 Package: libswt-gnome-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Standard Widget Toolkit for GTK+ GNOME JNI library
- The SWT component is designed to provide efficient, portable access to
- the user-interface facilities of the operating systems on which it is
- implemented.
+ The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
+ programming language. SWT provides efficient, portable and fast access to
+ native controls and user interface facilities on the platforms where it has
+ been implemented.
  .
  This package includes the GNOME JNI library.
 
@@ -49,9 +52,10 @@ Package: libswt-mozilla-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Standard Widget Toolkit for GTK+ Mozilla JNI library
- The SWT component is designed to provide efficient, portable access to
- the user-interface facilities of the operating systems on which it is
- implemented.
+ The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
+ programming language. SWT provides efficient, portable and fast access to
+ native controls and user interface facilities on the platforms where it has
+ been implemented.
  .
  This package includes the Mozilla JNI libraries.
 
@@ -59,9 +63,10 @@ Package: libswt-cairo-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Standard Widget Toolkit for GTK+ Cairo JNI library
- The SWT component is designed to provide efficient, portable access to
- the user-interface facilities of the operating systems on which it is
- implemented.
+ The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
+ programming language. SWT provides efficient, portable and fast access to
+ native controls and user interface facilities on the platforms where it has
+ been implemented.
  .
  This package includes the Cairo JNI libraries.
 
@@ -69,23 +74,25 @@ Package: libswt-glx-gtk-3.5-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Standard Widget Toolkit for GTK+ GLX JNI library
- The SWT component is designed to provide efficient, portable access to
- the user-interface facilities of the operating systems on which it is
- implemented.
+ The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
+ programming language. SWT provides efficient, portable and fast access to
+ native controls and user interface facilities on the platforms where it has
+ been implemented.
  .
  This package includes the GLX JNI libraries.
 
 Package: libswt-gtk-3.5-java-gcj
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
- libswt-cairo-gtk-3.5-jni (= ${binary:Version}),
- libswt-glx-gtk-3.5-jni (= ${binary:Version}),
- libswt-gnome-gtk-3.5-jni (= ${binary:Version}),
- libswt-gtk-3.5-jni (= ${binary:Version}),
- libswt-mozilla-gtk-3.5-jni (= ${binary:Version})
+	  libswt-cairo-gtk-3.5-jni (= ${binary:Version}),
+	  libswt-glx-gtk-3.5-jni (= ${binary:Version}),
+	  libswt-gnome-gtk-3.5-jni (= ${binary:Version}),
+	  libswt-gtk-3.5-jni (= ${binary:Version}),
+	  libswt-mozilla-gtk-3.5-jni (= ${binary:Version})
 Description: Standard Widget Toolkit for GTK+ native library
- The SWT component is designed to provide efficient, portable access to
- the user-interface facilities of the operating systems on which it is
- implemented.
+ The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
+ programming language. SWT provides efficient, portable and fast access to
+ native controls and user interface facilities on the platforms where it has
+ been implemented.
  .
  This package contains a native library built using gcj.
