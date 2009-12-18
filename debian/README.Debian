@@ -16,4 +16,5 @@ Currently, the full SWT distribution is provided by the following packages
  * libswt-gtk-X.Y-jni: SWT JNI libraries.
  * libswt-mozilla-gtk-X.Y-jni: Mozilla JNI libraries.
 
- -- Adrian Perez <adrianperez.deb@gmail.com>, Tue, 15 Dec 2009 19:12:27 -0500
+ -- Adrian Perez <adrianperez.deb@gmail.com>, Thu, 17 Dec 2009 20:00:30 -0500
+

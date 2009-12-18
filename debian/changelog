@@ -1,7 +1,24 @@
+swt-gtk (3.5.1-2) unstable; urgency=low
+
+  * debian/control:
+    - libswt-gtk-3.5-jni: Specify which libraries are provided by package.
+    - Improve Descriptions.
+  * debian/patches:
+    - 64/make_jni64.diff: Fix 64 bits makefile variable, now passes JNI64.
+    - 64/swt-ptr-size-64.patch: Remove obsolete patch.
+    - 64/arch64.diff: Rename x86_64 to arch64 being more concise about archs.
+  * debian/{NEWS,README}.Debian:
+    - Note that swt-gtk will be the only source of SWT libraries.
+  * debian/libswt-gtk-3.5-java.{postinst,prerm}:
+    - Remove, since alternatives are no longer needed.
+  * debian/libswt-gtk-3.5-java.links: Add links for /usr/share/java.
+
+ -- Adrian Perez <adrianperez.deb@gmail.com>  Thu, 17 Dec 2009 19:55:09 -0500
+
 swt-gtk (3.5.1-1) unstable; urgency=low
 
   * New upstream release. Closes: #558663.
-  * debian/control: 
+  * debian/control:
     - Add Vcs-* fields for Git repository.
     - Allow DM-Uploads.
     - Remove "Conflicts", package should live with eclipse.
@@ -12,13 +29,13 @@ swt-gtk (3.5.1-1) unstable; urgency=low
 
 swt-gtk (3.4.2-3) unstable; urgency=medium
 
-  * debian/control: 
+  * debian/control:
     - Build-Depend on libxt-dev. Fixes FTBFS with openjdk. Closes: #542990.
     - Update Standards-Version to 3.8.3.
-  * debian/rules: 
+  * debian/rules:
     - Set makefile to debian/Makefile.
     - Pass AWT_LIB_PATH dinamically to Makefile.
-  * debian/copyright: 
+  * debian/copyright:
     - Update copyright holders and licenses.
     - Use machine-readable format.
   * debian/patches/01-make_linux.patch: Remove AWT_LIB_PATH from patch.
@@ -27,9 +44,9 @@ swt-gtk (3.4.2-3) unstable; urgency=medium
 
 swt-gtk (3.4.2-2) unstable; urgency=low
 
-  * Architecture-dependent package libswt-gtk-3.4-java installs to 
+  * Architecture-dependent package libswt-gtk-3.4-java installs to
     /usr/lib/java by policy.
-  * Updated maintainer scripts and alternatives to reflect previous change. 
+  * Updated maintainer scripts and alternatives to reflect previous change.
 
  -- Adrian Perez <adrianperez.deb@gmail.com>  Fri, 24 Jul 2009 12:26:59 -0400
 
@@ -58,8 +75,8 @@ swt-gtk (3.4.2-1) unstable; urgency=low
     - Changed DEB_PATCHDIRS to include 'common' and arch-dependent patches.
   * Fixed debian/watch file.
   * Added README.Debian.
-  
- -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 6 Jul 2009 10:04:15 -0400 
+
+ -- Adrian Perez <adrianperez.deb@gmail.com>  Mon, 6 Jul 2009 10:04:15 -0400
 
 swt-gtk (3.4-2) unstable; urgency=low
 
