@@ -1,3 +1,20 @@
+swt-gtk (3.5.1-3) unstable; urgency=low
+
+  * debian/control:
+    + Replace default-jdk-builddep with default-jdk, gcj-native-helper in B-D
+    + Bumped Standards-Version to 3.9.1
+  * debian/rules:
+    + Call dh_xulrunner to add proper  xulrunner dependency to
+      libswt-mozilla-gtk-<version>-jni (Closes: #587643)
+    + Fix from Ubuntu: Don't set DEB_MAKE_INVOKE and pass.  AWT_LIB_PATH to
+      Makefile. This used to be overwritten by makefile- vars.mk in Lucid
+      anyway, and so it was ignored. It is not overwritten now, and causes the
+      package to FTBFS. Instead, export AWT_LIB_PATH before calling the
+      makefile (Closes: #577360)
+  * Explicitly set source format to 1.0
+
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Fri, 06 Aug 2010 21:49:52 +0300
+
 swt-gtk (3.5.1-2) unstable; urgency=low
 
   * debian/control:
