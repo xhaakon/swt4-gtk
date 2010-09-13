@@ -1,7 +1,7 @@
 Source: swt-gtk
 Section: libs
 Priority: optional
-Maintainer: Adrian Perez <adrianperez.deb@gmail.com>
+Maintainer: Adrian Perez <blackxored@debian.org>
 DM-Upload-Allowed: yes
 Build-Depends: default-jdk, gcj-native-helper, libgnomeui-dev, libxtst-dev,
  xulrunner-dev, libxcb-render-util0-dev, libxt-dev,
