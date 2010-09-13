@@ -8,7 +8,7 @@ Copyright: 2000-2009, IBM Corporation and others
 License: EPL-1.0
 
 Files: debian/*
-Copyright: 2009, Adrian Perez <adrianperez.deb@gmail.com>
+Copyright: 2009-2010, Adrian Perez <adrianperez.deb@gmail.com>
            2004-2009, Shaun Jackman <sjackman@debian.org>
 License: GPL-3+
 
@@ -36,6 +36,14 @@ License: LGPL-2.1
 
 Files: org/eclipse/swt/internal/gtk/[^X]*.java
 Copyright: 2000-2007, IBM Corporation and others
+License: LGPL-2.1
+
+Files: org/eclipse/swt/internal/gnome/*
+Copyright: 2000-2008, IBM Corporation and others
+License: LGPL-2.1
+
+Files: org/eclipse/swt/internal/cde/*
+Copyright: 2000-2008, IBM Corporation and others
 License: LGPL-2.1
 
 Files: org/eclipse/swt/internal/image/JPEGFileFormat.java
