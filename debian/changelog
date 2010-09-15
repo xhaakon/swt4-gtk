@@ -1,3 +1,14 @@
+swt-gtk (3.5.1-4) unstable; urgency=low
+
+  * debian/patches:
+    - Refresh arch64.diff. FTBFS on x86_64 CPUs.
+    - Rename bp-accessible-object patch.
+  * debian/rules:
+    - Support powerpcspe builds. Closes: #597056.
+      Thanks: Sebastian Andrzej Siewior.
+
+ -- Adrian Perez <blackxored@debian.org>  Wed, 15 Sep 2010 15:53:07 -0400
+
 swt-gtk (3.5.1-3) unstable; urgency=low
 
   * Acknowledge AWL-forced NMU. Thanks: Ahmed El-Mahmoudy.
