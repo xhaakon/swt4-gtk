@@ -1,3 +1,10 @@
+swt-gtk (3.5.1-5) unstable; urgency=low
+
+  * debian/patches: Move 02-bp-accessible-object to common/ directory.
+  * debian/copyright: More updates.
+
+ -- Adrian Perez <blackxored@debian.org>  Thu, 16 Sep 2010 13:09:55 -0400
+
 swt-gtk (3.5.1-4) unstable; urgency=low
 
   * debian/patches:
