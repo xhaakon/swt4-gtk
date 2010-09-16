@@ -18,6 +18,10 @@ ifneq (,$(filter $(DEB_HOST_ARCH), powerpc))
 	AWT_LIB_DIR = ppc
 endif
 
+ifneq (,$(filter $(DEB_HOST_ARCH), powerpcspe))
+	AWT_LIB_DIR = ppc
+endif
+
 ifneq (,$(filter $(DEB_HOST_ARCH), sh4))
 	AWT_LIB_DIR = sh
 endif 
