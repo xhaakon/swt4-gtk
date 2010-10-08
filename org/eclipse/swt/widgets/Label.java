@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ package org.eclipse.swt.widgets;
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
+import org.eclipse.swt.accessibility.*;
 import org.eclipse.swt.graphics.*;
 
 /**
@@ -108,11 +109,8 @@ static int checkStyle (int style) {
 void addRelation (Control control) {
 	if (!control.isDescribedByLabel ()) return;
 	if (labelHandle == 0) return;
-	int /*long*/ accessible = OS.gtk_widget_get_accessible (labelHandle);
-	int /*long*/ controlAccessible = OS.gtk_widget_get_accessible (control.handle);
-	if (accessible != 0 && controlAccessible != 0) {
-		OS.atk_object_add_relationship (controlAccessible, OS.ATK_RELATION_LABELLED_BY, accessible);
-	}
+	control._getAccessible().addRelation(ACC.RELATION_LABELLED_BY, _getAccessible());
+	control.labelRelation = this;
 }
 
 public Point computeSize (int wHint, int hHint, boolean changed) {

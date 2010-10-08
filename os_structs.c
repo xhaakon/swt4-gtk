@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -708,6 +708,52 @@ void setGdkEventMotionFields(JNIEnv *env, jobject lpObject, GdkEventMotion *lpSt
 	(*env)->SetIntLongField(env, lpObject, GdkEventMotionFc.device, (jintLong)lpStruct->device);
 	(*env)->SetDoubleField(env, lpObject, GdkEventMotionFc.x_root, (jdouble)lpStruct->x_root);
 	(*env)->SetDoubleField(env, lpObject, GdkEventMotionFc.y_root, (jdouble)lpStruct->y_root);
+}
+#endif
+
+#ifndef NO_GdkEventProperty
+typedef struct GdkEventProperty_FID_CACHE {
+	int cached;
+	jclass clazz;
+	jfieldID window, send_event, atom, time, state;
+} GdkEventProperty_FID_CACHE;
+
+GdkEventProperty_FID_CACHE GdkEventPropertyFc;
+
+void cacheGdkEventPropertyFields(JNIEnv *env, jobject lpObject)
+{
+	if (GdkEventPropertyFc.cached) return;
+	cacheGdkEventFields(env, lpObject);
+	GdkEventPropertyFc.clazz = (*env)->GetObjectClass(env, lpObject);
+	GdkEventPropertyFc.window = (*env)->GetFieldID(env, GdkEventPropertyFc.clazz, "window", I_J);
+	GdkEventPropertyFc.send_event = (*env)->GetFieldID(env, GdkEventPropertyFc.clazz, "send_event", "B");
+	GdkEventPropertyFc.atom = (*env)->GetFieldID(env, GdkEventPropertyFc.clazz, "atom", I_J);
+	GdkEventPropertyFc.time = (*env)->GetFieldID(env, GdkEventPropertyFc.clazz, "time", "I");
+	GdkEventPropertyFc.state = (*env)->GetFieldID(env, GdkEventPropertyFc.clazz, "state", "I");
+	GdkEventPropertyFc.cached = 1;
+}
+
+GdkEventProperty *getGdkEventPropertyFields(JNIEnv *env, jobject lpObject, GdkEventProperty *lpStruct)
+{
+	if (!GdkEventPropertyFc.cached) cacheGdkEventPropertyFields(env, lpObject);
+	getGdkEventFields(env, lpObject, (GdkEvent *)lpStruct);
+	lpStruct->window = (GdkWindow *)(*env)->GetIntLongField(env, lpObject, GdkEventPropertyFc.window);
+	lpStruct->send_event = (gint8)(*env)->GetByteField(env, lpObject, GdkEventPropertyFc.send_event);
+	lpStruct->atom = (GdkAtom)(*env)->GetIntLongField(env, lpObject, GdkEventPropertyFc.atom);
+	lpStruct->time = (guint32)(*env)->GetIntField(env, lpObject, GdkEventPropertyFc.time);
+	lpStruct->state = (guint)(*env)->GetIntField(env, lpObject, GdkEventPropertyFc.state);
+	return lpStruct;
+}
+
+void setGdkEventPropertyFields(JNIEnv *env, jobject lpObject, GdkEventProperty *lpStruct)
+{
+	if (!GdkEventPropertyFc.cached) cacheGdkEventPropertyFields(env, lpObject);
+	setGdkEventFields(env, lpObject, (GdkEvent *)lpStruct);
+	(*env)->SetIntLongField(env, lpObject, GdkEventPropertyFc.window, (jintLong)lpStruct->window);
+	(*env)->SetByteField(env, lpObject, GdkEventPropertyFc.send_event, (jbyte)lpStruct->send_event);
+	(*env)->SetIntLongField(env, lpObject, GdkEventPropertyFc.atom, (jintLong)lpStruct->atom);
+	(*env)->SetIntField(env, lpObject, GdkEventPropertyFc.time, (jint)lpStruct->time);
+	(*env)->SetIntField(env, lpObject, GdkEventPropertyFc.state, (jint)lpStruct->state);
 }
 #endif
 
@@ -2368,67 +2414,6 @@ void setXAnyEventFields(JNIEnv *env, jobject lpObject, XAnyEvent *lpStruct)
 	(*env)->SetIntField(env, lpObject, XAnyEventFc.send_event, (jint)lpStruct->send_event);
 	(*env)->SetIntLongField(env, lpObject, XAnyEventFc.display, (jintLong)lpStruct->display);
 	(*env)->SetIntLongField(env, lpObject, XAnyEventFc.window, (jintLong)lpStruct->window);
-}
-#endif
-
-#ifndef NO_XButtonEvent
-typedef struct XButtonEvent_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID root, subwindow, time, x, y, x_root, y_root, state, button, same_screen;
-} XButtonEvent_FID_CACHE;
-
-XButtonEvent_FID_CACHE XButtonEventFc;
-
-void cacheXButtonEventFields(JNIEnv *env, jobject lpObject)
-{
-	if (XButtonEventFc.cached) return;
-	cacheXAnyEventFields(env, lpObject);
-	XButtonEventFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	XButtonEventFc.root = (*env)->GetFieldID(env, XButtonEventFc.clazz, "root", "I");
-	XButtonEventFc.subwindow = (*env)->GetFieldID(env, XButtonEventFc.clazz, "subwindow", "I");
-	XButtonEventFc.time = (*env)->GetFieldID(env, XButtonEventFc.clazz, "time", "I");
-	XButtonEventFc.x = (*env)->GetFieldID(env, XButtonEventFc.clazz, "x", "I");
-	XButtonEventFc.y = (*env)->GetFieldID(env, XButtonEventFc.clazz, "y", "I");
-	XButtonEventFc.x_root = (*env)->GetFieldID(env, XButtonEventFc.clazz, "x_root", "I");
-	XButtonEventFc.y_root = (*env)->GetFieldID(env, XButtonEventFc.clazz, "y_root", "I");
-	XButtonEventFc.state = (*env)->GetFieldID(env, XButtonEventFc.clazz, "state", "I");
-	XButtonEventFc.button = (*env)->GetFieldID(env, XButtonEventFc.clazz, "button", "I");
-	XButtonEventFc.same_screen = (*env)->GetFieldID(env, XButtonEventFc.clazz, "same_screen", "I");
-	XButtonEventFc.cached = 1;
-}
-
-XButtonEvent *getXButtonEventFields(JNIEnv *env, jobject lpObject, XButtonEvent *lpStruct)
-{
-	if (!XButtonEventFc.cached) cacheXButtonEventFields(env, lpObject);
-	getXAnyEventFields(env, lpObject, (XAnyEvent *)lpStruct);
-	lpStruct->root = (*env)->GetIntField(env, lpObject, XButtonEventFc.root);
-	lpStruct->subwindow = (*env)->GetIntField(env, lpObject, XButtonEventFc.subwindow);
-	lpStruct->time = (*env)->GetIntField(env, lpObject, XButtonEventFc.time);
-	lpStruct->x = (*env)->GetIntField(env, lpObject, XButtonEventFc.x);
-	lpStruct->y = (*env)->GetIntField(env, lpObject, XButtonEventFc.y);
-	lpStruct->x_root = (*env)->GetIntField(env, lpObject, XButtonEventFc.x_root);
-	lpStruct->y_root = (*env)->GetIntField(env, lpObject, XButtonEventFc.y_root);
-	lpStruct->state = (*env)->GetIntField(env, lpObject, XButtonEventFc.state);
-	lpStruct->button = (*env)->GetIntField(env, lpObject, XButtonEventFc.button);
-	lpStruct->same_screen = (*env)->GetIntField(env, lpObject, XButtonEventFc.same_screen);
-	return lpStruct;
-}
-
-void setXButtonEventFields(JNIEnv *env, jobject lpObject, XButtonEvent *lpStruct)
-{
-	if (!XButtonEventFc.cached) cacheXButtonEventFields(env, lpObject);
-	setXAnyEventFields(env, lpObject, (XAnyEvent *)lpStruct);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.root, (jint)lpStruct->root);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.subwindow, (jint)lpStruct->subwindow);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.time, (jint)lpStruct->time);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.x, (jint)lpStruct->x);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.y, (jint)lpStruct->y);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.x_root, (jint)lpStruct->x_root);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.y_root, (jint)lpStruct->y_root);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.state, (jint)lpStruct->state);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.button, (jint)lpStruct->button);
-	(*env)->SetIntField(env, lpObject, XButtonEventFc.same_screen, (jint)lpStruct->same_screen);
 }
 #endif
 

@@ -210,7 +210,7 @@ int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 		case OS.GTK_SCROLL_STEP_BACKWARD:	event.detail = SWT.ARROW_UP; break;
 	}
 	if (!dragSent) detail = OS.GTK_SCROLL_NONE;
-	postEvent (SWT.Selection, event);
+	sendSelectionEvent (SWT.Selection, event, false);
 	return 0;
 }
 
@@ -225,9 +225,9 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 				if (!dragSent) {
 					Event event = new Event ();
 					event.detail = SWT.DRAG;
-					postEvent (SWT.Selection, event);
+					sendSelectionEvent (SWT.Selection, event, false);
 				}
-				postEvent (SWT.Selection);
+				sendSelectionEvent (SWT.Selection);
 			}
 			detail = OS.GTK_SCROLL_NONE;
 			dragSent = false;
@@ -365,8 +365,7 @@ public int getSelection () {
 }
 
 /**
- * Returns the size of the receiver's thumb relative to the
- * difference between its maximum and minimum values.
+ * Returns the receiver's thumb value.
  *
  * @return the thumb value
  *
@@ -538,10 +537,13 @@ public void setSelection (int value) {
 }
 
 /**
- * Sets the size of the receiver's thumb relative to the
- * difference between its maximum and minimum values.  This new
- * value will be ignored if it is less than one, and will be
+ * Sets the thumb value. The thumb value should be used to represent 
+ * the size of the visual portion of the current range. This value is
+ * usually the same as the page increment value.
+ * <p>
+ * This new value will be ignored if it is less than one, and will be 
  * clamped if it exceeds the receiver's current range.
+ * </p>
  *
  * @param value the new thumb value, which must be at least one and not
  * larger than the size of the current range

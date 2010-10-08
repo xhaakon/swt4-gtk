@@ -66,6 +66,8 @@ public final class GC extends Resource {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
+	 * 
+	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ handle;
 	
@@ -1089,12 +1091,12 @@ void drawImageXRender(Image srcImage, int srcX, int srcY, int srcWidth, int srcH
 		short[] xRects = new short[nRects[0] * 4];
 		for (int i=0, j=0; i<nRects[0]; i++, j+=4) {
 			OS.memmove(rect, rects[0] + (i * GdkRectangle.sizeof), GdkRectangle.sizeof);
-			xRects[j] = (short)rect.x;
-			xRects[j+1] = (short)rect.y;
+			xRects[j] = (short)(translateX + rect.x);
+			xRects[j+1] = (short)(translateY + rect.y);
 			xRects[j+2] = (short)rect.width;
 			xRects[j+3] = (short)rect.height;
 		}
-		OS.XRenderSetPictureClipRectangles(xDisplay, destPict, translateX, translateY, xRects, nRects[0]);
+		OS.XRenderSetPictureClipRectangles(xDisplay, destPict, 0, 0, xRects, nRects[0]);
 		if (clipping != data.clipRgn && clipping != data.damageRgn) {
 			OS.gdk_region_destroy(clipping);
 		}
@@ -2508,8 +2510,9 @@ public Pattern getForegroundPattern() {
  * 
  * @see GCData
  * 
- * @since 3.2
  * @noreference This method is not intended to be referenced by clients.
+ * 
+ * @since 3.2
  */
 public GCData getGCData() {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
@@ -2821,31 +2824,35 @@ void initCairo() {
 	data.device.checkCairo();
 	int /*long*/ cairo = data.cairo;
 	if (cairo != 0) return;
-	int /*long*/ xDisplay = OS.GDK_DISPLAY();
-	int /*long*/ xVisual = OS.gdk_x11_visual_get_xvisual(OS.gdk_visual_get_system());
-	int /*long*/ xDrawable = 0;
-	int translateX = 0, translateY = 0;
-	int /*long*/ drawable = data.drawable;
-	if (data.image != null) {
-		xDrawable = OS.GDK_PIXMAP_XID(drawable);
-	} else {
-		if (!data.realDrawable) {
-			int[] x = new int[1], y = new int[1];
-			int /*long*/ [] real_drawable = new int /*long*/ [1];
-			OS.gdk_window_get_internal_paint_info(drawable, real_drawable, x, y);
-			xDrawable = OS.gdk_x11_drawable_get_xid(real_drawable[0]);
-			translateX = -x[0];
-			translateY = -y[0];
+	if (OS.GTK_VERSION < OS.VERSION(2, 17, 0)) {
+		int /*long*/ xDisplay = OS.GDK_DISPLAY();
+		int /*long*/ xVisual = OS.gdk_x11_visual_get_xvisual(OS.gdk_visual_get_system());
+		int /*long*/ xDrawable = 0;
+		int translateX = 0, translateY = 0;
+		int /*long*/ drawable = data.drawable;
+		if (data.image != null) {
+			xDrawable = OS.GDK_PIXMAP_XID(drawable);
+		} else {
+			if (!data.realDrawable) {
+				int[] x = new int[1], y = new int[1];
+				int /*long*/ [] real_drawable = new int /*long*/ [1];
+				OS.gdk_window_get_internal_paint_info(drawable, real_drawable, x, y);
+				xDrawable = OS.gdk_x11_drawable_get_xid(real_drawable[0]);
+				translateX = -x[0];
+				translateY = -y[0];
+			}
 		}
+		int[] w = new int[1], h = new int[1];
+		OS.gdk_drawable_get_size(drawable, w, h);
+		int width = w[0], height = h[0];
+		int /*long*/ surface = Cairo.cairo_xlib_surface_create(xDisplay, xDrawable, xVisual, width, height);
+		if (surface == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+		Cairo.cairo_surface_set_device_offset(surface, translateX, translateY);
+		data.cairo = cairo = Cairo.cairo_create(surface);
+		Cairo.cairo_surface_destroy(surface);
+	} else {
+		data.cairo = cairo = OS.gdk_cairo_create(data.drawable);
 	}
-	int[] w = new int[1], h = new int[1];
-	OS.gdk_drawable_get_size(drawable, w, h);
-	int width = w[0], height = h[0];
-	int /*long*/ surface = Cairo.cairo_xlib_surface_create(xDisplay, xDrawable, xVisual, width, height);
-	if (surface == 0) SWT.error(SWT.ERROR_NO_HANDLES);
-	Cairo.cairo_surface_set_device_offset(surface, translateX, translateY);
-	data.cairo = cairo = Cairo.cairo_create(surface);
-	Cairo.cairo_surface_destroy(surface);
 	if (cairo == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	data.disposeCairo = true;
 	Cairo.cairo_set_fill_rule(cairo, Cairo.CAIRO_FILL_RULE_EVEN_ODD);
@@ -2885,7 +2892,7 @@ public boolean isClipped() {
  * <p>
  * This method gets the dispose state for the GC.
  * When a GC has been disposed, it is an error to
- * invoke any other method using the GC.
+ * invoke any other method (except {@link #dispose()}) using the GC.
  *
  * @return <code>true</code> when the GC is disposed and <code>false</code> otherwise
  */
@@ -3533,9 +3540,9 @@ public void setLineAttributes(LineAttributes attributes) {
 	if (join != data.lineJoin) {
 		mask |= LINE_JOIN;
 		switch (join) {
-			case SWT.CAP_ROUND:
-			case SWT.CAP_FLAT:
-			case SWT.CAP_SQUARE:
+			case SWT.JOIN_MITER:
+			case SWT.JOIN_ROUND:
+			case SWT.JOIN_BEVEL:
 				break;
 			default:
 				SWT.error(SWT.ERROR_INVALID_ARGUMENT);
@@ -3545,9 +3552,9 @@ public void setLineAttributes(LineAttributes attributes) {
 	if (cap != data.lineCap) {
 		mask |= LINE_CAP;
 		switch (cap) {
-			case SWT.JOIN_MITER:
-			case SWT.JOIN_ROUND:
-			case SWT.JOIN_BEVEL:
+			case SWT.CAP_FLAT:
+			case SWT.CAP_ROUND:
+			case SWT.CAP_SQUARE:
 				break;
 			default:
 				SWT.error(SWT.ERROR_INVALID_ARGUMENT);

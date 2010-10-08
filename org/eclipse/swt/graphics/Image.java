@@ -79,6 +79,8 @@ public final class Image extends Resource implements Drawable {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
+	 * 
+	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int type;
 	
@@ -91,6 +93,8 @@ public final class Image extends Resource implements Drawable {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
+	 * 
+	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ pixmap;
 	
@@ -103,6 +107,8 @@ public final class Image extends Resource implements Drawable {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
+	 * 
+	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ mask;
 
@@ -645,6 +651,17 @@ void createSurface() {
 		int stride = OS.gdk_pixbuf_get_rowstride(pixbuf);
 		int /*long*/ pixels = OS.gdk_pixbuf_get_pixels(pixbuf);		
 		byte[] line = new byte[stride];
+		int /*long*/ ptr = OS.malloc(4);
+		OS.memmove(ptr, new int[]{1}, 4);
+		OS.memmove(line, ptr, 1);
+		OS.free(ptr);
+		int oa, or, og, ob;
+		boolean bigendian = line[0] == 0;
+		if (bigendian) {
+			oa = 0; or = 1; og = 2; ob = 3;
+		} else {
+			oa = 3; or = 2; og = 1; ob = 0;
+		}
 		if (mask != 0 && OS.gdk_drawable_get_depth(mask) == 1) {
 			int /*long*/ maskPixbuf = OS.gdk_pixbuf_new(OS.GDK_COLORSPACE_RGB, false, 8, width, height);
 			if (maskPixbuf == 0) SWT.error(SWT.ERROR_NO_HANDLES);
@@ -659,10 +676,15 @@ void createSurface() {
 				for (int x=0, offset1=0; x<width; x++, offset1 += 4) {
 					if (maskLine[x * 3] == 0) {
 						line[offset1 + 0] = line[offset1 + 1] = line[offset1 + 2] = line[offset1 + 3] = 0;
+					} else {
+						byte r = line[offset1 + 0];
+						byte g = line[offset1 + 1];
+						byte b = line[offset1 + 2];
+						line[offset1 + oa] = (byte)0xFF;
+						line[offset1 + or] = r;
+						line[offset1 + og] = g;
+						line[offset1 + ob] = b;
 					}
-					byte temp = line[offset1];
-					line[offset1] = line[offset1 + 2];
-					line[offset1 + 2] = temp;
 				}
 				OS.memmove(offset, line, stride);
 				offset += stride;
@@ -674,7 +696,6 @@ void createSurface() {
 			for (int y=0; y<height; y++) {
 				OS.memmove(line, offset, stride);
 				for (int x=0, offset1=0; x<width; x++, offset1 += 4) {
-					line[offset1+3] = (byte)alpha;
 					/* pre-multiplied alpha */
 					int r = ((line[offset1 + 0] & 0xFF) * alpha) + 128;
 					r = (r + (r >> 8)) >> 8;
@@ -682,9 +703,10 @@ void createSurface() {
 					g = (g + (g >> 8)) >> 8;
 					int b = ((line[offset1 + 2] & 0xFF) * alpha) + 128;
 					b = (b + (b >> 8)) >> 8;
-					line[offset1 + 0] = (byte)b;
-					line[offset1 + 1] = (byte)g;
-					line[offset1 + 2] = (byte)r;
+					line[offset1 + oa] = (byte)alpha;
+					line[offset1 + or] = (byte)r;
+					line[offset1 + og] = (byte)g;
+					line[offset1 + ob] = (byte)b;
 				}
 				OS.memmove(offset, line, stride);
 				offset += stride;
@@ -695,7 +717,6 @@ void createSurface() {
 				OS.memmove (line, offset, stride);
 				for (int x=0, offset1=0; x<width; x++, offset1 += 4) {
 					int alpha = alphaData [y*w [0]+x] & 0xFF;
-					line[offset1+3] = (byte)alpha;
 					/* pre-multiplied alpha */
 					int r = ((line[offset1 + 0] & 0xFF) * alpha) + 128;
 					r = (r + (r >> 8)) >> 8;
@@ -703,9 +724,10 @@ void createSurface() {
 					g = (g + (g >> 8)) >> 8;
 					int b = ((line[offset1 + 2] & 0xFF) * alpha) + 128;
 					b = (b + (b >> 8)) >> 8;
-					line[offset1 + 0] = (byte)b;
-					line[offset1 + 1] = (byte)g;
-					line[offset1 + 2] = (byte)r;
+					line[offset1 + oa] = (byte)alpha;
+					line[offset1 + or] = (byte)r;
+					line[offset1 + og] = (byte)g;
+					line[offset1 + ob] = (byte)b;
 				}
 				OS.memmove (offset, line, stride);
 				offset += stride;
@@ -715,10 +737,13 @@ void createSurface() {
 			for (int y = 0; y < h [0]; y++) {
 				OS.memmove (line, offset, stride);
 				for (int x=0, offset1=0; x<width; x++, offset1 += 4) {
-					line[offset1+3] = (byte)0xFF;
-					byte temp = line[offset1];
-					line[offset1] = line[offset1 + 2];
-					line[offset1 + 2] = temp;
+					byte r = line[offset1 + 0];
+					byte g = line[offset1 + 1];
+					byte b = line[offset1 + 2];
+					line[offset1 + oa] = (byte)0xFF;
+					line[offset1 + or] = r;
+					line[offset1 + og] = g;
+					line[offset1 + ob] = b;
 				}
 				OS.memmove (offset, line, stride);
 				offset += stride;
@@ -907,7 +932,7 @@ public ImageData getImageData() {
  * @param pixmap the OS handle for the image
  * @param mask the OS handle for the image mask
  *
- * @private
+ * @noreference This method is not intended to be referenced by clients.
  */
 public static Image gtk_new(Device device, int type, int /*long*/ pixmap, int /*long*/ mask) {
 	Image image = new Image(device);
@@ -1052,6 +1077,8 @@ void init(ImageData image) {
  *
  * @param data the platform specific GC data 
  * @return the platform specific GC handle
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public int /*long*/ internal_new_GC (GCData data) {
 	if (pixmap == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
@@ -1089,7 +1116,9 @@ public int /*long*/ internal_new_GC (GCData data) {
  * </p>
  *
  * @param hDC the platform specific GC handle
- * @param data the platform specific GC data 
+ * @param data the platform specific GC data
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public void internal_dispose_GC (int /*long*/ gdkGC, GCData data) {
 	OS.g_object_unref(gdkGC);
@@ -1101,7 +1130,7 @@ public void internal_dispose_GC (int /*long*/ gdkGC, GCData data) {
  * <p>
  * This method gets the dispose state for the image.
  * When an image has been disposed, it is an error to
- * invoke any other method using the image.
+ * invoke any other method (except {@link #dispose()}) using the image.
  *
  * @return <code>true</code> when the image is disposed and <code>false</code> otherwise
  */

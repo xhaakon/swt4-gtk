@@ -141,6 +141,12 @@ public ToolItem (ToolBar parent, int style, int index) {
  * the event object detail field contains the value <code>SWT.ARROW</code>.
  * <code>widgetDefaultSelected</code> is not called.
  * </p>
+ * <p>
+ * When the <code>SWT.RADIO</code> style bit is set, the <code>widgetSelected</code> method is
+ * also called when the receiver loses selection because another item in the same radio group 
+ * was selected by the user. During <code>widgetSelected</code> the application can use
+ * <code>getSelection()</code> to determine the current selected state of the receiver.
+ * </p>
  *
  * @param listener the listener which should be notified when the control is selected by the user,
  *
@@ -554,7 +560,7 @@ int /*long*/ gtk_clicked (int /*long*/ widget) {
 			selectRadio ();
 		}
 	}
-	postEvent (SWT.Selection, event);
+	sendSelectionEvent (SWT.Selection, event, false);
 	return 0;
 }
 
@@ -855,6 +861,17 @@ public void setEnabled (boolean enabled) {
 			OS.gtk_widget_hide (handle);
 			OS.gtk_widget_show (handle);
 		}
+	} else {
+		/*
+		* Bug in GTK. Starting with 2.14, if a button is disabled 
+		* through on a button press, the field which keeps track 
+		* whether the pointer is currently in the button is never updated.
+		* As a result, when it is re-enabled it automatically enters
+		* a PRELIGHT state. The fix is to set a NORMAL state.
+		*/
+		if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+			OS.gtk_widget_set_state (topHandle, OS.GTK_STATE_NORMAL);
+		}
 	}
 }
 
@@ -953,7 +970,7 @@ boolean setRadioSelection (boolean value) {
 	if ((style & SWT.RADIO) == 0) return false;
 	if (getSelection () != value) {
 		setSelection (value);
-		postEvent (SWT.Selection);
+		sendSelectionEvent (SWT.Selection);
 	}
 	return true;
 }

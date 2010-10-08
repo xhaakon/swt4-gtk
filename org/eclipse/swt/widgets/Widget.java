@@ -53,6 +53,8 @@ public abstract class Widget {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
+	 * 
+	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ handle;
 	int style, state;
@@ -94,6 +96,12 @@ public abstract class Widget {
 	static final int FOREIGN_HANDLE = 1<<22;
 	static final int DRAG_DETECT = 1<<23;
 	
+	/* Notify of the opportunity to skin this widget */
+	static final int SKIN_NEEDED = 1<<24;
+
+	/* Should sub-windows be checked when EnterNotify received */
+	static final int CHECK_SUBWINDOW = 1<<25;
+
 	/* Default size for widgets */
 	static final int DEFAULT_WIDTH	= 64;
 	static final int DEFAULT_HEIGHT	= 64;
@@ -165,7 +173,13 @@ public abstract class Widget {
 	static final int ROW_INSERTED = 64;
 	static final int ROW_DELETED = 65;
 	static final int DAY_SELECTED_DOUBLE_CLICK = 66;
-	static final int LAST_SIGNAL = 67;
+	static final int ICON_RELEASE = 67;
+	static final int SELECTION_DONE = 68;
+	static final int START_INTERACTIVE_SEARCH = 69;
+	static final int LAST_SIGNAL = 70;
+	
+	static final String IS_ACTIVE = "org.eclipse.swt.internal.control.isactive"; //$NON-NLS-1$
+	static final String KEY_CHECK_SUBWINDOW = "org.eclipse.swt.internal.control.checksubwindow"; //$NON-NLS-1$
 
 /**
  * Prevents uninitialized instances from being created outside the package.
@@ -206,6 +220,7 @@ public Widget (Widget parent, int style) {
 	checkParent (parent);
 	this.style = style;
 	display = parent.display;
+	reskinWidget ();
 }
 
 void _addListener (int eventType, Listener listener) {
@@ -420,6 +435,7 @@ void destroyWidget () {
  * <code>true</code> when sent the message <code>isDisposed()</code>.
  * Any internal connections between the widgets in the tree will
  * have been removed to facilitate garbage collection.
+ * This method does nothing if the widget is already disposed.
  * <p>
  * NOTE: This method is not called recursively on the descendants
  * of the receiver. This means that, widget implementers can not
@@ -503,6 +519,10 @@ public Object getData () {
 public Object getData (String key) {
 	checkWidget();
 	if (key == null) error (SWT.ERROR_NULL_ARGUMENT);
+	if (key.equals (KEY_CHECK_SUBWINDOW)) {
+		return new Boolean ((state & CHECK_SUBWINDOW) != 0);
+	}
+	if (key.equals(IS_ACTIVE)) return new Boolean(isActive ());
 	if ((state & KEYED_DATA) != 0) {
 		Object [] table = (Object []) data;
 		for (int i=1; i<table.length; i+=2) {
@@ -692,6 +712,10 @@ int /*long*/ gtk_hide (int /*long*/ widget) {
 	return 0;
 }
 
+int /*long*/ gtk_icon_release (int /*long*/ widget, int /*long*/ icon_pos, int /*long*/ event) {
+	return 0;
+}
+
 int /*long*/ gtk_input (int /*long*/ widget, int /*long*/ arg1) {
 	return 0;
 }
@@ -784,6 +808,10 @@ int /*long*/ gtk_select (int /*long*/ item) {
 	return 0;
 }
 
+int /*long*/ gtk_selection_done (int /*long*/ menushell) {
+	return 0;
+} 
+
 int /*long*/ gtk_show (int /*long*/ widget) {
 	return 0;
 }
@@ -797,6 +825,10 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 }
 
 int /*long*/ gtk_status_icon_popup_menu (int /*long*/ handle, int /*long*/ button, int /*long*/ activate_time) {
+	return 0;
+}
+
+int /*long*/ gtk_start_interactive_search (int /*long*/ widget) {
 	return 0;
 }
 
@@ -908,13 +940,17 @@ char [] fixMnemonic (String string, boolean replace) {
 	return result;
 }
 
+boolean isActive () {
+	return true;
+}
+
 /**
  * Returns <code>true</code> if the widget has been disposed,
  * and <code>false</code> otherwise.
  * <p>
  * This method gets the dispose state for the widget.
  * When a widget has been disposed, it is an error to
- * invoke any other method using the widget.
+ * invoke any other method (except {@link #dispose()}) using the widget.
  * </p>
  *
  * @return <code>true</code> when the widget is disposed and <code>false</code> otherwise
@@ -1130,6 +1166,8 @@ public void removeListener (int eventType, Listener handler) {
  *
  * @see Listener
  * @see #addListener
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 protected void removeListener (int eventType, SWTEventListener handler) {
 	checkWidget ();
@@ -1144,6 +1182,50 @@ int /*long*/ rendererGetSizeProc (int /*long*/ cell, int /*long*/ handle, int /*
 
 int /*long*/ rendererRenderProc (int /*long*/ cell, int /*long*/ window, int /*long*/ handle, int /*long*/ background_area, int /*long*/ cell_area, int /*long*/ expose_area, int /*long*/ flags) {
 	return 0;
+}
+
+/**
+ * Marks the widget to be skinned. 
+ * <p>
+ * The skin event is sent to the receiver's display when appropriate (usually before the next event
+ * is handled). Widgets are automatically marked for skinning upon creation as well as when its skin
+ * id or class changes. The skin id and/or class can be changed by calling <code>Display.setData(String, Object)</code> 
+ * with the keys SWT.SKIN_ID and/or SWT.SKIN_CLASS. Once the skin event is sent to a widget, it 
+ * will not be sent again unless <code>reskin(int)</code> is called on the widget or on an ancestor 
+ * while specifying the <code>SWT.ALL</code> flag.  
+ * </p>
+ * <p>
+ * The parameter <code>flags</code> may be either:
+ * <dl>
+ * <dt><b>SWT.ALL</b></dt>
+ * <dd>all children in the receiver's widget tree should be skinned</dd>
+ * <dt><b>SWT.NONE</b></dt>
+ * <dd>only the receiver should be skinned</dd>
+ * </dl>
+ * </p>
+ * @param flags the flags specifying how to reskin
+ * 
+ * @exception SWTException 
+ * <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * @since 3.6
+ */
+public void reskin (int flags) {
+	checkWidget ();
+	reskinWidget ();
+	if ((flags & SWT.ALL) != 0) reskinChildren (flags);
+}
+
+void reskinChildren (int flags) {	
+}
+
+void reskinWidget() {
+	if ((state & SKIN_NEEDED) != SKIN_NEEDED) {
+		this.state |= SKIN_NEEDED;
+		display.addSkinnableWidget(this);
+	}
 }
 
 /**
@@ -1284,6 +1366,36 @@ char [] sendIMKeyEvent (int type, GdkEventKey keyEvent, char [] chars) {
 	return chars;
 }
 
+void sendSelectionEvent (int eventType) {
+	sendSelectionEvent (eventType, null, false);
+}
+
+void sendSelectionEvent (int eventType, Event event, boolean send) {
+	if (eventTable == null && !display.filters (eventType)) {
+		return;
+	}
+	if (event == null) event = new Event ();
+	int /*long*/ ptr = OS.gtk_get_current_event ();
+	if (ptr != 0) {
+		GdkEvent gdkEvent = new GdkEvent ();
+		OS.memmove (gdkEvent, ptr, GdkEvent.sizeof);
+		switch (gdkEvent.type) {
+			case OS.GDK_KEY_PRESS:
+			case OS.GDK_KEY_RELEASE: 
+			case OS.GDK_BUTTON_PRESS:
+			case OS.GDK_2BUTTON_PRESS: 
+			case OS.GDK_BUTTON_RELEASE: {
+				int [] state = new int [1];
+				OS.gdk_event_get_state (ptr, state);
+				setInputState (event, state [0]);
+				break;
+			}
+		}
+		OS.gdk_event_free (ptr);
+	}
+	sendEvent (eventType, event, send);
+}
+
 /**
  * Sets the application defined widget data associated
  * with the receiver to be the argument. The <em>widget
@@ -1342,6 +1454,18 @@ public void setData (Object data) {
 public void setData (String key, Object value) {
 	checkWidget();
 	if (key == null) error (SWT.ERROR_NULL_ARGUMENT);
+
+	if (key.equals (KEY_CHECK_SUBWINDOW)) {
+		if (value != null && value instanceof Boolean) {
+			if (((Boolean)value).booleanValue ()) {
+				state |= CHECK_SUBWINDOW;
+			} else {
+				state &= ~CHECK_SUBWINDOW;
+			}
+		}
+		return;
+	}
+
 	int index = 1;
 	Object [] table = null;
 	if ((state & KEYED_DATA) != 0) {
@@ -1382,6 +1506,7 @@ public void setData (String key, Object value) {
 			}
 		}
 	}
+	if (key.equals(SWT.SKIN_CLASS) || key.equals(SWT.SKIN_ID)) this.reskin(SWT.ALL);
 }
 
 void setForegroundColor (int /*long*/ handle, GdkColor color) {
@@ -1456,10 +1581,56 @@ boolean setKeyState (Event event, GdkEventKey keyEvent) {
 			}
 		}
 	}
+	setLocationState(event, keyEvent);
 	if (event.keyCode == 0 && event.character == 0) {
 		if (!isNull) return false;
 	}
 	return setInputState (event, keyEvent.state);
+}
+
+void setLocationState (Event event, GdkEventKey keyEvent) {
+	switch (keyEvent.keyval) {
+		case OS.GDK_Alt_L:
+		case OS.GDK_Shift_L:
+		case OS.GDK_Control_L:
+			event.keyLocation = SWT.LEFT;
+			break;
+		case OS.GDK_Alt_R:
+		case OS.GDK_Shift_R:
+		case OS.GDK_Control_R:
+				event.keyLocation = SWT.RIGHT;
+			break;
+		case OS.GDK_KP_0:
+		case OS.GDK_KP_1:
+		case OS.GDK_KP_2:
+		case OS.GDK_KP_3:
+		case OS.GDK_KP_4:
+		case OS.GDK_KP_5:
+		case OS.GDK_KP_6:
+		case OS.GDK_KP_7:
+		case OS.GDK_KP_8:
+		case OS.GDK_KP_9:
+		case OS.GDK_KP_Add:
+		case OS.GDK_KP_Decimal:
+		case OS.GDK_KP_Delete:
+		case OS.GDK_KP_Divide:
+		case OS.GDK_KP_Down:
+		case OS.GDK_KP_End:
+		case OS.GDK_KP_Enter:
+		case OS.GDK_KP_Equal:
+		case OS.GDK_KP_Home:
+		case OS.GDK_KP_Insert:
+		case OS.GDK_KP_Left:
+		case OS.GDK_KP_Multiply:
+		case OS.GDK_KP_Page_Down:
+		case OS.GDK_KP_Page_Up:
+		case OS.GDK_KP_Right:
+		case OS.GDK_KP_Subtract:
+		case OS.GDK_KP_Up:
+		case OS.GDK_Num_Lock:
+			event.keyLocation = SWT.KEYPAD;
+			break;
+	}
 }
 
 void setOrientation () {
@@ -1531,7 +1702,9 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ user_data) {
 		case POPUP_MENU: return gtk_popup_menu (handle);
 		case PREEDIT_CHANGED: return gtk_preedit_changed (handle);
 		case REALIZE: return gtk_realize (handle);
+		case START_INTERACTIVE_SEARCH: return gtk_start_interactive_search (handle);
 		case SELECT: return gtk_select (handle);
+		case SELECTION_DONE: return gtk_selection_done (handle);
 		case SHOW: return gtk_show (handle);
 		case VALUE_CHANGED: return gtk_value_changed (handle);
 		case UNMAP: return gtk_unmap (handle);
@@ -1593,6 +1766,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ ar
 	switch ((int)/*64*/user_data) {
 		case DELETE_RANGE: return gtk_delete_range (handle, arg0, arg1);
 		case DELETE_TEXT: return gtk_delete_text (handle, arg0, arg1);
+		case ICON_RELEASE: return gtk_icon_release (handle, arg0, arg1);
 		case ROW_ACTIVATED: return gtk_row_activated (handle, arg0, arg1);
 		case SCROLL_CHILD: return gtk_scroll_child (handle, arg0, arg1);
 		case STATUS_ICON_POPUP_MENU: return gtk_status_icon_popup_menu (handle, arg0, arg1);

@@ -36,11 +36,14 @@ public final class Program {
 	String iconPath;
 	Display display;
 
-	/* Gnome specific
+	/* Gnome & GIO specific
 	 * true if command expects a URI
 	 * false if expects a path
 	 */
 	boolean gnomeExpectUri;
+	
+	static int /*long*/ modTime;
+	static Hashtable mimeTable;
 	
 	static int /*long*/ cdeShell;
 
@@ -53,7 +56,8 @@ public final class Program {
 	static final int DESKTOP_UNKNOWN = 0;
 	static final int DESKTOP_GNOME = 1;
 	static final int DESKTOP_GNOME_24 = 2;
-	static final int DESKTOP_CDE = 3;
+	static final int DESKTOP_GIO = 3;
+	static final int DESKTOP_CDE = 4;
 	static final int PREFERRED_ICON_SIZE = 16;
 	
 /**
@@ -107,19 +111,31 @@ static int getDesktop(final Display display) {
 					 * Note.  gnome_icon_theme_new uses g_object_new to allocate the
 					 * data it returns. Use g_object_unref to free the pointer it returns.
 					 */
-					if (gnomeIconTheme.value != 0) GNOME.g_object_unref(gnomeIconTheme.value);
+					if (gnomeIconTheme.value != 0) OS.g_object_unref(gnomeIconTheme.value);
 				}
 			});
-			/* Check for libgnomevfs-2 version 2.4 */
-			byte[] buffer = Converter.wcsToMbcs(null, "libgnomevfs-2.so.0", true);
-			int /*long*/ libgnomevfs = OS.dlopen(buffer, OS.RTLD_LAZY);
-			if (libgnomevfs != 0) {
-				buffer = Converter.wcsToMbcs(null, "gnome_vfs_url_show", true);
-				int /*long*/ gnome_vfs_url_show = OS.dlsym(libgnomevfs, buffer);
-				if (gnome_vfs_url_show != 0) {
-					desktop = DESKTOP_GNOME_24;
+			/* Check for the existence of libgio libraries */
+			byte[] buffer = Converter.wcsToMbcs(null, "libgio-2.0.so.0", true);
+			int /*long*/ libgio = OS.dlopen(buffer, OS.RTLD_LAZY);
+			if (libgio != 0) {
+				buffer = Converter.wcsToMbcs(null, "g_app_info_launch_default_for_uri", true);
+				int /*long*/ g_app_info_launch_default_for_uri = OS.dlsym(libgio, buffer);
+				if (g_app_info_launch_default_for_uri != 0) {
+					desktop = DESKTOP_GIO;
 				}
-				OS.dlclose(libgnomevfs);
+				OS.dlclose(libgio);
+			} else {
+				/* Check for libgnomevfs-2 version 2.4 */
+				buffer = Converter.wcsToMbcs(null, "libgnomevfs-2.so.0", true);
+				int /*long*/ libgnomevfs = OS.dlopen(buffer, OS.RTLD_LAZY);
+				if (libgnomevfs != 0) {
+					buffer = Converter.wcsToMbcs(null, "gnome_vfs_url_show", true);
+					int /*long*/ gnome_vfs_url_show = OS.dlsym(libgnomevfs, buffer);
+					if (gnome_vfs_url_show != 0) {
+						desktop = DESKTOP_GNOME_24;
+					}
+					OS.dlclose(libgnomevfs);
+				}
 			}
 		}
 	}
@@ -291,6 +307,12 @@ static boolean cde_init(Display display) {
 	boolean initOK = CDE.DtAppInitialize(xtContext, xDisplay, cdeShell, appName, appName);
 	if (initOK) CDE.DtDbLoad();
 	return initOK;
+}
+
+static boolean cde_isExecutable(String fileName) {
+	byte [] fileNameBuffer = Converter.wcsToMbcs(null, fileName, true);
+	return OS.access(fileNameBuffer, OS.X_OK) == 0;
+	//TODO find the content type of the file and check if it is executable
 }
 
 static String[] parseCommand(String cmd) {
@@ -534,6 +556,25 @@ static boolean gnome_init() {
 	}
 }
 
+static boolean gnome_isExecutable(String fileName) {
+	/* check if the file is executable */
+	byte [] fileNameBuffer = Converter.wcsToMbcs(null, fileName, true);
+	if (!GNOME.gnome_vfs_is_executable_command_string(fileNameBuffer)) return false;
+	
+	/* check if the mime type is executable */
+	int /*long*/ uri = GNOME.gnome_vfs_make_uri_from_input(fileNameBuffer);
+	int /*long*/ mimeType = GNOME.gnome_vfs_get_mime_type(uri);
+	GNOME.g_free(uri);
+	
+	byte[] exeType = Converter.wcsToMbcs (null, "application/x-executable", true); //$NON-NLS-1$
+	boolean result = GNOME.gnome_vfs_mime_type_get_equivalence(mimeType, exeType) != GNOME.GNOME_VFS_MIME_UNRELATED;
+	if (!result) {
+		byte [] shellType = Converter.wcsToMbcs (null, "application/x-shellscript", true); //$NON-NLS-1$
+		result = GNOME.gnome_vfs_mime_type_get_equivalence(mimeType, shellType) == GNOME.GNOME_VFS_MIME_IDENTICAL;
+	}
+	return result;
+}
+
 /**
  * Finds the program that is associated with an extension.
  * The extension may or may not begin with a '.'.  Note that
@@ -562,6 +603,7 @@ static Program findProgram(Display display, String extension) {
 	int desktop = getDesktop(display);
 	String mimeType = null;
 	switch (desktop) {
+		case DESKTOP_GIO: mimeType = gio_getMimeType(extension); break;
 		case DESKTOP_GNOME_24:
 		case DESKTOP_GNOME: mimeType = gnome_getMimeType(extension); break;
 		case DESKTOP_CDE: mimeType = cde_getMimeType(extension); break;
@@ -569,7 +611,8 @@ static Program findProgram(Display display, String extension) {
 	if (mimeType == null) return null;
 	Program program = null;
 	switch (desktop) {
-		case DESKTOP_GNOME_24:
+		case DESKTOP_GIO: program = gio_getProgram(display, mimeType); break;
+		case DESKTOP_GNOME_24: 
 		case DESKTOP_GNOME: program = gnome_getProgram(display, mimeType); break;
 		case DESKTOP_CDE: program = cde_getProgram(display, mimeType); break;
 	}
@@ -595,6 +638,7 @@ static String[] getExtensions(Display display) {
 	int desktop = getDesktop(display);
 	Hashtable mimeInfo = null;
 	switch (desktop) {
+		case DESKTOP_GIO: return gio_getExtensions();
 		case DESKTOP_GNOME_24: break;
 		case DESKTOP_GNOME: mimeInfo = gnome_getMimeInfo(); break;
 		case DESKTOP_CDE: mimeInfo = cde_getDataTypeInfo(); break;
@@ -641,6 +685,7 @@ static Program[] getPrograms(Display display) {
 	int desktop = getDesktop(display);
 	Hashtable mimeInfo = null;
 	switch (desktop) {
+		case DESKTOP_GIO: return gio_getPrograms(display);
 		case DESKTOP_GNOME_24: break;
 		case DESKTOP_GNOME: mimeInfo = gnome_getMimeInfo(); break;
 		case DESKTOP_CDE: mimeInfo = cde_getDataTypeInfo(); break;
@@ -664,6 +709,306 @@ static Program[] getPrograms(Display display) {
 	return programList;
 }
 
+ImageData gio_getImageData() {
+	if (iconPath == null) return null;
+	ImageData data = null;
+	int /*long*/ icon_theme =OS.gtk_icon_theme_get_default();
+	byte[] icon = Converter.wcsToMbcs (null, iconPath, true);
+	int /*long*/ gicon = OS.g_icon_new_for_string(icon, null);
+	if (gicon != 0) {
+		int /*long*/ gicon_info = OS.gtk_icon_theme_lookup_by_gicon (icon_theme, gicon, 16/*size*/, 0);
+		if (gicon_info != 0) {
+			int /*long*/ pixbuf = OS.gtk_icon_info_load_icon(gicon_info, null);		
+			if (pixbuf != 0) {
+				int stride = OS.gdk_pixbuf_get_rowstride(pixbuf);
+				int /*long*/ pixels = OS.gdk_pixbuf_get_pixels(pixbuf);
+				int height = OS.gdk_pixbuf_get_height(pixbuf);
+				int width = OS.gdk_pixbuf_get_width(pixbuf);
+				boolean hasAlpha = OS.gdk_pixbuf_get_has_alpha(pixbuf);
+				byte[] srcData = new byte[stride * height];
+				OS.memmove(srcData, pixels, srcData.length);
+				OS.g_object_unref(pixbuf);
+				if (hasAlpha) {
+					PaletteData palette = new PaletteData(0xFF000000, 0xFF0000, 0xFF00);
+					data = new ImageData(width, height, 32, palette, 4, srcData);
+					data.bytesPerLine = stride;
+					int s = 3, a = 0;
+					byte[] alphaData = new byte[width*height];
+					for (int y=0; y<height; y++) {
+						for (int x=0; x<width; x++) {
+							alphaData[a++] = srcData[s];
+							srcData[s] = 0;
+							s+=4;
+						}
+					}
+					data.alphaData = alphaData;
+				} else {
+					PaletteData palette = new PaletteData(0xFF0000, 0xFF00, 0xFF);
+					data = new ImageData(width, height, 24, palette, 4, srcData);
+					data.bytesPerLine = stride;
+				}
+			}
+			OS.gtk_icon_info_free(gicon_info);
+		}
+		OS.g_object_unref(gicon);
+	}
+	return data;
+}
+
+static Hashtable gio_getMimeInfo() {
+	int /*long*/ mimeDatabase = 0, fileInfo = 0;
+	/*
+	* The file 'globs' contain the file extensions  
+	* associated to the mime-types. Each line that has 
+	* to be parsed corresponds to a different extension 
+	* of a mime-type. The template of such line is -
+	* application/pdf:*.pdf
+	*/
+	byte[] buffer = Converter.wcsToMbcs (null, "/usr/share/mime/globs", true);
+	mimeDatabase = OS.g_file_new_for_path (buffer);
+	int /*long*/ fileInputStream = OS.g_file_read (mimeDatabase, 0, 0);
+	try {
+		if (fileInputStream != 0) {
+			int /*long*/ [] modTimestamp = new int /*long*/ [2];
+			buffer = Converter.wcsToMbcs (null, "*", true);
+			fileInfo = OS.g_file_query_info(mimeDatabase, buffer, 0, 0, 0);
+			OS.g_file_info_get_modification_time(fileInfo, modTimestamp);
+			if (modTime != 0 && modTimestamp[0] == modTime) {
+				return mimeTable;
+			} else {
+				mimeTable = new Hashtable();
+				modTime = modTimestamp[0];
+				int /*long*/ reader = OS.g_data_input_stream_new (fileInputStream);
+				int[] length = new int[1];
+				
+				if (reader != 0) {
+					int /*long*/ linePtr = OS.g_data_input_stream_read_line (reader, length, 0, 0);
+					while (linePtr != 0) {
+						byte[] lineBytes = new byte[length[0]];
+						OS.memmove(lineBytes, linePtr, length[0]);
+						String line = new String (Converter.mbcsToWcs (null, lineBytes));
+			
+						int separatorIndex = line.indexOf (':');
+						if (separatorIndex > 0) {
+							Vector mimeTypes = new Vector ();
+						    String mimeType = line.substring (0, separatorIndex);
+							String extensionFormat = line.substring (separatorIndex+1);
+							int extensionIndex = extensionFormat.indexOf (".");
+							if (extensionIndex > 0) {
+								String extension = extensionFormat.substring (extensionIndex);
+								mimeTypes.add (mimeType);
+								if (mimeTable.containsKey (extension)) {
+									/*
+									 * If mimeType already exists, it is required to update
+									 * the existing key (mime-type) with the new extension. 
+									 */
+									Vector value = (Vector) mimeTable.get (extension);
+									mimeTypes.addAll (value);
+								}
+								mimeTable.put (extension, mimeTypes);
+							}
+						}
+						OS.g_free(linePtr);
+						linePtr = OS.g_data_input_stream_read_line (reader, length, 0, 0);
+					}
+				}
+				if (reader != 0) OS.g_object_unref (reader);
+				return mimeTable;
+			}
+		} 
+		return null;
+	} finally {
+		if (fileInfo != 0) OS.g_object_unref(fileInfo);
+		if (fileInputStream != 0) OS.g_object_unref(fileInputStream);
+		if (mimeDatabase != 0) 	OS.g_object_unref (mimeDatabase);
+	}
+}
+
+static String gio_getMimeType(String extension) {
+	String mimeType = null;
+	Hashtable h = gio_getMimeInfo();
+	if (h != null && h.containsKey(extension)) {
+		Vector mimeTypes = (Vector) h.get(extension);
+		mimeType = (String) mimeTypes.get(0);
+	}
+	return mimeType;
+}
+
+static Program gio_getProgram(Display display, String mimeType) {
+	Program program = null;
+	byte[] mimeTypeBuffer = Converter.wcsToMbcs (null, mimeType, true);
+	int /*long*/ application = OS.g_app_info_get_default_for_type (mimeTypeBuffer, false);
+	if (application != 0) {
+		program = gio_getProgram(display, application);
+	}
+	return program;
+}
+
+static Program gio_getProgram (Display display, int /*long*/ application) {
+	Program program = new Program();
+	program.display = display;
+	int length;
+	byte[] buffer;
+	int /*long*/ applicationName = OS.g_app_info_get_name (application);
+	if (applicationName != 0) {
+		length = OS.strlen (applicationName);
+		if (length > 0) {
+			buffer = new byte [length];
+			OS.memmove (buffer, applicationName, length);
+			program.name = new String (Converter.mbcsToWcs (null, buffer));
+		}
+	}
+	int /*long*/ applicationCommand = OS.g_app_info_get_executable (application);
+	if (applicationCommand != 0) {
+		length = OS.strlen (applicationCommand);
+		if (length > 0) {
+			buffer = new byte [length];
+			OS.memmove (buffer, applicationCommand, length);
+			program.command = new String (Converter.mbcsToWcs (null, buffer));
+		}
+	}
+	program.gnomeExpectUri = OS.g_app_info_supports_uris(application);
+	int /*long*/ icon = OS.g_app_info_get_icon(application);
+	if (icon != 0) {
+		int /*long*/ icon_name = OS.g_icon_to_string(icon);
+		if (icon_name != 0) {
+			length = OS.strlen(icon_name);
+			if (length > 0) {
+				buffer = new byte[length];
+				OS.memmove(buffer, icon_name, length);
+				program.iconPath = new String(Converter.mbcsToWcs(null, buffer));
+			}
+			OS.g_free(icon_name);
+		}
+		OS.g_object_unref(icon);
+	}
+	return program;
+}
+
+static Program[] gio_getPrograms(Display display) {
+	int /*long*/ applicationList = OS.g_app_info_get_all ();
+	int /*long*/ list = applicationList;
+	Program program;
+	Vector programs = new Vector();
+	while (list != 0) {
+		int /*long*/ application = OS.g_list_data(list);
+		if (application != 0) {
+			//TODO: Should the list be filtered or not?
+//			if (OS.g_app_info_should_show(application)) {
+				program = gio_getProgram(display, application);
+				if (program != null) programs.addElement(program);
+//			}
+		}
+		list = OS.g_list_next(list);
+	}
+	if (applicationList != 0) OS.g_list_free(applicationList);
+	Program[] programList = new Program[programs.size()];
+	for (int index = 0; index < programList.length; index++) {
+		programList[index] = (Program)programs.elementAt(index);
+	}
+	return programList;
+}
+
+static boolean gio_isExecutable(String fileName) {
+	byte[] fileNameBuffer = Converter.wcsToMbcs (null, fileName, true);
+	if (OS.g_file_test(fileNameBuffer, OS.G_FILE_TEST_IS_DIR)) return false;
+	if (!OS.g_file_test(fileNameBuffer, OS.G_FILE_TEST_IS_EXECUTABLE)) return false;
+	int /*long*/ file = OS.g_file_new_for_path (fileNameBuffer);
+	boolean result = false;
+	if (file != 0) {
+		byte[] buffer = Converter.wcsToMbcs (null, "*", true); //$NON-NLS-1$
+		int /*long*/ fileInfo = OS.g_file_query_info(file, buffer, 0, 0, 0);
+		if (fileInfo != 0) {
+			int /*long*/ contentType = OS.g_file_info_get_content_type(fileInfo);
+			if (contentType != 0) {
+				byte[] exeType = Converter.wcsToMbcs (null, "application/x-executable", true); //$NON-NLS-1$
+				result = OS.g_content_type_is_a(contentType, exeType);
+				if (!result) {
+					byte [] shellType = Converter.wcsToMbcs (null, "application/x-shellscript", true); //$NON-NLS-1$
+					result = OS.g_content_type_equals(contentType, shellType);
+				}
+			}
+			OS.g_object_unref(fileInfo);
+		}
+		OS.g_object_unref (file);
+	}
+	return result;
+}
+
+/**
+ * GNOME 2.4 - Launch the default program for the given file. 
+ */
+static boolean gio_launch(String fileName) {
+	boolean result = false;
+	byte[] fileNameBuffer = Converter.wcsToMbcs (null, fileName, true);
+	int /*long*/ file = OS.g_file_new_for_path (fileNameBuffer);
+	if (file != 0) {
+		int /*long*/ uri = OS.g_file_get_uri (file);
+		if (uri != 0) {
+			result = OS.g_app_info_launch_default_for_uri (uri, 0, 0);
+			OS.g_free(uri);
+		}
+		OS.g_object_unref (file);
+	}
+	return result;
+}
+
+/**
+ * GIO - Execute the program for the given file. 
+ */
+boolean gio_execute(String fileName) {
+	boolean result = false;
+	byte[] commandBuffer = Converter.wcsToMbcs (null, command, true);
+	byte[] nameBuffer = Converter.wcsToMbcs (null, name, true);
+	int /*long*/ application = OS.g_app_info_create_from_commandline(commandBuffer, nameBuffer, gnomeExpectUri
+				? OS.G_APP_INFO_CREATE_SUPPORTS_URIS : OS.G_APP_INFO_CREATE_NONE, 0);
+	if (application != 0) {
+		byte[] fileNameBuffer = Converter.wcsToMbcs (null, fileName, true);
+		int /*long*/ file = 0;
+		if (OS.g_app_info_supports_uris (application)) {
+			file = OS.g_file_new_for_uri (fileNameBuffer);
+		} else {
+			file = OS.g_file_new_for_path (fileNameBuffer);
+		}
+		if (file != 0) {
+			int /*long*/ list = OS.g_list_append (0, file);
+			result = OS.g_app_info_launch (application, list, 0, 0);
+			OS.g_list_free (list);
+			OS.g_object_unref (file);
+		}
+		OS.g_object_unref (application);
+	}
+	return result;
+}
+
+static String[] gio_getExtensions() {
+	Hashtable mimeInfo = gio_getMimeInfo();
+	if (mimeInfo == null) return new String[0];
+	/* Create a unique set of the file extensions. */
+	Vector extensions = new Vector();
+	Enumeration keys = mimeInfo.keys();
+	while (keys.hasMoreElements()) {
+		String extension = (String)keys.nextElement();
+		extensions.add(extension);
+	}
+	/* Return the list of extensions. */
+	String [] extStrings = new String[extensions.size()];
+	for (int index = 0; index < extensions.size(); index++) {
+		extStrings[index] = (String)extensions.elementAt(index);
+	}	
+	return extStrings;
+}
+
+static boolean isExecutable(Display display, String fileName) {
+	switch(getDesktop(display)) {
+		case DESKTOP_GIO: return gio_isExecutable(fileName);
+		case DESKTOP_GNOME_24:
+		case DESKTOP_GNOME: return gnome_isExecutable(fileName);
+		case DESKTOP_CDE: return false; //cde_isExecutable()
+	}
+	return false;
+}
+
 /**
  * Launches the operating system executable associated with the file or
  * URL (http:// or https://).  If the file is an executable then the
@@ -678,16 +1023,49 @@ static Program[] getPrograms(Display display) {
  * </ul>
  */
 public static boolean launch(String fileName) {
-	return launch(Display.getCurrent(), fileName);
+	return launch(Display.getCurrent(), fileName, null);
+}
+
+/**
+ * Launches the operating system executable associated with the file or
+ * URL (http:// or https://).  If the file is an executable then the
+ * executable is launched. The program is launched with the specified
+ * working directory only when the <code>workingDir</code> exists and
+ * <code>fileName</code> is an executable.
+ * Note that a <code>Display</code> must already exist to guarantee
+ * that this method returns an appropriate result.
+ *
+ * @param fileName the file name or program name or URL (http:// or https://)
+ * @param workingDir the name of the working directory or null
+ * @return <code>true</code> if the file is launched, otherwise <code>false</code>
+ * 
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT when fileName is null</li>
+ * </ul>
+ * 
+ * @since 3.6
+ */
+public static boolean launch (String fileName, String workingDir) {
+	return launch(Display.getCurrent(), fileName, workingDir);
 }
 
 /*
  *  API: When support for multiple displays is added, this method will
  *       become public and the original method above can be deprecated.
  */
-static boolean launch (Display display, String fileName) {
+static boolean launch (Display display, String fileName, String workingDir) {
 	if (fileName == null) SWT.error (SWT.ERROR_NULL_ARGUMENT);
+	if (workingDir != null && isExecutable(display, fileName)) {
+		try {
+			Compatibility.exec (new String [] {fileName}, null, workingDir);
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
+	}
 	switch (getDesktop (display)) {
+		case DESKTOP_GIO:
+			if (gio_launch (fileName)) return true;
 		case DESKTOP_GNOME_24:
 			if (gnome_24_launch (fileName)) return true;
 		default:
@@ -707,8 +1085,9 @@ static boolean launch (Display display, String fileName) {
 			}
 			break;
 	}
+	/* If the above launch attempts didn't launch the file, then try with exec().*/
 	try {
-		Compatibility.exec (fileName);
+		Compatibility.exec (new String [] {fileName}, null, workingDir);
 		return true;
 	} catch (IOException e) {
 		return false;
@@ -749,6 +1128,7 @@ public boolean execute(String fileName) {
 	if (fileName == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	int desktop = getDesktop(display);
 	switch (desktop) {
+		case DESKTOP_GIO: return gio_execute(fileName);
 		case DESKTOP_GNOME_24: return gnome_24_execute(fileName);
 		case DESKTOP_GNOME: return gnome_execute(fileName);
 		case DESKTOP_CDE: return cde_execute(fileName);
@@ -765,6 +1145,7 @@ public boolean execute(String fileName) {
  */
 public ImageData getImageData() {
 	switch (getDesktop(display)) {
+		case DESKTOP_GIO: return gio_getImageData();
 		case DESKTOP_GNOME_24:
 		case DESKTOP_GNOME: return gnome_getImageData();
 		case DESKTOP_CDE: return cde_getImageData();

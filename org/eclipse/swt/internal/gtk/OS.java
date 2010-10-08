@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -38,7 +38,11 @@ public class OS extends C {
 	}
 
 	/** Constants */
+	public static final int /*long*/ AnyPropertyType = 0;
 	public static final int ATK_RELATION_LABELLED_BY = 4;
+	public static final int G_FILE_TEST_IS_DIR = 1 << 2;
+	public static final int G_FILE_TEST_IS_EXECUTABLE = 1 << 3;
+	public static final int G_SIGNAL_MATCH_FUNC = 1 << 3;
 	public static final int G_SIGNAL_MATCH_DATA = 1 << 4;
 	public static final int G_SIGNAL_MATCH_ID = 1 << 0;
 	public static final int GDK_2BUTTON_PRESS = 0x5;
@@ -109,6 +113,11 @@ public class OS extends C {
 	public static final int GDK_F13 = 0xffca;
 	public static final int GDK_F14 = 0xffcb;
 	public static final int GDK_F15 = 0xffcc;
+	public static final int GDK_F16 = 0xffcd;
+	public static final int GDK_F17 = 0xffce;
+	public static final int GDK_F18 = 0xffcf;
+	public static final int GDK_F19 = 0xffd0;
+	public static final int GDK_F20 = 0xffd1;
 	public static final int GDK_F2 = 0xffbf;
 	public static final int GDK_F3 = 0xffc0;
 	public static final int GDK_F4 = 0xffc1;
@@ -195,6 +204,7 @@ public class OS extends C {
 	public static final int GDK_POINTER_MOTION_HINT_MASK = 0x8;
 	public static final int GDK_POINTER_MOTION_MASK = 0x4;
 	public static final int GDK_PROPERTY_NOTIFY = 16;
+	public static final int GDK_PROPERTY_CHANGE_MASK = 1 << 16;
 	public static final int GDK_Page_Down = 0xff56;
 	public static final int GDK_Page_Up = 0xff55;
 	public static final int GDK_Pause = 0xff13;
@@ -260,6 +270,8 @@ public class OS extends C {
 	public static final int GTK_DIALOG_MODAL = 1 << 0;
 	public static final int GTK_DIR_TAB_FORWARD = 0;
 	public static final int GTK_DIR_TAB_BACKWARD = 1;
+	public static final int GTK_ENTRY_ICON_PRIMARY = 0;
+	public static final int GTK_ENTRY_ICON_SECONDARY = 1;
 	public static final int GTK_FILE_CHOOSER_ACTION_OPEN = 0;
 	public static final int GTK_FILE_CHOOSER_ACTION_SAVE = 1;
 	public static final int GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER = 2;
@@ -382,6 +394,9 @@ public class OS extends C {
 	public static final int G_LOG_FLAG_FATAL = 0x2;
 	public static final int G_LOG_FLAG_RECURSION = 0x1;
 	public static final int G_LOG_LEVEL_MASK = 0xfffffffc;
+	public static final int G_APP_INFO_CREATE_NONE = 0;
+	public static final int G_APP_INFO_CREATE_NEEDS_TERMINAL = (1 << 0);
+	public static final int G_APP_INFO_CREATE_SUPPORTS_URIS  = (1 << 1); 
 	public static final int None = 0;
 	public static final int PANGO_ALIGN_LEFT = 0;
 	public static final int PANGO_ALIGN_CENTER = 1;
@@ -410,6 +425,7 @@ public class OS extends C {
 	public static final int RTLD_GLOBAL = 0x100;
 	public static final int RTLD_LAZY = 1;
 	public static final int RTLD_NOW = 2;
+	public static final int X_OK = 0x01;
 	public static final int XA_CARDINAL = 6;
 	public static final int XA_WINDOW = 33;
 	
@@ -445,6 +461,7 @@ public class OS extends C {
 	public static final byte[] focus_out_event = ascii("focus-out-event");
 	public static final byte[] grab_focus = ascii("grab-focus");
 	public static final byte[] hide = ascii("hide");
+	public static final byte[] icon_release = ascii("icon-release");
 	public static final byte[] input = ascii("input");
 	public static final byte[] insert_text = ascii("insert-text");
 	public static final byte[] key_press_event = ascii("key-press-event");
@@ -460,6 +477,7 @@ public class OS extends C {
 	public static final byte[] popup_menu = ascii("popup-menu");
 	public static final byte[] populate_popup = ascii("populate-popup");
 	public static final byte[] preedit_changed = ascii("preedit-changed");
+	public static final byte[] property_notify_event = ascii("property-notify-event");
 	public static final byte[] realize = ascii("realize");
 	public static final byte[] row_activated = ascii("row-activated");
 	public static final byte[] row_changed = ascii("row-changed");
@@ -468,10 +486,12 @@ public class OS extends C {
 	public static final byte[] scroll_child = ascii("scroll-child");
 	public static final byte[] scroll_event = ascii("scroll-event");
 	public static final byte[] select = ascii("select");
+	public static final byte[] selection_done = ascii("selection-done");
 	public static final byte[] show = ascii("show");
 	public static final byte[] show_help = ascii("show-help");
 	public static final byte[] size_allocate = ascii("size-allocate");
 	public static final byte[] size_request = ascii("size-request");
+	public static final byte[] start_interactive_search = ascii("start-interactive-search");
 	public static final byte[] style_set = ascii("style-set");
 	public static final byte[] switch_page = ascii("switch-page");
 	public static final byte[] test_collapse_row = ascii("test-collapse-row");
@@ -512,6 +532,9 @@ public class OS extends C {
 	public static final byte[] xalign = ascii("xalign");
 	public static final byte[] ypad = ascii("ypad");
 	public static final byte[] GTK_PRINT_SETTINGS_OUTPUT_URI = ascii("output-uri");
+	public static final byte[] GTK_STOCK_FIND = ascii("gtk-find");
+	public static final byte[] GTK_STOCK_CANCEL = ascii("gtk-cancel");
+	public static final byte[] GTK_STOCK_CLEAR = ascii("gtk-clear");
 	
 	public static final int GTK_VERSION = VERSION(gtk_major_version(), gtk_minor_version(), gtk_micro_version()); 
 	
@@ -545,6 +568,7 @@ public static final native int GdkEventExpose_sizeof();
 public static final native int GdkEventFocus_sizeof();
 public static final native int GdkEventKey_sizeof();
 public static final native int GdkEventMotion_sizeof();
+public static final native int GdkEventProperty_sizeof();
 public static final native int GdkEventScroll_sizeof();
 public static final native int GdkEventVisibility_sizeof();
 public static final native int GdkEventWindowState_sizeof();
@@ -583,7 +607,6 @@ public static final native int PangoLayoutRun_sizeof();
 public static final native int PangoLogAttr_sizeof();
 public static final native int PangoRectangle_sizeof();
 public static final native int XAnyEvent_sizeof();
-public static final native int XButtonEvent_sizeof();
 public static final native int XClientMessageEvent_sizeof();
 public static final native int XEvent_sizeof();
 public static final native int XCrossingEvent_sizeof();
@@ -618,6 +641,18 @@ public static final native int /*long*/ GTK_WIDGET_WINDOW(int /*long*/ widget);
 public static final native int GTK_WIDGET_X(int /*long*/ widget);
 /** @param widget cast=(GtkWidget *) */
 public static final native int GTK_WIDGET_Y(int /*long*/ widget);
+/** @param widget cast=(GtkRange *) */
+public static final native int GTK_RANGE_SLIDER_START(int /*long*/ widget);
+/** @param widget cast=(GtkRange *) */
+public static final native int GTK_RANGE_SLIDER_END(int /*long*/ widget);
+/** @param widget cast=(GtkRange *) */
+public static final native boolean GTK_RANGE_HAS_STEPPER_A(int /*long*/ widget);
+/** @param widget cast=(GtkRange *) */
+public static final native boolean GTK_RANGE_HAS_STEPPER_B(int /*long*/ widget);
+/** @param widget cast=(GtkRange *) */
+public static final native boolean GTK_RANGE_HAS_STEPPER_C(int /*long*/ widget);
+/** @param widget cast=(GtkRange *) */
+public static final native boolean GTK_RANGE_HAS_STEPPER_D(int /*long*/ widget);
 /** @param widget cast=(GtkScrolledWindow *) */
 public static final native int /*long*/ GTK_SCROLLED_WINDOW_HSCROLLBAR(int /*long*/ widget);
 /** @param widget cast=(GtkScrolledWindow *) */
@@ -812,6 +847,21 @@ public static final void XFree(int /*long*/ address) {
 /**
  * @param display cast=(Display *)
  * @param selection cast=(Atom)
+ * @param owner cast=(Window)
+ * @param time cast=(Time)
+ */
+public static final native int /*long*/ _XSetSelectionOwner(int /*long*/ display, int /*long*/ selection, int /*long*/ window, int time);
+public static final int /*long*/ XSetSelectionOwner(int /*long*/ display, int /*long*/ selection, int /*long*/ window, int time) {
+	lock.lock();
+	try {
+		return _XSetSelectionOwner(display, selection, window, time);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param display cast=(Display *)
+ * @param selection cast=(Atom)
  */
 public static final native int /*long*/ _XGetSelectionOwner(int /*long*/ display, int /*long*/ selection);
 public static final int /*long*/ XGetSelectionOwner(int /*long*/ display, int /*long*/ selection) {
@@ -822,6 +872,30 @@ public static final int /*long*/ XGetSelectionOwner(int /*long*/ display, int /*
 		lock.unlock();
 	}
 }
+
+/**
+ * @param display cast=(Display *)
+ * @param window cast=(Window)
+ * @param property cast=(Atom)
+ * @param req_type cast=(Atom)
+ * @param actual_type_return cast=(Atom*)
+ * @param actual_format_return cast=(Atom*)
+ * @param actual_format_return cast=(int *)
+ * @param nitems_return cast=(unsigned long *)
+ * @param bytes_after_return cast=(unsigned long *)
+ * @param prop_return cast=(unsigned char **)
+ */
+public static final native int /*long*/ _XGetWindowProperty(int /*long*/ display, int /*long*/ window, int /*long*/ property, int offset, int length, boolean delete, int /*long*/ req_type, int /*long*/ [] actual_type_return, int [] actual_format_return , int[] nitems_return, int[] bytes_after_return, int /*long*/ [] prop_return);
+public static final int /*long*/ XGetWindowProperty(int /*long*/ display, int /*long*/ window, int /*long*/ property, int offset, int length, boolean delete, int /*long*/ req_type, int /*long*/ [] actual_type_return, int [] actual_format_return, int[] nitems_return, int[] bytes_after_return, int /*long*/ [] prop_return) {
+	lock.lock();
+	try {
+		return _XGetWindowProperty(display, window, property, offset, length, delete, req_type, actual_type_return, actual_format_return , nitems_return, bytes_after_return, prop_return);
+	} finally {
+		lock.unlock();
+	}
+}
+
+
 /**
  * @param display cast=(Display *)
  * @param name cast=(char *)
@@ -1168,12 +1242,6 @@ public static final void gdk_window_remove_filter(int /*long*/ window, int /*lon
  * @param src cast=(const void *),flags=no_out
  * @param size cast=(size_t)
  */
-public static final native void memmove(int /*long*/ dest, XButtonEvent src, int /*long*/ size);
-/**
- * @param dest cast=(void *)
- * @param src cast=(const void *),flags=no_out
- * @param size cast=(size_t)
- */
 public static final native void memmove(int /*long*/ dest, XClientMessageEvent src, int /*long*/ size);
 /**
  * @param dest cast=(void *)
@@ -1193,12 +1261,6 @@ public static final native void memmove(int /*long*/ dest, XExposeEvent src, int
  * @param size cast=(size_t)
  */
 public static final native void memmove(int /*long*/ dest, XFocusChangeEvent src, int /*long*/ size);
-/**
- * @param dest cast=(void *),flags=no_in
- * @param src cast=(const void *)
- * @param size cast=(size_t)
- */
-public static final native void memmove(XButtonEvent dest, int /*long*/ src, int /*long*/ size);
 /**
  * @param dest cast=(void *),flags=no_in
  * @param src cast=(const void *)
@@ -1328,6 +1390,12 @@ public static final int /*long*/ XRenderFindVisualFormat(int /*long*/ display, i
 	}
 }
 
+/** Custom callbacks */
+
+/** @method flags=no_gen */
+public static final native int /*long*/ pangoLayoutNewProc_CALLBACK(int /*long*/ func);
+
+
 /** Natives */
 public static final native int Call (int /*long*/ func, int /*long*/ arg0, int arg1, int arg2);
 public static final native long Call (int /*long*/ func, int /*long*/ arg0, int arg1, long arg2);
@@ -1374,6 +1442,15 @@ public static final boolean GTK_IS_BUTTON(int /*long*/ obj) {
 	lock.lock();
 	try {
 		return _GTK_IS_BUTTON(obj);
+	} finally {
+		lock.unlock();
+	}
+}
+public static final native boolean _GTK_IS_SCROLLED_WINDOW(int /*long*/ obj);
+public static final boolean GTK_IS_SCROLLED_WINDOW(int /*long*/ obj) {
+	lock.lock();
+	try {
+		return _GTK_IS_SCROLLED_WINDOW(obj);
 	} finally {
 		lock.unlock();
 	}
@@ -1657,25 +1734,16 @@ public static final int /*long*/ G_OBJECT_TYPE_NAME (int /*long*/ object) {
 	}
 }
 /** @method flags=const */
-public static final native int /*long*/ _G_TYPE_BOOLEAN();
-public static final int /*long*/ G_TYPE_BOOLEAN() {
-	lock.lock();
-	try {
-		return _G_TYPE_BOOLEAN();
-	} finally {
-		lock.unlock();
-	}
-}
+public static final native int /*long*/ G_TYPE_BOOLEAN();
 /** @method flags=const */
-public static final native int /*long*/ _G_TYPE_INT();
-public static final int /*long*/ G_TYPE_INT() {
-	lock.lock();
-	try {
-		return _G_TYPE_INT();
-	} finally {
-		lock.unlock();
-	}
-}
+public static final native int /*long*/ G_TYPE_DOUBLE();
+/** @method flags=const */
+public static final native int /*long*/ G_TYPE_FLOAT();
+/** @method flags=const */
+public static final native int /*long*/ G_TYPE_INT();
+/** @method flags=const */
+public static final native int /*long*/ G_TYPE_INT64();
+public static final native int /*long*/ G_VALUE_TYPE(int /*long*/ value);
 public static final native int /*long*/ _G_OBJECT_TYPE (int /*long*/ instance);
 public static final int /*long*/ G_OBJECT_TYPE (int /*long*/ instance) {
 	lock.lock();
@@ -1753,6 +1821,307 @@ public static final int /*long*/ dlsym(int /*long*/ handle, byte[] symbol) {
 	lock.lock();
 	try {
 		return _dlsym(handle, symbol);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_app_info_create_from_commandline(byte[] commandline, byte[] applName, int /*long*/ flags, int /*long*/ error);
+public static final int /*long*/ g_app_info_create_from_commandline(byte[] commandline, byte[] applName, int /*long*/ flags, int /*long*/ error) {
+	lock.lock();
+	try {
+		return _g_app_info_create_from_commandline(commandline, applName, flags, error);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_app_info_get_all();
+public static final int /*long*/ g_app_info_get_all() {
+	lock.lock();
+	try {
+		return _g_app_info_get_all();
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_app_info_get_executable(int /*long*/ appInfo);
+public static final int /*long*/ g_app_info_get_executable(int /*long*/ appInfo) {
+	lock.lock();
+	try {
+		return _g_app_info_get_executable(appInfo);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_app_info_get_icon(int /*long*/ appInfo);
+public static final int /*long*/ g_app_info_get_icon(int /*long*/ appInfo) {
+	lock.lock();
+	try {
+		return _g_app_info_get_icon(appInfo);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_app_info_get_id(int /*long*/ appInfo);
+public static final int /*long*/ g_app_info_get_id(int /*long*/ appInfo) {
+	lock.lock();
+	try {
+		return _g_app_info_get_id(appInfo);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_app_info_get_name(int /*long*/ appInfo);
+public static final int /*long*/ g_app_info_get_name(int /*long*/ appInfo) {
+	lock.lock();
+	try {
+		return _g_app_info_get_name(appInfo);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native boolean _g_app_info_launch(int /*long*/ appInfo, int /*long*/ list, int /*long*/ launchContext, int /*long*/ error);
+public static final boolean g_app_info_launch(int /*long*/ appInfo, int /*long*/ list, int /*long*/ launchContext, int /*long*/ error) {
+	lock.lock();
+	try {
+		return _g_app_info_launch(appInfo, list, launchContext, error);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_app_info_get_default_for_type(byte[] mimeType, boolean mustSupportURIs);
+public static final int /*long*/ g_app_info_get_default_for_type(byte[] mimeType, boolean mustSupportURIs) {
+	lock.lock();
+	try {
+		return _g_app_info_get_default_for_type(mimeType, mustSupportURIs);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native boolean _g_app_info_launch_default_for_uri(int /*long*/ uri, int /*long*/ launchContext, int /*long*/ error);
+public static final boolean g_app_info_launch_default_for_uri(int /*long*/ appInfo, int /*long*/ launchContext, int /*long*/ error) {
+	lock.lock();
+	try {
+		return _g_app_info_launch_default_for_uri(appInfo, launchContext, error);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native boolean _g_app_info_should_show(int /*long*/ appInfo);
+public static final boolean g_app_info_should_show(int /*long*/ appInfo) {
+	lock.lock();
+	try {
+		return _g_app_info_should_show(appInfo);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native boolean _g_app_info_supports_uris(int /*long*/ appInfo);
+public static final boolean g_app_info_supports_uris(int /*long*/ appInfo) {
+	lock.lock();
+	try {
+		return _g_app_info_supports_uris(appInfo);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_data_input_stream_new(int /*long*/ input_stream);
+public static final int /*long*/ g_data_input_stream_new(int /*long*/ input_stream) {
+	lock.lock();
+	try {
+		return _g_data_input_stream_new(input_stream);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_data_input_stream_read_line(int /*long*/ stream, int[] count, int /*long*/ cancellable, int /*long*/ error);
+public static final int /*long*/ g_data_input_stream_read_line(int /*long*/ stream, int[] count, int /*long*/ cancellable, int /*long*/ error) {
+	lock.lock();
+	try {
+		return _g_data_input_stream_read_line(stream, count, cancellable, error);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native boolean _g_content_type_equals(int /*long*/ type1, byte[] type2);
+public static final boolean g_content_type_equals(int /*long*/ type1, byte[] type2) {
+	lock.lock();
+	try {
+		return _g_content_type_equals(type1, type2);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native boolean _g_content_type_is_a(int /*long*/ type, byte[] supertype);
+public static final boolean g_content_type_is_a(int /*long*/ type, byte[] supertype) {
+	lock.lock();
+	try {
+		return _g_content_type_is_a(type, supertype);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_content_type_get_mime_type(byte[] mime_type);
+public static final int /*long*/ g_content_type_get_mime_type(byte[] mime_type) {
+	lock.lock();
+	try {
+		return _g_content_type_get_mime_type(mime_type);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_content_types_get_registered();
+public static final int /*long*/ g_content_types_get_registered() {
+	lock.lock();
+	try {
+		return _g_content_types_get_registered();
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_desktop_app_info_new_from_filename(byte[] fileName);
+public static final int /*long*/ g_desktop_app_info_new_from_filename(byte[] fileName) {
+	lock.lock();
+	try {
+		return _g_desktop_app_info_new_from_filename(fileName);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_info_get_content_type (int /*long*/ info);
+public static final int /*long*/ g_file_info_get_content_type (int /*long*/ info) {
+	lock.lock();
+	try {
+		return _g_file_info_get_content_type (info);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_get_path(int /*long*/ file);
+public static final int /*long*/ g_file_get_path (int /*long*/ file) {
+	lock.lock();
+	try {
+		return _g_file_get_path(file);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_get_uri(int /*long*/ file);
+public static final int /*long*/ g_file_get_uri (int /*long*/ file) {
+	lock.lock();
+	try {
+		return _g_file_get_uri(file);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native void _g_file_info_get_modification_time(int /*long*/ info, int /*long*/[] result);
+public static final void g_file_info_get_modification_time(int /*long*/ info, int /*long*/[] result) {
+	lock.lock();
+	try {
+		_g_file_info_get_modification_time(info, result);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_icon_get_file(int /*long*/ icon);
+public static final int /*long*/ g_file_icon_get_file(int /*long*/ icon) {
+	lock.lock();
+	try {
+		return _g_file_icon_get_file(icon);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_new_for_path(byte[] fileName);
+public static final int /*long*/ g_file_new_for_path(byte[] fileName) {
+	lock.lock();
+	try {
+		return _g_file_new_for_path(fileName);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_new_for_uri(byte[] fileName);
+public static final int /*long*/ g_file_new_for_uri(byte[] fileName) {
+	lock.lock();
+	try {
+		return _g_file_new_for_uri(fileName);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_query_info  (int /*long*/ file, byte[] attributes, int /*long*/ flags, int /*long*/ cancellable, int /*long*/ error);
+public static final int /*long*/ g_file_query_info  (int /*long*/ file,byte[] attributes, int /*long*/ flags, int /*long*/ cancellable, int /*long*/ error) {
+	lock.lock();
+	try {
+		return _g_file_query_info (file, attributes, flags, cancellable, error);
+	} finally {
+		lock.unlock();
+	}
+}
+
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_file_read(int /*long*/ file, int /*long*/ cancellable, int /*long*/ error);
+public static final int /*long*/ g_file_read(int /*long*/ file, int /*long*/ cancellable, int /*long*/ error) {
+	lock.lock();
+	try {
+		return _g_file_read(file, cancellable, error);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native boolean /*long*/ _g_file_test(byte[] file, int test);
+public static final boolean /*long*/ g_file_test(byte[] file, int test) {
+	lock.lock();
+	try {
+		return _g_file_test(file, test);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_icon_to_string(int /*long*/ icon);
+public static final int /*long*/ g_icon_to_string (int /*long*/ icon) {
+	lock.lock();
+	try {
+		return _g_icon_to_string(icon);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native int /*long*/ _g_icon_new_for_string(byte[] str, int /*long*/ error[]);
+public static final int /*long*/ g_icon_new_for_string (byte[] str, int /*long*/ error[]) {
+	lock.lock();
+	try {
+		return _g_icon_new_for_string(str, error);
 	} finally {
 		lock.unlock();
 	}
@@ -2323,6 +2692,20 @@ public static final void g_object_set(int /*long*/ object, byte[] first_property
 }
 /**
  * @param object cast=(gpointer)
+ * @param first_property_name cast=(const gchar *),flags=no_out
+ * @param terminator cast=(const gchar *),flags=sentinel
+ */
+public static final native void _g_object_set(int /*long*/ object, byte[] first_property_name, byte[] data, int /*long*/ terminator);
+public static final void g_object_set(int /*long*/ object, byte[] first_property_name, byte[] data, int /*long*/ terminator) {
+	lock.lock();
+	try {
+		_g_object_set(object, first_property_name, data, terminator);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param object cast=(gpointer)
  * @param first_property_name cast=(const gchar *)
  * @param terminator cast=(const gchar *),flags=sentinel
  */
@@ -2512,6 +2895,19 @@ public static final void g_signal_emit_by_name(int /*long*/ instance, byte[] det
  * @param instance cast=(gpointer)
  * @param detailed_signal cast=(const gchar *),flags=no_out
  */
+public static final native void _g_signal_emit_by_name(int /*long*/ instance, byte[] detailed_signal, GdkRectangle data);
+public static final void g_signal_emit_by_name(int /*long*/ instance, byte[] detailed_signal, GdkRectangle data) {
+	lock.lock();
+	try {
+		_g_signal_emit_by_name(instance, detailed_signal, data);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param instance cast=(gpointer)
+ * @param detailed_signal cast=(const gchar *),flags=no_out
+ */
 public static final native void _g_signal_emit_by_name(int /*long*/ instance, byte[] detailed_signal, int /*long*/ data1, int /*long*/ data2);
 public static final void g_signal_emit_by_name(int /*long*/ instance, byte[] detailed_signal, int /*long*/ data1, int /*long*/ data2) {
 	lock.lock();
@@ -2543,6 +2939,22 @@ public static final void g_signal_handler_disconnect(int /*long*/ instance, int 
 	lock.lock();
 	try {
 		_g_signal_handler_disconnect(instance, handler_id);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param instance cast=(gpointer)
+ * @param detail cast=(GQuark)
+ * @param closure cast=(GClosure *)
+ * @param func cast=(gpointer)
+ * @param data cast=(gpointer)
+ */
+public static final native int _g_signal_handler_find(int /*long*/ instance, int mask, int signal_id, int detail, int /*long*/ closure, int /*long*/ func, int /*long*/ data);
+public static final int g_signal_handler_find(int /*long*/ instance, int mask, int signal_id, int detail, int /*long*/ closure, int /*long*/ func, int /*long*/ data) {
+	lock.lock();
+	try {
+		return _g_signal_handler_find(instance, mask, signal_id, detail, closure, func, data);
 	} finally {
 		lock.unlock();
 	}
@@ -2680,6 +3092,32 @@ public static final void g_strfreev(int /*long*/ string_array) {
 	lock.lock();
 	try {
 		_g_strfreev(string_array);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=getter
+ * @param string cast=(GString *)
+ */
+public static final native int _GString_len(int /*long*/ string);
+public static final int GString_len(int /*long*/ string) {
+	lock.lock();
+	try { 
+		return _GString_len(string);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=getter
+ * @param string cast=(GString *)
+ */
+public static final native int /*long*/ _GString_str(int /*long*/ string);
+public static final int /*long*/ GString_str(int /*long*/ string) {
+	lock.lock();
+	try { 
+		return _GString_str(string);
 	} finally {
 		lock.unlock();
 	}
@@ -2932,6 +3370,29 @@ public static final int /*long*/ g_utf8_to_utf16(int /*long*/ str, int /*long*/ 
 		lock.unlock();
 	}
 }
+/**
+ * @param value cast=(GValue *)
+ * @param type cast=(GType)
+ */
+public static final native int /*long*/ g_value_init (int /*long*/ value, int /*long*/ type);
+/** @param value cast=(GValue *) */
+public static final native int g_value_get_int (int /*long*/ value);
+/** @param value cast=(GValue *) */
+public static final native void g_value_set_int (int /*long*/ value, int v);
+/** @param value cast=(GValue *) */
+public static final native double g_value_get_double (int /*long*/ value);
+/** @param value cast=(GValue *) */
+public static final native void g_value_set_double (int /*long*/ value, double v);
+/** @param value cast=(GValue *) */
+public static final native float g_value_get_float (int /*long*/ value);
+/** @param value cast=(GValue *) */
+public static final native void g_value_set_float (int /*long*/ value, float v);
+/** @param value cast=(GValue *) */
+public static final native long g_value_get_int64 (int /*long*/ value);
+/** @param value cast=(GValue *) */
+public static final native void g_value_set_int64 (int /*long*/ value, long v);
+/** @param value cast=(GValue *) */
+public static final native void g_value_unset (int /*long*/ value);
 /** @param value cast=(const GValue *) */
 public static final native int /*long*/ _g_value_peek_pointer (int /*long*/ value);
 public static final  int /*long*/ g_value_peek_pointer (int /*long*/ value) {
@@ -3857,6 +4318,15 @@ public static final int gdk_keyval_to_unicode(int keyval) {
 	lock.lock();
 	try {
 		return _gdk_keyval_to_unicode(keyval);
+	} finally {
+		lock.unlock();
+	}
+}
+public static final native int /*long*/ _gdk_pango_attr_embossed_new(boolean embossed);
+public static final int /*long*/ gdk_pango_attr_embossed_new(boolean embossed) {
+	lock.lock();
+	try {
+		return _gdk_pango_attr_embossed_new(embossed);
 	} finally {
 		lock.unlock();
 	}
@@ -4822,6 +5292,16 @@ public static final void gdk_window_move(int /*long*/ window, int x, int y) {
 		lock.unlock();
 	}
 }
+/** @param window cast=(GdkWindow *) */
+public static final native void _gdk_window_move_resize(int /*long*/ window, int x, int y, int width, int height);
+public static final void gdk_window_move_resize(int /*long*/ window, int x, int y, int width, int height) {
+	lock.lock();
+	try {
+		_gdk_window_move_resize(window, x, y, width, height);
+	} finally {
+		lock.unlock();
+	}
+}
 /**
  * @param parent cast=(GdkWindow *)
  * @param attributes flags=no_out
@@ -4883,6 +5363,21 @@ public static final void gdk_window_resize(int /*long*/ window, int width, int h
 	lock.lock();
 	try {
 		_gdk_window_resize(window, width, height);
+	} finally {
+		lock.unlock();
+	}
+}
+/** 
+ * @method flags=dynamic
+ * @param window cast=(GdkWindow *)
+ * @param sibling cast=(GdkWindow *)
+ * @param above cast=(gboolean)
+ */
+public static final native void _gdk_window_restack(int /*long*/ window, int /*long*/ sibling, boolean above);
+public static final void gdk_window_restack(int /*long*/ window, int /*long*/ sibling, boolean above) {
+	lock.lock();
+	try {
+		_gdk_window_restack(window, sibling, above);
 	} finally {
 		lock.unlock();
 	}
@@ -5521,6 +6016,23 @@ public static final boolean gtk_clipboard_set_with_data(int /*long*/ clipboard, 
 	lock.lock();
 	try {
 		return _gtk_clipboard_set_with_data(clipboard, target, n_targets, get_func, clear_func, user_data);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param clipboard cast=(GtkClipboard *)
+ * @param target cast=(const GtkTargetEntry *)
+ * @param n_targets cast=(guint)
+ * @param get_func cast=(GtkClipboardGetFunc)
+ * @param clear_func cast=(GtkClipboardClearFunc)
+ * @param user_data cast=(GObject *)
+ */
+public static final native boolean _gtk_clipboard_set_with_owner(int /*long*/ clipboard, int /*long*/ target, int n_targets, int /*long*/ get_func, int /*long*/ clear_func, int /*long*/ user_data);
+public static final boolean gtk_clipboard_set_with_owner(int /*long*/ clipboard, int /*long*/ target, int n_targets, int /*long*/ get_func, int /*long*/ clear_func, int /*long*/ user_data) {
+	lock.lock();
+	try {
+		return _gtk_clipboard_set_with_owner(clipboard, target, n_targets, get_func, clear_func, user_data);
 	} finally {
 		lock.unlock();
 	}
@@ -6256,6 +6768,26 @@ public static final void gtk_entry_set_has_frame(int /*long*/ entry, boolean set
 		lock.unlock();
 	}
 }
+/** @method flags=dynamic */
+public static final native void _gtk_entry_set_icon_from_stock(int /*long*/ entry, int icon, byte[] stock);
+public static final void gtk_entry_set_icon_from_stock(int /*long*/ entry, int icon, byte[] stock) {
+	lock.lock();
+	try {
+		_gtk_entry_set_icon_from_stock(entry, icon, stock);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native void _gtk_entry_set_icon_sensitive(int /*long*/ entry, int icon_pos, boolean sensitive);
+public static final void gtk_entry_set_icon_sensitive(int /*long*/ entry, int icon_pos, boolean sensitive) {
+	lock.lock();
+	try {
+		_gtk_entry_set_icon_sensitive(entry, icon_pos, sensitive);
+	} finally {
+		lock.unlock();
+	}
+}
 /**
  * @param entry cast=(GtkEntry *)
  * @param ch cast=(gint)
@@ -6916,6 +7448,18 @@ public static final int /*long*/ gtk_hseparator_new() {
 		lock.unlock();
 	}
 }
+/**
+ * @method flags=dynamic
+ */
+public static final native void _gtk_icon_info_free(int /*long*/ icon_info);
+public static final void gtk_icon_info_free(int /*long*/ icon_info) {
+	lock.lock();
+	try {
+		_gtk_icon_info_free(icon_info);
+	} finally {
+		lock.unlock();
+	}
+}
 /** @param stock_id cast=(const gchar *) */
 public static final native int /*long*/ _gtk_icon_factory_lookup_default(byte[] stock_id);
 public static final int /*long*/ gtk_icon_factory_lookup_default(byte[] stock_id) {
@@ -6972,6 +7516,42 @@ public static final int /*long*/ gtk_icon_set_render_icon(int /*long*/ icon_set,
 	lock.lock();
 	try {
 		return _gtk_icon_set_render_icon(icon_set, style, direction, state, size, widget, detail);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ */
+public static final native int /*long*/ _gtk_icon_theme_get_default();
+public static final int /*long*/ gtk_icon_theme_get_default() {
+	lock.lock();
+	try {
+		return _gtk_icon_theme_get_default ();
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ */
+public static final native int /*long*/ _gtk_icon_theme_lookup_by_gicon(int /*long*/ icon_theme, int /*long*/ icon, int size, int flags);
+public static final int /*long*/ gtk_icon_theme_lookup_by_gicon(int /*long*/ icon_theme, int /*long*/ icon, int size, int flags) {
+	lock.lock();
+	try {
+		return _gtk_icon_theme_lookup_by_gicon (icon_theme, icon, size, flags);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ */
+public static final native int /*long*/ _gtk_icon_info_load_icon(int /*long*/ icon_info, int /*long*/ error[]);
+public static final int /*long*/ gtk_icon_info_load_icon(int /*long*/ icon_info, int /*long*/ error[]) {
+	lock.lock();
+	try {
+		return _gtk_icon_info_load_icon(icon_info, error);
 	} finally {
 		lock.unlock();
 	}
@@ -9349,6 +9929,19 @@ public static final int /*long*/ gtk_spin_button_new(int /*long*/ adjustment, do
 	lock.lock();
 	try {
 		return _gtk_spin_button_new(adjustment, climb_rate, digits);
+	} finally {
+		lock.unlock();
+	}
+}
+/** 
+ * @param spin_button cast=(GtkSpinButton*)
+ * @param adjustment cast=(GtkAdjustment *) 
+ **/
+public static final native void _gtk_spin_button_configure(int /*long*/ spin_button, int /*long*/ adjustment, double climb_rate, int digits);
+public static final void gtk_spin_button_configure(int /*long*/ spin_button, int /*long*/ adjustment, double climb_rate, int digits) {
+	lock.lock();
+	try {
+		_gtk_spin_button_configure(spin_button, adjustment, climb_rate, digits);
 	} finally {
 		lock.unlock();
 	}
@@ -12028,6 +12621,16 @@ public static final int /*long*/ gtk_widget_get_parent(int /*long*/ widget) {
 	}
 }
 /** @param widget cast=(GtkWidget *) */
+public static final native int /*long*/ _gtk_widget_get_parent_window(int /*long*/ widget);
+public static final int /*long*/ gtk_widget_get_parent_window(int /*long*/ widget) {
+	lock.lock();
+	try {
+		return _gtk_widget_get_parent_window(widget);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param widget cast=(GtkWidget *) */
 public static final native int /*long*/ _gtk_widget_get_style(int /*long*/ widget);
 public static final int /*long*/ gtk_widget_get_style(int /*long*/ widget) {
 	lock.lock();
@@ -12670,6 +13273,16 @@ public static final int /*long*/ gtk_window_group_new() {
 	}
 }
 /** @param handle cast=(GtkWindow *) */
+public static final native boolean _gtk_window_is_active(int /*long*/ handle);
+public static final boolean gtk_window_is_active(int /*long*/ handle) {
+	lock.lock();
+	try {
+		return _gtk_window_is_active(handle);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param handle cast=(GtkWindow *) */
 public static final native void _gtk_window_iconify(int /*long*/ handle);
 public static final void gtk_window_iconify(int /*long*/ handle) {
 	lock.lock();
@@ -13047,6 +13660,11 @@ public static final native void memmove(GtkColorSelectionDialog dest, int /*long
  * @param src cast=(const void *)
  */
 public static final native void memmove(GtkFileSelection dest, int /*long*/ src);
+/**
+ * @param dest cast=(void *),flags=no_in
+ * @param src cast=(const void *)
+ */
+public static final native void memmove(GdkEventProperty dest, int /*long*/ src);
 /**
  * @param dest cast=(void *),flags=no_in
  * @param src cast=(const void *)
@@ -13644,6 +14262,26 @@ public static final int pango_font_description_get_size(int /*long*/ desc) {
 	lock.lock();
 	try {
 		return _pango_font_description_get_size(desc);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param desc cast=(PangoFontDescription *) */
+public static final native int _pango_font_description_get_stretch(int /*long*/ desc);
+public static final int pango_font_description_get_stretch(int /*long*/ desc) {
+	lock.lock();
+	try {
+		return _pango_font_description_get_stretch(desc);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param desc cast=(PangoFontDescription *) */
+public static final native int _pango_font_description_get_variant(int /*long*/ desc);
+public static final int pango_font_description_get_variant(int /*long*/ desc) {
+	lock.lock();
+	try {
+		return _pango_font_description_get_variant(desc);
 	} finally {
 		lock.unlock();
 	}
@@ -14385,6 +15023,33 @@ public static final boolean atk_object_add_relationship (int /*long*/ object, in
 	lock.lock();
 	try {
 		return _atk_object_add_relationship(object, relationship, target);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ * @param object cast=(AtkObject *)
+ * @param relationship cast=(AtkRelationType)
+ * @param target cast=(AtkObject *)
+ */
+public static final native boolean _atk_object_remove_relationship (int /*long*/ object, int relationship, int /*long*/ target);
+public static final boolean atk_object_remove_relationship (int /*long*/ object, int relationship, int /*long*/ target) {
+	lock.lock();
+	try {
+		return _atk_object_remove_relationship(object, relationship, target);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param path cast=(const char*)
+ */
+public static final native int _access (byte [] path, int amode);
+public static final int access (byte [] path, int amode) {
+	lock.lock();
+	try {
+		return _access(path, amode);
 	} finally {
 		lock.unlock();
 	}

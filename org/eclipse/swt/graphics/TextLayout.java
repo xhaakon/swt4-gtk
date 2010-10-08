@@ -48,9 +48,12 @@ public final class TextLayout extends Resource {
 	Font font;
 	String text;
 	int ascent, descent;
+	int indent, wrapIndent, wrapWidth;
 	int[] segments;
+	char[] segmentsChars;
 	int[] tabs;
 	StyleItem[] styles;
+	int stylesCount;
 	int /*long*/ layout, context, attrList;
 	int[] invalidOffsets;
 	static final char LTR_MARK = '\u200E', RTL_MARK = '\u200F', ZWS = '\u200B', ZWNBS = '\uFEFF';
@@ -86,10 +89,11 @@ public TextLayout (Device device) {
 		OS.pango_layout_set_auto_dir(layout, false);
 	}
 	text = "";
-	ascent = descent = -1;
+	wrapWidth = ascent = descent = -1;
 	styles = new StyleItem[2];
 	styles[0] = new StyleItem();
 	styles[1] = new StyleItem();
+	stylesCount = 2;
 	init();
 }
 
@@ -102,18 +106,22 @@ void computeRuns () {
 	String segmentsText = getSegmentsText();
 	byte[] buffer = Converter.wcsToMbcs(null, segmentsText, false);
 	OS.pango_layout_set_text (layout, buffer, buffer.length);
-	if (styles.length == 2 && styles[0].style == null && ascent == -1 && descent == -1 && segments == null) return;
+	if (stylesCount == 2 && styles[0].style == null && ascent == -1 && descent == -1 && segments == null) return;
 	int /*long*/ ptr = OS.pango_layout_get_text(layout);
 	attrList = OS.pango_attr_list_new();	
 	PangoAttribute attribute = new PangoAttribute();
 	char[] chars = null;
 	int segementsLength = segmentsText.length();
+	int nSegments = segementsLength - text.length();
+	int offsetCount = nSegments;
+	int[] lineOffsets = null; 
 	if ((ascent != -1  || descent != -1) && segementsLength > 0) {
 		PangoRectangle rect = new PangoRectangle();
 		if (ascent != -1) rect.y =  -(ascent  * OS.PANGO_SCALE);
 		rect.height = (Math.max(0, ascent) + Math.max(0, descent)) * OS.PANGO_SCALE;
 		int lineCount = OS.pango_layout_get_line_count(layout);
 		chars = new char[segementsLength + lineCount * 2];
+		lineOffsets = new int [lineCount];
 		int oldPos = 0, lineIndex = 0;
 		PangoLayoutLine line = new PangoLayoutLine();
 		while (lineIndex < lineCount) {
@@ -138,6 +146,7 @@ void computeRuns () {
 			chars[pos + lineIndex * 2] = ZWS;
 			chars[pos + lineIndex * 2 + 1] = ZWNBS;
 			segmentsText.getChars(oldPos, pos, chars,  oldPos + lineIndex * 2);
+			lineOffsets[lineIndex] = pos + lineIndex * 2; 
 			oldPos = pos;
 			lineIndex++;
 		}
@@ -145,28 +154,31 @@ void computeRuns () {
 		buffer = Converter.wcsToMbcs(null, chars, false);
 		OS.pango_layout_set_text (layout, buffer, buffer.length);
 		ptr = OS.pango_layout_get_text(layout);
+		offsetCount += 2 * lineCount;
 	} else {
 		chars = new char[segementsLength];
 		segmentsText.getChars(0, segementsLength, chars, 0);
 	}
-	int offsetCount = 0;
-	for (int i = 0; i < chars.length; i++) {
-		char c = chars[i];
-		if (c == LTR_MARK || c == RTL_MARK || c == ZWNBS || c == ZWS) {
-			offsetCount++;
-		}
-	}
 	invalidOffsets = new int[offsetCount];
-	offsetCount = 0;
-	for (int i = 0; i < chars.length; i++) {
-		char c = chars[i];
-		if (c == LTR_MARK || c == RTL_MARK || c == ZWNBS || c == ZWS) {
-			invalidOffsets[offsetCount++] = i;
+	if (offsetCount > 0) {
+		offsetCount = 0;
+		int lineIndex = 0;
+		int segmentCount = 0;
+		for (int i = 0; i < chars.length; i++) {
+			char c = chars[i];
+			if (c == ZWS && lineOffsets != null && i == lineOffsets[lineIndex]) {
+				invalidOffsets[offsetCount++] = i;		//ZWS
+				invalidOffsets[offsetCount++] = ++i;	//ZWNBS
+				lineIndex++;
+			} else if (segmentCount < nSegments && i - offsetCount == segments[segmentCount]) {
+				invalidOffsets[offsetCount++] = i;
+				segmentCount++;
+			}
 		}
 	}
 	int strlen = OS.strlen(ptr);
 	Font defaultFont = font != null ? font : device.systemFont;
-	for (int i = 0; i < styles.length - 1; i++) {
+	for (int i = 0; i < stylesCount - 1; i++) {
 		StyleItem styleItem = styles[i];
 		TextStyle style = styleItem.style; 
 		if (style == null) continue;
@@ -306,6 +318,8 @@ void destroy() {
 	text = null;
 	styles = null;
 	freeRuns();
+	segments = null;
+	segmentsChars = null;
 	if (layout != 0) OS.g_object_unref(layout);
 	layout = 0;
 	if (context != 0) OS.g_object_unref(context);
@@ -390,6 +404,7 @@ public void draw(GC gc, int x, int y, int selectionStart, int selectionEnd, Colo
 	if (selectionBackground != null && selectionBackground.isDisposed()) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	gc.checkGC(GC.FOREGROUND);
 	int length = text.length();
+	x += Math.min (indent, wrapIndent);
 	boolean hasSelection = selectionStart <= selectionEnd && selectionStart != -1 && selectionEnd != -1;
 	GCData data = gc.data;
 	int /*long*/ cairo = data.cairo;
@@ -572,7 +587,7 @@ void drawBorder(GC gc, int x, int y, GdkColor selectionColor) {
 	if (cairo != 0 && OS.GTK_VERSION >= OS.VERSION(2, 8, 0)) {
 		Cairo.cairo_save(cairo);
 	}
-	for (int i = 0; i < styles.length - 1; i++) {
+	for (int i = 0; i < stylesCount - 1; i++) {
 		TextStyle style = styles[i].style;
 		if (style == null) continue;
 		
@@ -975,6 +990,7 @@ public Rectangle getBounds(int start, int end) {
 	if (OS.pango_context_get_base_dir(context) == OS.PANGO_DIRECTION_RTL) {
 		rect.x = width() - rect.x - rect.width;
 	}
+	rect.x += Math.min (indent, wrapIndent);
 	return new Rectangle(rect.x, rect.y, rect.width, rect.height);
 }
 
@@ -1025,7 +1041,7 @@ public Font getFont () {
 */
 public int getIndent () {
 	checkLayout();
-	return OS.PANGO_PIXELS(OS.pango_layout_get_indent(layout));
+	return indent;
 }
 
 /**
@@ -1122,6 +1138,7 @@ public Rectangle getLineBounds(int lineIndex) {
 	if (OS.pango_context_get_base_dir(context) == OS.PANGO_DIRECTION_RTL) {
 		x = width() - x - width;
 	}
+	x += Math.min (indent, wrapIndent);
 	return new Rectangle(x, y, width, height);
 }
 
@@ -1239,7 +1256,7 @@ public int[] getLineOffsets() {
 		int pos = (int)/*64*/OS.g_utf8_pointer_to_offset(ptr, ptr + line.start_index);
 		offsets[i] = untranslateOffset(pos);
 	}
-	offsets[lineCount] = text.length();						 
+	offsets[lineCount] = text.length();
 	return offsets;
 }
 
@@ -1277,6 +1294,7 @@ public Point getLocation(int offset, boolean trailing) {
 	if (OS.pango_context_get_base_dir(context) == OS.PANGO_DIRECTION_RTL) {
 		x = width() - x;
 	}
+	x += Math.min (indent, wrapIndent);
 	return new Point(x, OS.PANGO_PIXELS(y));
 }
 
@@ -1320,11 +1338,11 @@ int _getOffset (int offset, int movement, boolean forward) {
 	OS.pango_layout_get_log_attrs(layout, attrs, nAttrs);
 	if (attrs[0] == 0) return offset + step;
 	length = (int)/*64*/OS.g_utf8_strlen(OS.pango_layout_get_text(layout), -1);
-	offset = translateOffset(offset);
+	offset += step;
+	int internalOffset = translateOffset(offset);
 	PangoLogAttr logAttr = new PangoLogAttr();
-	offset = validateOffset(offset, step);
-	while (0 < offset && offset < length) {
-		OS.memmove(logAttr, attrs[0] + offset * PangoLogAttr.sizeof, PangoLogAttr.sizeof);
+	while (0 < internalOffset && internalOffset < length) {
+		OS.memmove(logAttr, attrs[0] + internalOffset * PangoLogAttr.sizeof, PangoLogAttr.sizeof);
 		if (((movement & SWT.MOVEMENT_CLUSTER) != 0) && logAttr.is_cursor_position) break; 
 		if ((movement & SWT.MOVEMENT_WORD) != 0) {
 			if (forward) {
@@ -1335,14 +1353,16 @@ int _getOffset (int offset, int movement, boolean forward) {
 		}
 		if ((movement & SWT.MOVEMENT_WORD_START) != 0) {
 			if (logAttr.is_word_start) break;
+			if (logAttr.is_sentence_end) break;
 		}
 		if ((movement & SWT.MOVEMENT_WORD_END) != 0) {
 			if (logAttr.is_word_end) break;
 		}
-		offset = validateOffset(offset, step);
+		offset += step;
+		internalOffset = translateOffset(offset);
 	}
 	OS.g_free(attrs[0]);
-	return Math.min(Math.max(0, untranslateOffset(offset)), text.length());
+	return Math.min(Math.max(0, offset), text.length());
 }
 
 /**
@@ -1401,6 +1421,7 @@ public int getOffset(int x, int y, int[] trailing) {
 	checkLayout();
 	computeRuns();
 	if (trailing != null && trailing.length < 1) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
+	x -= Math.min (indent, wrapIndent);
 	if (OS.pango_context_get_base_dir(context) == OS.PANGO_DIRECTION_RTL) {
 		x = width() - x;
 	}
@@ -1492,9 +1513,9 @@ public int getPreviousOffset (int index, int movement) {
  */
 public int[] getRanges () {
 	checkLayout();
-	int[] result = new int[styles.length * 2];
+	int[] result = new int[stylesCount * 2];
 	int count = 0;
-	for (int i=0; i<styles.length - 1; i++) {
+	for (int i=0; i<stylesCount - 1; i++) {
 		if (styles[i].style != null) {
 			result[count++] = styles[i].start;
 			result[count++] = styles[i + 1].start - 1;
@@ -1522,32 +1543,53 @@ public int[] getSegments() {
 	return segments;
 }
 
+/**
+ * Returns the segments characters of the receiver.
+ *
+ * @return the segments characters
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
+ * </ul>
+ * 
+ * @since 3.6
+ */
+public char[] getSegmentsChars () {
+	checkLayout();
+	return segmentsChars;
+}
+
 String getSegmentsText() {
-	if (segments == null) return text;
-	int nSegments = segments.length;
-	if (nSegments <= 1) return text;
 	int length = text.length();
 	if (length == 0) return text;
-	if (nSegments == 2) {
-		if (segments[0] == 0 && segments[1] == length) return text;
+	if (segments == null) return text;
+	int nSegments = segments.length;
+	if (nSegments == 0) return text;
+	if (segmentsChars == null) {
+		if (nSegments == 1) return text;
+		if (nSegments == 2) {
+			if (segments[0] == 0 && segments[1] == length) return text;
+		}
 	}
 	char[] oldChars = new char[length];
 	text.getChars(0, length, oldChars, 0);
 	char[] newChars = new char[length + nSegments];
 	int charCount = 0, segmentCount = 0;
-	char separator = getOrientation() == SWT.RIGHT_TO_LEFT ? RTL_MARK : LTR_MARK;
+	char defaultSeparator = getOrientation() == SWT.RIGHT_TO_LEFT ? RTL_MARK : LTR_MARK;
 	while (charCount < length) {
 		if (segmentCount < nSegments && charCount == segments[segmentCount]) {
+			char separator = segmentsChars != null && segmentsChars.length > segmentCount ? segmentsChars[segmentCount] : defaultSeparator;
 			newChars[charCount + segmentCount++] = separator;
 		} else {
 			newChars[charCount + segmentCount] = oldChars[charCount++];
 		}
 	}
-	if (segmentCount < nSegments) {
+	while (segmentCount < nSegments) {
 		segments[segmentCount] = charCount;
+		char separator = segmentsChars != null && segmentsChars.length > segmentCount ? segmentsChars[segmentCount] : defaultSeparator;
 		newChars[charCount + segmentCount++] = separator;
 	}
-	return new String(newChars, 0, Math.min(charCount + segmentCount, newChars.length));
+	return new String(newChars, 0, newChars.length);
 }
 
 /**
@@ -1581,7 +1623,7 @@ public TextStyle getStyle (int offset) {
 	checkLayout();
 	int length = text.length();
 	if (!(0 <= offset && offset < length)) SWT.error(SWT.ERROR_INVALID_RANGE);
-	for (int i=1; i<styles.length; i++) {
+	for (int i=1; i<stylesCount; i++) {
 		StyleItem item = styles[i];
 		if (item.start > offset) {
 			return styles[i - 1].style;
@@ -1605,9 +1647,9 @@ public TextStyle getStyle (int offset) {
  */
 public TextStyle[] getStyles () {
 	checkLayout();
-	TextStyle[] result = new TextStyle[styles.length];
+	TextStyle[] result = new TextStyle[stylesCount];
 	int count = 0;
-	for (int i=0; i<styles.length; i++) {
+	for (int i=0; i<stylesCount; i++) {
 		if (styles[i].style != null) {
 			result[count++] = styles[i].style;
 		}
@@ -1660,8 +1702,23 @@ public String getText () {
  */
 public int getWidth () {
 	checkLayout ();
-	int width = OS.pango_layout_get_width(layout);
-	return width != -1 ? OS.PANGO_PIXELS(width) : -1;
+	return wrapWidth;
+}
+
+/**
+* Returns the receiver's wrap indent.
+*
+* @return the receiver's wrap indent
+* 
+* @exception SWTException <ul>
+*    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
+* </ul>
+* 
+* @since 3.6
+*/
+public int getWrapIndent () {
+	checkLayout ();
+	return wrapIndent;
 }
 
 /**
@@ -1670,7 +1727,7 @@ public int getWidth () {
  * <p>
  * This method gets the dispose state for the text layout.
  * When a text layout has been disposed, it is an error to
- * invoke any other method using the text layout.
+ * invoke any other method (except {@link #dispose()}) using the text layout.
  * </p>
  *
  * @return <code>true</code> when the text layout is disposed and <code>false</code> otherwise
@@ -1797,7 +1854,7 @@ public void setFont (Font font) {
 }
 
 /**
- * Sets the indent of the receiver. This indent it applied of the first line of 
+ * Sets the indent of the receiver. This indent is applied to the first line of 
  * each paragraph.  
  *
  * @param indent new indent
@@ -1806,12 +1863,17 @@ public void setFont (Font font) {
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
  * 
+ * @see #setWrapIndent(int)
+ * 
  * @since 3.2
  */
 public void setIndent (int indent) {
 	checkLayout();
 	if (indent < 0) return;
-	OS.pango_layout_set_indent(layout, indent * OS.PANGO_SCALE);
+	if (this.indent == indent) return;
+	this.indent = indent;
+	OS.pango_layout_set_indent(layout, (indent - wrapIndent) * OS.PANGO_SCALE);
+	if (wrapWidth != -1) setWidth();
 }
 
 /**
@@ -1879,7 +1941,7 @@ public void setSpacing (int spacing) {
 
 /**
  * Sets the offsets of the receiver's text segments. Text segments are used to
- * override the default behaviour of the bidirectional algorithm.
+ * override the default behavior of the bidirectional algorithm.
  * Bidirectional reordering can happen within a text segment but not 
  * between two adjacent segments.
  * <p>
@@ -1888,12 +1950,18 @@ public void setSpacing (int spacing) {
  * always be zero and the last one should always be equals to length of
  * the text.
  * </p>
+ * <p>
+ * When segments characters are set, the segments are the offsets where
+ * the characters are inserted in the text.
+ * <p> 
  * 
  * @param segments the text segments offset
  * 
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
+ * 
+ * @see #setSegmentsChars(char[])
  */
 public void setSegments(int[] segments) {
 	checkLayout();
@@ -1909,6 +1977,39 @@ public void setSegments(int[] segments) {
 	}
 	freeRuns();
 	this.segments = segments;
+}
+
+/**
+ * Sets the characters to be used in the segments boundaries. The segments 
+ * are set by calling <code>setSegments(int[])</code>. The application can
+ * use this API to insert Unicode Control Characters in the text to control
+ * the display of the text and bidi reordering. The characters are not 
+ * accessible by any other API in <code>TextLayout</code>.
+ * 
+ * @param segmentsChars the segments characters 
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
+ * </ul>
+ * 
+ * @see #setSegments(int[])
+ * 
+ * @since 3.6
+ */
+public void setSegmentsChars(char[] segmentsChars) {
+	checkLayout();
+	if (this.segmentsChars == null && segmentsChars == null) return;
+	if (this.segmentsChars != null && segmentsChars != null) {
+		if (this.segmentsChars.length == segmentsChars.length) {
+			int i;
+			for (i = 0; i <segmentsChars.length; i++) {
+				if (this.segmentsChars[i] != segmentsChars[i]) break;
+			}
+			if (i == segmentsChars.length) return;
+		}
+	}
+	freeRuns();
+	this.segmentsChars = segmentsChars;
 }
 
 /**
@@ -1947,7 +2048,7 @@ public void setStyle (TextStyle style, int start, int end) {
 	}
 
 	int low = -1;
-	int high = styles.length;
+	int high = stylesCount;
 	while (high - low > 1) {
 		int index = (high + low) / 2;
 		if (styles[index + 1].start > start) {
@@ -1956,7 +2057,7 @@ public void setStyle (TextStyle style, int start, int end) {
 			low = index;
 		}
 	}
-	if (0 <= high && high < styles.length) {
+	if (0 <= high && high < stylesCount) {
 		StyleItem item = styles[high];
 		if (item.start == start && styles[high + 1].start - 1 == end) {
 			if (style == null) {
@@ -1969,7 +2070,7 @@ public void setStyle (TextStyle style, int start, int end) {
 	freeRuns();
 	int modifyStart = high;
 	int modifyEnd = modifyStart;
-	while (modifyEnd < styles.length) {
+	while (modifyEnd < stylesCount) {
 		if (styles[modifyEnd + 1].start > end) break;
 		modifyEnd++;
 	}
@@ -1981,33 +2082,42 @@ public void setStyle (TextStyle style, int start, int end) {
 			return;
 		}
 		if (styleStart != start && styleEnd != end) {
-			StyleItem[] newStyles = new StyleItem[styles.length + 2];
-			System.arraycopy(styles, 0, newStyles, 0, modifyStart + 1);
+			int newLength = stylesCount + 2; 
+			if (newLength > styles.length) {
+				int newSize = Math.min(newLength + 1024, Math.max(64, newLength * 2));
+				StyleItem[] newStyles = new StyleItem[newSize];
+				System.arraycopy(styles, 0, newStyles, 0, stylesCount);
+				styles = newStyles;
+			}
+			System.arraycopy(styles, modifyEnd + 1, styles, modifyEnd + 3, stylesCount - modifyEnd - 1);
 			StyleItem item = new StyleItem();
 			item.start = start;
 			item.style = style;
-			newStyles[modifyStart + 1] = item;	
+			styles[modifyStart + 1] = item;	
 			item = new StyleItem();
 			item.start = end + 1;
 			item.style = styles[modifyStart].style;
-			newStyles[modifyStart + 2] = item;
-			System.arraycopy(styles, modifyEnd + 1, newStyles, modifyEnd + 3, styles.length - modifyEnd - 1);
-			styles = newStyles;
+			styles[modifyStart + 2] = item;
+			stylesCount = newLength;
 			return;
 		}
 	}
 	if (start == styles[modifyStart].start) modifyStart--;
 	if (end == styles[modifyEnd + 1].start - 1) modifyEnd++;
-	int newLength = styles.length + 1 - (modifyEnd - modifyStart - 1);
-	StyleItem[] newStyles = new StyleItem[newLength];
-	System.arraycopy(styles, 0, newStyles, 0, modifyStart + 1);	
+	int newLength = stylesCount + 1 - (modifyEnd - modifyStart - 1);
+	if (newLength > styles.length) {
+		int newSize = Math.min(newLength + 1024, Math.max(64, newLength * 2));
+		StyleItem[] newStyles = new StyleItem[newSize];
+		System.arraycopy(styles, 0, newStyles, 0, stylesCount);
+		styles = newStyles;
+	}
+	System.arraycopy(styles, modifyEnd, styles, modifyStart + 2, stylesCount - modifyEnd);
 	StyleItem item = new StyleItem();
 	item.start = start;
 	item.style = style;
-	newStyles[modifyStart + 1] = item;
-	styles[modifyEnd].start = end + 1;
-	System.arraycopy(styles, modifyEnd, newStyles, modifyStart + 2, styles.length - modifyEnd);
-	styles = newStyles;
+	styles[modifyStart + 1] = item;
+	styles[modifyStart + 2].start = end + 1;
+	stylesCount = newLength;
 }
 
 /**
@@ -2080,7 +2190,8 @@ public void setText (String text) {
 	styles = new StyleItem[2];
 	styles[0] = new StyleItem();
 	styles[1] = new StyleItem();
-	styles[styles.length - 1].start = text.length();
+	styles[1].start = text.length();
+	stylesCount = 2;
 }
 
 /**
@@ -2102,14 +2213,44 @@ public void setText (String text) {
 public void setWidth (int width) {
 	checkLayout ();
 	if (width < -1 || width == 0) SWT.error(SWT.ERROR_INVALID_ARGUMENT);
+	if (wrapWidth == width) return;
 	freeRuns();
-	if (width == -1) {
+	wrapWidth = width;
+	setWidth();
+}
+
+void setWidth () {
+	if (wrapWidth == -1) {
 		OS.pango_layout_set_width(layout, -1);
 		boolean rtl = OS.pango_context_get_base_dir(context) == OS.PANGO_DIRECTION_RTL;
 		OS.pango_layout_set_alignment(layout, rtl ? OS.PANGO_ALIGN_RIGHT : OS.PANGO_ALIGN_LEFT);
 	} else {
-		OS.pango_layout_set_width(layout, width * OS.PANGO_SCALE);
+		int margin = Math.min (indent, wrapIndent);
+		OS.pango_layout_set_width(layout, (wrapWidth - margin) * OS.PANGO_SCALE);
 	}
+}
+
+/**
+ * Sets the wrap indent of the receiver. This indent is applied to all lines
+ * in the paragraph except the first line.  
+ *
+ * @param wrapIndent new wrap indent
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
+ * </ul>
+ * 
+ * @see #setIndent(int)
+ * 
+ * @since 3.6
+ */
+public void setWrapIndent (int wrapIndent) {
+	checkLayout();
+	if (wrapIndent < 0) return;
+	if (this.wrapIndent == wrapIndent) return;
+	this.wrapIndent = wrapIndent;
+	OS.pango_layout_set_indent(layout, (indent - wrapIndent) * OS.PANGO_SCALE);
+	if (wrapWidth != -1) setWidth();
 }
 
 static final boolean isLam(int ch) {
@@ -2165,29 +2306,11 @@ int untranslateOffset(int offset) {
 	int length = text.length();
 	if (length == 0) return offset;
 	if (invalidOffsets == null) return offset;
-	for (int i = 0; i < invalidOffsets.length; i++) {
-		if (offset == invalidOffsets[i]) {
-			offset++;
-			continue;
-		}
-		if (offset < invalidOffsets[i]) {
-			return offset - i;
-		}
+	int i = 0;
+	while (i < invalidOffsets.length && offset > invalidOffsets[i]) {
+		i++;
 	}
-	return offset - invalidOffsets.length;
-}
-
-int validateOffset(int offset, int step) {
-	if (invalidOffsets == null) return offset + step;
-	int i = step > 0 ? 0 : invalidOffsets.length - 1;
-	do {
-		offset += step;
-		while (0 <= i && i < invalidOffsets.length) {
-			if (invalidOffsets[i] == offset) break;
-			i += step;
-		}
-	} while (0 <= i && i < invalidOffsets.length);
-	return offset;
+	return offset - i;
 }
 
 int width () {
@@ -2195,7 +2318,7 @@ int width () {
 	if (wrapWidth != -1) return OS.PANGO_PIXELS(wrapWidth); 
 	int[] w = new int[1], h = new int[1];
 	OS.pango_layout_get_size(layout, w, h);
-	return OS.PANGO_PIXELS(w[0] + OS.pango_layout_get_indent(layout));
+	return OS.PANGO_PIXELS(w[0]);
 }
 
 } 

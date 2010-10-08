@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -463,12 +463,13 @@ public boolean getVisible () {
 }
 
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
-	notifyListeners (SWT.Selection, new Event ());
+	sendSelectionEvent (SWT.Selection, null, true);
 	setVisible (false);
 	return 0;
 }
 
 int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
+	if ((state & OBSCURED) != 0) return 0;
 	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
 	int /*long*/ gdkGC = OS.gdk_gc_new (window);
 	OS.gdk_draw_polygon (window, gdkGC, 0, borderPolygon, borderPolygon.length / 2);
@@ -498,6 +499,8 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			x += IMAGE_SIZE;
 		}
 		x += INSET;
+		Color foreground = display.getSystemColor (SWT.COLOR_INFO_FOREGROUND);
+		OS.gdk_gc_set_foreground (gdkGC, foreground.handle);
 		OS.gdk_draw_layout (window, gdkGC, x, y, layoutText);
 		int [] w = new int [1], h = new int [1];
 		OS.pango_layout_get_size (layoutText, w, h);
@@ -505,6 +508,8 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	}
 	if (layoutMessage != 0) {
 		x = BORDER + PADDING + INSET;
+		Color foreground = display.getSystemColor (SWT.COLOR_INFO_FOREGROUND);
+		OS.gdk_gc_set_foreground (gdkGC, foreground.handle);
 		OS.gdk_draw_layout (window, gdkGC, x, y, layoutMessage);
 	}
 	OS.g_object_unref (gdkGC);

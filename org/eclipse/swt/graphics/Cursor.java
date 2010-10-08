@@ -51,6 +51,8 @@ public final class Cursor extends Resource {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
+	 * 
+	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ handle;
 
@@ -90,6 +92,10 @@ Cursor (Device device) {
  * <p>
  * You must dispose the cursor when it is no longer required. 
  * </p>
+ * NOTE:
+ * It is recommended to use {@link org.eclipse.swt.widgets.Display#getSystemCursor(int)}
+ * instead of using this constructor. This way you can avoid the 
+ * overhead of disposing the Cursor resource.
  *
  * @param device the device on which to allocate the cursor
  * @param style the style of cursor to allocate
@@ -477,7 +483,7 @@ public boolean equals(Object object) {
  * @param device the device on which to allocate the color
  * @param handle the handle for the cursor
  * 
- * @private
+ * @noreference This method is not intended to be referenced by clients.
  */
 public static Cursor gtk_new(Device device, int /*long*/ handle) {
 	Cursor cursor = new Cursor(device);
@@ -505,7 +511,7 @@ public int hashCode() {
  * <p>
  * This method gets the dispose state for the cursor.
  * When a cursor has been disposed, it is an error to
- * invoke any other method using the cursor.
+ * invoke any other method (except {@link #dispose()}) using the cursor.
  *
  * @return <code>true</code> when the cursor is disposed and <code>false</code> otherwise
  */

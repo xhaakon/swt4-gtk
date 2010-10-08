@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -292,7 +292,9 @@ void fixDecorations (Decorations newDecorations, Control control, Menu [] menus)
  */
 public Button getDefaultButton () {
 	checkWidget();
-	return defaultButton != null ? defaultButton : saveDefault;
+	Button button = defaultButton != null ? defaultButton : saveDefault;
+	if (button != null && button.isDisposed ()) return null;
+	return button;
 }
 
 /**
@@ -487,6 +489,17 @@ void releaseWidget () {
 	images = null;
 	savedFocus = null;
 	defaultButton = saveDefault = null;
+}
+
+void reskinChildren (int flags) {
+	if (menuBar != null) menuBar.reskin (flags);
+	if (menus != null) {
+		for (int i=0; i<menus.length; i++) {
+			Menu menu = menus [i];
+			if (menu != null) menu.reskin (flags);
+		}
+	}
+	super.reskinChildren (flags);
 }
 
 boolean restoreFocus () {

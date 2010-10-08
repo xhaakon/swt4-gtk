@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -56,4 +56,8 @@ public class AtkTextIface {
 	public int /*long*/ text_caret_moved;
 	/** @field cast=(void (*)()) */
 	public int /*long*/ text_selection_changed;
+	/** @field cast=(void (*)()) */
+	public int /*long*/ get_range_extents;
+	/** @field cast=(AtkTextRange** (*)()) */
+	public int /*long*/ get_bounded_ranges;
 }
