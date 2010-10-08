@@ -408,6 +408,7 @@ int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ event) 
 }
 
 int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
+	if ((state & OBSCURED) != 0) return 0;
 	if (OS.GTK_VERSION < OS.VERSION (2, 4, 0)) {
 		GdkEventExpose gdkEvent = new GdkEventExpose ();
 		OS.memmove(gdkEvent, eventPtr, GdkEventExpose.sizeof);
@@ -599,6 +600,16 @@ public void removeExpandListener (ExpandListener listener) {
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Expand, listener);
 	eventTable.unhook (SWT.Collapse, listener);
+}
+
+void reskinChildren (int flags) {
+	if (items != null) {
+		for (int i=0; i<items.length; i++) {
+			ExpandItem item = items [i];
+			if (item != null ) item.reskin (flags);
+		}
+	}
+	super.reskinChildren (flags);
 }
 
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {

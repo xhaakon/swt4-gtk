@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2009 IBM Corporation and others.
+ * Copyright (c) 2003, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -68,6 +68,10 @@ static Browser findBrowser (int /*long*/ handle) {
 	return (Browser)display.findWidget (parent); 
 }
 
+static String getLibraryName () {
+	return "libxpcom.so"; //$NON-NLS-1$
+}
+
 static char[] mbcsToWcs (String codePage, byte [] buffer) {
 	return Converter.mbcsToWcs (codePage, buffer);
 }
@@ -104,8 +108,9 @@ String getJSLibraryName () {
 	return "libmozjs.so"; //$NON-NLS-1$
 }
 
-String getLibraryName () {
-	return "libxpcom.so"; //$NON-NLS-1$
+String getProfilePath () {
+	String baseDir = System.getProperty ("user.home"); //$NON-NLS-1$
+	return baseDir + Mozilla.SEPARATOR_OS + ".mozilla" + Mozilla.SEPARATOR_OS + "eclipse"; //$NON-NLS-1$ //$NON-NLS-2$
 }
 
 String getSWTInitLibraryName () {
@@ -214,6 +219,10 @@ void onDispose (int /*long*/ embedHandle) {
 }
 
 void removeWindowSubclass () {
+}
+
+boolean sendTraverse () {
+	return true;
 }
 
 void setSize (int /*long*/ embedHandle, int width, int height) {

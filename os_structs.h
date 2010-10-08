@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -181,6 +181,18 @@ void setGdkEventMotionFields(JNIEnv *env, jobject lpObject, GdkEventMotion *lpSt
 #define getGdkEventMotionFields(a,b,c) NULL
 #define setGdkEventMotionFields(a,b,c)
 #define GdkEventMotion_sizeof() 0
+#endif
+
+#ifndef NO_GdkEventProperty
+void cacheGdkEventPropertyFields(JNIEnv *env, jobject lpObject);
+GdkEventProperty *getGdkEventPropertyFields(JNIEnv *env, jobject lpObject, GdkEventProperty *lpStruct);
+void setGdkEventPropertyFields(JNIEnv *env, jobject lpObject, GdkEventProperty *lpStruct);
+#define GdkEventProperty_sizeof() sizeof(GdkEventProperty)
+#else
+#define cacheGdkEventPropertyFields(a,b)
+#define getGdkEventPropertyFields(a,b,c) NULL
+#define setGdkEventPropertyFields(a,b,c)
+#define GdkEventProperty_sizeof() 0
 #endif
 
 #ifndef NO_GdkEventScroll
@@ -553,18 +565,6 @@ void setXAnyEventFields(JNIEnv *env, jobject lpObject, XAnyEvent *lpStruct);
 #define getXAnyEventFields(a,b,c) NULL
 #define setXAnyEventFields(a,b,c)
 #define XAnyEvent_sizeof() 0
-#endif
-
-#ifndef NO_XButtonEvent
-void cacheXButtonEventFields(JNIEnv *env, jobject lpObject);
-XButtonEvent *getXButtonEventFields(JNIEnv *env, jobject lpObject, XButtonEvent *lpStruct);
-void setXButtonEventFields(JNIEnv *env, jobject lpObject, XButtonEvent *lpStruct);
-#define XButtonEvent_sizeof() sizeof(XButtonEvent)
-#else
-#define cacheXButtonEventFields(a,b)
-#define getXButtonEventFields(a,b,c) NULL
-#define setXButtonEventFields(a,b,c)
-#define XButtonEvent_sizeof() 0
 #endif
 
 #ifndef NO_XClientMessageEvent

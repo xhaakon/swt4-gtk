@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2004 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -16,3 +16,11 @@
 #include "os.h"
 #include <atk/atk.h>
 #include "atk_custom.h"
+
+#if (GTK_MAJOR_VERSION>=2 && GTK_MINOR_VERSION>=10)
+#define SWT_AtkObjectClass_get_attributes get_attributes
+#define SWT_AtkObjectClass_get_attributes_cast AtkAttributeSet* (*)()
+#else
+#define SWT_AtkObjectClass_get_attributes pad1
+#define SWT_AtkObjectClass_get_attributes_cast AtkFunction
+#endif 

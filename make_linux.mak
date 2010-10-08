@@ -1,5 +1,5 @@
 #*******************************************************************************
-# Copyright (c) 2000, 2009 IBM Corporation and others.
+# Copyright (c) 2000, 2010 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -27,6 +27,7 @@ GNOME_PREFIX = swt-gnome
 MOZILLA_PREFIX = swt-mozilla$(GCC_VERSION)
 XULRUNNER_PREFIX = swt-xulrunner
 XPCOMINIT_PREFIX = swt-xpcominit
+WEBKIT_PREFIX = swt-webkit
 GLX_PREFIX = swt-glx
 
 SWT_LIB = lib$(SWT_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).so
@@ -39,6 +40,7 @@ GNOME_LIB = lib$(GNOME_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).so
 MOZILLA_LIB = lib$(MOZILLA_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).so
 XULRUNNER_LIB = lib$(XULRUNNER_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).so
 XPCOMINIT_LIB = lib$(XPCOMINIT_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).so
+WEBKIT_LIB = lib$(WEBKIT_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).so
 GLX_LIB = lib$(GLX_PREFIX)-$(WS_PREFIX)-$(SWT_VERSION).so
 
 CAIROCFLAGS = `pkg-config --cflags cairo`
@@ -46,11 +48,12 @@ CAIROLIBS = `pkg-config --libs-only-L cairo` -lcairo
 
 # Do not use pkg-config to get libs because it includes unnecessary dependencies (i.e. pangoxft-1.0)
 GTKCFLAGS = `pkg-config --cflags gtk+-2.0`
-GTKLIBS = `pkg-config --libs-only-L gtk+-2.0 gthread-2.0` -lgtk-x11-2.0 -lgthread-2.0 -L/usr/X11R6/lib $(XLIB64) -lXtst
+GTKLIBS = `pkg-config --libs-only-L gtk+-2.0 gthread-2.0` $(XLIB64) -L/usr/X11R6/lib -lgtk-x11-2.0 -lgthread-2.0 -lXtst
 
 CDE_LIBS = -L$(CDE_HOME)/lib -R$(CDE_HOME)/lib -lXt -lX11 -lDtSvc
 
-AWT_LIBS = -L$(AWT_LIB_PATH) -ljawt -shared
+AWT_LFLAGS = -shared ${SWT_LFLAGS} 
+AWT_LIBS = -L$(AWT_LIB_PATH) -ljawt
 
 ATKCFLAGS = `pkg-config --cflags atk gtk+-2.0`
 ATKLIBS = `pkg-config --libs-only-L atk gtk+-2.0` -latk-1.0 -lgtk-x11-2.0
@@ -58,8 +61,7 @@ ATKLIBS = `pkg-config --libs-only-L atk gtk+-2.0` -latk-1.0 -lgtk-x11-2.0
 GNOMECFLAGS = `pkg-config --cflags gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0`
 GNOMELIBS = `pkg-config --libs-only-L gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0` -lgnomevfs-2 -lgnome-2 -lgnomeui-2
 
-GLXCFLAGS = 
-GLXLIBS = -shared -fPIC -L/usr/X11R6/lib -lGL -lGLU -lm
+GLXLIBS = -L/usr/X11R6/lib -lGL -lGLU -lm
 
 # Uncomment for Native Stats tool
 #NATIVE_STATS = -DNATIVE_STATS
@@ -77,7 +79,7 @@ MOZILLACFLAGS = -O \
 	-I$(JAVA_HOME)/include \
 	-I$(JAVA_HOME)/include/linux \
 	${SWT_PTR_CFLAGS}
-MOZILLALIBS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic
+MOZILLALFLAGS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic
 MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
 	-DNO__1XPCOMGlueStartup \
 	-DNO__1XPCOMGlueLoadXULFunctions \
@@ -89,6 +91,9 @@ MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
 	-DNO_nsDynamicFunctionLoad
 XULRUNNEREXCLUDES = -DNO__1NS_1InitXPCOM2
 
+WEBKITCFLAGS = `pkg-config --cflags gtk+-2.0` -I/usr/include/webkit-1.0 -I/usr/include/libsoup-2.4
+WEBKITLIBS = -lwebkit-1.0
+
 SWT_OBJECTS = swt.o c.o c_stats.o callback.o
 CDE_OBJECTS = swt.o cde.o cde_structs.o cde_stats.o
 AWT_OBJECTS = swt_awt.o
@@ -99,6 +104,7 @@ GNOME_OBJECTS = swt.o gnome.o gnome_structs.o gnome_stats.o
 MOZILLA_OBJECTS = swt.o xpcom.o xpcom_custom.o xpcom_structs.o xpcom_stats.o
 XULRUNNER_OBJECTS = swt.o xpcomxul.o xpcomxul_custom.o xpcomxul_structs.o xpcomxul_stats.o
 XPCOMINIT_OBJECTS = swt.o xpcominit.o xpcominit_structs.o xpcominit_stats.o
+WEBKIT_OBJECTS = swt.o webkit.o webkit_structs.o webkit_stats.o
 GLX_OBJECTS = swt.o glx.o glx_structs.o glx_stats.o
 
 CFLAGS = -O -Wall \
@@ -109,15 +115,15 @@ CFLAGS = -O -Wall \
 		-I$(JAVA_HOME)/include/linux \
 		-fPIC \
 		${SWT_PTR_CFLAGS}
-LIBS = -shared -fPIC
+LFLAGS = -shared -fPIC ${SWT_LFLAGS}
 
 ifndef NO_STRIP
-	AWT_LIBS := $(AWT_LIBS) -s
-	MOZILLALIBS := $(MOZILLALIBS) -s
-	LIBS := $(LIBS) -s
+	AWT_LFLAGS := $(AWT_LFLAGS) -s
+	MOZILLALFLAGS := $(MOZILLALFLAGS) -s
+	LFLAGS := $(LFLAGS) -s
 endif
 
-all: make_swt make_atk make_gnome make_glx
+all: make_swt make_atk make_glx
 
 #
 # SWT libs
@@ -125,13 +131,13 @@ all: make_swt make_atk make_gnome make_glx
 make_swt: $(SWT_LIB) $(SWTPI_LIB)
 
 $(SWT_LIB): $(SWT_OBJECTS)
-	$(CC) $(LIBS) -o $(SWT_LIB) $(SWT_OBJECTS)
+	$(CC) $(LFLAGS) -o $(SWT_LIB) $(SWT_OBJECTS)
 
 callback.o: callback.c callback.h
 	$(CC) $(CFLAGS) -DUSE_ASSEMBLER -c callback.c
 
 $(SWTPI_LIB): $(SWTPI_OBJECTS)
-	$(CC) $(LIBS) $(GTKLIBS) -o $(SWTPI_LIB) $(SWTPI_OBJECTS)
+	$(CC) $(LFLAGS) -o $(SWTPI_LIB) $(SWTPI_OBJECTS) $(GTKLIBS)
 
 swt.o: swt.c swt.h
 	$(CC) $(CFLAGS) -c swt.c
@@ -150,7 +156,7 @@ os_stats.o: os_stats.c os_structs.h os.h os_stats.h swt.h
 make_cairo: $(CAIRO_LIB)
 
 $(CAIRO_LIB): $(CAIRO_OBJECTS)
-	$(CC) $(LIBS) $(CAIROLIBS) -o $(CAIRO_LIB) $(CAIRO_OBJECTS)
+	$(CC) $(LFLAGS) -o $(CAIRO_LIB) $(CAIRO_OBJECTS) $(CAIROLIBS)
 
 cairo.o: cairo.c cairo.h swt.h
 	$(CC) $(CFLAGS) $(CAIROCFLAGS) -c cairo.c
@@ -166,7 +172,7 @@ cairo_stats.o: cairo_stats.c cairo_structs.h cairo.h cairo_stats.h swt.h
 make_cde: $(CDE_LIB)
 
 $(CDE_LIB): $(CDE_OBJECTS)
-	$(CC) $(LIBS) $(CDE_LIBS) -o $(CDE_LIB) $(CDE_OBJECTS)
+	$(CC) $(LFLAGS) -o $(CDE_LIB) $(CDE_OBJECTS) $(CDE_LIBS)
 
 #
 # AWT lib
@@ -174,7 +180,7 @@ $(CDE_LIB): $(CDE_OBJECTS)
 make_awt:$(AWT_LIB)
 
 $(AWT_LIB): $(AWT_OBJECTS)
-	$(CC) $(AWT_LIBS) -o $(AWT_LIB) $(AWT_OBJECTS)
+	$(CC) $(AWT_LFLAGS) -o $(AWT_LIB) $(AWT_OBJECTS) $(AWT_LIBS)
 
 #
 # Atk lib
@@ -182,7 +188,7 @@ $(AWT_LIB): $(AWT_OBJECTS)
 make_atk: $(ATK_LIB)
 
 $(ATK_LIB): $(ATK_OBJECTS)
-	$(CC) $(LIBS) $(ATKLIBS) -o $(ATK_LIB) $(ATK_OBJECTS)
+	$(CC) $(LFLAGS) -o $(ATK_LIB) $(ATK_OBJECTS) $(ATKLIBS)
 
 atk.o: atk.c atk.h
 	$(CC) $(CFLAGS) $(ATKCFLAGS) -c atk.c
@@ -199,7 +205,7 @@ atk_stats.o: atk_stats.c atk_structs.h atk_stats.h atk.h
 make_gnome: $(GNOME_LIB)
 
 $(GNOME_LIB): $(GNOME_OBJECTS)
-	$(CC) $(LIBS) $(GNOMELIBS) -o $(GNOME_LIB) $(GNOME_OBJECTS)
+	$(CC) $(LFLAGS) -o $(GNOME_LIB) $(GNOME_OBJECTS) $(GNOMELIBS)
 
 gnome.o: gnome.c 
 	$(CC) $(CFLAGS) $(GNOMECFLAGS) -c gnome.c
@@ -216,7 +222,7 @@ gnome_stats.o: gnome_stats.c gnome_stats.h
 make_mozilla:$(MOZILLA_LIB)
 
 $(MOZILLA_LIB): $(MOZILLA_OBJECTS)
-	$(CXX) -o $(MOZILLA_LIB) $(MOZILLA_OBJECTS) $(MOZILLALIBS) ${MOZILLA_LIBS}
+	$(CXX) -o $(MOZILLA_LIB) $(MOZILLA_OBJECTS) $(MOZILLALFLAGS) ${MOZILLA_LIBS}
 
 xpcom.o: xpcom.cpp
 	$(CXX) $(MOZILLACFLAGS) $(MOZILLAEXCLUDES) ${MOZILLA_INCLUDES} -c xpcom.cpp
@@ -236,7 +242,7 @@ xpcom_stats.o: xpcom_stats.cpp
 make_xulrunner:$(XULRUNNER_LIB)
 
 $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
-	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALIBS) ${XULRUNNER_LIBS}
+	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
 
 xpcomxul.o: xpcom.cpp
 	$(CXX) -o xpcomxul.o $(MOZILLACFLAGS) $(XULRUNNEREXCLUDES) ${XULRUNNER_INCLUDES} -c xpcom.cpp
@@ -256,7 +262,7 @@ xpcomxul_stats.o: xpcom_stats.cpp
 make_xpcominit:$(XPCOMINIT_LIB)
 
 $(XPCOMINIT_LIB): $(XPCOMINIT_OBJECTS)
-	$(CXX) -o $(XPCOMINIT_LIB) $(XPCOMINIT_OBJECTS) $(MOZILLALIBS) ${XULRUNNER_LIBS}
+	$(CXX) -o $(XPCOMINIT_LIB) $(XPCOMINIT_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
 
 xpcominit.o: xpcominit.cpp
 	$(CXX) $(MOZILLACFLAGS) ${XULRUNNER_INCLUDES} -c xpcominit.cpp
@@ -268,12 +274,29 @@ xpcominit_stats.o: xpcominit_stats.cpp
 	$(CXX) $(MOZILLACFLAGS) ${XULRUNNER_INCLUDES} -c xpcominit_stats.cpp
 
 #
+# WebKit lib
+#
+make_webkit: $(WEBKIT_LIB)
+
+$(WEBKIT_LIB): $(WEBKIT_OBJECTS)
+	$(CC) $(LFLAGS) -o $(WEBKIT_LIB) $(WEBKIT_OBJECTS) $(WEBKITLIBS)
+
+webkit.o: webkitgtk.c 
+	$(CC) $(CFLAGS) $(WEBKITCFLAGS) -c webkitgtk.c -o webkit.o
+
+webkit_structs.o: webkitgtk_structs.c 
+	$(CC) $(CFLAGS) $(WEBKITCFLAGS) -c webkitgtk_structs.c -o webkit_structs.o
+	
+webkit_stats.o: webkitgtk_stats.c webkitgtk_stats.h
+	$(CC) $(CFLAGS) $(WEBKITCFLAGS) -c webkitgtk_stats.c -o webkit_stats.o
+
+#
 # GLX lib
 #
 make_glx: $(GLX_LIB)
 
 $(GLX_LIB): $(GLX_OBJECTS)
-	$(CC) $(LIBS) $(GLXLIBS) -o $(GLX_LIB) $(GLX_OBJECTS)
+	$(CC) $(LFLAGS) -o $(GLX_LIB) $(GLX_OBJECTS) $(GLXLIBS)
 
 glx.o: glx.c 
 	$(CC) $(CFLAGS) $(GLXCFLAGS) -c glx.c

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -110,6 +110,7 @@ public PrintDialog (Shell parent, int style) {
  * @since 3.4
  */
 public void setPrinterData(PrinterData data) {
+	if (data == null) data = new PrinterData();
 	this.printerData = data;
 }
 
@@ -354,7 +355,11 @@ public PrinterData open() {
 		OS.gtk_print_unix_dialog_set_settings(handle, settings);
 		OS.gtk_print_unix_dialog_set_page_setup(handle, page_setup);
 		OS.g_object_unref(settings);
-		OS.g_object_unref(page_setup);		
+		OS.g_object_unref(page_setup);
+		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
+			int /*long*/ group = OS.gtk_window_get_group(0);
+			OS.gtk_window_group_add_window (group, handle);
+		}
 		OS.gtk_window_set_modal(handle, true);
 		PrinterData data = null;
 		//TODO: Handle 'Print Preview' (GTK_RESPONSE_APPLY).

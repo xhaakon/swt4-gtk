@@ -306,8 +306,7 @@ public Point getSize () {
 }
 
 /**
- * Returns the size of the receiver's thumb relative to the
- * difference between its maximum and minimum values.
+ * Returns the receiver's thumb value.
  *
  * @return the thumb value
  *
@@ -323,6 +322,109 @@ public int getThumb () {
 	GtkAdjustment adjustment = new GtkAdjustment ();
 	OS.memmove (adjustment, adjustmentHandle);
 	return (int) adjustment.page_size;
+}
+
+/**
+ * Returns a rectangle describing the size and location of the
+ * receiver's thumb relative to its parent.
+ * 
+ * @return the thumb bounds, relative to the {@link #getParent() parent}
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.6
+ */
+public Rectangle getThumbBounds () {
+	checkWidget();
+	int slider_start = OS.GTK_RANGE_SLIDER_START (handle);
+	int slider_end = OS.GTK_RANGE_SLIDER_END (handle);
+	int x, y, width, height;
+	if ((style & SWT.VERTICAL) != 0) {
+		x = OS.GTK_WIDGET_X (handle);
+		y = slider_start;
+		width = OS.GTK_WIDGET_WIDTH (handle);
+		height = slider_end - slider_start;
+	} else {
+		x = slider_start;
+		y = OS.GTK_WIDGET_Y (handle);
+		width = slider_end - slider_start;
+		height = OS.GTK_WIDGET_HEIGHT (handle);
+	}
+	Rectangle rect = new Rectangle(x, y, width, height);
+	int [] origin_x = new int [1], origin_y = new int [1];
+	int /*long*/ window = OS.GTK_WIDGET_WINDOW (parent.scrolledHandle);
+	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
+	rect.x += origin_x [0];
+	rect.y += origin_y [0];
+	window = OS.GTK_WIDGET_WINDOW (parent.handle);
+	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
+	rect.x -= origin_x [0];
+	rect.y -= origin_y [0];
+	return rect;
+}
+
+/**
+ * Returns a rectangle describing the size and location of the
+ * receiver's thumb track relative to its parent. This rectangle
+ * comprises the areas 2, 3, and 4 as described in {@link ScrollBar}.
+ * 
+ * @return the thumb track bounds, relative to the {@link #getParent() parent}
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.6
+ */
+public Rectangle getThumbTrackBounds () {
+	checkWidget();
+	int x = 0, y = 0, width, height;
+	boolean hasA = OS.GTK_RANGE_HAS_STEPPER_A (handle);
+	boolean hasB = OS.GTK_RANGE_HAS_STEPPER_B (handle);
+	boolean hasC = OS.GTK_RANGE_HAS_STEPPER_C (handle);
+	boolean hasD = OS.GTK_RANGE_HAS_STEPPER_D (handle);
+	if ((style & SWT.VERTICAL) != 0) {
+		int stepperSize = OS.GTK_WIDGET_WIDTH (handle);
+		x = OS.GTK_WIDGET_X (handle);
+		if (hasA) y += stepperSize;
+		if (hasB) y += stepperSize;
+		width = OS.GTK_WIDGET_WIDTH (handle);
+		height = OS.GTK_WIDGET_HEIGHT (handle) - y;
+		if (hasC) height -= stepperSize;
+		if (hasD) height -= stepperSize;
+		if (height < 0) {
+			y = OS.GTK_RANGE_SLIDER_START (handle);
+			height = 0;
+		}
+	} else {
+		int stepperSize = OS.GTK_WIDGET_HEIGHT (handle);
+		if (hasA) x += stepperSize;
+		if (hasB) x += stepperSize;
+		y = OS.GTK_WIDGET_Y (handle);
+		width = OS.GTK_WIDGET_WIDTH (handle) - x;
+		if (hasC) width -= stepperSize;
+		if (hasD) width -= stepperSize;
+		height = OS.GTK_WIDGET_HEIGHT (handle);
+		if (width < 0) {
+			x = OS.GTK_RANGE_SLIDER_START (handle);
+			width = 0;
+		}
+	}
+	Rectangle rect = new Rectangle(x, y, width, height);
+	int [] origin_x = new int [1], origin_y = new int [1];
+	int /*long*/ window = OS.GTK_WIDGET_WINDOW (parent.scrolledHandle);
+	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
+	rect.x += origin_x [0];
+	rect.y += origin_y [0];
+	window = OS.GTK_WIDGET_WINDOW (parent.handle);
+	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
+	rect.x -= origin_x [0];
+	rect.y -= origin_y [0];
+	return rect;
 }
 
 /**
@@ -390,7 +492,7 @@ int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 	}
 	detail = OS.GTK_SCROLL_NONE;
 	if (!dragSent) detail = OS.GTK_SCROLL_NONE;
-	postEvent (SWT.Selection, event);
+	sendSelectionEvent (SWT.Selection, event, false);
 	parent.updateScrollBarValue (this);
 	return 0;
 }
@@ -406,9 +508,9 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 				if (!dragSent) {
 					Event event = new Event ();
 					event.detail = SWT.DRAG;
-					postEvent (SWT.Selection, event);
+					sendSelectionEvent (SWT.Selection, event, false);
 				}
-				postEvent (SWT.Selection);
+				sendSelectionEvent (SWT.Selection);
 			}
 			detail = OS.GTK_SCROLL_NONE;
 			dragSent = false;
@@ -670,10 +772,13 @@ public void setSelection (int value) {
 }
 
 /**
- * Sets the size of the receiver's thumb relative to the
- * difference between its maximum and minimum values.  This new
- * value will be ignored if it is less than one, and will be
+ * Sets the thumb value. The thumb value should be used to represent 
+ * the size of the visual portion of the current range. This value is
+ * usually the same as the page increment value.
+ * <p>
+ * This new value will be ignored if it is less than one, and will be 
  * clamped if it exceeds the receiver's current range.
+ * </p>
  *
  * @param value the new thumb value, which must be at least one and not
  * larger than the size of the current range

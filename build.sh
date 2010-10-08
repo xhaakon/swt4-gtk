@@ -1,6 +1,6 @@
 #!/bin/sh
 #*******************************************************************************
-# Copyright (c) 2000, 2009 IBM Corporation and others.
+# Copyright (c) 2000, 2010 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -55,6 +55,9 @@ esac
 if [ "${MODEL}" = "" ]; then
 	if uname -i > /dev/null 2>&1; then
 		MODEL=`uname -i`
+		if [ ${MODEL} = 'unknown' ]; then
+		  MODEL=`uname -m`
+		fi
 	else
 		MODEL=`uname -m`
 	fi
@@ -73,15 +76,26 @@ case $MODEL in
 		AWT_ARCH=$MODEL
 		;;
 esac
-
+echo "Model is ${MODEL}"
 # For 64-bit CPUs, we have a switch
 if [ ${MODEL} = 'x86_64' -o ${MODEL} = 'ppc64' -o ${MODEL} = 'ia64' -o ${MODEL} = 's390x' ]; then
 	SWT_PTR_CFLAGS=-DJNI64
-	export SWT_PTR_CFLAGS
 	if [ -d /lib64 ]; then
 		XLIB64=-L/usr/X11R6/lib64
 		export XLIB64
 	fi
+	if [ ${MODEL} = 'ppc64' ]; then
+		SWT_PTR_CFLAGS="${SWT_PTR_CFLAGS} -m64"	
+		XLIB64="${XLIB64} -L/usr/lib64"
+		SWT_LFLAGS=-m64
+		export SWT_LFLAGS
+	fi
+	export SWT_PTR_CFLAGS
+fi
+if [ ${MODEL} = 's390' ]; then
+	SWT_PTR_CFLAGS="-m31"	
+	SWT_LFLAGS=-m31
+	export SWT_LFLAGS SWT_PTR_CFLAGS
 fi
 
 if [ x`pkg-config --exists gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0 && echo YES` = "xYES" ]; then
@@ -125,9 +139,17 @@ if [ -z "${MOZILLA_INCLUDES}" -a -z "${MOZILLA_LIBS}" ]; then
 	fi
 fi
 
+if [ x`pkg-config --exists webkit-1.0 && echo YES` = "xYES" ]; then
+	echo "WebKit found, compiling webkit embedded browser support."
+	MAKE_WEBKIT=make_webkit
+else
+	echo "WebKit not found:"
+	echo "    *** WebKit embedding support will not be compiled."
+fi
+
 # Find AWT if available
 if [ -z "${AWT_LIB_PATH}" ]; then
-	if [ -d ${JAVA_HOME}/jre/lib/${AWT_ARCH} ]; then
+	if [ -f ${JAVA_HOME}/jre/lib/${AWT_ARCH}/libjawt.so ]; then
 		AWT_LIB_PATH=${JAVA_HOME}/jre/lib/${AWT_ARCH}
 		export AWT_LIB_PATH
 	else
@@ -137,6 +159,7 @@ if [ -z "${AWT_LIB_PATH}" ]; then
 fi
 
 if [ -f ${AWT_LIB_PATH}/libjawt.so ]; then
+	echo "libjawt.so found, the SWT/AWT integration library will be compiled."
 	MAKE_AWT=make_awt
 else
 	echo "libjawt.so not found, the SWT/AWT integration library will not be compiled."
@@ -152,5 +175,5 @@ fi
 if [ "x${1}" = "xclean" ]; then
 	${MAKE_TYPE} -f $MAKEFILE clean
 else
-	${MAKE_TYPE} -f $MAKEFILE all $MAKE_GNOME $MAKE_CAIRO $MAKE_AWT $MAKE_MOZILLA ${1} ${2} ${3} ${4} ${5} ${6} ${7} ${8} ${9}
+	${MAKE_TYPE} -f $MAKEFILE all $MAKE_GNOME $MAKE_CAIRO $MAKE_AWT $MAKE_MOZILLA $MAKE_WEBKIT ${1} ${2} ${3} ${4} ${5} ${6} ${7} ${8} ${9}
 fi

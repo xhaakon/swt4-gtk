@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -62,4 +62,6 @@ public class AtkObjectClass {
 	public int /*long*/ state_change;
 	/** @field cast=(void (*)()) */
 	public int /*long*/ visible_data_changed;
+	/** @field accessor=SWT_AtkObjectClass_get_attributes,cast=(SWT_AtkObjectClass_get_attributes_cast) */
+	public int /*long*/ get_attributes;
 }

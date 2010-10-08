@@ -210,6 +210,7 @@ int /*long*/ childStyle () {
 
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
+	display.runSkin();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
 	if (hHint != SWT.DEFAULT && hHint < 0) hHint = 0;
 	Point size;
@@ -250,7 +251,7 @@ Widget [] computeTabList () {
 }
 
 void createHandle (int index) {
-	state |= HANDLE | CANVAS;
+	state |= HANDLE | CANVAS | CHECK_SUBWINDOW;
 	boolean scrolled = (style & (SWT.H_SCROLL | SWT.V_SCROLL)) != 0;
 	if (!scrolled) state |= THEME_BACKGROUND;
 	createHandle (index, true, scrolled || (style & SWT.BORDER) != 0);
@@ -329,7 +330,37 @@ void deregister () {
 	if (socketHandle != 0) display.removeWidget (socketHandle);
 }
 
-void drawBackground (GC gc, int x, int y, int width, int height) {
+/** 
+ * Fills the interior of the rectangle specified by the arguments,
+ * with the receiver's background. 
+ *
+ * <p>The <code>offsetX</code> and <code>offsetY</code> are used to map from
+ * the <code>gc</code> origin to the origin of the parent image background. This is useful
+ * to ensure proper alignment of the image background.</p>
+ * 
+ * @param gc the gc where the rectangle is to be filled
+ * @param x the x coordinate of the rectangle to be filled
+ * @param y the y coordinate of the rectangle to be filled
+ * @param width the width of the rectangle to be filled
+ * @param height the height of the rectangle to be filled
+ * @param offsetX the image background x offset 
+ * @param offsetY the image background y offset
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the gc is null</li>
+ *    <li>ERROR_INVALID_ARGUMENT - if the gc has been disposed</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.6
+ */
+public void drawBackground (GC gc, int x, int y, int width, int height, int offsetX, int offsetY) {
+	checkWidget ();
+	if (gc == null) error (SWT.ERROR_NULL_ARGUMENT);
+	if (gc.isDisposed ()) error (SWT.ERROR_INVALID_ARGUMENT);
 	Control control = findBackgroundControl ();
 	if (control != null) {
 		GCData data = gc.getGCData ();
@@ -338,9 +369,9 @@ void drawBackground (GC gc, int x, int y, int width, int height) {
 			Cairo.cairo_save (cairo);
 			if (control.backgroundImage != null) {
 				Point pt = display.map (this, control, 0, 0);
-				Cairo.cairo_translate (cairo, -pt.x, -pt.y);
-				x += pt.x;
-				y += pt.y;
+				Cairo.cairo_translate (cairo, -pt.x - offsetX, -pt.y - offsetY);
+				x += pt.x + offsetX;
+				y += pt.y + offsetY;
 				int /*long*/ xDisplay = OS.GDK_DISPLAY ();
 				int /*long*/ xVisual = OS.gdk_x11_visual_get_xvisual (OS.gdk_visual_get_system());
 				int /*long*/ drawable = control.backgroundImage.pixmap;
@@ -373,7 +404,7 @@ void drawBackground (GC gc, int x, int y, int width, int height) {
 			if (control.backgroundImage != null) {
 				Point pt = display.map (this, control, 0, 0);
 				OS.gdk_gc_set_fill (gdkGC, OS.GDK_TILED);
-				OS.gdk_gc_set_ts_origin (gdkGC, -pt.x, -pt.y);
+				OS.gdk_gc_set_ts_origin (gdkGC, -pt.x - offsetX, -pt.y - offsetY);
 				OS.gdk_gc_set_tile (gdkGC, control.backgroundImage.pixmap);
 				OS.gdk_draw_rectangle (data.drawable, gdkGC, 1, x, y, width, height);
 				OS.gdk_gc_set_fill (gdkGC, values.fill);
@@ -951,42 +982,119 @@ public void layout (boolean changed, boolean all) {
 public void layout (Control [] changed) {
 	checkWidget ();
 	if (changed == null) error (SWT.ERROR_INVALID_ARGUMENT);
-	for (int i=0; i<changed.length; i++) {
-		Control control = changed [i];
-		if (control == null) error (SWT.ERROR_INVALID_ARGUMENT);
-		if (control.isDisposed ()) error (SWT.ERROR_INVALID_ARGUMENT);
-		boolean ancestor = false;
-		Composite composite = control.parent;
-		while (composite != null) {
-			ancestor = composite == this;
-			if (ancestor) break;
-			composite = composite.parent;
+	layout (changed, SWT.NONE);
+}
+
+/**
+ * Forces a lay out (that is, sets the size and location) of all widgets that 
+ * are in the parent hierarchy of the changed control up to and including the 
+ * receiver. 
+ * <p>
+ * The parameter <code>flags</code> may be a combination of:
+ * <dl>
+ * <dt><b>SWT.ALL</b></dt>
+ * <dd>all children in the receiver's widget tree should be laid out</dd>
+ * <dt><b>SWT.CHANGED</b></dt>
+ * <dd>the layout must flush its caches</dd>
+ * <dt><b>SWT.DEFER</b></dt>
+ * <dd>layout will be deferred</dd>
+ * </dl>
+ * </p>
+ * <p>
+ * When the <code>changed</code> array is specified, the flags <code>SWT.ALL</code>
+ * and <code>SWT.CHANGED</code> have no effect. In this case, the layouts in the 
+ * hierarchy must not rely on any information cached about the changed control or
+ * any of its ancestors.  The layout may (potentially) optimize the
+ * work it is doing by assuming that none of the peers of the changed
+ * control have changed state since the last layout.
+ * If an ancestor does not have a layout, skip it.
+ * </p>
+ * <p>
+ * When the <code>changed</code> array is not specified, the flag <code>SWT.ALL</code>
+ * indicates that the whole widget tree should be laid out. And the flag
+ * <code>SWT.CHANGED</code> indicates that the layouts should flush any cached
+ * information for all controls that are laid out. 
+ * </p>
+ * <p>
+ * The <code>SWT.DEFER</code> flag always causes the layout to be deferred by
+ * calling <code>Composite.setLayoutDeferred(true)</code> and scheduling a call
+ * to <code>Composite.setLayoutDeferred(false)</code>, which will happen when
+ * appropriate (usually before the next event is handled). When this flag is set,
+ * the application should not call <code>Composite.setLayoutDeferred(boolean)</code>.
+ * </p>
+ * <p>
+ * Note: Layout is different from painting. If a child is
+ * moved or resized such that an area in the parent is
+ * exposed, then the parent will paint. If no child is
+ * affected, the parent will not paint.
+ * </p>
+ * 
+ * @param changed a control that has had a state change which requires a recalculation of its size
+ * @param flags the flags specifying how the layout should happen
+ * 
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_INVALID_ARGUMENT - if any of the controls in changed is null or has been disposed</li> 
+ *    <li>ERROR_INVALID_PARENT - if any control in changed is not in the widget tree of the receiver</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @since 3.6
+ */
+public void layout (Control [] changed, int flags) {
+	checkWidget ();
+	if (changed != null) {
+		for (int i=0; i<changed.length; i++) {
+			Control control = changed [i];
+			if (control == null) error (SWT.ERROR_INVALID_ARGUMENT);
+			if (control.isDisposed ()) error (SWT.ERROR_INVALID_ARGUMENT);
+			boolean ancestor = false;
+			Composite composite = control.parent;
+			while (composite != null) {
+				ancestor = composite == this;
+				if (ancestor) break;
+				composite = composite.parent;
+			}
+			if (!ancestor) error (SWT.ERROR_INVALID_PARENT);
 		}
-		if (!ancestor) error (SWT.ERROR_INVALID_PARENT);
-	}
-	int updateCount = 0;
-	Composite [] update = new Composite [16];
-	for (int i=0; i<changed.length; i++) {
-		Control child = changed [i];
-		Composite composite = child.parent;
-		while (child != this) {
-			if (composite.layout != null) {
-				composite.state |= LAYOUT_NEEDED;
-				if (!composite.layout.flushCache (child)) {
-					composite.state |= LAYOUT_CHANGED;
+		int updateCount = 0;
+		Composite [] update = new Composite [16];
+		for (int i=0; i<changed.length; i++) {
+			Control child = changed [i];
+			Composite composite = child.parent;
+			while (child != this) {
+				if (composite.layout != null) {
+					composite.state |= LAYOUT_NEEDED;
+					if (!composite.layout.flushCache (child)) {
+						composite.state |= LAYOUT_CHANGED;
+					}
 				}
+				if (updateCount == update.length) {
+					Composite [] newUpdate = new Composite [update.length + 16];
+					System.arraycopy (update, 0, newUpdate, 0, update.length);
+					update = newUpdate;
+				}
+				child = update [updateCount++] = composite;
+				composite = child.parent;
 			}
-			if (updateCount == update.length) {
-				Composite [] newUpdate = new Composite [update.length + 16];
-				System.arraycopy (update, 0, newUpdate, 0, update.length);
-				update = newUpdate;
-			}
-			child = update [updateCount++] = composite;
-			composite = child.parent;
 		}
-	}
-	for (int i=updateCount-1; i>=0; i--) {
-		update [i].updateLayout (false);
+		if ((flags & SWT.DEFER) != 0) {
+			setLayoutDeferred (true);
+			display.addLayoutDeferred (this);
+		}
+		for (int i=updateCount-1; i>=0; i--) {
+			update [i].updateLayout (false);
+		}
+	} else {
+		if (layout == null && (flags & SWT.ALL) == 0) return;
+		markLayout ((flags & SWT.CHANGED) != 0, (flags & SWT.ALL) != 0);
+		if ((flags & SWT.DEFER) != 0) {
+			setLayoutDeferred (true);
+			display.addLayoutDeferred (this);
+		}
+		updateLayout ((flags & SWT.ALL) != 0);
 	}
 }
 
@@ -1205,6 +1313,15 @@ void removeControl (Control control) {
 	fixTabList (control);
 }
 
+void reskinChildren (int flags) {
+	super.reskinChildren (flags);
+	Control [] children = _getChildren ();
+	for (int i=0; i<children.length; i++) {
+		Control child = children [i];
+		if (child != null) child.reskin (flags);
+	}
+}
+
 void resizeHandle (int width, int height) {
 	super.resizeHandle (width, height);
 	if (socketHandle != 0) OS.gtk_widget_set_size_request (socketHandle, width, height);
@@ -1380,7 +1497,7 @@ void showWidget () {
 }
 
 boolean checkSubwindow () {
-	return true;
+	return (state & CHECK_SUBWINDOW) != 0;
 }
 
 boolean translateMnemonic (Event event, Control control) {
@@ -1425,6 +1542,7 @@ void updateLayout (boolean all) {
 	if ((state & LAYOUT_NEEDED) != 0) {
 		boolean changed = (state & LAYOUT_CHANGED) != 0;
 		state &= ~(LAYOUT_NEEDED | LAYOUT_CHANGED);
+		display.runSkin();
 		layout.layout (this, changed);
 	}
 	if (all) {

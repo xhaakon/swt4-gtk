@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2000, 2009 IBM Corporation and others. All rights reserved.
+* Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
 * The contents of this file are made available under the terms
 * of the GNU Lesser General Public License (LGPL) Version 2.1 that
 * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -85,6 +85,10 @@
 #define gtk_expander_set_label_LIB "libgtk-x11-2.0.so.0"
 #define gtk_expander_set_label_widget_LIB "libgtk-x11-2.0.so.0"
 #define gtk_label_set_line_wrap_mode_LIB "libgtk-x11-2.0.so.0"
+#define gtk_icon_info_load_icon_LIB "libgtk-x11-2.0.so.0"
+#define gtk_icon_info_free_LIB "libgtk-x11-2.0.so.0"
+#define gtk_icon_theme_lookup_by_gicon_LIB "libgtk-x11-2.0.so.0"
+#define gtk_icon_theme_get_default_LIB "libgtk-x11-2.0.so.0"
 #define gtk_menu_shell_set_take_focus_LIB "libgtk-x11-2.0.so.0"
 #define gtk_window_set_keep_below_LIB "libgtk-x11-2.0.so.0"
 #define gtk_tooltip_trigger_tooltip_query_LIB "libgtk-x11-2.0.so.0"
@@ -93,6 +97,8 @@
 #define gtk_tree_view_column_cell_get_position_LIB "libgtk-x11-2.0.so.0"
 #define gtk_tree_view_set_grid_lines_LIB "libgtk-x11-2.0.so.0"
 #define gtk_entry_set_alignment_LIB "libgtk-x11-2.0.so.0"
+#define gtk_entry_set_icon_from_stock_LIB "libgtk-x11-2.0.so.0"
+#define gtk_entry_set_icon_sensitive_LIB "libgtk-x11-2.0.so.0"
 #define gdk_cursor_new_from_pixbuf_LIB "libgdk-x11-2.0.so.0"
 #define gdk_display_get_default_LIB "libgdk-x11-2.0.so.0"
 #define gdk_display_supports_cursor_color_LIB "libgdk-x11-2.0.so.0"
@@ -112,6 +118,7 @@
 #define gtk_status_icon_set_tooltip_LIB "libgtk-x11-2.0.so.0"
 #define gtk_window_get_group_LIB "libgtk-x11-2.0.so.0"
 #define gtk_window_get_opacity_LIB "libgtk-x11-2.0.so.0"
+#define gdk_window_restack_LIB "libgdk-x11-2.0.so.0"
 #define gdk_window_set_keep_above_LIB "libgdk-x11-2.0.so.0"
 #define gdk_window_set_accept_focus_LIB "libgdk-x11-2.0.so.0"
 #define gtk_window_set_opacity_LIB "libgtk-x11-2.0.so.0"
@@ -122,6 +129,7 @@
 #define gdk_x11_screen_lookup_visual_LIB "libgdk-x11-2.0.so.0"
 
 #define atk_object_add_relationship_LIB "libatk-1.0.so.0"
+#define atk_object_remove_relationship_LIB "libatk-1.0.so.0"
 #define pango_attr_underline_color_new_LIB "libpango-1.0.so.0"
 #define pango_attr_strikethrough_color_new_LIB "libpango-1.0.so.0"
 #define pango_font_metrics_get_underline_thickness_LIB "libpango-1.0.so.0"
@@ -210,11 +218,48 @@
 #define gtk_printer_is_default_LIB "libgtk-x11-2.0.so.0"
 #define FcConfigAppFontAddFile_LIB "libfontconfig.so.1"
 
+#define g_app_info_create_from_commandline_LIB "libgio-2.0.so.0"
+#define g_app_info_get_all_LIB "libgio-2.0.so.0"
+#define g_app_info_get_executable_LIB "libgio-2.0.so.0"
+#define g_app_info_get_icon_LIB "libgio-2.0.so.0"
+#define g_app_info_get_id_LIB "libgio-2.0.so.0"
+#define g_app_info_get_name_LIB "libgio-2.0.so.0"
+#define g_app_info_launch_LIB "libgio-2.0.so.0"
+#define g_app_info_get_default_for_type_LIB "libgio-2.0.so.0"
+#define g_app_info_launch_default_for_uri_LIB "libgio-2.0.so.0"
+#define g_app_info_supports_uris_LIB "libgio-2.0.so.0"
+#define g_app_info_should_show_LIB "libgio-2.0.so.0"
+#define g_data_input_stream_new_LIB "libgio-2.0.so.0"
+#define g_data_input_stream_read_line_LIB "libgio-2.0.so.0"
+#define g_content_type_equals_LIB "libgio-2.0.so.0"
+#define g_content_type_get_mime_type_LIB "libgio-2.0.so.0"
+#define g_content_type_is_a_LIB "libgio-2.0.so.0"
+#define g_content_types_get_registered_LIB "libgio-2.0.so.0"
+#define g_desktop_app_info_new_from_filename_LIB "libgio-2.0.so.0"
+#define g_file_get_path_LIB "libgio-2.0.so.0"
+#define g_file_get_uri_LIB "libgio-2.0.so.0"
+#define g_file_icon_get_file_LIB "libgio-2.0.so.0"
+#define g_file_info_get_content_type_LIB "libgio-2.0.so.0"
+#define g_file_info_get_modification_time_LIB "libgio-2.0.so.0"
+#define g_file_new_for_path_LIB "libgio-2.0.so.0"
+#define g_file_new_for_uri_LIB "libgio-2.0.so.0"
+#define g_file_read_LIB "libgio-2.0.so.0"
+#define g_file_test_LIB "libgio-2.0.so.0"
+#define g_icon_to_string_LIB "libgio-2.0.so.0"
+#define g_icon_new_for_string_LIB "libgio-2.0.so.0"
+#define g_file_query_info_LIB "libgio-2.0.so.0"
+
 /* Field accessors */
 #define G_OBJECT_CLASS_CONSTRUCTOR(arg0) (arg0)->constructor
 #define G_OBJECT_CLASS_SET_CONSTRUCTOR(arg0, arg1) (arg0)->constructor = (GObject* (*) (GType, guint, GObjectConstructParam *))arg1
 #define GTK_ACCEL_LABEL_SET_ACCEL_STRING(arg0, arg1) (arg0)->accel_string = arg1
 #define GTK_ACCEL_LABEL_GET_ACCEL_STRING(arg0) (arg0)->accel_string
+#define GTK_RANGE_SLIDER_START(arg0) (arg0)->slider_start
+#define GTK_RANGE_SLIDER_END(arg0) (arg0)->slider_end
+#define GTK_RANGE_HAS_STEPPER_A(arg0) (arg0)->has_stepper_a
+#define GTK_RANGE_HAS_STEPPER_B(arg0) (arg0)->has_stepper_b
+#define GTK_RANGE_HAS_STEPPER_C(arg0) (arg0)->has_stepper_c
+#define GTK_RANGE_HAS_STEPPER_D(arg0) (arg0)->has_stepper_d
 #define GTK_SCROLLED_WINDOW_HSCROLLBAR(arg0) (arg0)->hscrollbar
 #define GTK_SCROLLED_WINDOW_SCROLLBAR_SPACING(arg0) (GTK_SCROLLED_WINDOW_GET_CLASS (arg0)->scrollbar_spacing >= 0 ? GTK_SCROLLED_WINDOW_GET_CLASS (arg0)->scrollbar_spacing : 3)		
 #define GTK_SCROLLED_WINDOW_VSCROLLBAR(arg0) (arg0)->vscrollbar

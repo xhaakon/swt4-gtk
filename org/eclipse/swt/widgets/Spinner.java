@@ -47,6 +47,7 @@ public class Spinner extends Composite {
 	int lastEventTime = 0;
 	int /*long*/ gdkEventKey = 0;
 	int fixStart = -1, fixEnd = -1;
+	double climbRate = 1;
 	
 	/**
 	 * the operating system limit for the number of characters
@@ -292,7 +293,7 @@ void createHandle (int index) {
 	OS.gtk_fixed_set_has_window (fixedHandle, true);
 	int /*long*/ adjustment = OS.gtk_adjustment_new (0, 0, 100, 1, 10, 0);
 	if (adjustment == 0) error (SWT.ERROR_NO_HANDLES);
-	handle = OS.gtk_spin_button_new (adjustment, 1, 0);
+	handle = OS.gtk_spin_button_new (adjustment, climbRate, 0);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
 	OS.gtk_editable_set_editable (handle, (style & SWT.READ_ONLY) == 0);
@@ -559,7 +560,7 @@ String getDecimalSeparator () {
 }
 
 int /*long*/ gtk_activate (int /*long*/ widget) {
-	postEvent (SWT.DefaultSelection);
+	sendSelectionEvent (SWT.DefaultSelection);
 	return 0;
 }
 
@@ -646,6 +647,7 @@ int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
 
 int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /*long*/ end_pos) {
 	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
+	if (end_pos == -1) end_pos = OS.g_utf8_strlen (OS.gtk_entry_get_text (handle), -1);
 	String newText = verifyText ("", (int)/*64*/start_pos, (int)/*64*/end_pos);
 	if (newText == null) {
 		OS.g_signal_stop_emission_by_name (handle, OS.delete_text);
@@ -733,7 +735,7 @@ int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
 }
 
 int /*long*/ gtk_value_changed (int /*long*/ widget) {
-	postEvent (SWT.Selection);
+	sendSelectionEvent (SWT.Selection);
 	return 0;
 }
 
@@ -911,11 +913,11 @@ public void setIncrement (int value) {
 
 /**
  * Sets the maximum value that the receiver will allow.  This new
- * value will be ignored if it is not greater than the receiver's current
+ * value will be ignored if it is less than the receiver's current
  * minimum value.  If the new maximum is applied then the receiver's
  * selection value will be adjusted if necessary to fall within its new range.
  *
- * @param value the new maximum, which must be greater than the current minimum
+ * @param value the new maximum, which must be greater than or equal to the current minimum
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -930,7 +932,7 @@ public void setMaximum (int value) {
 	double newValue = value;
 	int digits = OS.gtk_spin_button_get_digits (handle);
 	for (int i = 0; i < digits; i++) newValue /= 10;
-	if (newValue <= adjustment.lower) return;
+	if (newValue < adjustment.lower) return;
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 	OS.gtk_spin_button_set_range (handle, adjustment.lower, newValue);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
@@ -938,11 +940,11 @@ public void setMaximum (int value) {
 
 /**
  * Sets the minimum value that the receiver will allow.  This new
- * value will be ignored if it is not less than the receiver's
+ * value will be ignored if it is greater than the receiver's
  * current maximum value.  If the new minimum is applied then the receiver's
  * selection value will be adjusted if necessary to fall within its new range.
  *
- * @param value the new minimum, which must be less than the current maximum
+ * @param value the new minimum, which must be less than or equal to the current maximum
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -957,7 +959,7 @@ public void setMinimum (int value) {
 	double newValue = value;
 	int digits = OS.gtk_spin_button_get_digits (handle);
 	for (int i = 0; i < digits; i++) newValue /= 10;
-	if (newValue >= adjustment.upper) return;
+	if (newValue > adjustment.upper) return;
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 	OS.gtk_spin_button_set_range (handle, newValue, adjustment.upper);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
@@ -1077,15 +1079,17 @@ public void setDigits (int value) {
 		adjustment.lower *= factor;
 		adjustment.step_increment *= factor;
 		adjustment.page_increment *= factor;
+		climbRate *= factor;
 	} else {
 		adjustment.value /= factor;
 		adjustment.upper /= factor;
 		adjustment.lower /= factor;
 		adjustment.step_increment /= factor;
 		adjustment.page_increment /= factor;
+		climbRate /= factor;
 	}
 	OS.memmove (hAdjustment, adjustment);
-	OS.gtk_spin_button_set_digits (handle, value);
+	OS.gtk_spin_button_configure (handle, hAdjustment, climbRate, value);
 }
 
 /**
@@ -1113,7 +1117,7 @@ public void setDigits (int value) {
  */
 public void setValues (int selection, int minimum, int maximum, int digits, int increment, int pageIncrement) {
 	checkWidget ();
-	if (maximum <= minimum) return;
+	if (maximum < minimum) return;
 	if (digits < 0) return;
 	if (increment < 1) return;
 	if (pageIncrement < 1) return;
@@ -1124,7 +1128,15 @@ public void setValues (int selection, int minimum, int maximum, int digits, int 
 	OS.gtk_spin_button_set_range (handle, minimum / factor, maximum / factor);
 	OS.gtk_spin_button_set_increments (handle, increment / factor, pageIncrement / factor);
 	OS.gtk_spin_button_set_value (handle, selection / factor);
-	OS.gtk_spin_button_set_digits (handle, digits);
+	/*
+	* The value of climb-rate indicates the acceleration rate 
+	* to spin the value when the button is pressed and hold 
+	* on the arrow button. This value should be varied 
+	* depending upon the value of digits.
+	*/
+	climbRate = 1.0 / factor;
+	int /*long*/ adjustment = OS.gtk_spin_button_get_adjustment(handle);
+	OS.gtk_spin_button_configure (handle, adjustment, climbRate, digits);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 

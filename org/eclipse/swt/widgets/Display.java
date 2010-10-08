@@ -79,7 +79,7 @@ import org.eclipse.swt.graphics.*;
  * <dt><b>Styles:</b></dt>
  * <dd>(none)</dd>
  * <dt><b>Events:</b></dt>
- * <dd>Close, Dispose, Settings</dd>
+ * <dd>Close, Dispose, OpenDocument, Settings, Skin</dd>
  * </dl>
  * <p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
@@ -111,6 +111,7 @@ public class Display extends Device {
 	Callback windowCallback2, windowCallback3, windowCallback4, windowCallback5;
 	EventTable eventTable, filterTable;
 	static String APP_NAME = "SWT"; //$NON-NLS-1$
+	static String APP_VERSION = ""; //$NON-NLS-1$
 	static final String DISPATCH_EVENT_KEY = "org.eclipse.swt.internal.gtk.dispatchEvent"; //$NON-NLS-1$
 	static final String ADD_WIDGET_KEY = "org.eclipse.swt.internal.addWidget"; //$NON-NLS-1$
 	int /*long*/ [] closures;
@@ -160,6 +161,10 @@ public class Display extends Device {
 	/* Display Shutdown */
 	Runnable [] disposeList;
 	
+	/* Deferred Layout list */
+	Composite[] layoutDeferred;
+	int layoutDeferredCount;
+
 	/* System Tray */
 	Tray tray;
 	
@@ -231,10 +236,12 @@ public class Display extends Device {
 	Callback allChildrenCallback;
 
 	/* Settings callbacks */
-	int /*long*/ styleSetProc;
-	Callback styleSetCallback;
+	int /*long*/ signalProc;
+	Callback signalCallback;
 	int /*long*/ shellHandle;
 	boolean settingsChanged, runSettings;
+	static final int STYLE_SET = 1;
+	static final int PROPERTY_NOTIFY = 2;
 	
 	/* Entry focus behaviour */
 	boolean entrySelectOnFocus;
@@ -280,8 +287,12 @@ public class Display extends Device {
 	int lastEventTime, lastUserEventTime;
 	
 	/* Pango layout constructor */
-	int /*long*/ pangoLayoutNewProc, pangoLayoutNewDefaultProc;
-	Callback pangoLayoutNewCallback;
+	int /*long*/ pangoLayoutNewProc;
+	
+	/* Custom Resize */
+	double resizeLocationX, resizeLocationY;
+	int resizeBoundsX, resizeBoundsY, resizeBoundsWidth, resizeBoundsHeight;
+	int resizeMode;
 	
 	/* Fixed Subclass */
 	static int /*long*/ fixed_type;
@@ -356,6 +367,11 @@ public class Display extends Device {
 		{OS.GDK_F13,		SWT.F13},
 		{OS.GDK_F14,		SWT.F14},
 		{OS.GDK_F15,		SWT.F15},
+		{OS.GDK_F16,		SWT.F16},
+		{OS.GDK_F17,		SWT.F17},
+		{OS.GDK_F18,		SWT.F18},
+		{OS.GDK_F19,		SWT.F19},
+		{OS.GDK_F20,		SWT.F20},
 		
 		/* Numeric Keypad Keys */
 		{OS.GDK_KP_Multiply,		SWT.KEYPAD_MULTIPLY},
@@ -391,6 +407,10 @@ public class Display extends Device {
 	static Display Default;
 	static Display [] Displays = new Display [4];
 
+	/* Skinning support */
+	Widget [] skinList = new Widget [GROW_SIZE];
+	int skinCount;
+	
 	/* Package name */
 	static final String PACKAGE_PREFIX = "org.eclipse.swt.widgets."; //$NON-NLS-1$
 	/* This code is intentionally commented.
@@ -522,6 +542,16 @@ public void addFilter (int eventType, Listener listener) {
 	filterTable.hook (eventType, listener);
 }
 
+void addLayoutDeferred (Composite comp) {
+	if (layoutDeferred == null) layoutDeferred = new Composite [64];
+	if (layoutDeferredCount == layoutDeferred.length) {
+		Composite [] temp = new Composite [layoutDeferred.length + 64];
+		System.arraycopy (layoutDeferred, 0, temp, 0, layoutDeferred.length);
+		layoutDeferred = temp;
+	}
+	layoutDeferred[layoutDeferredCount++] = comp;
+}
+
 void addGdkEvent (int /*long*/ event) {
 	if (gdkEvents == null) {
 		int length = GROW_SIZE;
@@ -621,6 +651,15 @@ void addPopup (Menu menu) {
 		popups = newPopups;
 	}
 	popups [index] = menu;
+}
+
+void addSkinnableWidget (Widget widget) {
+	if (skinCount >= skinList.length) {
+		Widget[] newSkinWidgets = new Widget [skinList.length + GROW_SIZE];
+		System.arraycopy (skinList, 0, newSkinWidgets, 0, skinList.length);
+		skinList = newSkinWidgets;
+	}
+	skinList [skinCount++] = widget;
 }
 
 void addWidget (int /*long*/ handle, Widget widget) {
@@ -960,6 +999,20 @@ void createDisplay (DeviceData data) {
 	filterProc = filterCallback.getAddress ();
 	if (filterProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.gdk_window_add_filter  (0, filterProc, 0);
+
+	if (OS.GDK_WINDOWING_X11 ()) {
+		int /*long*/ xWindow = OS.gdk_x11_drawable_get_xid (OS.GTK_WIDGET_WINDOW (shellHandle));
+		byte[] atomName = Converter.wcsToMbcs (null, "SWT_Window_" + APP_NAME, true); //$NON-NLS-1$
+		int /*long*/ atom = OS.XInternAtom (OS.GDK_DISPLAY (), atomName, false);
+		OS.XSetSelectionOwner (OS.GDK_DISPLAY (), atom, xWindow, OS.CurrentTime);
+		OS.XGetSelectionOwner (OS.GDK_DISPLAY (), atom);
+	}
+
+	signalCallback = new Callback (this, "signalProc", 3); //$NON-NLS-1$
+	signalProc = signalCallback.getAddress ();
+	if (signalProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+	OS.gtk_widget_add_events (shellHandle, OS.GDK_PROPERTY_CHANGE_MASK);
+	OS.g_signal_connect (shellHandle, OS.property_notify_event, signalProc, PROPERTY_NOTIFY);
 }
 
 Image createImage (String name) {
@@ -1204,6 +1257,8 @@ int /*long*/ eventProc (int /*long*/ event, int /*long*/ data) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
  * </ul>
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public Widget findWidget (int /*long*/ handle) {
 	checkDevice ();
@@ -1229,6 +1284,8 @@ public Widget findWidget (int /*long*/ handle) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
  * </ul>
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  * 
  * @since 3.1
  */
@@ -1474,28 +1531,6 @@ boolean filters (int eventType) {
 }
 
 int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*/ data) {
-	if (data == 0) {
-		/*
-		* Feature in GTK.  When button 4, 5, 6, or 7 is released, GTK
-		* does not deliver a corresponding GTK event.  Button 6 and 7
-		* are mapped to buttons 4 and 5 in SWT.  The fix is to change
-		* the button number of the event to a negative number so that
-		* it gets dispatched by GTK.  SWT has been modified to look
-		* for negative button numbers.
-		*/
-		XButtonEvent mouseEvent = new XButtonEvent ();
-		OS.memmove (mouseEvent, xEvent, 4);
-		if (mouseEvent.type == OS.ButtonRelease) {
-			OS.memmove (mouseEvent, xEvent, XButtonEvent.sizeof);
-			switch (mouseEvent.button) {
-				case 6:
-				case 7:
-					mouseEvent.button = -mouseEvent.button;
-					OS.memmove (xEvent, mouseEvent, XButtonEvent.sizeof);
-					break;
-			}
-		}
-	}
 	Widget widget = getWidget (data);
 	if (widget == null) return 0;
 	return widget.filterProc (xEvent, gdkEvent, data);
@@ -2270,6 +2305,23 @@ public Font getSystemFont () {
 }
 
 /**
+ * Returns the single instance of the system taskBar or null
+ * when there is no system taskBar available for the platform.
+ *
+ * @return the system taskBar or <code>null</code>
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
+ * </ul>
+ *
+ * @since 3.6
+ */
+public TaskBar getSystemTaskBar () {
+	checkDevice ();
+	return null;
+}
+
+/**
  * Returns the single instance of the system tray or null
  * when there is no system tray available for the platform.
  *
@@ -2400,7 +2452,9 @@ void initializeCallbacks () {
 	closures [Widget.PREEDIT_CHANGED] = OS.g_cclosure_new (windowProc2, Widget.PREEDIT_CHANGED, 0);
 	closures [Widget.REALIZE] = OS.g_cclosure_new (windowProc2, Widget.REALIZE, 0);
 	closures [Widget.SELECT] = OS.g_cclosure_new (windowProc2, Widget.SELECT, 0);
+	closures [Widget.SELECTION_DONE] = OS.g_cclosure_new (windowProc2, Widget.SELECTION_DONE, 0);
 	closures [Widget.SHOW] = OS.g_cclosure_new (windowProc2, Widget.SHOW, 0);
+	closures [Widget.START_INTERACTIVE_SEARCH] = OS.g_cclosure_new (windowProc2, Widget.START_INTERACTIVE_SEARCH, 0);
 	closures [Widget.VALUE_CHANGED] = OS.g_cclosure_new (windowProc2, Widget.VALUE_CHANGED, 0);
 	closures [Widget.UNMAP] = OS.g_cclosure_new (windowProc2, Widget.UNMAP, 0);
 	closures [Widget.UNREALIZE] = OS.g_cclosure_new (windowProc2, Widget.UNREALIZE, 0);
@@ -2450,6 +2504,7 @@ void initializeCallbacks () {
 
 	closures [Widget.DELETE_RANGE] = OS.g_cclosure_new (windowProc4, Widget.DELETE_RANGE, 0);
 	closures [Widget.DELETE_TEXT] = OS.g_cclosure_new (windowProc4, Widget.DELETE_TEXT, 0);
+	closures [Widget.ICON_RELEASE] = OS.g_cclosure_new (windowProc4, Widget.ICON_RELEASE, 0);
 	closures [Widget.ROW_ACTIVATED] = OS.g_cclosure_new (windowProc4, Widget.ROW_ACTIVATED, 0);
 	closures [Widget.SCROLL_CHILD] = OS.g_cclosure_new (windowProc4, Widget.SCROLL_CHILD, 0);
 	closures [Widget.STATUS_ICON_POPUP_MENU] = OS.g_cclosure_new (windowProc4, Widget.STATUS_ICON_POPUP_MENU, 0);
@@ -2537,22 +2592,16 @@ void initializeCallbacks () {
 
 void initializeSubclasses () {
 	if (OS.GTK_VERSION >= OS.VERSION (2, 4, 0)) {
-		pangoLayoutNewCallback = new Callback (this, "pangoLayoutNewProc", 3); //$NON-NLS-1$
-		pangoLayoutNewProc = pangoLayoutNewCallback.getAddress ();
-		if (pangoLayoutNewProc == 0) error (SWT.ERROR_NO_MORE_CALLBACKS);
 		int /*long*/ pangoLayoutType = OS.PANGO_TYPE_LAYOUT ();
 		int /*long*/ pangoLayoutClass = OS.g_type_class_ref (pangoLayoutType);
-		pangoLayoutNewDefaultProc = OS.G_OBJECT_CLASS_CONSTRUCTOR (pangoLayoutClass);
-		OS.G_OBJECT_CLASS_SET_CONSTRUCTOR (pangoLayoutClass, pangoLayoutNewProc);
+		pangoLayoutNewProc = OS.G_OBJECT_CLASS_CONSTRUCTOR (pangoLayoutClass);
+		OS.G_OBJECT_CLASS_SET_CONSTRUCTOR (pangoLayoutClass, OS.pangoLayoutNewProc_CALLBACK(pangoLayoutNewProc));
 		OS.g_type_class_unref (pangoLayoutClass);
 	}
 }
 
 void initializeSystemSettings () {
-	styleSetCallback = new Callback (this, "styleSetProc", 3); //$NON-NLS-1$
-	styleSetProc = styleSetCallback.getAddress ();
-	if (styleSetProc == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-	OS.g_signal_connect (shellHandle, OS.style_set, styleSetProc, 0);
+	OS.g_signal_connect (shellHandle, OS.style_set, signalProc, STYLE_SET);
 	
 	/*
 	* Feature in GTK.  Despite the fact that the
@@ -2609,6 +2658,8 @@ void initializeWindowManager () {
  *
  * @param hDC the platform specific GC handle
  * @param data the platform specific GC data 
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public void internal_dispose_GC (int /*long*/ gdkGC, GCData data) {
 	OS.g_object_unref (gdkGC);
@@ -2633,6 +2684,8 @@ public void internal_dispose_GC (int /*long*/ gdkGC, GCData data) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for gc creation</li>
  * </ul>
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public int /*long*/ internal_new_GC (GCData data) {
 	if (isDisposed()) SWT.error(SWT.ERROR_DEVICE_DISPOSED);
@@ -2897,12 +2950,6 @@ int /*long*/ mouseHoverProc (int /*long*/ handle) {
 	return widget.hoverProc (handle);
 }
 
-int /*long*/ pangoLayoutNewProc (int /*long*/ type, int /*long*/ n_construct_properties, int /*long*/ construct_properties) {
-	int /*long*/ layout = OS.Call (pangoLayoutNewDefaultProc, type, (int)/*64*/n_construct_properties, construct_properties);
-	OS.pango_layout_set_auto_dir (layout, false);
-	return layout;
-}
-
 /**
  * Generate a low level system event.
  * 
@@ -3104,6 +3151,8 @@ void putGdkEvents () {
  */
 public boolean readAndDispatch () {
 	checkDevice ();
+	runSkin ();
+	runDeferredLayouts ();
 	boolean events = false;
 	events |= runSettings ();
 	events |= runPopups ();
@@ -3313,18 +3362,16 @@ void releaseDisplay () {
 	shellHandle = 0;
 	
 	/* Dispose the settings callback */
-	styleSetCallback.dispose(); styleSetCallback = null;
-	styleSetProc = 0;
+	signalCallback.dispose(); signalCallback = null;
+	signalProc = 0;
 
 	/* Dispose subclass */
 	if (OS.GTK_VERSION >= OS.VERSION (2, 4, 0)) {
 		int /*long*/ pangoLayoutType = OS.PANGO_TYPE_LAYOUT ();
 		int /*long*/ pangoLayoutClass = OS.g_type_class_ref (pangoLayoutType);
-		OS.G_OBJECT_CLASS_SET_CONSTRUCTOR (pangoLayoutClass, pangoLayoutNewDefaultProc);
+		OS.G_OBJECT_CLASS_SET_CONSTRUCTOR (pangoLayoutClass, pangoLayoutNewProc);
 		OS.g_type_class_unref (pangoLayoutClass);
-		pangoLayoutNewCallback.dispose ();
-		pangoLayoutNewCallback = null;
-		pangoLayoutNewDefaultProc = pangoLayoutNewProc = 0;
+		pangoLayoutNewProc = 0;
 	}
 	
 	/* Release the sleep resources */
@@ -3506,6 +3553,21 @@ boolean runDeferredEvents () {
 	return run;
 }
 
+boolean runDeferredLayouts () {
+	if (layoutDeferredCount != 0) {
+		Composite[] temp = layoutDeferred;
+		int count = layoutDeferredCount;
+		layoutDeferred = null;
+		layoutDeferredCount = 0;
+		for (int i = 0; i < count; i++) {
+			Composite comp = temp[i];
+			if (!comp.isDisposed()) comp.setLayoutDeferred (false);
+		}
+		return true;
+	}	
+	return false;
+}
+
 boolean runPopups () {
 	if (popups == null) return false;
 	boolean result = false;
@@ -3541,16 +3603,82 @@ boolean runSettings () {
 	return true;
 }
 
+boolean runSkin () {
+	if (skinCount > 0) {
+		Widget [] oldSkinWidgets = skinList;	
+		int count = skinCount;	
+		skinList = new Widget[GROW_SIZE];
+		skinCount = 0;
+		if (eventTable != null && eventTable.hooks(SWT.Skin)) {
+			for (int i = 0; i < count; i++) {
+				Widget widget = oldSkinWidgets[i];
+				if (widget != null && !widget.isDisposed()) {
+					widget.state &= ~Widget.SKIN_NEEDED;
+					oldSkinWidgets[i] = null;
+					Event event = new Event ();
+					event.widget = widget;
+					sendEvent (SWT.Skin, event);
+				}
+			}
+		}
+		return true;
+	}	
+	return false;
+}
+
 /**
- * On platforms which support it, sets the application name
- * to be the argument. On Motif, for example, this can be used
- * to set the name used for resource lookup.  Specifying
- * <code>null</code> for the name clears it.
+ * Returns the application name.
+ *
+ * @return the application name
+ * 
+ * @see #setAppName(String)
+ * 
+ * @since 3.6
+ */
+public static String getAppName () {
+	return APP_NAME;
+}
+	
+/**
+ * Returns the application version.
+ *
+ * @return the application version
+ * 
+ * @see #setAppVersion(String)
+ * 
+ * @since 3.6
+ */
+public static String getAppVersion () {
+	return APP_VERSION;
+}
+
+/**
+ * Sets the application name to the argument.
+ * <p>
+ * The application name can be used in several ways,
+ * depending on the platform and tools being used.
+ * On Motif, for example, this can be used to set
+ * the name used for resource lookup. Accessibility
+ * tools may also ask for the application name.
+ * </p><p>
+ * Specifying <code>null</code> for the name clears it.
+ * </p>
  *
  * @param name the new app name or <code>null</code>
  */
 public static void setAppName (String name) {
 	APP_NAME = name;
+}
+
+/**
+ * Sets the application version to the argument.
+ *
+ * @param version the new app version
+ * 
+ * @since 3.6
+ */
+public static void setAppVersion (String version) {
+	APP_VERSION = version;
 }
 
 /**
@@ -4071,8 +4199,49 @@ int /*long*/ shellMapProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ 
 	return widget.shellMapProc (handle, arg0, user_data);
 }
 
-int /*long*/ styleSetProc (int /*long*/ gobject, int /*long*/ arg1, int /*long*/ user_data) {
-	settingsChanged = true;
+int /*long*/ signalProc (int /*long*/ gobject, int /*long*/ arg1, int /*long*/ user_data) {
+	switch((int)/*64*/user_data) {
+		case STYLE_SET:
+			settingsChanged = true;
+			break;
+		case PROPERTY_NOTIFY:
+			GdkEventProperty gdkEvent = new GdkEventProperty ();
+			OS.memmove (gdkEvent, arg1);
+			if (gdkEvent.type == OS.GDK_PROPERTY_NOTIFY) {
+				byte[] name = Converter.wcsToMbcs (null, "org.eclipse.swt.filePath.message", true); //$NON-NLS-1$
+				int /*long*/ atom = OS.gdk_x11_atom_to_xatom (OS.gdk_atom_intern (name, true));
+				if (atom == OS.gdk_x11_atom_to_xatom (gdkEvent.atom)) {
+					int /*long*/ xWindow = OS.gdk_x11_drawable_get_xid (OS.GTK_WIDGET_WINDOW( shellHandle));
+					int /*long*/ [] type = new int /*long*/ [1];
+					int [] format = new int [1];
+					int [] nitems = new int [1];
+					int [] bytes_after = new int [1];
+					int /*long*/ [] data = new int /*long*/ [1];
+					OS.XGetWindowProperty (OS.GDK_DISPLAY (), xWindow, atom, 0, -1, true, OS.AnyPropertyType,
+							type, format, nitems, bytes_after, data);
+					
+					if (nitems [0] > 0) {
+						byte [] buffer = new byte [nitems [0]];
+						OS.memmove(buffer, data [0], buffer.length);
+						OS.XFree (data [0]);
+						char[] chars = Converter.mbcsToWcs(null, buffer);
+						String string = new String (chars);
+						
+						int lastIndex = 0;
+						int index = string.indexOf (':');
+						while (index != -1) {
+							String file = string.substring (lastIndex, index);
+							Event event = new Event ();
+							event.text = file;
+							sendEvent (SWT.OpenDocument, event);
+							lastIndex = index+1;
+							index = string.indexOf(':', lastIndex);
+						}
+					}
+				}
+			}
+			break;
+	}
 	return 0;
 }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -367,6 +367,8 @@ public Font getSystemFont () {
  *
  * @param data the platform specific GC data 
  * @return the platform specific GC handle
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public int /*long*/ internal_new_GC(GCData data) {
 	GdkVisual visual = new GdkVisual ();
@@ -407,6 +409,8 @@ public int /*long*/ internal_new_GC(GCData data) {
  *
  * @param hDC the platform specific GC handle
  * @param data the platform specific GC data 
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public void internal_dispose_GC(int /*long*/ gdkGC, GCData data) {
 	if (data != null) isGCCreated = false;
@@ -501,6 +505,8 @@ public void endJob() {
 	if (printJob == 0) return;
 	Cairo.cairo_surface_finish(surface);
 	OS.gtk_print_job_send(printJob, 0, 0, 0);
+	OS.g_object_unref(printJob);
+	printJob = 0;
 }
 
 /**
@@ -514,8 +520,9 @@ public void cancelJob() {
 	checkDevice();
 	if (printJob == 0) return;
 	//TODO: Need to implement (waiting on gtk bug 339323) 
-	//OS.g_object_unref(printJob);
-	//printJob = 0;
+	Cairo.cairo_surface_finish(surface);
+	OS.g_object_unref(printJob);
+	printJob = 0;
 }
 
 /**

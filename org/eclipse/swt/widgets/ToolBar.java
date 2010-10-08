@@ -391,7 +391,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 					event.x = OS.GTK_WIDGET_X (topHandle);
 					event.y = OS.GTK_WIDGET_Y (topHandle) + OS.GTK_WIDGET_HEIGHT (topHandle);
 					if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth() - OS.GTK_WIDGET_WIDTH(topHandle) - event.x;
-					item.postEvent (SWT.Selection, event);
+					item.sendSelectionEvent  (SWT.Selection, event, false);
 					return result;
 				}
 			}
@@ -496,6 +496,17 @@ void removeControl (Control control) {
 		ToolItem item = items [i];
 		if (item.control == control) item.setControl (null);
 	}
+}
+
+void reskinChildren (int flags) {
+	ToolItem[] items = _getItems();
+	if (items != null) {
+		for (int i=0; i<items.length; i++) {
+			ToolItem item = items [i];
+			if (item != null) item.reskin (flags);
+		}
+	}
+	super.reskinChildren (flags);
 }
 
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {

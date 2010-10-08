@@ -16,7 +16,6 @@ import org.eclipse.swt.accessibility.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
-import org.eclipse.swt.internal.accessibility.gtk.*;
 import org.eclipse.swt.internal.cairo.*;
 import org.eclipse.swt.internal.gtk.*;
 
@@ -29,7 +28,8 @@ import org.eclipse.swt.internal.gtk.*;
  * <dd>LEFT_TO_RIGHT, RIGHT_TO_LEFT</dd>
  * <dt><b>Events:</b>
  * <dd>DragDetect, FocusIn, FocusOut, Help, KeyDown, KeyUp, MenuDetect, MouseDoubleClick, MouseDown, MouseEnter,
- *     MouseExit, MouseHover, MouseUp, MouseMove, Move, Paint, Resize, Traverse</dd>
+ *     MouseExit, MouseHover, MouseUp, MouseMove, MouseWheel, MouseHorizontalWheel, MouseVerticalWheel, Move,
+ *     Paint, Resize, Traverse</dd>
  * </dl>
  * </p><p>
  * Only one of LEFT_TO_RIGHT or RIGHT_TO_LEFT may be specified.
@@ -56,8 +56,7 @@ public abstract class Control extends Widget implements Drawable {
 	String toolTipText;
 	Object layoutData;
 	Accessible accessible;
-	
-	static final String IS_ACTIVE = "org.eclipse.swt.internal.control.isactive"; //$NON-NLS-1$
+	Control labelRelation;
 
 Control () {
 }
@@ -107,6 +106,23 @@ void deregister () {
 	if (fixedHandle != 0) display.removeWidget (fixedHandle);
 	int /*long*/ imHandle = imHandle ();
 	if (imHandle != 0) display.removeWidget (imHandle);
+}
+
+void drawBackground (Control control, int /*long*/ window, int /*long*/ region, int x, int y, int width, int height) {
+	int /*long*/ gdkGC = OS.gdk_gc_new (window);
+	if (region != 0) OS.gdk_gc_set_clip_region (gdkGC, region);
+	if (control.backgroundImage != null) {
+		Point pt = display.map (this, control, 0, 0);
+		OS.gdk_gc_set_fill (gdkGC, OS.GDK_TILED);
+		OS.gdk_gc_set_ts_origin (gdkGC, -pt.x, -pt.y);
+		OS.gdk_gc_set_tile (gdkGC, control.backgroundImage.pixmap);
+		OS.gdk_draw_rectangle (window, gdkGC, 1, x, y, width, height);
+	} else {
+		GdkColor color = control.getBackgroundColor ();
+		OS.gdk_gc_set_foreground (gdkGC, color);
+		OS.gdk_draw_rectangle (window, gdkGC, 1, x, y, width, height);
+	}
+	OS.g_object_unref (gdkGC);
 }
 
 boolean drawGripper (int x, int y, int width, int height, boolean vertical) {
@@ -526,7 +542,7 @@ void createWidget (int index) {
 	checkOrientation (parent);
 	super.createWidget (index);
 	checkBackground ();
-	if ((state & PARENT_BACKGROUND) != 0) setBackground ();
+	if ((state & PARENT_BACKGROUND) != 0) setParentBackground ();
 	checkBuffered ();
 	showWidget ();
 	setInitialBounds ();
@@ -633,6 +649,10 @@ void forceResize () {
  */
 public Accessible getAccessible () {
 	checkWidget ();
+	return _getAccessible ();
+}
+
+Accessible _getAccessible () {
 	if (accessible == null) {
 		accessible = Accessible.internal_new_Accessible (this);
 	}
@@ -1087,6 +1107,7 @@ public void moveAbove (Control control) {
 	if (control != null) {
 		if (control.isDisposed ()) error (SWT.ERROR_INVALID_ARGUMENT);
 		if (parent != control.parent) return;
+		if (this == control) return;
 	}
 	setZOrder (control, true, true);
 }
@@ -1116,6 +1137,7 @@ public void moveBelow (Control control) {
 	if (control != null) {
 		if (control.isDisposed ()) error(SWT.ERROR_INVALID_ARGUMENT);
 		if (parent != control.parent) return;
+		if (this == control) return;
 	}
 	setZOrder (control, false, true);
 }
@@ -1890,19 +1912,14 @@ public void removePaintListener(PaintListener listener) {
 }
 
 /*
- * Remove "Labelled by" relations from the receiver.
+ * Remove "Labelled by" relation from the receiver.
  */
 void removeRelation () {
 	if (!isDescribedByLabel ()) return;		/* there will not be any */
-	int /*long*/ accessible = OS.gtk_widget_get_accessible (handle);
-	if (accessible == 0) return;
-	int /*long*/ set = ATK.atk_object_ref_relation_set (accessible);
-	int count = ATK.atk_relation_set_get_n_relations (set);
-	for (int i = 0; i < count; i++) {
-		int /*long*/ relation = ATK.atk_relation_set_get_relation (set, 0);
-		ATK.atk_relation_set_remove (set, relation);
+	if (labelRelation != null) {
+		_getAccessible().removeRelation (ACC.RELATION_LABELLED_BY, labelRelation._getAccessible());
+		labelRelation = null;
 	}
-	OS.g_object_unref (set);
 }
 
 /**
@@ -1950,7 +1967,7 @@ public void removeTraverseListener(TraverseListener listener) {
  * @return <code>true</code> if the gesture occurred, and <code>false</code> otherwise.
  *
  * @exception IllegalArgumentException <ul>
- *   <li>ERROR_NULL_ARGUMENT when the event is null</li>
+ *   <li>ERROR_NULL_ARGUMENT if the event is null</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -1992,7 +2009,7 @@ public boolean dragDetect (Event event) {
  * @return <code>true</code> if the gesture occurred, and <code>false</code> otherwise.
  *
  * @exception IllegalArgumentException <ul>
- *   <li>ERROR_NULL_ARGUMENT when the event is null</li>
+ *   <li>ERROR_NULL_ARGUMENT if the event is null</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -2269,11 +2286,6 @@ public Cursor getCursor () {
 	return cursor;
 }
 
-public Object getData(String key) {
-	if (key.equals(IS_ACTIVE)) return new Boolean(isActive ());
-	return super.getData(key);
-}
-
 /**
  * Returns <code>true</code> if the receiver is detecting
  * drag gestures, and  <code>false</code> otherwise. 
@@ -2411,6 +2423,11 @@ public Menu getMenu () {
  * Returns the receiver's monitor.
  * 
  * @return the receiver's monitor
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
  * 
  * @since 3.0
  */
@@ -2632,20 +2649,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event, bo
 int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ event) {
 	GdkEventButton gdkEvent = new GdkEventButton ();
 	OS.memmove (gdkEvent, event, GdkEventButton.sizeof);
-	/*
-	* Feature in GTK.  When button 4, 5, 6, or 7 is released, GTK
-	* does not deliver a corresponding GTK event.  Button 6 and 7
-	* are mapped to buttons 4 and 5 in SWT.  The fix is to change
-	* the button number of the event to a negative number so that
-	* it gets dispatched by GTK.  SWT has been modified to look
-	* for negative button numbers.
-	*/
-	int button = gdkEvent.button;
-	switch (button) {
-		case -6: button = 4; break;
-		case -7: button = 5; break;
-	}
-	return sendMouseEvent (SWT.MouseUp, button, display.clickCount, 0, false, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
+	return sendMouseEvent (SWT.MouseUp, gdkEvent.button, display.clickCount, 0, false, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
 }
 
 int /*long*/ gtk_commit (int /*long*/ imcontext, int /*long*/ text) {
@@ -2921,8 +2925,7 @@ int /*long*/ gtk_realize (int /*long*/ widget) {
 		OS.gtk_im_context_set_client_window (imHandle, window);
 	}
 	if (backgroundImage != null) {
-		int /*long*/ window = OS.GTK_WIDGET_WINDOW (paintHandle ());
-		if (window != 0) OS.gdk_window_set_back_pixmap (window, backgroundImage.pixmap, false);
+		setBackgroundPixmap (backgroundImage.pixmap);
 	}
 	return 0;
 }
@@ -2936,9 +2939,9 @@ int /*long*/ gtk_scroll_event (int /*long*/ widget, int /*long*/ eventPtr) {
 		case OS.GDK_SCROLL_DOWN:
 			return sendMouseEvent (SWT.MouseWheel, 0, -3, SWT.SCROLL_LINE, true, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
 		case OS.GDK_SCROLL_LEFT:
-			return sendMouseEvent (SWT.MouseDown, 4, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
+			return sendMouseEvent (SWT.MouseHorizontalWheel, 0, 3, 0, true, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
 		case OS.GDK_SCROLL_RIGHT:
-			return sendMouseEvent (SWT.MouseDown, 5, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
+			return sendMouseEvent (SWT.MouseHorizontalWheel, 0, -3, 0, true, gdkEvent.time, gdkEvent.x_root, gdkEvent.y_root, false, gdkEvent.state) ? 0 : 1;
 	}
 	return 0;
 }
@@ -3000,6 +3003,8 @@ void gtk_widget_size_request (int /*long*/ widget, GtkRequisition requisition) {
  *
  * @param data the platform specific GC data 
  * @return the platform specific GC handle
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public int /*long*/ internal_new_GC (GCData data) {
 	checkWidget ();
@@ -3043,6 +3048,8 @@ int /*long*/ imHandle () {
  *
  * @param hDC the platform specific GC handle
  * @param data the platform specific GC data 
+ * 
+ * @noreference This method is not intended to be referenced by clients.
  */
 public void internal_dispose_GC (int /*long*/ gdkGC, GCData data) {
 	checkWidget ();
@@ -3285,14 +3292,18 @@ void release (boolean destroy) {
 			if (children [index] == this) break;
 			index++;
 		}
-		if (0 < index && (index + 1) < children.length) {
-			next = children [index + 1];
+		if (index > 0) {
 			previous = children [index - 1];
 		}
+		if (index + 1 < children.length) {
+			next = children [index + 1];
+			next.removeRelation ();
+		}
+		removeRelation ();
 	}
 	super.release (destroy);
 	if (destroy) {
-		if (previous != null) previous.addRelation (next);
+		if (previous != null && next != null) previous.addRelation (next);
 	}
 }
 
@@ -3331,6 +3342,30 @@ void releaseWidget () {
 	accessible = null;
 	region = null;
 }
+
+void restackWindow (int /*long*/ window, int /*long*/ sibling, boolean above) {
+	    if (OS.GTK_VERSION >= OS.VERSION (2, 17, 11)) {
+	    	OS.gdk_window_restack (window, sibling, above);
+	    } else {
+	    	/*
+			* Feature in X. If the receiver is a top level, XConfigureWindow ()
+			* will fail (with a BadMatch error) for top level shells because top
+			* level shells are reparented by the window manager and do not share
+			* the same X window parent.  This is the correct behavior but it is
+			* unexpected.  The fix is to use XReconfigureWMWindow () instead.
+			* When the receiver is not a top level shell, XReconfigureWMWindow ()
+			* behaves the same as XConfigureWindow ().
+			*/
+			int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+			int /*long*/ xWindow = OS.gdk_x11_drawable_get_xid (window);
+			int xScreen = OS.XDefaultScreen (xDisplay);
+			int flags = OS.CWStackMode | OS.CWSibling;			
+			XWindowChanges changes = new XWindowChanges ();
+			changes.sibling = OS.gdk_x11_drawable_get_xid (sibling);
+			changes.stack_mode = above ? OS.Above : OS.Below;
+			OS.XReconfigureWMWindow (xDisplay, xWindow, xScreen, flags, changes);
+	    }
+	}
 
 boolean sendDragEvent (int button, int stateMask, int x, int y, boolean isStateMask) {
 	Event event = new Event ();
@@ -3425,12 +3460,14 @@ boolean sendMouseEvent (int type, int button, int count, int detail, boolean sen
 }
 
 void setBackground () {
-	if ((state & PARENT_BACKGROUND) != 0 && (state & BACKGROUND) == 0 && backgroundImage == null) {
-		setParentBackground ();
-	} else {
-		setWidgetBackground ();
+	if ((state & BACKGROUND) == 0 && backgroundImage == null) {
+		if ((state & PARENT_BACKGROUND) != 0) {
+			setParentBackground ();
+		} else {
+			setWidgetBackground ();
+		}
+		redrawWidget (0, 0, 0, 0, true, false, false);
 	}
-	redrawWidget (0, 0, 0, 0, true, false, false);
 }
 
 /**
@@ -3483,14 +3520,27 @@ void setBackgroundColor (int /*long*/ handle, GdkColor color) {
 	int /*long*/ style = OS.gtk_widget_get_modifier_style (handle);
 	int /*long*/ ptr = OS.gtk_rc_style_get_bg_pixmap_name (style, index);
 	if (ptr != 0) OS.g_free (ptr);
-	String name = color == null ? "<parent>" : "<none>";
-	byte[] buffer = Converter.wcsToMbcs (null, name, true);
-	ptr = OS.g_malloc (buffer.length);
-	OS.memmove (ptr, buffer, buffer.length);
+	ptr = 0;
+	
+	String pixmapName = null;
+	int flags = OS.gtk_rc_style_get_color_flags (style, index);
+	if (color != null) {
+		flags |= OS.GTK_RC_BG;
+		pixmapName = "<none>";
+	} else {
+		flags &= ~OS.GTK_RC_BG;
+		if (backgroundImage == null && (state & PARENT_BACKGROUND) != 0) {
+			pixmapName = "<parent>";
+		}
+	}
+	if (pixmapName != null) {
+		byte[] buffer = Converter.wcsToMbcs (null, pixmapName, true);
+		ptr = OS.g_malloc (buffer.length);
+		OS.memmove (ptr, buffer, buffer.length);
+	}
+	
 	OS.gtk_rc_style_set_bg_pixmap_name (style, index, ptr);
 	OS.gtk_rc_style_set_bg (style, index, color);
-	int flags = OS.gtk_rc_style_get_color_flags (style, index);
-	flags = (color == null) ? flags & ~OS.GTK_RC_BG : flags | OS.GTK_RC_BG;
 	OS.gtk_rc_style_set_color_flags (style, index, flags);
 	modifyStyle (handle, style);
 }
@@ -3537,7 +3587,7 @@ public void setBackgroundImage (Image image) {
 
 void setBackgroundPixmap (int /*long*/ pixmap) {
 	int /*long*/ window = OS.GTK_WIDGET_WINDOW (paintHandle ());
-	if (window != 0) OS.gdk_window_set_back_pixmap (window, backgroundImage.pixmap, false);
+	if (window != 0) OS.gdk_window_set_back_pixmap (window, pixmap, false);
 }
 
 /**
@@ -3682,15 +3732,7 @@ public void setEnabled (boolean enabled) {
 			if (!OS.GDK_WINDOWING_X11 ()) {
 				OS.gdk_window_raise (enableWindow);
 			} else {
-				int /*long*/ topWindow = OS.GTK_WIDGET_WINDOW (topHandle);			
-				int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (topWindow);
-				int /*long*/ xWindow = OS.gdk_x11_drawable_get_xid (enableWindow);
-				int xScreen = OS.XDefaultScreen (xDisplay);
-				int flags = OS.CWStackMode | OS.CWSibling;			
-				XWindowChanges changes = new XWindowChanges ();
-				changes.sibling = OS.gdk_x11_drawable_get_xid (topWindow);
-				changes.stack_mode = OS.Above;
-				OS.XReconfigureWMWindow (xDisplay, xWindow, xScreen, flags, changes);
+				restackWindow (enableWindow, OS.GTK_WIDGET_WINDOW (topHandle), true);
 			}
 			if (OS.GTK_WIDGET_VISIBLE (topHandle)) OS.gdk_window_show_unraised (enableWindow);
 		}
@@ -3917,6 +3959,7 @@ public boolean setParent (Composite parent) {
 	OS.gtk_fixed_move (newParent, topHandle, x, y);
 	this.parent = parent;
 	setZOrder (null, false, true);
+	reskin (SWT.ALL);
 	return true;
 }
 
@@ -3961,10 +4004,18 @@ public void setRedraw (boolean redraw) {
 		if (--drawCount == 0) {
 			if (redrawWindow != 0) {
 				int /*long*/ window = paintWindow ();
+				/*
+				* Bug in GTK. For some reason, the window does not
+				* redraw in versions of GTK greater than 2.18. The fix
+				* is to hide and show it (without changing the z order).
+			    */
+				boolean fixRedraw = OS.GTK_VERSION >= OS.VERSION (2, 17, 0) && OS.gdk_window_is_visible(window);
+				if (fixRedraw) OS.gdk_window_hide(window);
 				/* Explicitly hiding the window avoids flicker on GTK+ >= 2.6 */
 				OS.gdk_window_hide (redrawWindow);
 				OS.gdk_window_destroy (redrawWindow);
 				OS.gdk_window_set_events (window, OS.gtk_widget_get_events (paintHandle ()));
+				if (fixRedraw) OS.gdk_window_show_unraised(window);
 				redrawWindow = 0;
 			}
 		}
@@ -3987,6 +4038,9 @@ public void setRedraw (boolean redraw) {
 						OS.GDK_BUTTON2_MOTION_MASK | OS.GDK_BUTTON3_MOTION_MASK;
 					OS.gdk_window_set_events (window, OS.gdk_window_get_events (window) & ~mouseMask);
 					OS.gdk_window_set_back_pixmap (redrawWindow, 0, false);
+					//System.out.println("Redraw " + redrawWindow + " WIndow " + window);
+//					OS.gdk_x11_drawable_get_xid(redrawWindow);
+//					OS.gdk_x11_drawable_get_xid(window);
 					OS.gdk_window_show (redrawWindow);
 				}
 			}
@@ -4170,29 +4224,12 @@ void setZOrder (Control sibling, boolean above, boolean fixRelations, boolean fi
 				OS.gdk_window_lower (window);
 			}
 		} else {
-			XWindowChanges changes = new XWindowChanges ();
-			changes.sibling = OS.gdk_x11_drawable_get_xid (siblingWindow != 0 ? siblingWindow : redrawWindow);
-			changes.stack_mode = above ? OS.Above : OS.Below;
-			if (redrawWindow != 0 && siblingWindow == 0) changes.stack_mode = OS.Below;
-			int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
-			int /*long*/ xWindow = OS.gdk_x11_drawable_get_xid (window);
-			int xScreen = OS.XDefaultScreen (xDisplay);
-			int flags = OS.CWStackMode | OS.CWSibling;
-			/*
-			* Feature in X. If the receiver is a top level, XConfigureWindow ()
-			* will fail (with a BadMatch error) for top level shells because top
-			* level shells are reparented by the window manager and do not share
-			* the same X window parent.  This is the correct behavior but it is
-			* unexpected.  The fix is to use XReconfigureWMWindow () instead.
-			* When the receiver is not a top level shell, XReconfigureWMWindow ()
-			* behaves the same as XConfigureWindow ().
-			*/
-			OS.XReconfigureWMWindow (xDisplay, xWindow, xScreen, flags, changes);			
+			int /*long*/ siblingW = siblingWindow != 0 ? siblingWindow : redrawWindow;
+			boolean stack_mode = above;
+			if (redrawWindow != 0 && siblingWindow == 0) stack_mode = false;
+			restackWindow (window, siblingW, stack_mode);
 			if (enableWindow != 0) {
-				changes.sibling = OS.gdk_x11_drawable_get_xid (window);
-				changes.stack_mode = OS.Above;
-				xWindow = OS.gdk_x11_drawable_get_xid (enableWindow);
-				OS.XReconfigureWMWindow (xDisplay, xWindow, xScreen, flags, changes);
+				 restackWindow (enableWindow, window, true);
 			}
 		}
 	}
@@ -4241,12 +4278,9 @@ void setZOrder (Control sibling, boolean above, boolean fixRelations, boolean fi
 }
 
 void setWidgetBackground  () {
-	if (fixedHandle != 0) {
-		int /*long*/ style = OS.gtk_widget_get_modifier_style (fixedHandle);
-		modifyStyle (fixedHandle, style);
-	}
-	int /*long*/ style = OS.gtk_widget_get_modifier_style (handle);
-	modifyStyle (handle, style);
+	GdkColor color = (state & BACKGROUND) != 0 ? getBackgroundColor () : null;
+	if (fixedHandle != 0) setBackgroundColor (fixedHandle, color);
+	setBackgroundColor (handle, color);
 }
 
 boolean showMenu (int x, int y) {
@@ -4305,7 +4339,8 @@ void sort (int [] items) {
  * traversal action. The argument should be one of the constants:
  * <code>SWT.TRAVERSE_ESCAPE</code>, <code>SWT.TRAVERSE_RETURN</code>, 
  * <code>SWT.TRAVERSE_TAB_NEXT</code>, <code>SWT.TRAVERSE_TAB_PREVIOUS</code>, 
- * <code>SWT.TRAVERSE_ARROW_NEXT</code> and <code>SWT.TRAVERSE_ARROW_PREVIOUS</code>.
+ * <code>SWT.TRAVERSE_ARROW_NEXT</code>, <code>SWT.TRAVERSE_ARROW_PREVIOUS</code>,
+ * <code>SWT.TRAVERSE_PAGE_NEXT</code> and <code>SWT.TRAVERSE_PAGE_PREVIOUS</code>.
  *
  * @param traversal the type of traversal
  * @return true if the traversal succeeded
@@ -4321,6 +4356,180 @@ public boolean traverse (int traversal) {
 	event.doit = true;
 	event.detail = traversal;
 	return traverse (event);
+}
+
+/**
+ * Performs a platform traversal action corresponding to a <code>KeyDown</code> event.
+ * 
+ * <p>Valid traversal values are
+ * <code>SWT.TRAVERSE_NONE</code>, <code>SWT.TRAVERSE_MNEMONIC</code>,
+ * <code>SWT.TRAVERSE_ESCAPE</code>, <code>SWT.TRAVERSE_RETURN</code>,
+ * <code>SWT.TRAVERSE_TAB_NEXT</code>, <code>SWT.TRAVERSE_TAB_PREVIOUS</code>, 
+ * <code>SWT.TRAVERSE_ARROW_NEXT</code>, <code>SWT.TRAVERSE_ARROW_PREVIOUS</code>,
+ * <code>SWT.TRAVERSE_PAGE_NEXT</code> and <code>SWT.TRAVERSE_PAGE_PREVIOUS</code>.
+ * If <code>traversal</code> is <code>SWT.TRAVERSE_NONE</code> then the Traverse
+ * event is created with standard values based on the KeyDown event.  If
+ * <code>traversal</code> is one of the other traversal constants then the Traverse
+ * event is created with this detail, and its <code>doit</code> is taken from the
+ * KeyDown event. 
+ * </p>
+ *
+ * @param traversal the type of traversal, or <code>SWT.TRAVERSE_NONE</code> to compute
+ * this from <code>event</code>
+ * @param event the KeyDown event
+ * 
+ * @return <code>true</code> if the traversal succeeded
+ *
+ * @exception IllegalArgumentException <ul>
+ *   <li>ERROR_NULL_ARGUMENT if the event is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @since 3.6
+ */
+public boolean traverse (int traversal, Event event) {
+	checkWidget ();
+	if (event == null) error (SWT.ERROR_NULL_ARGUMENT);
+	return traverse (traversal, event.character, event.keyCode, event.keyLocation, event.stateMask, event.doit);
+}
+
+/**
+ * Performs a platform traversal action corresponding to a <code>KeyDown</code> event.
+ * 
+ * <p>Valid traversal values are
+ * <code>SWT.TRAVERSE_NONE</code>, <code>SWT.TRAVERSE_MNEMONIC</code>,
+ * <code>SWT.TRAVERSE_ESCAPE</code>, <code>SWT.TRAVERSE_RETURN</code>,
+ * <code>SWT.TRAVERSE_TAB_NEXT</code>, <code>SWT.TRAVERSE_TAB_PREVIOUS</code>, 
+ * <code>SWT.TRAVERSE_ARROW_NEXT</code>, <code>SWT.TRAVERSE_ARROW_PREVIOUS</code>,
+ * <code>SWT.TRAVERSE_PAGE_NEXT</code> and <code>SWT.TRAVERSE_PAGE_PREVIOUS</code>.
+ * If <code>traversal</code> is <code>SWT.TRAVERSE_NONE</code> then the Traverse
+ * event is created with standard values based on the KeyDown event.  If
+ * <code>traversal</code> is one of the other traversal constants then the Traverse
+ * event is created with this detail, and its <code>doit</code> is taken from the
+ * KeyDown event. 
+ * </p>
+ *
+ * @param traversal the type of traversal, or <code>SWT.TRAVERSE_NONE</code> to compute
+ * this from <code>event</code>
+ * @param event the KeyDown event
+ * 
+ * @return <code>true</code> if the traversal succeeded
+ *
+ * @exception IllegalArgumentException <ul>
+ *   <li>ERROR_NULL_ARGUMENT if the event is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @since 3.6
+ */
+public boolean traverse (int traversal, KeyEvent event) {
+	checkWidget ();
+	if (event == null) error (SWT.ERROR_NULL_ARGUMENT);
+	return traverse (traversal, event.character, event.keyCode, event.keyLocation, event.stateMask, event.doit);
+}
+
+boolean traverse (int traversal, char character, int keyCode, int keyLocation, int stateMask, boolean doit) {
+	if (traversal == SWT.TRAVERSE_NONE) {
+		switch (keyCode) {
+			case SWT.ESC: {
+				traversal = SWT.TRAVERSE_ESCAPE;
+				doit = true;
+				break;
+			}
+			case SWT.CR: {
+				traversal = SWT.TRAVERSE_RETURN;
+				doit = true;
+				break;
+			}
+			case SWT.ARROW_DOWN:
+			case SWT.ARROW_RIGHT: {
+				traversal = SWT.TRAVERSE_ARROW_NEXT;
+				doit = false;
+				break;
+			}
+			case SWT.ARROW_UP:
+			case SWT.ARROW_LEFT: {
+				traversal = SWT.TRAVERSE_ARROW_PREVIOUS;
+				doit = false;
+				break;
+			}
+			case SWT.TAB: {
+				traversal = (stateMask & SWT.SHIFT) != 0 ? SWT.TRAVERSE_TAB_PREVIOUS : SWT.TRAVERSE_TAB_NEXT;
+				doit = true;
+				break;
+			}
+			case SWT.PAGE_DOWN: {
+				if ((stateMask & SWT.CTRL) != 0) {
+					traversal = SWT.TRAVERSE_PAGE_NEXT;
+					doit = true;
+				}
+				break;
+			}
+			case SWT.PAGE_UP: {
+				if ((stateMask & SWT.CTRL) != 0) {
+					traversal = SWT.TRAVERSE_PAGE_PREVIOUS;
+					doit = true;
+				}
+				break;
+			}
+			default: {
+				if (character != 0 && (stateMask & (SWT.ALT | SWT.CTRL)) == SWT.ALT) {
+					traversal = SWT.TRAVERSE_MNEMONIC;
+					doit = true;
+				}
+				break;
+			}
+		}
+	}
+
+	Event event = new Event ();
+	event.character = character;
+	event.detail = traversal;
+	event.doit = doit;
+	event.keyCode = keyCode;
+	event.keyLocation = keyLocation;
+	event.stateMask = stateMask;
+	Shell shell = getShell ();
+
+	boolean all = false;
+	switch (traversal) {
+		case SWT.TRAVERSE_ESCAPE:
+		case SWT.TRAVERSE_RETURN:
+		case SWT.TRAVERSE_PAGE_NEXT:
+		case SWT.TRAVERSE_PAGE_PREVIOUS: {
+			all = true;
+			// FALL THROUGH
+		}
+		case SWT.TRAVERSE_ARROW_NEXT:
+		case SWT.TRAVERSE_ARROW_PREVIOUS:
+		case SWT.TRAVERSE_TAB_NEXT:
+		case SWT.TRAVERSE_TAB_PREVIOUS: {
+			/* traversal is a valid traversal action */
+			break;
+		}
+		case SWT.TRAVERSE_MNEMONIC: {
+			return translateMnemonic (event, null) || shell.translateMnemonic (event, this);
+		}
+		default: {
+			/* traversal is not a valid traversal action */
+			return false;
+		}
+	}
+
+	Control control = this;
+	do {
+		if (control.traverse (event)) return true;
+		if (!event.doit && control.hooks (SWT.Traverse)) return false;
+		if (control == shell) return false;
+		control = control.parent;
+	} while (all && control != null);
+	return false;
 }
 
 boolean translateMnemonic (Event event, Control control) {

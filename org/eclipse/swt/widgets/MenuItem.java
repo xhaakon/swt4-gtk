@@ -197,7 +197,13 @@ public void addHelpListener (HelpListener listener) {
  * When <code>widgetSelected</code> is called, the stateMask field of the event object is valid.
  * <code>widgetDefaultSelected</code> is not called.
  * </p>
- *
+ * <p>
+ * When the <code>SWT.RADIO</code> style bit is set, the <code>widgetSelected</code> method is
+ * also called when the receiver loses selection because another item in the same radio group 
+ * was selected by the user. During <code>widgetSelected</code> the application can use
+ * <code>getSelection()</code> to determine the current selected state of the receiver.
+ * </p>
+ * 
  * @param listener the listener which should be notified when the menu item is selected by the user
  *
  * @exception IllegalArgumentException <ul>
@@ -411,31 +417,12 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
 	* activate signals when an ancestor menu is disabled.
 	*/
 	if (!isEnabled ()) return 0;
-	Event event = new Event ();
-	int /*long*/ ptr = OS.gtk_get_current_event ();
-	if (ptr != 0) {
-		GdkEvent gdkEvent = new GdkEvent ();
-		OS.memmove (gdkEvent, ptr, GdkEvent.sizeof);
-		switch (gdkEvent.type) {
-			case OS.GDK_KEY_PRESS:
-			case OS.GDK_KEY_RELEASE: 
-			case OS.GDK_BUTTON_PRESS:
-			case OS.GDK_2BUTTON_PRESS: 
-			case OS.GDK_BUTTON_RELEASE: {
-				int [] state = new int [1];
-				OS.gdk_event_get_state (ptr, state);
-				setInputState (event, state [0]);
-				break;
-			}
-		}
-		OS.gdk_event_free (ptr);
-	}
 	if ((style & SWT.RADIO) != 0) {
 		if ((parent.getStyle () & SWT.NO_RADIO_GROUP) == 0) {
 			selectRadio ();
 		}
 	}
-	postEvent (SWT.Selection, event);
+	sendSelectionEvent (SWT.Selection);
 	return 0;
 }
 
@@ -592,6 +579,12 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
 	eventTable.unhook (SWT.DefaultSelection,listener);	
+}
+void reskinChildren (int flags) {
+	if (menu != null) {
+		menu.reskin (flags);
+	}
+	super.reskinChildren (flags);
 }
 void selectRadio () {
 	int index = 0;
@@ -765,7 +758,7 @@ boolean setRadioSelection (boolean value) {
 	if ((style & SWT.RADIO) == 0) return false;
 	if (getSelection () != value) {
 		setSelection (value);
-		postEvent (SWT.Selection);
+		sendSelectionEvent (SWT.Selection);
 	}
 	return true;
 }

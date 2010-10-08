@@ -141,7 +141,6 @@ public Object nativeToJava(TransferData transferData) {
 		OS.gdk_pixbuf_loader_close(loader, null);
 		int /*long*/ pixbuf = OS.gdk_pixbuf_loader_get_pixbuf(loader);
 		if (pixbuf != 0) {
-			OS.g_object_ref(pixbuf);
 			int /*long*/ [] pixmap_return = new int /*long*/ [1];
 			OS.gdk_pixbuf_render_pixmap_and_mask(pixbuf, pixmap_return, null, 0);
 			int /*long*/ handle = pixmap_return[0];
@@ -156,11 +155,11 @@ public Object nativeToJava(TransferData transferData) {
 }
 
 protected int[] getTypeIds(){
-	return new int[]{JPEG_ID, PNG_ID, BMP_ID, EPS_ID, PCX_ID, PPM_ID, RGB_ID, TGA_ID, XBM_ID, XPM_ID, XV_ID};	
+	return new int[]{PNG_ID, BMP_ID, EPS_ID, JPEG_ID, PCX_ID, PPM_ID, RGB_ID, TGA_ID, XBM_ID, XPM_ID, XV_ID};	
 }
 
 protected String[] getTypeNames(){
-	return new String[]{JPEG, PNG, BMP, EPS, PCX, PPM, RGB, TGA, XBM, XPM, XV};
+	return new String[]{PNG, BMP, EPS, JPEG, PCX, PPM, RGB, TGA, XBM, XPM, XV};
 }
 
 boolean checkImage(Object object) {

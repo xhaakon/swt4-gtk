@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -579,8 +579,7 @@ void createColumn (TableColumn column, int index) {
 		column.handle = columnHandle;
 		column.modelIndex = modelIndex;
 	}
-	/* Disable searching when using VIRTUAL */
-	if ((style & SWT.VIRTUAL) != 0) {
+	if (!searchEnabled ()) {
 		/*
 		* Bug in GTK. Until GTK 2.6.5, calling gtk_tree_view_set_enable_search(FALSE)
 		* would prevent the user from being able to type in text to search the tree.
@@ -632,12 +631,13 @@ void createHandle (int index) {
 	int vsp = (style & SWT.V_SCROLL) != 0 ? OS.GTK_POLICY_AUTOMATIC : OS.GTK_POLICY_NEVER;
 	OS.gtk_scrolled_window_set_policy (scrolledHandle, hsp, vsp);
 	if ((style & SWT.BORDER) != 0) OS.gtk_scrolled_window_set_shadow_type (scrolledHandle, OS.GTK_SHADOW_ETCHED_IN);
-	/* Disable searching when using VIRTUAL */
 	if ((style & SWT.VIRTUAL) != 0) {
 		/* The fixed_height_mode property only exists in GTK 2.3.2 and greater */
 		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2)) {
 			OS.g_object_set (handle, OS.fixed_height_mode, true, 0);
 		}
+	}
+	if (!searchEnabled ()) {
 		/*
 		* Bug in GTK. Until GTK 2.6.5, calling gtk_tree_view_set_enable_search(FALSE)
 		* would prevent the user from being able to type in text to search the tree.
@@ -1045,8 +1045,7 @@ void destroyItem (TableColumn column) {
 			createRenderers (checkColumn.handle, checkColumn.modelIndex, true, checkColumn.style);
 		}
 	}
-	/* Disable searching when using VIRTUAL */
-	if ((style & SWT.VIRTUAL) != 0) {
+	if (!searchEnabled ()) {
 		/*
 		* Bug in GTK. Until GTK 2.6.5, calling gtk_tree_view_set_enable_search(FALSE)
 		* would prevent the user from being able to type in text to search the tree.
@@ -1929,9 +1928,40 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
 	if (item != null) {
 		Event event = new Event ();
 		event.item = item; 
-		postEvent (SWT.Selection, event);
+		sendSelectionEvent (SWT.Selection, event, false);
 	}
 	return 0;
+}
+
+int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
+	if ((state & OBSCURED) != 0) return 0;
+	if ((state & PARENT_BACKGROUND) != 0 || backgroundImage != null) {
+		Control control = findBackgroundControl ();
+		if (control != null) {
+			GdkEventExpose gdkEvent = new GdkEventExpose ();
+			OS.memmove (gdkEvent, eventPtr, GdkEventExpose.sizeof);
+			int /*long*/ window = OS.gtk_tree_view_get_bin_window (handle);
+			if (window == gdkEvent.window) {
+				int [] width = new int [1], height = new int [1];
+				OS.gdk_drawable_get_size (window, width, height);
+				int bottom = 0;
+				if (itemCount != 0) {
+					int /*long*/ iter = OS.g_malloc (OS.GtkTreeIter_sizeof ());
+					OS.gtk_tree_model_iter_nth_child (modelHandle, iter, 0, itemCount - 1);
+					int /*long*/ path = OS.gtk_tree_model_get_path (modelHandle, iter);
+					GdkRectangle rect = new GdkRectangle ();
+					OS.gtk_tree_view_get_cell_area (handle, path, 0, rect);
+					bottom = rect.y + rect.height;
+					OS.gtk_tree_path_free (path);
+					OS.g_free (iter);
+				}
+				if (height [0] > bottom) {
+					drawBackground (control, window, gdkEvent.region, 0, bottom, width [0], height [0] - bottom);
+				}
+			}
+		}
+	}
+	return super.gtk_expose_event (widget, eventPtr);
 }
 
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
@@ -1951,7 +1981,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			case OS.GDK_KP_Enter: {
 				Event event = new Event ();
 				event.item = getFocusItem (); 
-				postEvent (SWT.DefaultSelection, event);
+				sendSelectionEvent (SWT.DefaultSelection, event, false);
 				break;
 			}
 		}
@@ -1989,7 +2019,7 @@ int /*long*/ gtk_row_activated (int /*long*/ tree, int /*long*/ path, int /*long
 	}
 	Event event = new Event ();
 	event.item = item;
-	postEvent (SWT.DefaultSelection, event);
+	sendSelectionEvent (SWT.DefaultSelection, event, false);
 	return 0;
 }
 
@@ -2006,7 +2036,13 @@ int gtk_row_inserted (int model, int path, int iter) {
 	}
 	return 0;
 }
-
+int /*long*/ gtk_start_interactive_search(int /*long*/ widget) {
+	if (!searchEnabled()) {
+		OS.g_signal_stop_emission_by_name(widget, OS.start_interactive_search); 
+		return 1;
+	}
+	return 0;
+}
 int /*long*/ gtk_toggled (int /*long*/ renderer, int /*long*/ pathStr) {
 	int /*long*/ path = OS.gtk_tree_path_new_from_string (pathStr);
 	if (path == 0) return 0;
@@ -2019,7 +2055,7 @@ int /*long*/ gtk_toggled (int /*long*/ renderer, int /*long*/ pathStr) {
 		Event event = new Event ();
 		event.detail = SWT.CHECK;
 		event.item = item;
-		postEvent (SWT.Selection, event);
+		sendSelectionEvent (SWT.Selection, event, false);
 	}
 	OS.gtk_tree_path_free (path);
 	return 0;
@@ -2071,6 +2107,7 @@ void hookEvents () {
 	if (checkRenderer != 0) {
 		OS.g_signal_connect_closure (checkRenderer, OS.toggled, display.closures [TOGGLED], false);
 	}
+	OS.g_signal_connect_closure (handle, OS.start_interactive_search, display.closures[START_INTERACTIVE_SEARCH], false);
 	if (fixAccessibility ()) {
 		OS.g_signal_connect_closure (modelHandle, OS.row_inserted, display.closures [ROW_INSERTED], true);
 		OS.g_signal_connect_closure (modelHandle, OS.row_deleted, display.closures [ROW_DELETED], true);
@@ -2436,8 +2473,7 @@ public void removeAll () {
 	OS.g_signal_handlers_unblock_matched (selection, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, CHANGED);
 
 	resetCustomDraw ();
-	/* Disable searching when using VIRTUAL */
-	if ((style & SWT.VIRTUAL) != 0) {
+	if (!searchEnabled ()) {
 		/*
 		* Bug in GTK. Until GTK 2.6.5, calling gtk_tree_view_set_enable_search(FALSE)
 		* would prevent the user from being able to type in text to search the tree.
@@ -2584,17 +2620,25 @@ int /*long*/ rendererRenderProc (int /*long*/ cell, int /*long*/ window, int /*l
 			OS.gtk_tree_path_free (path);
 			
 			if ((drawState & SWT.SELECTED) == 0) {
-				Control control = findBackgroundControl ();
-				if (control != null && control.backgroundImage != null) {
-					OS.gdk_window_clear_area (window, rect.x, rect.y, rect.width, rect.height);
+				if ((state & PARENT_BACKGROUND) != 0 || backgroundImage != null) {
+					Control control = findBackgroundControl ();
+					if (control != null) {
+						drawBackground (control, window, 0, rect.x, rect.y, rect.width, rect.height);
+					}
 				}
 			}
 
+			//send out measure before erase
+			int /*long*/ textRenderer =  getTextRenderer (columnHandle);
+			if (textRenderer != 0) OS.gtk_cell_renderer_get_size (textRenderer, handle, null, null, null, null, null);
+			
+
 			if (hooks (SWT.EraseItem)) {
-				boolean wasSelected = false; 
-				if ((drawState & SWT.SELECTED) != 0) {
-					wasSelected = true;
-					OS.gdk_window_clear_area (window, rect.x, rect.y, rect.width, rect.height);
+				boolean wasSelected = (drawState & SWT.SELECTED) != 0;
+				if (wasSelected) {
+					Control control = findBackgroundControl ();
+					if (control == null) control = this;
+					drawBackground (control, window, 0, rect.x, rect.y, rect.width, rect.height);
 				}
 				GC gc = new GC (this);
 				if ((drawState & SWT.SELECTED) != 0) {
@@ -2714,6 +2758,35 @@ void resetCustomDraw () {
 		}
 	}
 	firstCustomDraw = false;
+}
+
+void reskinChildren (int flags) {
+	if (items != null) {
+		for (int i=0; i<itemCount; i++) {
+			TableItem item = items [i];
+			if (item != null) item.reskin (flags);
+		}
+	}
+	if (columns != null) {
+		for (int i=0; i<columnCount; i++) {
+			TableColumn column = columns [i];
+			if (!column.isDisposed ()) column.reskin (flags);
+		}
+	}
+	super.reskinChildren (flags);
+}
+
+boolean searchEnabled () {
+	/* Disable searching when using VIRTUAL */
+	if ((style & SWT.VIRTUAL) != 0) return false;
+	if (OS.GTK_VERSION < OS.VERSION (2, 6, 0)) {
+		int mask = SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SYSTEM_MODAL;
+		Shell shell = getShell();
+		if ((shell.style & mask) != 0) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /**
@@ -2890,9 +2963,8 @@ void setBackgroundColor (GdkColor color) {
 }
 
 void setBackgroundPixmap (int /*long*/ pixmap) {
-	super.setBackgroundPixmap (pixmap);
-	int /*long*/ window = paintWindow ();
-	if (window != 0) OS.gdk_window_set_back_pixmap (window, 0, true);	
+	ownerDraw = true;
+	recreateRenderers ();
 }
 
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
@@ -3064,9 +3136,8 @@ public void setLinesVisible (boolean show) {
 }
 
 void setParentBackground () {
-	super.setParentBackground ();
-	int /*long*/ window = paintWindow ();
-	if (window != 0) OS.gdk_window_set_back_pixmap (window, 0, true);
+	ownerDraw = true;
+	recreateRenderers ();
 }
 
 void setParentWindow (int /*long*/ widget) {
@@ -3538,6 +3609,33 @@ void updateScrollBarValue (ScrollBar bar) {
 		temp = OS.g_list_next (temp);
 	}
 	OS.g_list_free (list);
+}
+
+int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
+	switch ((int)/*64*/user_data) {
+		case EXPOSE_EVENT_INVERSE: {
+			/*
+			 * Feature in GTK. When the GtkTreeView has no items it does not propagate
+			 * expose events. The fix is to fill the background in the inverse expose
+			 * event.
+			 */
+			if (itemCount == 0 && (state & OBSCURED) == 0) {
+				if ((state & PARENT_BACKGROUND) != 0 || backgroundImage != null) {
+					Control control = findBackgroundControl ();
+					if (control != null) {
+						GdkEventExpose gdkEvent = new GdkEventExpose ();
+						OS.memmove (gdkEvent, arg0, GdkEventExpose.sizeof);
+						int /*long*/ window = OS.gtk_tree_view_get_bin_window (handle);
+						if (window == gdkEvent.window) {
+							drawBackground (control, window, gdkEvent.region, gdkEvent.area_x, gdkEvent.area_y, gdkEvent.area_width, gdkEvent.area_height);
+						}
+					}
+				}
+			}
+			break;
+		}
+	}
+	return super.windowProc (handle, arg0, user_data);
 }
 
 }
