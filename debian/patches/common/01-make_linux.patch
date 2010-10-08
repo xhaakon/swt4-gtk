@@ -1,7 +1,7 @@
 diff -Nur -x '*.orig' -x '*~' swt-gtk/make_linux.mak swt-gtk.new/make_linux.mak
 --- swt-gtk/make_linux.mak	2011-12-06 19:13:57.054148957 -0500
 +++ swt-gtk.new/make_linux.mak	2011-12-06 20:07:00.554197279 -0500
-@@ -64,6 +64,7 @@
+@@ -66,6 +66,7 @@
  # Uncomment for Native Stats tool
  #NATIVE_STATS = -DNATIVE_STATS
  
@@ -9,20 +9,20 @@ diff -Nur -x '*.orig' -x '*~' swt-gtk/make_linux.mak swt-gtk.new/make_linux.mak
  MOZILLACFLAGS = -O \
  	-DSWT_VERSION=$(SWT_VERSION) \
  	$(NATIVE_STATS) \
-@@ -76,8 +77,10 @@
+@@ -78,8 +79,10 @@
  	-I. \
  	-I$(JAVA_HOME)/include \
  	-I$(JAVA_HOME)/include/linux \
 +	`pkg-config --cflags libxul-embedding` \
  	${SWT_PTR_CFLAGS}
--MOZILLALIBS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic
-+MOZILLALIBS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic \
+-MOZILLALFLAGS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic
++MOZILLALFLAGS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic \
 + 	`pkg-config --libs libxul-embedding`
  MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
  	-DNO__1XPCOMGlueStartup \
  	-DNO__1XPCOMGlueLoadXULFunctions \
-@@ -101,7 +104,7 @@
- XPCOMINIT_OBJECTS = swt.o xpcominit.o xpcominit_structs.o xpcominit_stats.o
+@@ -107,7 +110,7 @@
+ WEBKIT_OBJECTS = swt.o webkit.o webkit_structs.o webkit_stats.o
  GLX_OBJECTS = swt.o glx.o glx_structs.o glx_stats.o
  
 -CFLAGS = -O -Wall \
@@ -30,11 +30,11 @@ diff -Nur -x '*.orig' -x '*~' swt-gtk/make_linux.mak swt-gtk.new/make_linux.mak
  		-DSWT_VERSION=$(SWT_VERSION) \
  		$(NATIVE_STATS) \
  		-DLINUX -DGTK \
-@@ -111,6 +114,7 @@
+@@ -117,6 +120,7 @@
  		${SWT_PTR_CFLAGS}
- LIBS = -shared -fPIC
+ LFLAGS = -shared -fPIC ${SWT_LFLAGS}
  
 +NO_STRIP=1
  ifndef NO_STRIP
- 	AWT_LIBS := $(AWT_LIBS) -s
- 	MOZILLALIBS := $(MOZILLALIBS) -s
+ 	AWT_LFLAGS := $(AWT_LFLAGS) -s
+ 	MOZILLALFLAGS := $(MOZILLALFLAGS) -s

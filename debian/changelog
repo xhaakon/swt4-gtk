@@ -1,3 +1,16 @@
+swt-gtk (3.6.1-1~1.gbp65f44d) UNRELEASED; urgency=low
+
+  ** SNAPSHOT build @65f44d61d04b22e839dbd69f5117829bde0ea5de **
+
+  * New upstream release.
+  * debian/control, debian/Makefile, debian/libswt-webkit-gtk-3.6-jni.install:
+    add WebKit package.
+  * debian/gbp.conf: added git-buildpackage configuration file for
+    experimental branch.
+  * Dropped 02-bp-accessible-object.diff, since it is applied upstream
+
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Fri, 08 Oct 2010 16:39:37 +0200
+
 swt-gtk (3.5.1-5) unstable; urgency=low
 
   * debian/patches: Move 02-bp-accessible-object to common/ directory.
