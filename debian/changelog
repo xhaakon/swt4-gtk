@@ -1,6 +1,4 @@
-swt-gtk (3.6.1-1~2.gbpe35626) UNRELEASED; urgency=low
-
-  ** SNAPSHOT build @e356268681ecfd659ed5a34e2884093a73392302 **
+swt-gtk (3.6.1-1) experimental; urgency=low
 
   * New upstream release.
   * debian/control, debian/Makefile, debian/libswt-webkit-gtk-3.6-jni.install:
@@ -11,7 +9,7 @@ swt-gtk (3.6.1-1~2.gbpe35626) UNRELEASED; urgency=low
   * debian/control: Set Maintainer to Debian Java Maintainers, and added
     Adrian to Uploaders.
 
- -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Fri, 08 Oct 2010 18:04:58 +0200
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Sat, 22 Jan 2011 12:51:55 +0200
 
 swt-gtk (3.5.1-5) unstable; urgency=low
 
