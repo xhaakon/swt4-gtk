@@ -1,4 +1,4 @@
-RELEASE=3.6.1
+RELEASE=3.6.2
 JAVA=swt-gtk-$(RELEASE).jar
 CLEANFILES=*.files *.jar *-stamp
 
