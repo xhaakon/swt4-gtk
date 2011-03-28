@@ -1,0 +1,13 @@
+diff -Nurp swt-gtk-3.6.2.orig//webkitgtk.h swt-gtk-3.6.2/webkitgtk.h
+--- swt-gtk-3.6.2.orig//webkitgtk.h	2011-02-10 17:27:56.000000000 +0000
++++ swt-gtk-3.6.2/webkitgtk.h	2011-03-23 10:21:39.019518695 +0000
+@@ -28,6 +28,9 @@
+ #include <webkit/webkitnetworkrequest.h>
+ #include <webkit/webkitsoupauthdialog.h>
+ #include <webkit/webkitversion.h>
++#if WEBKIT_MINOR_VERSION > 2
++# include <webkit/webkitglobals.h>
++#endif
+ #include <webkit/webkitwebpolicydecision.h>
+ #include <webkit/webkitwebsettings.h>
+ #include <webkit/webkitwebview.h>
