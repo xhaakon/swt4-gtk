@@ -1,3 +1,6 @@
+Description: Fix linkage for WebKit (>= 1.3).
+Bug: https://bugs.eclipse.org/bugs/show_bug.cgi?id=326066
+Origin: https://bugs.eclipse.org/bugs/attachment.cgi?id=179464&action=diff
 diff -Nurp swt-gtk-3.6.2.orig//make_linux.mak swt-gtk-3.6.2/make_linux.mak
 --- swt-gtk-3.6.2.orig//make_linux.mak	2011-03-21 11:12:43.205883562 +0000
 +++ swt-gtk-3.6.2/make_linux.mak	2011-03-21 11:23:02.149147482 +0000
