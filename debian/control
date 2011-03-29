@@ -95,6 +95,7 @@ Description: Standard Widget Toolkit for GTK+ WebKit JNI library
 
 Package: libswt-gtk-3.6-java-gcj
 Architecture: any
+Section: java
 Depends: ${misc:Depends}, ${shlibs:Depends},
 	  libswt-cairo-gtk-3.6-jni (= ${binary:Version}),
 	  libswt-glx-gtk-3.6-jni (= ${binary:Version}),
