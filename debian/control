@@ -7,7 +7,7 @@ DM-Upload-Allowed: yes
 Build-Depends: default-jdk, gcj-native-helper, libgnomeui-dev, libxtst-dev,
  xulrunner-dev, libxcb-render-util0-dev, libxt-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev,
- fastjar, cdbs, patchutils, debhelper (>> 7.0), libwebkit-dev
+ fastjar, cdbs, patchutils, debhelper (>= 8), libwebkit-dev
 Standards-Version: 3.9.1
 Vcs-Git: git://git.debian.org/git/pkg-java/swt-gtk.git
 Vcs-Browser: http://git.debian.org/?p=pkg-java/swt-gtk.git
