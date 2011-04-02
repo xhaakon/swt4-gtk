@@ -2,7 +2,8 @@ Source: swt-gtk
 Section: libs
 Priority: optional
 Maintainer: Debian Java Maintainers <pkg-java-maintainers@lists.alioth.debian.org>
-Uploaders: Adrian Perez <blackxored@debian.org>
+Uploaders: Adrian Perez <blackxored@debian.org>,
+           أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
 DM-Upload-Allowed: yes
 Build-Depends: default-jdk, gcj-native-helper, libgnomeui-dev, libxtst-dev,
  xulrunner-dev, libxcb-render-util0-dev, libxt-dev,
