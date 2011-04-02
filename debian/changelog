@@ -1,15 +1,20 @@
-swt-gtk (3.6.1-1) unstable; urgency=low
+swt-gtk (3.6.2-1) unstable; urgency=low
 
-  * New upstream release.
+  * New upstream release. (Closes: #592338)
   * debian/control, debian/Makefile, debian/libswt-webkit-gtk-3.6-jni.install:
     add WebKit package.
-  * debian/gbp.conf: added git-buildpackage configuration file for
-    experimental branch.
   * Dropped 02-bp-accessible-object.diff, since it is applied upstream.
   * debian/control: Set Maintainer to Debian Java Maintainers, and added
-    Adrian to Uploaders.
+    Adrian and myself to Uploaders.
+  * Updated 64/arch64.diff patch (from Ubuntu package)
+  * Added common/02-webkit_linkage.patch patch from Ubuntu to fix linkage for
+    WebKit (>= 1.3).
+  * Added common/04-fix-webkit-includes.patch (based on a patch from Ubuntu),
+    to fix a missing include for WebKit (>= 1.3) JNI.
+  * debian/control: Put libswt-gtk-3.6-java-gcj in java section
+  * Bump to compat level 8.
 
- -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Sat, 19 Feb 2011 17:31:23 +0200
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Sat, 02 Apr 2011 10:48:43 +0200
 
 swt-gtk (3.5.1-5) unstable; urgency=low
 
