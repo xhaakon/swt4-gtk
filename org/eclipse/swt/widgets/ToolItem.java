@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -880,6 +880,8 @@ boolean setFocus () {
 	if (!OS.gtk_widget_get_child_visible (handle)) return false;
 	OS.GTK_WIDGET_SET_FLAGS (handle, OS.GTK_CAN_FOCUS);
 	OS.gtk_widget_grab_focus (handle);
+	// widget could be disposed at this point
+	if (isDisposed ()) return false;
 	boolean result = OS.gtk_widget_is_focus (handle);
 	if (!result) OS.GTK_WIDGET_UNSET_FLAGS (handle, OS.GTK_CAN_FOCUS);
 	return result;
@@ -954,15 +956,16 @@ public void setImage (Image image) {
 	parent.relayout ();
 }
 
-void setOrientation () {
-	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (handle != 0) OS.gtk_widget_set_direction (handle, OS.GTK_TEXT_DIR_RTL);
-		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, OS.GTK_TEXT_DIR_RTL);
-		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, OS.GTK_TEXT_DIR_RTL);
-		if (separatorHandle != 0) OS.gtk_widget_set_direction (separatorHandle, OS.GTK_TEXT_DIR_RTL);
-		if (arrowHandle != 0) OS.gtk_widget_set_direction (arrowHandle, OS.GTK_TEXT_DIR_RTL);
-		if (boxHandle != 0) OS.gtk_widget_set_direction (boxHandle, OS.GTK_TEXT_DIR_RTL);
-		if (arrowBoxHandle != 0) OS.gtk_widget_set_direction (arrowBoxHandle, OS.GTK_TEXT_DIR_RTL);
+void setOrientation (boolean create) {
+	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+		int dir = (parent.style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+		if (handle != 0) OS.gtk_widget_set_direction (handle, dir);
+		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, dir);
+		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, dir);
+		if (separatorHandle != 0) OS.gtk_widget_set_direction (separatorHandle, dir);
+		if (arrowHandle != 0) OS.gtk_widget_set_direction (arrowHandle, dir);
+		if (boxHandle != 0) OS.gtk_widget_set_direction (boxHandle, dir);
+		if (arrowBoxHandle != 0) OS.gtk_widget_set_direction (arrowBoxHandle, dir);
 	}
 }
 
@@ -1080,7 +1083,14 @@ void setToolTipText (Shell shell, String newString) {
 /**
  * Sets the width of the receiver, for <code>SEPARATOR</code> ToolItems.
  *
- * @param width the new width
+ * @param width the new width. If the new value is <code>SWT.DEFAULT</code>,
+ * the width is a fixed-width area whose amount is determined by the platform.
+ * If the new value is 0 a vertical or horizontal line will be drawn, depending
+ * on the setting of the corresponding style bit (<code>SWT.VERTICAL</code> or 
+ * <code>SWT.HORIZONTAL</code>). If the new value is <code>SWT.SEPARATOR_FILL</code>
+ * a variable-width space is inserted that acts as a spring between the two adjoining
+ * items which will push them out to the extent of the containing ToolBar.
+ * 
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>

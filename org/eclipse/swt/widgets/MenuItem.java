@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -39,7 +39,7 @@ import org.eclipse.swt.events.*;
 public class MenuItem extends Item {
 	Menu parent, menu;
 	int /*long*/ groupHandle;
-	int accelerator;
+	int accelerator, userId;
 	
 /**
  * Constructs a new instance of this class given its parent
@@ -349,6 +349,23 @@ public boolean getEnabled () {
 }
 
 /**
+ * Gets the identifier associated with the receiver.
+ *
+ * @return the receiver's identifier
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.7
+ */
+public int getID () {
+	checkWidget();
+	return userId;
+}
+
+/**
  * Returns the receiver's cascade menu if it has one or null
  * if it does not. Only <code>CASCADE</code> menu items can have
  * a pull down menu. The sequence of key strokes, button presses 
@@ -644,6 +661,25 @@ public void setEnabled (boolean enabled) {
 }
 
 /**
+ * Sets the identifier associated with the receiver to the argument.
+ *
+ * @param id the new identifier. This must be a non-negative value. System-defined identifiers are negative values.
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ *    <li>ERROR_INVALID_ARGUMENT - if called with an negative-valued argument.</li>
+ * </ul>
+ * 
+ * @since 3.7
+ */
+public void setID (int id) {
+	checkWidget();
+	if (id < 0) error(SWT.ERROR_INVALID_ARGUMENT);
+	userId = id;
+}
+
+/**
  * Sets the image the receiver will display to the argument.
  * <p>
  * Note: This operation is a hint and is not supported on
@@ -745,13 +781,14 @@ public void setMenu (Menu menu) {
 	if (accelGroup != 0) addAccelerators (accelGroup);
 }
 
-void setOrientation() {
-	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (handle != 0) {
-			OS.gtk_widget_set_direction (handle, OS.GTK_TEXT_DIR_RTL);
-			OS.gtk_container_forall (handle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);		
-		}
-	}
+void setOrientation (boolean create) {
+    super.setOrientation (create);
+    if ((parent.style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+    	int dir = (parent.style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+        OS.gtk_widget_set_direction (handle, dir);
+        OS.gtk_container_forall (handle, display.setDirectionProc, dir);
+        if (menu != null) menu._setOrientation (parent.style & (SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT));
+    }
 }
 
 boolean setRadioSelection (boolean value) {

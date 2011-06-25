@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -79,10 +79,13 @@ public abstract class Device implements Drawable {
 	/* System Font */
 	Font systemFont;
 	
+	/* Device dpi */
+	Point dpi;
+	
 	int /*long*/ emptyTab;
 
 	boolean useXRender;
-
+	boolean useCairo;
 	static boolean CAIRO_LOADED;
 
 	/*
@@ -406,7 +409,7 @@ public int getDepth () {
  */
 public Point getDPI () {
 	checkDevice ();
-	return new Point (72, 72);
+	return getScreenDPI();
 }
 
 /**
@@ -471,6 +474,13 @@ public FontData[] getFontList (String faceName, boolean scalable) {
 	FontData[] result = new FontData[nFds];
 	System.arraycopy(fds, 0, result, 0, nFds);
 	return result;
+}
+
+Point getScreenDPI () {
+	int widthMM = OS.gdk_screen_width_mm ();
+	int width = OS.gdk_screen_width ();
+	int dpi = Compatibility.round (254 * width, widthMM * 10);
+	return new Point (dpi, dpi);
 }
 
 /**
@@ -568,6 +578,8 @@ public boolean getWarnings () {
  * @see #create
  */
 protected void init () {
+	this.dpi = getDPI();
+	
 	if (xDisplay != 0) {
 		int[] event_basep = new int[1], error_basep = new int [1];
 		if (OS.XRenderQueryExtension (xDisplay, event_basep, error_basep)) {
@@ -576,6 +588,11 @@ protected void init () {
 			useXRender = major_versionp[0] > 0 || (major_versionp[0] == 0 && minor_versionp[0] >= 8);
 		}
 	}
+	
+	if (OS.GTK_VERSION > OS.VERSION (2, 17, 0) && System.getProperty("org.eclipse.swt.internal.gtk.useCairo") != null) {
+		useCairo = true;
+	}
+	
 	//TODO: Remove; temporary code only
 	boolean fixAIX = OS.IsAIX && OS.PTR_SIZEOF == 8;
 	

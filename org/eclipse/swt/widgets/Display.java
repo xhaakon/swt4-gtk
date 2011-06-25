@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -167,6 +167,7 @@ public class Display extends Device {
 
 	/* System Tray */
 	Tray tray;
+	TrayItem currentTrayItem;
 	
 	/* Timers */
 	int [] timerIds;
@@ -767,6 +768,12 @@ int /*long*/ checkIfEventProc (int /*long*/ display, int /*long*/ xEvent, int /*
 	int type = OS.X_EVENT_TYPE (xEvent);
 	switch (type) {
 		case OS.VisibilityNotify:
+			/*
+			* As of GTK 2.17.11, obscured controls no longer send expose 
+			* events. It is no longer necessary to track visiblity notify
+			* events.
+			*/
+			if (OS.GTK_VERSION >= OS.VERSION (2, 17, 11)) return 0;
 		case OS.Expose:
 		case OS.GraphicsExpose:
 			break;
@@ -1443,7 +1450,7 @@ int getCaretBlinkTime () {
  * over top of, or null if it is not currently over one of the
  * controls built by the currently running application.
  *
- * @return the control under the cursor
+ * @return the control under the cursor or <code>null</code>
  *
  * @exception SWTException <ul>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -1646,25 +1653,6 @@ public Object getData () {
 	return data;
 }
 
-/**
- * Returns a point whose x coordinate is the horizontal
- * dots per inch of the display, and whose y coordinate
- * is the vertical dots per inch of the display.
- *
- * @return the horizontal and vertical DPI
- *
- * @exception SWTException <ul>
- *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
- * </ul>
- */
-public Point getDPI () {
-	checkDevice ();
-	int widthMM = OS.gdk_screen_width_mm ();
-	int width = OS.gdk_screen_width ();
-	int dpi = Compatibility.round (254 * width, widthMM * 10);
-	return new Point (dpi, dpi);
-}
-
 int /*long*/ gtk_fixed_get_type () {
 	return fixed_type;
 }
@@ -1699,6 +1687,23 @@ static boolean isValidClass (Class clazz) {
 	String name = clazz.getName ();
 	int index = name.lastIndexOf ('.');
 	return name.substring (0, index + 1).equals (PACKAGE_PREFIX);
+}
+
+/**
+ * Returns the single instance of the application menu bar, or
+ * <code>null</code> if there is no application menu bar for the platform.
+ *
+ * @return the application menu bar, or <code>null</code>
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
+ * </ul>
+ *
+ * @since 3.7
+ */
+public Menu getMenuBar () {
+	checkDevice ();
+	return null;
 }
 
 /**
@@ -1754,7 +1759,7 @@ public int getDoubleClickTime () {
  * any of the controls built by the currently running
  * application.
  *
- * @return the control under the cursor
+ * @return the focus control or <code>null</code>
  *
  * @exception SWTException <ul>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -2199,6 +2204,24 @@ public Image getSystemImage (int id) {
 	return null;
 }
 
+/**
+ * Returns the single instance of the system-provided menu for the application, or
+ * <code>null</code> on platforms where no menu is provided for the application.
+ *
+ * @return the system menu, or <code>null</code>
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
+ * </ul>
+ *
+ * @since 3.7
+ */
+public Menu getSystemMenu () {
+	checkDevice();
+	return null;
+}
+
 void initializeSystemColors () {
 	GdkColor gdkColor;
 	
@@ -2353,6 +2376,24 @@ public Thread getThread () {
 		if (isDisposed ()) error (SWT.ERROR_DEVICE_DISPOSED);
 		return thread;
 	}
+}
+
+/**	 
+ * Returns a boolean indicating whether a touch-aware input device is
+ * attached to the system and is ready for use.
+ *
+ * @return <code>true</code> if a touch-aware input device is detected, or <code>false</code> otherwise
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
+ * </ul>
+ * 
+ * @since 3.7
+ */
+public boolean getTouchEnabled() {
+	checkDevice();
+	return false;
 }
 
 Widget getWidget (int /*long*/ handle) {
@@ -3156,6 +3197,13 @@ public boolean readAndDispatch () {
 	boolean events = false;
 	events |= runSettings ();
 	events |= runPopups ();
+	/*
+	* This call to gdk_threads_leave() is a temporary work around
+	* to avoid deadlocks when gdk_threads_init() is called by native
+	* code outside of SWT (i.e AWT, etc). It ensures that the current
+	* thread leaves the GTK lock before calling the function below. 
+	*/
+	OS.gdk_threads_leave();
 	events |= OS.g_main_context_iteration (0, false);
 	if (events) {
 		runDeferredEvents ();

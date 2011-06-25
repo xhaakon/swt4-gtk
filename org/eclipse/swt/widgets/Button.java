@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,8 +36,7 @@ import org.eclipse.swt.events.*;
  * Note: Only one of the styles UP, DOWN, LEFT, and RIGHT may be specified
  * when the ARROW style is specified.
  * </p><p>
- * IMPORTANT: This class is intended to be subclassed <em>only</em>
- * within the SWT implementation.
+ * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
  * 
  * @see <a href="http://www.eclipse.org/swt/snippets/#button">Button snippets</a>
@@ -51,6 +50,9 @@ public class Button extends Control {
 	ImageList imageList;
 	Image image;
 	String text;
+
+	static final int INNER_BORDER = 1;
+	static final int DEFAULT_BORDER = 1;
 
 /**
  * Constructs a new instance of this class given its parent
@@ -109,6 +111,22 @@ static int checkStyle (int style) {
 	return style;
 }
 
+static GtkBorder getBorder (byte[] border, int /*long*/ handle, int defaultBorder) {
+    GtkBorder gtkBorder = new GtkBorder();
+    int /*long*/ []  borderPtr = new int /*long*/ [1];
+    OS.gtk_widget_style_get (handle, border, borderPtr,0);
+    if (borderPtr[0] != 0) {
+        OS.memmove (gtkBorder, borderPtr[0], GtkBorder.sizeof);
+        OS.gtk_border_free(borderPtr[0]);
+        return gtkBorder;
+    }
+    gtkBorder.left = defaultBorder;
+    gtkBorder.top = defaultBorder;
+    gtkBorder.right = defaultBorder;
+    gtkBorder.bottom = defaultBorder;
+    return gtkBorder;
+}
+
 /**
  * Adds the listener to the collection of listeners who will
  * be notified when the control is selected by the user, by sending
@@ -165,21 +183,68 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 		OS.gtk_widget_get_size_request (boxHandle, reqWidth, reqHeight);
 		OS.gtk_widget_set_size_request (boxHandle, -1, -1);
 	}
-	Point size = computeNativeSize (handle, wHint, hHint, changed);
+	Point size;
+	boolean wrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && (OS.GTK_WIDGET_FLAGS (labelHandle) & OS.GTK_VISIBLE) != 0;
+	if (wrap) {
+		int borderWidth = OS.gtk_container_get_border_width (handle);
+		int[] focusWidth = new int[1];
+		OS.gtk_widget_style_get (handle, OS.focus_line_width, focusWidth, 0);
+		int[] focusPadding = new int[1];
+		OS.gtk_widget_style_get (handle, OS.focus_padding, focusPadding, 0);
+		int trimWidth = 2 * (borderWidth + focusWidth [0] + focusPadding [0]), trimHeight = trimWidth;
+		int indicatorHeight = 0;
+		if ((style & (SWT.CHECK | SWT.RADIO)) != 0) {
+			int[] indicatorSize = new int[1];
+			OS.gtk_widget_style_get (handle, OS.indicator_size, indicatorSize, 0);
+			int[] indicatorSpacing = new int[1];
+			OS.gtk_widget_style_get (handle, OS.indicator_spacing, indicatorSpacing, 0);
+			indicatorHeight = indicatorSize [0] + 2 * indicatorSpacing [0];
+			trimWidth += indicatorHeight + indicatorSpacing [0];
+		} else {
+			int /*long*/ style = OS.gtk_widget_get_style (handle);
+			trimWidth += OS.gtk_style_get_xthickness (style) * 2;
+			trimHeight += OS.gtk_style_get_ythickness (style) * 2;
+			GtkBorder innerBorder = getBorder (OS.inner_border, handle, INNER_BORDER);
+			trimWidth += innerBorder.left + innerBorder.right;
+			trimHeight += innerBorder.top + innerBorder.bottom;
+			if ((OS.GTK_WIDGET_FLAGS (handle) & OS.GTK_CAN_DEFAULT) != 0) {
+				GtkBorder defaultBorder = getBorder (OS.default_border, handle, DEFAULT_BORDER);
+				trimWidth += defaultBorder.left + defaultBorder.right;
+				trimHeight += defaultBorder.top + defaultBorder.bottom;
+			}
+		}
+		int imageWidth = 0, imageHeight = 0;
+		if (OS.GTK_WIDGET_VISIBLE (imageHandle)) {
+			GtkRequisition requisition = new GtkRequisition ();
+			OS.gtk_widget_size_request (imageHandle, requisition);
+			imageWidth = requisition.width;
+			imageHeight = requisition.height;
+			int [] spacing = new int [1];
+			OS.g_object_get (boxHandle, OS.spacing, spacing, 0);
+			imageWidth += spacing [0];
+		}
+		int /*long*/ labelLayout = OS.gtk_label_get_layout (labelHandle);
+		int pangoWidth = OS.pango_layout_get_width (labelLayout);
+		if (wHint != SWT.DEFAULT) {
+			OS.pango_layout_set_width (labelLayout, Math.max (1, (wHint - imageWidth - trimWidth)) * OS.PANGO_SCALE);
+		} else {
+			OS.pango_layout_set_width (labelLayout, -1);
+		}
+		int [] w = new int [1], h = new int [1];
+		OS.pango_layout_get_size (labelLayout, w, h);
+		OS.pango_layout_set_width (labelLayout, pangoWidth);
+		size = new Point(0, 0);
+		size.x += wHint == SWT.DEFAULT ? OS.PANGO_PIXELS(w [0]) + imageWidth + trimWidth : wHint;
+		size.y += hHint == SWT.DEFAULT ? Math.max(Math.max(imageHeight, indicatorHeight), OS.PANGO_PIXELS(h [0])) + trimHeight : hHint;
+	} else {
+		size = computeNativeSize (handle, wHint, hHint, changed);
+	}
 	if ((style & (SWT.CHECK | SWT.RADIO)) != 0) {
 		OS.gtk_widget_set_size_request (boxHandle, reqWidth [0], reqHeight [0]);
 	}
 	if (wHint != SWT.DEFAULT || hHint != SWT.DEFAULT) {
 		if ((OS.GTK_WIDGET_FLAGS (handle) & OS.GTK_CAN_DEFAULT) != 0) {
-			int /*long*/ [] buffer = new int /*long*/ [1];
-			GtkBorder border = new GtkBorder ();
-			OS.gtk_widget_style_get (handle, OS.default_border, buffer, 0);
-			if (buffer[0] != 0) {
-				OS.memmove (border, buffer[0], GtkBorder.sizeof);
-			} else {
-				/* Use the GTK+ default value of 1 for each. */
-				border.left = border.right = border.top = border.bottom = 1;
-			}
+			GtkBorder border = getBorder (OS.default_border, handle, DEFAULT_BORDER);
 			if (wHint != SWT.DEFAULT) size.x += border.left + border.right;
 			if (hHint != SWT.DEFAULT) size.y += border.top + border.bottom;
 		}
@@ -252,6 +317,12 @@ void createHandle (int index) {
 		OS.gtk_container_add (handle, boxHandle);
 		OS.gtk_container_add (boxHandle, imageHandle);
 		OS.gtk_container_add (boxHandle, labelHandle);
+		if ((style & SWT.WRAP) != 0) {
+			OS.gtk_label_set_line_wrap (labelHandle, true);
+			if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
+				OS.gtk_label_set_line_wrap_mode (labelHandle, OS.PANGO_WRAP_WORD_CHAR);
+			}
+		}
 	}
 	OS.gtk_container_add (fixedHandle, handle);
 	
@@ -646,6 +717,68 @@ void setBackgroundColor (GdkColor color) {
 	if (imageHandle != 0) setBackgroundColor(imageHandle, color);
 }
 
+int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
+	/*
+	* Bug in GTK.  For some reason, when the label is
+	* wrappable and its container is resized, it does not
+	* cause the label to be wrapped.  The fix is to
+	* determine the size that will wrap the label
+	* and expilictly set that size to force the label
+	* to wrap.
+	* 
+	* This part of the fix causes the label to be
+	* resized to the preferred size but it still
+	* won't draw properly.
+	*/
+	boolean wrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && (OS.GTK_WIDGET_FLAGS (labelHandle) & OS.GTK_VISIBLE) != 0;
+	if (wrap) OS.gtk_widget_set_size_request (boxHandle, -1, -1);
+	int result = super.setBounds (x, y, width, height, move, resize);
+	/*
+	* Bug in GTK.  For some reason, when the label is
+	* wrappable and its container is resized, it does not
+	* cause the label to be wrapped.  The fix is to
+	* determine the size that will wrap the label
+	* and expilictly set that size to force the label
+	* to wrap.
+	* 
+	* This part of the fix forces the label to be
+	* resized so that it will draw wrapped.
+	*/
+	if (wrap) {
+		int boxWidth = OS.GTK_WIDGET_WIDTH (boxHandle);
+		int boxHeight = OS.GTK_WIDGET_HEIGHT (boxHandle);
+		int /*long*/ labelLayout = OS.gtk_label_get_layout (labelHandle);
+		int pangoWidth = OS.pango_layout_get_width (labelLayout);
+		OS.pango_layout_set_width (labelLayout, -1);
+		int [] w = new int [1], h = new int [1];
+		OS.pango_layout_get_size (labelLayout, w, h);
+		OS.pango_layout_set_width (labelLayout, pangoWidth);
+		int imageWidth = 0;
+		if (OS.GTK_WIDGET_VISIBLE (imageHandle)) {
+			GtkRequisition requisition = new GtkRequisition ();
+			OS.gtk_widget_size_request (imageHandle, requisition);
+			imageWidth = requisition.width;
+			int [] spacing = new int [1];
+			OS.g_object_get (boxHandle, OS.spacing, spacing, 0);
+			imageWidth += spacing [0];
+		}
+		OS.gtk_widget_set_size_request (labelHandle, Math.min(OS.PANGO_PIXELS(w [0]), boxWidth - imageWidth), -1);
+		/*
+		* Bug in GTK.  Setting the size request should invalidate the label's
+		* layout, but it does not.  The fix is to resize the label directly. 
+		*/
+		GtkRequisition requisition = new GtkRequisition ();
+		OS.gtk_widget_size_request (boxHandle, requisition);
+		GtkAllocation allocation = new GtkAllocation ();
+		allocation.x = OS.GTK_WIDGET_X (boxHandle);
+		allocation.y = OS.GTK_WIDGET_Y (boxHandle);
+		allocation.width = boxWidth;
+		allocation.height = boxHeight;
+		OS.gtk_widget_size_allocate (boxHandle, allocation);
+	}
+	return result;
+}
+
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	if (labelHandle != 0) OS.gtk_widget_modify_font (labelHandle, font);
@@ -734,16 +867,18 @@ public void setImage (Image image) {
 	_setAlignment (style);
 }
 
-void setOrientation () {
-	super.setOrientation ();
-	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (boxHandle != 0) OS.gtk_widget_set_direction (boxHandle, OS.GTK_TEXT_DIR_RTL);
-		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, OS.GTK_TEXT_DIR_RTL);
-		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, OS.GTK_TEXT_DIR_RTL);
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+		int dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+		if (boxHandle != 0) OS.gtk_widget_set_direction (boxHandle, dir);
+		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, dir);
+		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, dir);
 		if (arrowHandle != 0) {
+			dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_ARROW_RIGHT : OS.GTK_ARROW_LEFT;
 			switch (style & (SWT.LEFT | SWT.RIGHT)) {
-				case SWT.LEFT: OS.gtk_arrow_set (arrowHandle, OS.GTK_ARROW_RIGHT, OS.GTK_SHADOW_OUT); break;
-				case SWT.RIGHT: OS.gtk_arrow_set (arrowHandle, OS.GTK_ARROW_LEFT, OS.GTK_SHADOW_OUT); break;
+				case SWT.LEFT: OS.gtk_arrow_set (arrowHandle, dir, OS.GTK_SHADOW_OUT); break;
+				case SWT.RIGHT: OS.gtk_arrow_set (arrowHandle, dir, OS.GTK_SHADOW_OUT); break;
 			}
 		}
 	}

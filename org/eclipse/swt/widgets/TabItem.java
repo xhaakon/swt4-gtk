@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -119,7 +119,7 @@ protected void checkSubclass () {
 
 void createWidget (int index) {
 	parent.createItem (this, index);
-	setOrientation ();
+	setOrientation (true);
 	hookEvents ();
 	register ();
 	text = "";
@@ -313,12 +313,13 @@ public void setImage (Image image) {
 	}
 }
 
-void setOrientation () {
-	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (handle != 0) OS.gtk_widget_set_direction (handle, OS.GTK_TEXT_DIR_RTL);
-		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, OS.GTK_TEXT_DIR_RTL);
-		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, OS.GTK_TEXT_DIR_RTL);
-		if (pageHandle != 0) OS.gtk_widget_set_direction (pageHandle, OS.GTK_TEXT_DIR_RTL);
+void setOrientation (boolean create) {
+	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+		int dir = (parent.style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+		if (handle != 0) OS.gtk_widget_set_direction (handle, dir);
+		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, dir);
+		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, dir);
+		if (pageHandle != 0) OS.gtk_widget_set_direction (pageHandle, dir);
 	}
 }
 

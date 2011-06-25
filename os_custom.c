@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+* Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
 * The contents of this file are made available under the terms
 * of the GNU Lesser General Public License (LGPL) Version 2.1 that
 * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -118,3 +118,72 @@ fail:
 }
 #endif
 
+glong g_utf16_strlen(const gchar *str, glong max) {
+	const gchar *s = str;
+	guchar ch;
+	glong offset = 0;
+	if (!s || max == 0) return 0;
+	if (max < 0) {
+		while (*s) {
+			if (0xf0 <= *(guchar*)s && *(guchar*)s <= 0xfd) offset++;
+			s = g_utf8_next_char (s);
+			offset++;
+		}
+		
+	} else {
+		while (*s) {
+			ch = *(guchar*)s;
+			s = g_utf8_next_char (s);
+			if (s - str > max) break;
+			if (0xf0 <= ch && ch <= 0xfd) offset++;
+			offset++;
+		}
+	}
+	return offset;
+}
+
+glong g_utf16_pointer_to_offset(const gchar *str, const gchar * pos) {
+	const gchar *s = str;
+	glong offset = 0;
+	if (!s || !pos) return 0; 
+	while (s < pos && *s) {
+		if (0xf0 <= *(guchar*)s && *(guchar*)s <= 0xfd) offset++;
+		s = g_utf8_next_char (s);
+		offset++;
+	}
+	return offset;
+}
+
+gchar* g_utf16_offset_to_pointer(const gchar* str, glong offset) {
+	const gchar *s = str;
+	if (!s) return 0; 
+	while (offset-- > 0 && *s) {
+		if (0xf0 <= *(guchar*)s && *(guchar*)s <= 0xfd) offset--;
+		s = g_utf8_next_char (s);
+	}
+	return (gchar *)s;
+}
+
+glong g_utf16_offset_to_utf8_offset(const gchar* str, glong offset) {
+	glong r = 0;
+	const gchar *s = str;
+	if (!s) return 0;
+	while (offset-- > 0 && *s) {
+		if (0xf0 <= *(guchar*)s && *(guchar*)s <= 0xfd) offset--;
+		s = g_utf8_next_char (s);
+		r++;
+	}
+	return r;
+}
+
+glong g_utf8_offset_to_utf16_offset(const gchar* str, glong offset) {
+	glong r = 0;
+	const gchar *s = str;
+	if (!s) return 0;
+	while (offset-- > 0 && *s) {
+		if (0xf0 <= *(guchar*)s && *(guchar*)s <= 0xfd) r++;
+		s = g_utf8_next_char (s);
+		r++;
+	}
+	return r;
+}

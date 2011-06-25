@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -529,6 +529,14 @@ void setForegroundColor (GdkColor color) {
 	ToolItem [] items = getItems ();
 	for (int i = 0; i < items.length; i++) {
 		items[i].setForegroundColor (color);
+	}
+}
+
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	ToolItem [] items = _getItems ();
+	for (int i = 0; i < items.length; i++) {
+		items[i].setOrientation (create);
 	}
 }
 

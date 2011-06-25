@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -111,8 +111,11 @@ Rectangle computeBounds () {
 	if (item == null || column == -1 || item.isDisposed()) return new Rectangle(0, 0, 0, 0);
 	Rectangle cell = item.getBounds(column);
 	Rectangle rect = item.getImageBounds(column);
-	cell.x = rect.x + rect.width;
-	cell.width -= rect.width;
+	if (rect.width != 0) {
+		int imageGap = Math.max(rect.x - cell.x, 0);
+		cell.x = rect.x + rect.width;
+		cell.width -= (imageGap + rect.width);
+	}
 	Rectangle area = table.getClientArea();
 	if (cell.x < area.x + area.width) {
 		if (cell.x + cell.width > area.x + area.width) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -221,6 +221,14 @@ public Rectangle measureText(GC gc, Rectangle bounds, DrawData data, String text
 int getWidgetProperty(int /*long*/ handle, String name) {
 	byte[] propertyName = Converter.wcsToMbcs(null, name, true);
 	int[] result = new int[1];
+	OS.gtk_widget_style_get(handle, propertyName, result, 0);
+	return result[0];
+}
+
+
+int /*long*/ getBorderProperty(int /*long*/ handle, String name) {
+	byte[] propertyName = Converter.wcsToMbcs(null, name, true);
+	int /*long*/ [] result = new int /*long*/[1];
 	OS.gtk_widget_style_get(handle, propertyName, result, 0);
 	return result[0];
 }

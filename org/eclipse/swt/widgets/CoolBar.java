@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1155,6 +1155,19 @@ public void setItemLayout (int[] itemOrder, int[] wrapIndices, Point[] sizes) {
 	setWrapIndices(wrapIndices);
 	setItemSizes(sizes);	
 	relayout();
+}
+public void setOrientation (int orientation) {
+	super.setOrientation(orientation);
+	for (int row = 0; row < items.length; row++) {
+		for (int column = 0; column < items[row].length; column++) {
+			CoolItem item = items[row][column];
+			if (item.arrowImage != null) {
+				item.arrowImage.dispose();
+				item.arrowImage = null;
+			}
+			item.updateChevron();
+		}
+	}
 }
 void wrapItems (int maxWidth) {
 	int itemCount = originalItems.length;

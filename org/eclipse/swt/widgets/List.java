@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -368,7 +368,7 @@ public void deselectAll () {
 	OS.g_signal_handlers_unblock_matched (selection, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, CHANGED);
 }
 
-boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
+boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean [] consume) {
 	boolean selected = false;
 	if (filter) {
 		int /*long*/ [] path = new int /*long*/ [1];
@@ -382,7 +382,7 @@ boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
 			return false;
 		}
 	}
-	boolean dragDetect = super.dragDetect (x, y, filter, consume);
+	boolean dragDetect = super.dragDetect (x, y, filter, false, consume);
 	if (dragDetect && selected && consume != null) consume [0] = true;
 	return dragDetect;
 }
@@ -717,6 +717,25 @@ public int getTopIndex () {
 int /*long*/ gtk_changed (int /*long*/ widget) {
 	sendSelectionEvent (SWT.Selection);
 	return 0;
+}
+
+int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
+	switch (OS.GDK_EVENT_TYPE (gdkEvent)) {
+		case OS.GDK_EXPOSE: {
+			/*
+			* Bug in GTK. SWT connects the expose-event 'after' the default 
+			* handler of the signal. If the tree has no children, then GTK 
+			* sends expose signal only 'before' the default signal handler.
+			* The fix is to detect this case in 'event_after' and send the
+			* expose event.
+			*/
+			if (OS.gtk_tree_model_iter_n_children (modelHandle, 0) == 0) {
+				gtk_expose_event (widget, gdkEvent);
+			}
+			break;
+		}
+	}
+	return super.gtk_event_after (widget, gdkEvent);
 }
 
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {

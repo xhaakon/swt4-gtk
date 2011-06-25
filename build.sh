@@ -1,6 +1,6 @@
 #!/bin/sh
 #*******************************************************************************
-# Copyright (c) 2000, 2010 IBM Corporation and others.
+# Copyright (c) 2000, 2011 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -22,6 +22,22 @@ fi
 if [ "${CC}" = "" ]; then
 	CC=gcc
 	export CC
+fi
+
+# Check if we have to compile external.xpt from external.idl
+COMPONENTS_DIR=`pwd`/../../components
+if test ! -f ${COMPONENTS_DIR}/external.xpt; then
+	if test ! -f ${COMPONENTS_DIR}/external.idl; then
+		echo "Can't find ${COMPONENTS_DIR}/external.idl"
+	else
+		IDLDIR=`pkg-config --variable=idldir libxul | sed 's@/stable$@@'`/unstable
+		if test ! -d ${IDLDIR}; then
+			IDLDIR=`pkg-config --variable=idldir libxul`
+		fi
+		XPIDL=`pkg-config --variable=sdkdir libxul`/bin/xpidl
+		echo "${XPIDL} -m typelib -I ${IDLDIR} -e ${COMPONENTS_DIR}/external.xpt ${COMPONENTS_DIR}/external.idl"
+		${XPIDL} -m typelib -I ${IDLDIR} -e ${COMPONENTS_DIR}/external.xpt ${COMPONENTS_DIR}/external.idl
+	fi
 fi
 
 # Determine which OS we are on

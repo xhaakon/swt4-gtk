@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,6 +44,7 @@ public class Synchronizer {
 
 	//TEMPORARY CODE
 	static final boolean IS_CARBON = "carbon".equals (SWT.getPlatform ());
+	static final boolean IS_COCOA = "cocoa".equals (SWT.getPlatform ());
 	static final boolean IS_GTK = "gtk".equals (SWT.getPlatform ());
 
 /**
@@ -84,7 +85,7 @@ void addLast (RunnableLock lock) {
 protected void asyncExec (Runnable runnable) {
 	if (runnable == null) {
 		//TEMPORARY CODE
-		if (!(IS_CARBON || IS_GTK)) {
+		if (!(IS_CARBON || IS_GTK || IS_COCOA)) {
 			display.wake ();
 			return;
 		}

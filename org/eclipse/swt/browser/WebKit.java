@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010 IBM Corporation and others.
+ * Copyright (c) 2010, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,7 +23,7 @@ import org.eclipse.swt.internal.webkit.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
-public class WebKit extends WebBrowser {
+class WebKit extends WebBrowser {
 	int /*long*/ webView, webViewData, scrolledWindow;
 	int failureCount, lastKeyCode, lastCharCode;
 	String postData;
@@ -89,116 +89,127 @@ public class WebKit extends WebBrowser {
 	static Callback JSObjectHasPropertyProc, JSObjectGetPropertyProc, JSObjectCallAsFunctionProc;
 
 	static {
+
+		/*
+		* WebKitGTK is binary-incompatible between its 1.2 and 1.4 releases,
+		* so swt has separate libraries compiled against each.
+		*/
 		try {
-			Library.loadLibrary ("swt-webkit"); // $NON-NLS-1$
+			Library.loadLibrary ("swt-webkit12"); // $NON-NLS-1$
 			LibraryLoaded = true;
 		} catch (Throwable e) {
+			try {
+				Library.loadLibrary ("swt-webkit"); // $NON-NLS-1$
+				LibraryLoaded = true;
+			} catch (Throwable e2) {
+			}
 		}
 
-		Proc2 = new Callback (WebKit.class, "Proc", 2); //$NON-NLS-1$
-		if (Proc2.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		Proc3 = new Callback (WebKit.class, "Proc", 3); //$NON-NLS-1$
-		if (Proc3.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		Proc4 = new Callback (WebKit.class, "Proc", 4); //$NON-NLS-1$
-		if (Proc4.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		Proc5 = new Callback (WebKit.class, "Proc", 5); //$NON-NLS-1$
-		if (Proc5.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		Proc6 = new Callback (WebKit.class, "Proc", 6); //$NON-NLS-1$
-		if (Proc6.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		JSObjectHasPropertyProc = new Callback (WebKit.class, "JSObjectHasPropertyProc", 3); //$NON-NLS-1$
-		if (JSObjectHasPropertyProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		JSObjectGetPropertyProc = new Callback (WebKit.class, "JSObjectGetPropertyProc", 4); //$NON-NLS-1$
-		if (JSObjectGetPropertyProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-		JSObjectCallAsFunctionProc = new Callback (WebKit.class, "JSObjectCallAsFunctionProc", 6); //$NON-NLS-1$
-		if (JSObjectCallAsFunctionProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+		if (LibraryLoaded) {
+			Proc2 = new Callback (WebKit.class, "Proc", 2); //$NON-NLS-1$
+			if (Proc2.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			Proc3 = new Callback (WebKit.class, "Proc", 3); //$NON-NLS-1$
+			if (Proc3.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			Proc4 = new Callback (WebKit.class, "Proc", 4); //$NON-NLS-1$
+			if (Proc4.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			Proc5 = new Callback (WebKit.class, "Proc", 5); //$NON-NLS-1$
+			if (Proc5.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			Proc6 = new Callback (WebKit.class, "Proc", 6); //$NON-NLS-1$
+			if (Proc6.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			JSObjectHasPropertyProc = new Callback (WebKit.class, "JSObjectHasPropertyProc", 3); //$NON-NLS-1$
+			if (JSObjectHasPropertyProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			JSObjectGetPropertyProc = new Callback (WebKit.class, "JSObjectGetPropertyProc", 4); //$NON-NLS-1$
+			if (JSObjectGetPropertyProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			JSObjectCallAsFunctionProc = new Callback (WebKit.class, "JSObjectCallAsFunctionProc", 6); //$NON-NLS-1$
+			if (JSObjectCallAsFunctionProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 
-		NativeClearSessions = new Runnable () {
-			public void run () {
-				if (!LibraryLoaded) return;
-				int /*long*/ session = WebKitGTK.webkit_get_default_session ();
-				int /*long*/ type = WebKitGTK.soup_cookie_jar_get_type ();
-				int /*long*/ jar = WebKitGTK.soup_session_get_feature (session, type);
-				if (jar == 0) return;
-				int /*long*/ cookies = WebKitGTK.soup_cookie_jar_all_cookies (jar);
-				int length = OS.g_slist_length (cookies);
-				int /*long*/ current = cookies;
-				for (int i = 0; i < length; i++) {
-					int /*long*/ cookie = OS.g_slist_data (current);
-					int /*long*/ expires = WebKitGTK.SoupCookie_expires (cookie);
-					if (expires == 0) {
-						/* indicates a session cookie */
-						WebKitGTK.soup_cookie_jar_delete_cookie (jar, cookie);
+			NativeClearSessions = new Runnable () {
+				public void run () {
+					if (!LibraryLoaded) return;
+					int /*long*/ session = WebKitGTK.webkit_get_default_session ();
+					int /*long*/ type = WebKitGTK.soup_cookie_jar_get_type ();
+					int /*long*/ jar = WebKitGTK.soup_session_get_feature (session, type);
+					if (jar == 0) return;
+					int /*long*/ cookies = WebKitGTK.soup_cookie_jar_all_cookies (jar);
+					int length = OS.g_slist_length (cookies);
+					int /*long*/ current = cookies;
+					for (int i = 0; i < length; i++) {
+						int /*long*/ cookie = OS.g_slist_data (current);
+						int /*long*/ expires = WebKitGTK.SoupCookie_expires (cookie);
+						if (expires == 0) {
+							/* indicates a session cookie */
+							WebKitGTK.soup_cookie_jar_delete_cookie (jar, cookie);
+						}
+						OS.g_free (cookie);
+						current = OS.g_slist_next (current);
 					}
-					OS.g_free (cookie);
-					current = OS.g_slist_next (current);
 				}
-			}
-		};
+			};
 
-		NativeGetCookie = new Runnable () {
-			public void run () {
-				if (!LibraryLoaded) return;
-				int /*long*/ session = WebKitGTK.webkit_get_default_session ();
-				int /*long*/ type = WebKitGTK.soup_cookie_jar_get_type ();
-				int /*long*/ jar = WebKitGTK.soup_session_get_feature (session, type);
-				if (jar == 0) return;
-				byte[] bytes = Converter.wcsToMbcs (null, CookieUrl, true);
-				int /*long*/ uri = WebKitGTK.soup_uri_new (bytes);
-				if (uri == 0) return;
-				int /*long*/ cookies = WebKitGTK.soup_cookie_jar_get_cookies (jar, uri, 0);
-				WebKitGTK.soup_uri_free (uri);
-				if (cookies == 0) return;
-				int length = OS.strlen (cookies);
-				bytes = new byte[length];
-				C.memmove (bytes, cookies, length);
-				OS.g_free (cookies);
-				String allCookies = new String (Converter.mbcsToWcs (null, bytes));
-				StringTokenizer tokenizer = new StringTokenizer (allCookies, ";"); //$NON-NLS-1$
-				while (tokenizer.hasMoreTokens ()) {
-					String cookie = tokenizer.nextToken ();
-					int index = cookie.indexOf ('=');
-					if (index != -1) {
-						String name = cookie.substring (0, index).trim ();
-						if (name.equals (CookieName)) {
-							CookieValue = cookie.substring (index + 1).trim ();
-							return;
+			NativeGetCookie = new Runnable () {
+				public void run () {
+					if (!LibraryLoaded) return;
+					int /*long*/ session = WebKitGTK.webkit_get_default_session ();
+					int /*long*/ type = WebKitGTK.soup_cookie_jar_get_type ();
+					int /*long*/ jar = WebKitGTK.soup_session_get_feature (session, type);
+					if (jar == 0) return;
+					byte[] bytes = Converter.wcsToMbcs (null, CookieUrl, true);
+					int /*long*/ uri = WebKitGTK.soup_uri_new (bytes);
+					if (uri == 0) return;
+					int /*long*/ cookies = WebKitGTK.soup_cookie_jar_get_cookies (jar, uri, 0);
+					WebKitGTK.soup_uri_free (uri);
+					if (cookies == 0) return;
+					int length = OS.strlen (cookies);
+					bytes = new byte[length];
+					C.memmove (bytes, cookies, length);
+					OS.g_free (cookies);
+					String allCookies = new String (Converter.mbcsToWcs (null, bytes));
+					StringTokenizer tokenizer = new StringTokenizer (allCookies, ";"); //$NON-NLS-1$
+					while (tokenizer.hasMoreTokens ()) {
+						String cookie = tokenizer.nextToken ();
+						int index = cookie.indexOf ('=');
+						if (index != -1) {
+							String name = cookie.substring (0, index).trim ();
+							if (name.equals (CookieName)) {
+								CookieValue = cookie.substring (index + 1).trim ();
+								return;
+							}
 						}
 					}
 				}
+			};
 
-			}
-		};
-
-		NativeSetCookie = new Runnable () {
-			public void run () {
-				if (!LibraryLoaded) return;
-				int /*long*/ session = WebKitGTK.webkit_get_default_session ();
-				int /*long*/ type = WebKitGTK.soup_cookie_jar_get_type ();
-				int /*long*/ jar = WebKitGTK.soup_session_get_feature (session, type);
-				if (jar == 0) {
-					/* this happens if a navigation has not occurred yet */
-					WebKitGTK.soup_session_add_feature_by_type (session, type);
-					jar = WebKitGTK.soup_session_get_feature (session, type);
+			NativeSetCookie = new Runnable () {
+				public void run () {
+					if (!LibraryLoaded) return;
+					int /*long*/ session = WebKitGTK.webkit_get_default_session ();
+					int /*long*/ type = WebKitGTK.soup_cookie_jar_get_type ();
+					int /*long*/ jar = WebKitGTK.soup_session_get_feature (session, type);
+					if (jar == 0) {
+						/* this happens if a navigation has not occurred yet */
+						WebKitGTK.soup_session_add_feature_by_type (session, type);
+						jar = WebKitGTK.soup_session_get_feature (session, type);
+					}
+					if (jar == 0) return;
+					byte[] bytes = Converter.wcsToMbcs (null, CookieUrl, true);
+					int /*long*/ uri = WebKitGTK.soup_uri_new (bytes);
+					if (uri == 0) return;
+					bytes = Converter.wcsToMbcs (null, CookieValue, true);
+					int /*long*/ cookie = WebKitGTK.soup_cookie_parse (bytes, uri);
+					if (cookie != 0) {
+						WebKitGTK.soup_cookie_jar_add_cookie (jar, cookie);
+						// the following line is intentionally commented
+						// WebKitGTK.soup_cookie_free (cookie);
+						CookieResult = true;
+					}
+					WebKitGTK.soup_uri_free (uri);
 				}
-				if (jar == 0) return;
-				byte[] bytes = Converter.wcsToMbcs (null, CookieUrl, true);
-				int /*long*/ uri = WebKitGTK.soup_uri_new (bytes);
-				if (uri == 0) return;
-				bytes = Converter.wcsToMbcs (null, CookieValue, true);
-				int /*long*/ cookie = WebKitGTK.soup_cookie_parse (bytes, uri);
-				if (cookie != 0) {
-					WebKitGTK.soup_cookie_jar_add_cookie (jar, cookie);
-					// the following line is intentionally commented
-					// WebKitGTK.soup_cookie_free (cookie);
-					CookieResult = true;
-				}
-				WebKitGTK.soup_uri_free (uri);
-			}
-		};
+			};
 
-		if (NativePendingCookies != null) {
-			SetPendingCookies (NativePendingCookies);
-			NativePendingCookies = null;
+			if (NativePendingCookies != null) {
+				SetPendingCookies (NativePendingCookies);
+				NativePendingCookies = null;
+			}
 		}
 	}
 
@@ -207,6 +218,19 @@ static Browser findBrowser (int /*long*/ webView) {
 	int /*long*/ parent = OS.gtk_widget_get_parent (webView);
 	parent = OS.gtk_widget_get_parent (parent);
 	return (Browser)Display.getCurrent ().findWidget (parent);
+}
+
+static boolean isInstalled () {
+	if (!LibraryLoaded) return false;
+	// TODO webkit_check_version() should take care of the following, but for some
+	// reason this symbol is missing from the latest build.  If it is present in
+	// Linux distro-provided builds then replace the following with this call.
+	int major = WebKitGTK.webkit_major_version ();
+	int minor = WebKitGTK.webkit_minor_version ();
+	int micro = WebKitGTK.webkit_micro_version ();
+	return major > MIN_VERSION[0] ||
+		(major == MIN_VERSION[0] && minor > MIN_VERSION[1]) ||
+		(major == MIN_VERSION[0] && minor == MIN_VERSION[1] && micro >= MIN_VERSION[2]);
 }
 
 static int /*long*/ JSObjectCallAsFunctionProc (int /*long*/ ctx, int /*long*/ function, int /*long*/ thisObject, int /*long*/ argumentCount, int /*long*/ arguments, int /*long*/ exception) {
@@ -395,22 +419,12 @@ int /*long*/ webViewProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ a
 	}
 }
 
-public boolean create (Composite parent, int style) {
-	if (!LibraryLoaded) return false;
-
+public void create (Composite parent, int style) {
 	if (ExternalClass == 0) {
-		// TODO webkit_check_version() should do the following, but for some reason
-		// this symbol is missing from the latest build.  If it is present in Linux
-		// distro-provided builds then replace the following with this call.
-		int major = WebKitGTK.webkit_major_version ();
-		int minor = WebKitGTK.webkit_minor_version ();
-		int micro = WebKitGTK.webkit_micro_version ();
-		boolean success = major > MIN_VERSION[0] ||
-			(major == MIN_VERSION[0] && minor > MIN_VERSION[1]) ||
-			(major == MIN_VERSION[0] && minor == MIN_VERSION[1] && micro >= MIN_VERSION[2]);
-		if (!success) return false;
-
 		if (Device.DEBUG) {
+			int major = WebKitGTK.webkit_major_version ();
+			int minor = WebKitGTK.webkit_minor_version ();
+			int micro = WebKitGTK.webkit_micro_version ();
 			System.out.println("WebKit version " + major + "." + minor + "." + micro); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 		JSClassDefinition jsClassDefinition = new JSClassDefinition ();
@@ -471,6 +485,8 @@ public boolean create (Composite parent, int style) {
     int /*long*/ settings = WebKitGTK.webkit_web_view_get_settings (webView);
     OS.g_object_set (settings, WebKitGTK.javascript_can_open_windows_automatically, 1, 0);
     OS.g_object_set (settings, WebKitGTK.enable_universal_access_from_file_uris, 1, 0);
+    byte[] bytes = Converter.wcsToMbcs (null, "UTF-8", true); // $NON-NLS-1$
+    OS.g_object_set (settings, WebKitGTK.default_encoding, bytes, 0);
 
     Listener listener = new Listener () {
 		public void handleEvent (Event event) {
@@ -534,7 +550,7 @@ public boolean create (Composite parent, int style) {
 			proxyHost = PROTOCOL_HTTP + proxyHost;
 		}
 		proxyHost += ":" + port; //$NON-NLS-1$
-		byte[] bytes = Converter.wcsToMbcs (null, proxyHost, true);
+		bytes = Converter.wcsToMbcs (null, proxyHost, true);
 		int /*long*/ uri = WebKitGTK.soup_uri_new (bytes);
 		if (uri != 0) {
 			OS.g_object_set (session, WebKitGTK.SOUP_SESSION_PROXY_URI, uri, 0);
@@ -557,8 +573,6 @@ public boolean create (Composite parent, int style) {
 	* be changed.
 	*/
 	browser.setData (KEY_CHECK_SUBWINDOW, Boolean.FALSE);
-
-	return true;
 }
 
 void addEventHandlers (boolean top) {
@@ -693,9 +707,9 @@ public String getText () {
 	OS.memmove (bytes, encoding, length);
 	String encodingString = new String (Converter.mbcsToWcs (null, bytes));
 
-	int /*long*/ string = OS.GString_str (data);
-	length = OS.GString_len (string);
+	length = OS.GString_len (data);
 	bytes = new byte[length];
+	int /*long*/ string = OS.GString_str (data);
 	C.memmove (bytes, string, length);
 
 	try {
@@ -1727,19 +1741,22 @@ int /*long*/ webkit_window_object_cleared (int /*long*/ web_view, int /*long*/ f
 
 int /*long*/ callJava (int /*long*/ ctx, int /*long*/ func, int /*long*/ thisObject, int /*long*/ argumentCount, int /*long*/ arguments, int /*long*/ exception) {
 	Object returnValue = null;
-	if (argumentCount == 2) {
+	if (argumentCount == 3) {
 		int /*long*/[] result = new int /*long*/[1];
 		C.memmove (result, arguments, C.PTR_SIZEOF);
 		int type = WebKitGTK.JSValueGetType (ctx, result[0]);
 		if (type == WebKitGTK.kJSTypeNumber) {
 			int index = ((Double)convertToJava (ctx, result[0])).intValue ();
 			result[0] = 0;
-			if (index > 0) {
-				Object key = new Integer (index);
+			Object key = new Integer (index);
+			C.memmove (result, arguments + C.PTR_SIZEOF, C.PTR_SIZEOF);
+			type = WebKitGTK.JSValueGetType (ctx, result[0]);
+			if (type == WebKitGTK.kJSTypeNumber) {
+				long token = ((Double)convertToJava (ctx, result[0])).longValue ();
 				BrowserFunction function = (BrowserFunction)functions.get (key);
-				if (function != null) {
+				if (function != null && token == function.token) {
 					try {
-						C.memmove (result, arguments + C.PTR_SIZEOF, C.PTR_SIZEOF);
+						C.memmove (result, arguments + 2 * C.PTR_SIZEOF, C.PTR_SIZEOF);
 						Object temp = convertToJava (ctx, result[0]);
 						if (temp instanceof Object[]) {
 							Object[] args = (Object[])temp;

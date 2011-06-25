@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,8 +26,7 @@ import org.eclipse.swt.graphics.*;
  * <dd>(none)</dd>
  * </dl>
  * <p>
- * IMPORTANT: This class is intended to be subclassed <em>only</em>
- * within the SWT implementation.
+ * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
  * 
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample, Dialog tab</a>
@@ -176,6 +175,13 @@ public FontData open () {
 		hookId = OS.g_signal_add_emission_hook (signalId, 0, display.emissionProc, handle, 0);
 	}	
 	int response = OS.gtk_dialog_run (handle);
+	/*
+	* This call to gdk_threads_leave() is a temporary work around
+	* to avoid deadlocks when gdk_threads_init() is called by native
+	* code outside of SWT (i.e AWT, etc). It ensures that the current
+	* thread leaves the GTK lock acquired by the function above. 
+	*/
+	OS.gdk_threads_leave();
 	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
 		OS.g_signal_remove_emission_hook (signalId, hookId);
 	}

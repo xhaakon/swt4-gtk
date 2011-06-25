@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -163,6 +163,8 @@ void fixFocus (Control focusControl) {
 	int /*long*/ focusHandle = shell.vboxHandle;
 	OS.GTK_WIDGET_SET_FLAGS (focusHandle, OS.GTK_CAN_FOCUS);
 	OS.gtk_widget_grab_focus (focusHandle);
+	// widget could be disposed at this point
+	if (isDisposed ()) return;
 	OS.GTK_WIDGET_UNSET_FLAGS (focusHandle, OS.GTK_CAN_FOCUS);
 }
 
@@ -198,6 +200,24 @@ int /*long*/ focusHandle () {
 
 int /*long*/ fontHandle () {
 	return handle;
+}
+
+/**
+ * Returns the orientation of the receiver, which will be one of the
+ * constants <code>SWT.LEFT_TO_RIGHT</code> or <code>SWT.RIGHT_TO_LEFT</code>.
+ *
+ * @return the orientation style
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.7
+ */
+public int getOrientation () {
+	checkWidget();
+	return style & (SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT);
 }
 
 boolean hasFocus () {
@@ -259,7 +279,14 @@ void hookEvents () {
 	int paintMask = OS.GDK_EXPOSURE_MASK | OS.GDK_VISIBILITY_NOTIFY_MASK;
 	OS.gtk_widget_add_events (paintHandle, paintMask);
 	OS.g_signal_connect_closure_by_id (paintHandle, display.signalIds [EXPOSE_EVENT], 0, display.closures [EXPOSE_EVENT_INVERSE], false);
-	OS.g_signal_connect_closure_by_id (paintHandle, display.signalIds [VISIBILITY_NOTIFY_EVENT], 0, display.closures [VISIBILITY_NOTIFY_EVENT], false);
+	/*
+	* As of GTK 2.17.11, obscured controls no longer send expose 
+	* events. It is no longer necessary to track visiblity notify
+	* events.
+	*/
+	if (OS.GTK_VERSION < OS.VERSION (2, 17, 11)) {
+		OS.g_signal_connect_closure_by_id (paintHandle, display.signalIds [VISIBILITY_NOTIFY_EVENT], 0, display.closures [VISIBILITY_NOTIFY_EVENT], false);
+	}
 	OS.g_signal_connect_closure_by_id (paintHandle, display.signalIds [EXPOSE_EVENT], 0, display.closures [EXPOSE_EVENT], true);
 
 	/* Connect the Input Method signals */
@@ -632,8 +659,11 @@ void forceResize () {
 
 /**
  * Returns the accessible object for the receiver.
+ * <p>
  * If this is the first time this object is requested,
- * then the object is created and returned.
+ * then the object is created and returned. The object
+ * returned by getAccessible() does not need to be disposed.
+ * </p>
  *
  * @return the accessible object
  *
@@ -1383,6 +1413,41 @@ public void addFocusListener(FocusListener listener) {
 
 /**
  * Adds the listener to the collection of listeners who will
+ * be notified when gesture events are generated for the control,
+ * by sending it one of the messages defined in the
+ * <code>GestureListener</code> interface.
+ * <p>
+ * NOTE: If <code>setTouchEnabled(true)</code> has previously been
+ * invoked on the receiver then <code>setTouchEnabled(false)</code>
+ * must be invoked on it to specify that gesture events should be
+ * sent instead of touch events.
+ * </p>
+ * 
+ * @param listener the listener which should be notified
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @see GestureListener
+ * @see #removeGestureListener
+ * @see #setTouchEnabled
+ * 
+ * @since 3.7
+ */
+public void addGestureListener (GestureListener listener) {
+	checkWidget();
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
+	TypedListener typedListener = new TypedListener (listener);
+	addListener (SWT.Gesture, typedListener);
+}
+
+/**
+ * Adds the listener to the collection of listeners who will
  * be notified when help events are generated for the control,
  * by sending it one of the messages defined in the
  * <code>HelpListener</code> interface.
@@ -1614,6 +1679,40 @@ void addRelation (Control control) {
 
 /**
  * Adds the listener to the collection of listeners who will
+ * be notified when touch events occur, by sending it
+ * one of the messages defined in the <code>TouchListener</code>
+ * interface.
+ * <p>
+ * NOTE: You must also call <code>setTouchEnabled(true)</code> to 
+ * specify that touch events should be sent, which will cause gesture
+ * events to not be sent.
+ * </p>
+ * 
+ * @param listener the listener which should be notified
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @see TouchListener
+ * @see #removeTouchListener
+ * @see #setTouchEnabled
+ * 
+ * @since 3.7
+ */
+public void addTouchListener (TouchListener listener) {
+	checkWidget();
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
+	TypedListener typedListener = new TypedListener (listener);
+	addListener (SWT.Touch,typedListener);
+}
+
+/**
+ * Adds the listener to the collection of listeners who will
  * be notified when traversal events occur, by sending it
  * one of the messages defined in the <code>TraverseListener</code>
  * interface.
@@ -1712,6 +1811,31 @@ public void removeFocusListener(FocusListener listener) {
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.FocusIn, listener);
 	eventTable.unhook (SWT.FocusOut, listener);
+}
+/**
+ * Removes the listener from the collection of listeners who will
+ * be notified when gesture events are generated for the control.
+ *
+ * @param listener the listener which should no longer be notified
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @see GestureListener
+ * @see #addGestureListener
+ * 
+ * @since 3.7
+ */
+public void removeGestureListener (GestureListener listener) {
+	checkWidget();
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
+	if (eventTable == null) return;
+	eventTable.unhook(SWT.Gesture, listener);
 }
 /**
  * Removes the listener from the collection of listeners who will
@@ -1924,6 +2048,32 @@ void removeRelation () {
 
 /**
  * Removes the listener from the collection of listeners who will
+ * be notified when touch events occur.
+ *
+ * @param listener the listener which should no longer be notified
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @see TouchListener
+ * @see #addTouchListener
+ * 
+ * @since 3.7
+ */
+public void removeTouchListener(TouchListener listener) {
+	checkWidget();
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
+	if (eventTable == null) return;
+	eventTable.unhook (SWT.Touch, listener);
+}
+
+/**
+ * Removes the listener from the collection of listeners who will
  * be notified when traversal events occur.
  *
  * @param listener the listener which should no longer be notified
@@ -2032,11 +2182,11 @@ public boolean dragDetect (MouseEvent event) {
 
 boolean dragDetect (int button, int count, int stateMask, int x, int y) {
 	if (button != 1 || count != 1) return false;
-	if (!dragDetect (x, y, false, null)) return false;
+	if (!dragDetect (x, y, false, true, null)) return false;
 	return sendDragEvent (button, stateMask, x, y, true);
 }
 
-boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
+boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean [] consume) {
 	boolean quit = false, dragging = false;
 	while (!quit) {
 		int /*long*/ eventPtr = 0;
@@ -2054,7 +2204,7 @@ boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
 				try {Thread.sleep(50);} catch (Exception ex) {}
 			}
 		}
-		if (eventPtr == 0) return false;
+		if (eventPtr == 0) return dragOnTimeout;
 		switch (OS.GDK_EVENT_TYPE (eventPtr)) {
 			case OS.GDK_MOTION_NOTIFY: {
 				GdkEventMotion gdkMotionEvent = new GdkEventMotion ();
@@ -2168,6 +2318,8 @@ boolean forceFocus (int /*long*/ focusHandle) {
 	/* When the control is zero sized it must be realized */
 	OS.gtk_widget_realize (focusHandle);
 	OS.gtk_widget_grab_focus (focusHandle);
+	// widget could be disposed at this point
+	if (isDisposed ()) return false;
 	Shell shell = getShell ();
 	int /*long*/ shellHandle = shell.shellHandle;
 	int /*long*/ handle = OS.gtk_window_get_focus (shellHandle);
@@ -2555,6 +2707,32 @@ public String getToolTipText () {
 	checkWidget();
 	return toolTipText;
 }
+
+/**
+ * Returns <code>true</code> if this control is set to send touch events, or
+ * <code>false</code> if it is set to send gesture events instead.  This method
+ * also returns <code>false</code> if a touch-based input device is not detected
+ * (this can be determined with <code>Display#getTouchEnabled()</code>).  Use
+ * {@link #setTouchEnabled(boolean)} to switch the events that a control sends
+ * between touch events and gesture events.
+ *
+ * @return <code>true</code> if the control is set to send touch events, or <code>false</code> otherwise
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @see #setTouchEnabled
+ * @see Display#getTouchEnabled
+ *
+ * @since 3.7
+ */
+public boolean getTouchEnabled() {
+	checkWidget();
+	return false;
+}
+
 /**
  * Returns <code>true</code> if the receiver is visible, and
  * <code>false</code> otherwise.
@@ -2610,7 +2788,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event, bo
 		if ((state & DRAG_DETECT) != 0 && hooks (SWT.DragDetect)) {
 			if (gdkEvent.button == 1) {
 				boolean [] consume = new boolean [1];
-				if (dragDetect ((int) gdkEvent.x, (int) gdkEvent.y, true, consume)) {
+				if (dragDetect ((int) gdkEvent.x, (int) gdkEvent.y, true, true, consume)) {
 					dragging = true;
 					if (consume [0]) result = 1;
 				}
@@ -2965,6 +3143,12 @@ int /*long*/ gtk_unrealize (int /*long*/ widget) {
 }
 
 int /*long*/ gtk_visibility_notify_event (int /*long*/ widget, int /*long*/ event) {
+	/*
+	* As of GTK 2.17.11, obscured controls no longer send expose 
+	* events. It is no longer necessary to track visiblity notify
+	* events.
+	*/
+	if (OS.GTK_VERSION >= OS.VERSION (2, 17, 11)) return 0;
 	GdkEventVisibility gdkEvent = new GdkEventVisibility ();
 	OS.memmove (gdkEvent, event, GdkEventVisibility.sizeof);
 	int /*long*/ paintWindow = paintWindow();
@@ -3526,11 +3710,11 @@ void setBackgroundColor (int /*long*/ handle, GdkColor color) {
 	int flags = OS.gtk_rc_style_get_color_flags (style, index);
 	if (color != null) {
 		flags |= OS.GTK_RC_BG;
-		pixmapName = "<none>";
+		pixmapName = "<none>"; //$NON-NLS-1$
 	} else {
 		flags &= ~OS.GTK_RC_BG;
 		if (backgroundImage == null && (state & PARENT_BACKGROUND) != 0) {
-			pixmapName = "<parent>";
+			pixmapName = "<parent>"; //$NON-NLS-1$
 		}
 	}
 	if (pixmapName != null) {
@@ -3904,11 +4088,38 @@ public void setMenu (Menu menu) {
 	this.menu = menu;
 }
 
-void setOrientation () {
-	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (handle != 0) OS.gtk_widget_set_direction (handle, OS.GTK_TEXT_DIR_RTL);
-		if (fixedHandle != 0) OS.gtk_widget_set_direction (fixedHandle, OS.GTK_TEXT_DIR_RTL);
+void setOrientation (boolean create) {
+	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+		int dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+		if (handle != 0) OS.gtk_widget_set_direction (handle, dir);
+		if (fixedHandle != 0) OS.gtk_widget_set_direction (fixedHandle, dir);
 	}
+}
+
+/**
+ * Sets the orientation of the receiver, which must be one
+ * of the constants <code>SWT.LEFT_TO_RIGHT</code> or <code>SWT.RIGHT_TO_LEFT</code>.
+ * <p>
+ *
+ * @param orientation new orientation style
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.7
+ */
+public void setOrientation (int orientation) {
+	checkWidget ();
+	if (OS.GTK_VERSION < OS.VERSION (2, 4, 0)) return;
+	int flags = SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT;
+	if ((orientation & flags) == 0 || (orientation & flags) == flags) return;
+	style &= ~flags;
+	style |= orientation & flags;
+	setOrientation (false);
+	style &= ~SWT.MIRRORED;
+	checkMirrored ();
 }
 
 /**
@@ -4004,18 +4215,10 @@ public void setRedraw (boolean redraw) {
 		if (--drawCount == 0) {
 			if (redrawWindow != 0) {
 				int /*long*/ window = paintWindow ();
-				/*
-				* Bug in GTK. For some reason, the window does not
-				* redraw in versions of GTK greater than 2.18. The fix
-				* is to hide and show it (without changing the z order).
-			    */
-				boolean fixRedraw = OS.GTK_VERSION >= OS.VERSION (2, 17, 0) && OS.gdk_window_is_visible(window);
-				if (fixRedraw) OS.gdk_window_hide(window);
 				/* Explicitly hiding the window avoids flicker on GTK+ >= 2.6 */
 				OS.gdk_window_hide (redrawWindow);
 				OS.gdk_window_destroy (redrawWindow);
 				OS.gdk_window_set_events (window, OS.gtk_widget_get_events (paintHandle ()));
-				if (fixRedraw) OS.gdk_window_show_unraised(window);
 				redrawWindow = 0;
 			}
 		}
@@ -4038,9 +4241,6 @@ public void setRedraw (boolean redraw) {
 						OS.GDK_BUTTON2_MOTION_MASK | OS.GDK_BUTTON3_MOTION_MASK;
 					OS.gdk_window_set_events (window, OS.gdk_window_get_events (window) & ~mouseMask);
 					OS.gdk_window_set_back_pixmap (redrawWindow, 0, false);
-					//System.out.println("Redraw " + redrawWindow + " WIndow " + window);
-//					OS.gdk_x11_drawable_get_xid(redrawWindow);
-//					OS.gdk_x11_drawable_get_xid(window);
 					OS.gdk_window_show (redrawWindow);
 				}
 			}
@@ -4099,6 +4299,26 @@ void setToolTipText (Shell shell, String newString) {
 	} else {
 		shell.setToolTipText (eventHandle (), newString);
 	}
+}
+
+/**
+ * Sets whether this control should send touch events (by default controls do not).
+ * Setting this to <code>false</code> causes the receiver to send gesture events
+ * instead.  No exception is thrown if a touch-based input device is not
+ * detected (this can be determined with <code>Display#getTouchEnabled()</code>).
+ * 
+ * @param enabled the new touch-enabled state
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ *
+ * @see Display#getTouchEnabled
+ *
+ * @since 3.7
+ */
+public void setTouchEnabled(boolean enabled) {
+	checkWidget();
 }
 
 /**

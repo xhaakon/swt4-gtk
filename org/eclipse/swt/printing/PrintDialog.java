@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,8 +22,7 @@ import org.eclipse.swt.widgets.*;
  * a printer and various print-related parameters
  * prior to starting a print job.
  * <p>
- * IMPORTANT: This class is intended to be subclassed <em>only</em>
- * within the SWT implementation.
+ * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
  *
  * @see <a href="http://www.eclipse.org/swt/snippets/#printing">Printing snippets</a>
@@ -312,7 +311,23 @@ public PrinterData open() {
 		if (printerData.otherData != null) {
 			Printer.restore(printerData.otherData, settings, page_setup);
 		}
+		
 		/* Set values of print_settings and page_setup from PrinterData. */
+		String printerName = printerData.name;
+		if (printerName == null && printerData.printToFile) {
+			/* Find the printer name corresponding to the file backend. */
+			int /*long*/ printer = Printer.gtkPrinterFromPrinterData(printerData);
+			if (printer != 0) {
+				PrinterData data = Printer.printerDataFromGtkPrinter(printer);
+				printerName = data.name;
+				OS.g_object_unref(printer);
+			}
+		}
+		if (printerName != null) {
+			byte [] nameBytes = Converter.wcsToMbcs (null, printerName, true);
+			OS.gtk_print_settings_set_printer(settings, nameBytes);
+		}
+		
 		switch (printerData.scope) {
 			case PrinterData.ALL_PAGES:
 				OS.gtk_print_settings_set_print_pages(settings, OS.GTK_PRINT_PAGES_ALL);
@@ -329,37 +344,41 @@ public PrinterData open() {
 				OS.gtk_print_settings_set_print_pages(settings, OS.GTK_PRINT_PAGES_ALL);
 				break;
 		}
-		if (printerData.fileName != null) {
-			//TODO: Should we look at printToFile, or driver/name for "Print to File", or both? (see gtk bug 345590)
-			if (printerData.printToFile) {
-				byte [] buffer = Converter.wcsToMbcs (null, printerData.fileName, true);
-				OS.gtk_print_settings_set(settings, OS.GTK_PRINT_SETTINGS_OUTPUT_URI, buffer);
+		if ((printerData.printToFile || Printer.GTK_FILE_BACKEND.equals(printerData.driver)) && printerData.fileName != null) {
+			// TODO: GTK_FILE_BACKEND is not GTK API (see gtk bug 345590)
+			byte [] uri = Printer.uriFromFilename(printerData.fileName);
+			if (uri != null) {
+				OS.gtk_print_settings_set(settings, OS.GTK_PRINT_SETTINGS_OUTPUT_URI, uri);
 			}
-			if (printerData.driver != null && printerData.name != null) {
-				if (printerData.driver.equals("GtkPrintBackendFile") && printerData.name.equals("Print to File")) { //$NON-NLS-1$ //$NON-NLS-2$
-					byte [] buffer = Converter.wcsToMbcs (null, printerData.fileName, true);
-					OS.gtk_print_settings_set(settings, OS.GTK_PRINT_SETTINGS_OUTPUT_URI, buffer);
-				}
-			}
-		}
-		if (printerData.printToFile) {
-			byte [] buffer = Converter.wcsToMbcs (null, "Print to File", true); //$NON-NLS-1$
-			OS.gtk_print_settings_set_printer(settings, buffer);
 		}
 		OS.gtk_print_settings_set_n_copies(settings, printerData.copyCount);
 		OS.gtk_print_settings_set_collate(settings, printerData.collate);
+		/* 
+		 * Bug in GTK.  The unix dialog gives priority to the value of the non-API
+		 * field cups-Duplex in the print_settings (which we preserve in otherData).
+		 * The fix is to manually clear cups-Duplex before setting the duplex field.
+		 */
+		byte [] keyBuffer = Converter.wcsToMbcs (null, "cups-Duplex", true);
+		OS.gtk_print_settings_set(settings, keyBuffer, (byte[]) null);
+		if (printerData.duplex != SWT.DEFAULT) {
+			int duplex = printerData.duplex == PrinterData.DUPLEX_LONG_EDGE ? OS.GTK_PRINT_DUPLEX_HORIZONTAL
+				: printerData.duplex == PrinterData.DUPLEX_SHORT_EDGE ? OS.GTK_PRINT_DUPLEX_VERTICAL
+				: OS.GTK_PRINT_DUPLEX_SIMPLEX;
+			OS.gtk_print_settings_set_duplex (settings, duplex);
+		}
 		int orientation = printerData.orientation == PrinterData.LANDSCAPE ? OS.GTK_PAGE_ORIENTATION_LANDSCAPE : OS.GTK_PAGE_ORIENTATION_PORTRAIT;
 		OS.gtk_print_settings_set_orientation(settings, orientation);
 		OS.gtk_page_setup_set_orientation(page_setup, orientation);
 		
 		OS.gtk_print_unix_dialog_set_settings(handle, settings);
 		OS.gtk_print_unix_dialog_set_page_setup(handle, page_setup);
+		if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+			OS.gtk_print_unix_dialog_set_embed_page_setup(handle, true);
+		}
 		OS.g_object_unref(settings);
 		OS.g_object_unref(page_setup);
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			int /*long*/ group = OS.gtk_window_get_group(0);
-			OS.gtk_window_group_add_window (group, handle);
-		}
+		int /*long*/ group = OS.gtk_window_get_group(0);
+		OS.gtk_window_group_add_window (group, handle);
 		OS.gtk_window_set_modal(handle, true);
 		PrinterData data = null;
 		//TODO: Handle 'Print Preview' (GTK_RESPONSE_APPLY).
@@ -378,6 +397,13 @@ public PrinterData open() {
 			display.setData (SET_MODAL_DIALOG, this);
 		}
 		int response = OS.gtk_dialog_run (handle);
+		/*
+		* This call to gdk_threads_leave() is a temporary work around
+		* to avoid deadlocks when gdk_threads_init() is called by native
+		* code outside of SWT (i.e AWT, etc). It ensures that the current
+		* thread leaves the GTK lock acquired by the function above. 
+		*/
+		OS.gdk_threads_leave();
 		if (OS.gtk_window_get_modal (handle)) {
 			display.setData (SET_MODAL_DIALOG, oldModal);
 		}
@@ -419,7 +445,7 @@ public PrinterData open() {
 						break;
 				}
 				
-				data.printToFile = data.name.equals("Print to File"); //$NON-NLS-1$
+				data.printToFile = Printer.GTK_FILE_BACKEND.equals(data.driver); // TODO: GTK_FILE_BACKEND is not GTK API (see gtk bug 345590)
 				if (data.printToFile) {
 					int /*long*/ address = OS.gtk_print_settings_get(settings, OS.GTK_PRINT_SETTINGS_OUTPUT_URI);
 					int length = OS.strlen (address);
@@ -430,6 +456,10 @@ public PrinterData open() {
 
 				data.copyCount = OS.gtk_print_settings_get_n_copies(settings);
 				data.collate = OS.gtk_print_settings_get_collate(settings);
+				int duplex = OS.gtk_print_settings_get_duplex(settings);
+				data.duplex = duplex == OS.GTK_PRINT_DUPLEX_HORIZONTAL ? PrinterData.DUPLEX_LONG_EDGE
+						: duplex == OS.GTK_PRINT_DUPLEX_VERTICAL ? PrinterData.DUPLEX_SHORT_EDGE
+						: PrinterData.DUPLEX_NONE;
 				data.orientation = OS.gtk_page_setup_get_orientation(page_setup) == OS.GTK_PAGE_ORIENTATION_LANDSCAPE ? PrinterData.LANDSCAPE : PrinterData.PORTRAIT;
 
 				/* Save other print_settings data as key/value pairs in otherData. */

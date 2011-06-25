@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2010 IBM Corporation and others.
+ * Copyright (c) 2003, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,10 +23,13 @@ import org.eclipse.swt.widgets.*;
  * </p>
  * <dl>
  * <dt><b>Styles:</b></dt>
- * <dd>MOZILLA</dd>
+ * <dd>MOZILLA, WEBKIT</dd>
  * <dt><b>Events:</b></dt>
  * <dd>CloseWindowListener, LocationListener, OpenWindowListener, ProgressListener, StatusTextListener, TitleListener, VisibilityWindowListener</dd>
  * </dl>
+ * <p>
+ * Note: At most one of the styles MOZILLA and WEBKIT may be specified.
+ * </p>
  * <p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
@@ -83,45 +86,15 @@ public Browser (Composite parent, int style) {
 	userStyle = style;
 
 	String platform = SWT.getPlatform ();
-	Display display = parent.getDisplay ();
-	if ("gtk".equals (platform)) display.setData (NO_INPUT_METHOD, null); //$NON-NLS-1$
-	String classNames[] = null;
-	if ((style & SWT.MOZILLA) != 0) {
-		classNames = new String[] {"org.eclipse.swt.browser.Mozilla"}; //$NON-NLS-1$
-	} else {
-		if ("win32".equals (platform) || "wpf".equals (platform)) { //$NON-NLS-1$ $NON-NLS-2$
-			classNames = new String[] {"org.eclipse.swt.browser.IE"}; //$NON-NLS-1$
-		} else if ("motif".equals (platform)) { //$NON-NLS-1$
-			classNames = new String[] {"org.eclipse.swt.browser.Mozilla"}; //$NON-NLS-1$
-		} else if ("gtk".equals (platform)) { //$NON-NLS-1$
-			String property = System.getProperty (PROPERTY_USEWEBKITGTK);
-			if (property != null && property.equalsIgnoreCase ("true")) { //$NON-NLS-1$
-				classNames = new String[] {"org.eclipse.swt.browser.WebKit", "org.eclipse.swt.browser.Mozilla"}; //$NON-NLS-1$ //$NON-NLS-2$
-			} else {
-				classNames = new String[] {"org.eclipse.swt.browser.Mozilla"}; //$NON-NLS-1$
-			}
-		} else if ("carbon".equals (platform) || "cocoa".equals (platform)) { //$NON-NLS-1$
-			classNames = new String[] {"org.eclipse.swt.browser.Safari"}; //$NON-NLS-1$
-		} else if ("photon".equals (platform)) { //$NON-NLS-1$
-			classNames = new String[] {"org.eclipse.swt.browser.Voyager"}; //$NON-NLS-1$
-		} else {
-			dispose ();
-			SWT.error (SWT.ERROR_NO_HANDLES);
-		}
+	if ("gtk".equals (platform)) { //$NON-NLS-1$
+		parent.getDisplay ().setData (NO_INPUT_METHOD, null);
 	}
 
-	for (int i = 0; i < classNames.length; i++) {
-		try {
-			Class clazz = Class.forName (classNames[i]);
-			webBrowser = (WebBrowser)clazz.newInstance ();
-			if (webBrowser != null) {
-				webBrowser.setBrowser (this);
-				if (webBrowser.create (parent, style)) return;
-			}
-		} catch (ClassNotFoundException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InstantiationException e) {
-		}
+	webBrowser = new BrowserFactory ().createWebBrowser (style);
+	if (webBrowser != null) {
+		webBrowser.setBrowser (this);
+		webBrowser.create (parent, style);
+		return;
 	}
 	dispose ();
 	SWT.error (SWT.ERROR_NO_HANDLES);
@@ -149,8 +122,11 @@ static Composite checkParent (Composite parent) {
 }
 
 static int checkStyle(int style) {
+	if ((style & (SWT.MOZILLA | SWT.WEBKIT)) == (SWT.MOZILLA | SWT.WEBKIT)) {
+		style &= ~SWT.WEBKIT;
+	}
 	String platform = SWT.getPlatform ();
-	if ((style & SWT.MOZILLA) != 0) {
+	if ((style & SWT.MOZILLA) != 0 || (style & SWT.WEBKIT) != 0) {
 		if ("carbon".equals (platform)) return style | SWT.EMBEDDED; //$NON-NLS-1$
 		if ("motif".equals (platform)) return style | SWT.EMBEDDED; //$NON-NLS-1$
 		return style;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1084,7 +1084,7 @@ void destroyItem (TableItem item) {
 	if (itemCount == 0) resetCustomDraw ();
 }
 
-boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
+boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean [] consume) {
 	boolean selected = false;
 	if (filter) {
 		int /*long*/ [] path = new int /*long*/ [1];
@@ -1098,7 +1098,7 @@ boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
 			return false;
 		}
 	}
-	boolean dragDetect = super.dragDetect (x, y, filter, consume);
+	boolean dragDetect = super.dragDetect (x, y, filter, false, consume);
 	if (dragDetect && selected && consume != null) consume [0] = true;
 	return dragDetect;
 }
@@ -1933,6 +1933,25 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
 	return 0;
 }
 
+int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
+	switch (OS.GDK_EVENT_TYPE (gdkEvent)) {
+		case OS.GDK_EXPOSE: {
+			/*
+			* Bug in GTK. SWT connects the expose-event 'after' the default 
+			* handler of the signal. If the tree has no children, then GTK 
+			* sends expose signal only 'before' the default signal handler.
+			* The fix is to detect this case in 'event_after' and send the
+			* expose event.
+			*/
+			if (OS.gtk_tree_model_iter_n_children (modelHandle, 0) == 0) {
+				gtk_expose_event (widget, gdkEvent);
+			}
+			break;
+		}
+	}
+	return super.gtk_event_after (widget, gdkEvent);
+}
+
 int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	if ((state & OBSCURED) != 0) return 0;
 	if ((state & PARENT_BACKGROUND) != 0 || backgroundImage != null) {
@@ -2529,12 +2548,15 @@ int /*long*/ rendererGetSizeProc (int /*long*/ cell, int /*long*/ widget, int /*
 	if (!ignoreSize && OS.GTK_IS_CELL_RENDERER_TEXT (cell)) {
 		int /*long*/ iter = OS.g_object_get_qdata (cell, Display.SWT_OBJECT_INDEX2);
 		TableItem item = null;
+		boolean isSelected = false;
 		if (iter != 0) {
 			int /*long*/ path = OS.gtk_tree_model_get_path (modelHandle, iter);
 			int [] buffer = new int [1];
 			OS.memmove (buffer, OS.gtk_tree_path_get_indices (path), 4);
 			int index = buffer [0];
 			item = _getItem (index);
+			int /*long*/ selection = OS.gtk_tree_view_get_selection (handle);
+			isSelected = OS.gtk_tree_selection_path_is_selected (selection, path);
 			OS.gtk_tree_path_free (path);
 		}
 		if (item != null) {
@@ -2567,6 +2589,7 @@ int /*long*/ rendererGetSizeProc (int /*long*/ cell, int /*long*/ widget, int /*
 				event.gc = gc;
 				event.width = contentWidth [0];
 				event.height = contentHeight [0];
+				if (isSelected) event.detail = SWT.SELECTED;
 				sendEvent (SWT.MeasureItem, event);
 				gc.dispose ();
 				contentWidth [0] = event.width - imageWidth;
@@ -3132,6 +3155,16 @@ public void setLinesVisible (boolean show) {
 	OS.gtk_tree_view_set_rules_hint (handle, show);
 	if (OS.GTK_VERSION >= OS.VERSION (2, 12, 0)) {
 		OS.gtk_tree_view_set_grid_lines (handle, show ? OS.GTK_TREE_VIEW_GRID_LINES_VERTICAL : OS.GTK_TREE_VIEW_GRID_LINES_NONE);
+	}
+}
+
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	for (int i=0; i<itemCount; i++) {
+		if (items[i] != null) items[i].setOrientation (create);
+	}
+	for (int i=0; i<columnCount; i++) {
+		if (columns[i] != null) columns[i].setOrientation (create);
 	}
 }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -329,7 +329,15 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 }
 
 int /*long*/ gtk_status_icon_popup_menu (int /*long*/ widget, int /*long*/ button, int /*long*/ activate_time) {
+	/*
+	* GTK provides a MenuPositionFunc for GtkStatusIcon in order
+	* to set the popup-menu aligned to the tray.
+	*/
+	Display display = this.display;
+	display.currentTrayItem = this;
 	sendEvent (SWT.MenuDetect);
+	if (!isDisposed ()) display.runPopups();
+	display.currentTrayItem = null;
 	return 0;
 }
 

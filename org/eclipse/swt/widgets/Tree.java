@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1108,7 +1108,7 @@ void destroyItem (TreeItem item) {
 	modelChanged = true;
 }
 
-boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
+boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean [] consume) {
 	boolean selected = false;
 	if (filter) {
 		int /*long*/ [] path = new int /*long*/ [1];
@@ -1122,7 +1122,7 @@ boolean dragDetect (int x, int y, boolean filter, boolean [] consume) {
 			return false;
 		}
 	}
-	boolean dragDetect = super.dragDetect (x, y, filter, consume);
+	boolean dragDetect = super.dragDetect (x, y, filter, false, consume);
 	if (dragDetect && selected && consume != null) consume [0] = true;
 	return dragDetect;
 }
@@ -1499,8 +1499,11 @@ public TreeItem getItem (Point point) {
 	if (point == null) error (SWT.ERROR_NULL_ARGUMENT);
 	int /*long*/ [] path = new int /*long*/ [1];
 	OS.gtk_widget_realize (handle);
+	int x = point.x;
+	int y = point.y;
+	if ((style & SWT.MIRRORED) != 0) x = getClientWidth () - x;
 	int /*long*/ [] columnHandle = new int /*long*/ [1];
-	if (!OS.gtk_tree_view_get_path_at_pos (handle, point.x, point.y, path, columnHandle, null, null)) return null;
+	if (!OS.gtk_tree_view_get_path_at_pos (handle, x, y, path, columnHandle, null, null)) return null;
 	if (path [0] == 0) return null;
 	TreeItem item = null;
 	int /*long*/ iter = OS.g_malloc (OS.GtkTreeIter_sizeof ());
@@ -1513,9 +1516,12 @@ public TreeItem getItem (Point point) {
 			if (OS.GTK_VERSION < OS.VERSION (2, 8, 18)) {
 				OS.gtk_widget_style_get (handle, OS.expander_size, buffer, 0);
 				int expanderSize = buffer [0] + TreeItem.EXPANDER_EXTRA_PADDING;
-				overExpander = point.x < rect.x + expanderSize;
+				rect.x += expanderSize;
+			}
+			if ((style & SWT.MIRRORED) != 0) {
+				overExpander = x > rect.x + rect.width;
 			} else {
-				overExpander = point.x < rect.x;
+				overExpander = x < rect.x;
 			}
 		}
 		if (!overExpander) {
@@ -1929,6 +1935,25 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
 		sendSelectionEvent (SWT.Selection, event, false);
 	}
 	return 0;
+}
+
+int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
+	switch (OS.GDK_EVENT_TYPE (gdkEvent)) {
+		case OS.GDK_EXPOSE: {
+			/*
+			* Bug in GTK. SWT connects the expose-event 'after' the default 
+			* handler of the signal. If the tree has no children, then GTK 
+			* sends expose signal only 'before' the default signal handler.
+			* The fix is to detect this case in 'event_after' and send the
+			* expose event.
+			*/
+			if (OS.gtk_tree_model_iter_n_children (modelHandle, 0) == 0) {
+				gtk_expose_event (widget, gdkEvent);
+			}
+			break;
+		}
+	}
+	return super.gtk_event_after (widget, gdkEvent);
 }
 
 int /*long*/ gtk_expand_collapse_cursor_row (int /*long*/ widget, int /*long*/ logical, int /*long*/ expand, int /*long*/ open_all) {
@@ -2564,6 +2589,12 @@ int /*long*/ rendererGetSizeProc (int /*long*/ cell, int /*long*/ widget, int /*
 				event.gc = gc;
 				event.width = contentWidth [0];
 				event.height = contentHeight [0];
+				int /*long*/ path = OS.gtk_tree_model_get_path (modelHandle, iter);
+				int /*long*/ selection = OS.gtk_tree_view_get_selection (handle);
+				if (OS.gtk_tree_selection_path_is_selected (selection, path)) {
+					event.detail = SWT.SELECTED;
+				}
+				OS.gtk_tree_path_free (path);
 				sendEvent (SWT.MeasureItem, event);
 				gc.dispose ();
 				contentWidth [0] = event.width - imageWidth;
@@ -3060,6 +3091,20 @@ public void setLinesVisible (boolean show) {
 	OS.gtk_tree_view_set_rules_hint (handle, show);
 	if (OS.GTK_VERSION >= OS.VERSION (2, 12, 0)) {
 		OS.gtk_tree_view_set_grid_lines (handle, show ? OS.GTK_TREE_VIEW_GRID_LINES_VERTICAL : OS.GTK_TREE_VIEW_GRID_LINES_NONE);
+	}
+}
+
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if (items != null) {
+		for (int i=0; i<items.length; i++) {
+			if (items[i] != null) items[i].setOrientation (create);
+		}
+	}
+	if (columns != null) {
+		for (int i=0; i<columns.length; i++) {
+			if (columns[i] != null) columns[i].setOrientation (create);
+		}
 	}
 }
 

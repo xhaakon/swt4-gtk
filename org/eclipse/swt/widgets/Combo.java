@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -571,10 +571,10 @@ boolean filterKey (int keyval, int /*long*/ event) {
 }
 
 int /*long*/ findPopupHandle (int /*long*/ oldList) {
-	int /*long*/ hdl = 0;
+	int /*long*/ result = 0;
 	int /*long*/ currentList = OS.gtk_window_list_toplevels();
 	int /*long*/ oldFromList = oldList;
-	int /*long*/ newFromList = currentList;
+	int /*long*/ newFromList = OS.g_list_last(currentList);
 	boolean isFound;
 	while (newFromList != 0) {
 		int /*long*/ newToplevel = OS.g_list_data(newFromList);
@@ -589,14 +589,14 @@ int /*long*/ findPopupHandle (int /*long*/ oldList) {
 			oldFromList = OS.g_list_next(oldFromList);
 		}
 		if (!isFound) {
-			hdl = newToplevel;
+			result = newToplevel;
 			break;
 		}
-		newFromList = OS.g_list_next(newFromList);
+		newFromList = OS.g_list_previous(newFromList);
 	}
 	OS.g_list_free(oldList);
 	OS.g_list_free(currentList);
-	return hdl;
+	return result;
 }
 
 
@@ -808,7 +808,7 @@ public void deselectAll () {
 	}
 }
 
-boolean dragDetect(int x, int y, boolean filter, boolean[] consume) {
+boolean dragDetect(int x, int y, boolean filter, boolean dragOnTimeout, boolean[] consume) {
 	if (filter && entryHandle != 0) {
 		int [] index = new int [1];
 		int [] trailing = new int [1];
@@ -816,16 +816,18 @@ boolean dragDetect(int x, int y, boolean filter, boolean[] consume) {
 		OS.pango_layout_xy_to_index (layout, x * OS.PANGO_SCALE, y * OS.PANGO_SCALE, index, trailing);
 		int /*long*/ ptr = OS.pango_layout_get_text (layout);
 		int position = (int)/*64*/OS.g_utf8_pointer_to_offset (ptr, ptr + index[0]) + trailing[0];
-		Point selection = getSelection ();
-		if (selection.x <= position && position < selection.y) {
-			if (super.dragDetect (x, y, filter, consume)) {
+		int [] start = new int [1];
+		int [] end = new int [1];
+		OS.gtk_editable_get_selection_bounds (entryHandle, start, end);
+		if (start [0] <= position && position < end [0]) {
+			if (super.dragDetect (x, y, filter, dragOnTimeout, consume)) {
 				if (consume != null) consume [0] = true;
 				return true;
 			}
 		}
 		return false;
 	}
-	return super.dragDetect (x, y, filter, consume);
+	return super.dragDetect (x, y, filter, dragOnTimeout, consume);
 }
 
 int /*long*/ enterExitHandle () {
@@ -966,8 +968,7 @@ String getNameText () {
  * @since 2.1.2
  */
 public int getOrientation () {
-	checkWidget();
-	return style & (SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT);
+	return super.getOrientation ();
 }
 
 /**
@@ -998,7 +999,7 @@ public Point getSelection () {
 			if (index != -1) length = getItem (index).length ();
 		} else {
 			int /*long*/ str = OS.gtk_entry_get_text (entryHandle);
-			if (str != 0) length = (int)/*64*/OS.g_utf8_strlen (str, -1);
+			if (str != 0) length = (int)/*64*/OS.g_utf16_strlen (str, -1);
 		}
 		return new Point (0, length);
 	}
@@ -1006,6 +1007,9 @@ public Point getSelection () {
 	int [] end = new int [1];
 	if (entryHandle != 0) {
 		OS.gtk_editable_get_selection_bounds (entryHandle, start, end);
+		int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
+		start[0] = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start[0]);
+		end[0] = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end[0]);
 	}
 	return new Point(start [0], end [0]);
 }
@@ -1269,8 +1273,11 @@ int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /
 		return 0;
 	}
 	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
-	if (end_pos == -1) end_pos = OS.g_utf8_strlen (OS.gtk_entry_get_text (entryHandle), -1);
-	String newText = verifyText ("", (int)/*64*/start_pos, (int)/*64*/end_pos);
+	int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
+	if (end_pos == -1) end_pos = OS.g_utf8_strlen (ptr, -1);
+	int start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start_pos);
+	int end = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end_pos);
+	String newText = verifyText ("", start, end);
 	if (newText == null) {
 		OS.g_signal_stop_emission_by_name (entryHandle, OS.delete_text);
 	} else {
@@ -1372,11 +1379,10 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
 	String oldText = new String (Converter.mbcsToWcs (null, buffer));
 	int [] pos = new int [1];
 	OS.memmove (pos, position, 4);
-	if (pos [0] == -1) {
-		int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
-		pos [0] = (int)/*64*/OS.g_utf8_strlen (ptr, -1);
-	}
-	String newText = verifyText (oldText, pos [0], pos [0]);
+	int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
+	if (pos [0] == -1) pos [0] = (int)/*64*/OS.g_utf8_strlen (ptr, -1);
+	int start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, pos [0]);
+	String newText = verifyText (oldText, start, start);
 	if (newText != oldText) {
 		int [] newStart = new int [1], newEnd = new int [1];
 		OS.gtk_editable_get_selection_bounds (entryHandle, newStart, newEnd);
@@ -2050,12 +2056,28 @@ public void setListVisible (boolean visible) {
 	}
 }
 
-void setOrientation() {
-	super.setOrientation();
-	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (listHandle != 0) OS.gtk_widget_set_direction (listHandle, OS.GTK_TEXT_DIR_RTL);
-		if (entryHandle != 0) OS.gtk_widget_set_direction (entryHandle, OS.GTK_TEXT_DIR_RTL);
-		if (cellHandle != 0) OS.gtk_widget_set_direction (cellHandle, OS.GTK_TEXT_DIR_RTL);
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+		int dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+		if (listHandle != 0) OS.gtk_widget_set_direction (listHandle, dir);
+		if (entryHandle != 0) OS.gtk_widget_set_direction (entryHandle, dir);
+		if (cellHandle != 0) OS.gtk_widget_set_direction (cellHandle, dir);
+		if (!create) {
+			if (listHandle != 0) {
+				OS.gtk_widget_set_direction (listHandle, dir);
+				int /*long*/ itemsList = OS.gtk_container_get_children (listHandle);
+				if (itemsList != 0) {
+					int count = OS.g_list_length (itemsList);
+					for (int i=count - 1; i>=0; i--) {
+						int /*long*/ widget = OS.gtk_bin_get_child (OS.g_list_nth_data (itemsList, i));
+						OS.gtk_widget_set_direction (widget, dir);
+					}
+					OS.g_list_free (itemsList);
+				}
+			}
+			if (popupHandle != 0) OS.gtk_container_forall (popupHandle, display.setDirectionProc, dir);
+		}
 	}
 }
 
@@ -2074,31 +2096,7 @@ void setOrientation() {
  * @since 2.1.2
  */
 public void setOrientation (int orientation) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 4, 0)) {
-		checkWidget();
-		int flags = SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT;
-		if ((orientation & flags) == 0 || (orientation & flags) == flags) return;
-		style &= ~flags;
-		style |= orientation & flags;
-		int dir = (orientation & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
-		OS.gtk_widget_set_direction (fixedHandle, dir);
-		OS.gtk_widget_set_direction (handle, dir);
-		if (entryHandle != 0) OS.gtk_widget_set_direction (entryHandle, dir);
-		if (listHandle != 0) {
-			OS.gtk_widget_set_direction (listHandle, dir);
-			int /*long*/ itemsList = OS.gtk_container_get_children (listHandle);
-			if (itemsList != 0) {
-				int count = OS.g_list_length (itemsList);
-				for (int i=count - 1; i>=0; i--) {
-					int /*long*/ widget = OS.gtk_bin_get_child (OS.g_list_nth_data (itemsList, i));
-					OS.gtk_widget_set_direction (widget, dir);
-				}
-				OS.g_list_free (itemsList);
-			}
-		}
-		if (cellHandle != 0) OS.gtk_widget_set_direction (cellHandle, dir);
-		if (popupHandle != 0) OS.gtk_container_forall (popupHandle, display.setDirectionProc, dir);
-	}
+	super.setOrientation (orientation);
 }
 
 /**
@@ -2122,8 +2120,11 @@ public void setSelection (Point selection) {
 	if (selection == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if ((style & SWT.READ_ONLY) != 0) return;
 	if (entryHandle != 0) {
-		OS.gtk_editable_set_position (entryHandle, selection.x);
-		OS.gtk_editable_select_region (entryHandle, selection.x, selection.y);
+		int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
+		int start = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, selection.x);
+		int end = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, selection.y);
+		OS.gtk_editable_set_position (entryHandle, start);
+		OS.gtk_editable_select_region (entryHandle, start, end);
 	}
 }
 
@@ -2178,7 +2179,7 @@ public void setText (String string) {
 	*/
 	if (hooks (SWT.Verify) || filters (SWT.Verify)) {
 		int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
-		string = verifyText (string, 0, (int)/*64*/OS.g_utf8_strlen (ptr, -1));
+		string = verifyText (string, 0, (int)/*64*/OS.g_utf16_strlen (ptr, -1));
 		if (string == null) return;
 	}
 	byte [] buffer = Converter.wcsToMbcs (null, string, true);

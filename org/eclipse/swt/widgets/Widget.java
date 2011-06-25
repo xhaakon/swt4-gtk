@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -410,7 +410,7 @@ void createHandle (int index) {
 
 void createWidget (int index) {
 	createHandle (index);
-	setOrientation ();
+	setOrientation (true);
 	hookEvents ();
 	register ();
 }
@@ -1287,7 +1287,7 @@ void sendEvent (int eventType, Event event, boolean send) {
 
 boolean sendKeyEvent (int type, GdkEventKey keyEvent) {
 	int length = keyEvent.length;
-	if (keyEvent.string == 0 || OS.g_utf8_strlen (keyEvent.string, length) <= 1) {
+	if (keyEvent.string == 0 || OS.g_utf16_strlen (keyEvent.string, length) <= 1) {
 		Event event = new Event ();
 		event.time = keyEvent.time;
 		if (!setKeyState (event, keyEvent)) return true;
@@ -1550,7 +1550,7 @@ boolean setInputState (Event event, int state) {
 }
 
 boolean setKeyState (Event event, GdkEventKey keyEvent) {
-	if (keyEvent.string != 0 && OS.g_utf8_strlen (keyEvent.string, keyEvent.length) > 1) return false;
+	if (keyEvent.string != 0 && OS.g_utf16_strlen (keyEvent.string, keyEvent.length) > 1) return false;
 	boolean isNull = false;
 	event.keyCode = Display.translateKey (keyEvent.keyval);
 	switch (keyEvent.keyval) {
@@ -1633,7 +1633,7 @@ void setLocationState (Event event, GdkEventKey keyEvent) {
 	}
 }
 
-void setOrientation () {
+void setOrientation (boolean create) {
 }
 
 boolean setTabGroupFocus (boolean next) {

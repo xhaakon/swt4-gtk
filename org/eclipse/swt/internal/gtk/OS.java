@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -311,6 +311,9 @@ public class OS extends C {
 	public static final int GTK_PRINT_PAGES_ALL = 0;
 	public static final int GTK_PRINT_PAGES_CURRENT = 1;
 	public static final int GTK_PRINT_PAGES_RANGES = 2;
+	public static final int GTK_PRINT_DUPLEX_SIMPLEX = 0;
+	public static final int GTK_PRINT_DUPLEX_HORIZONTAL = 1;
+	public static final int GTK_PRINT_DUPLEX_VERTICAL = 2;
 	public static final int GTK_PROGRESS_CONTINUOUS = 0x0;
 	public static final int GTK_PROGRESS_DISCRETE = 0x1;
 	public static final int GTK_PROGRESS_LEFT_TO_RIGHT = 0x0;
@@ -408,7 +411,15 @@ public class OS extends C {
 	public static final int PANGO_DIRECTION_LTR = 0;
 	public static final int PANGO_DIRECTION_RTL = 1;	
 	public static final int PANGO_SCALE = 1024;
+	public static final int PANGO_STRETCH_ULTRA_CONDENSED = 0x0;
+	public static final int PANGO_STRETCH_EXTRA_CONDENSED = 0x1;
+	public static final int PANGO_STRETCH_CONDENSED = 0x2;
+	public static final int PANGO_STRETCH_SEMI_CONDENSED = 0x3;
 	public static final int PANGO_STRETCH_NORMAL = 0x4;
+	public static final int PANGO_STRETCH_SEMI_EXPANDED = 0x5;
+	public static final int PANGO_STRETCH_EXPANDED = 0x6;
+	public static final int PANGO_STRETCH_EXTRA_EXPANDED = 0x7;
+	public static final int PANGO_STRETCH_ULTRA_EXPANDED = 0x8;
 	public static final int PANGO_STYLE_ITALIC = 0x2;
 	public static final int PANGO_STYLE_NORMAL = 0x0;
 	public static final int PANGO_STYLE_OBLIQUE = 0x1;
@@ -418,6 +429,8 @@ public class OS extends C {
 	public static final int PANGO_UNDERLINE_DOUBLE = 2;
 	public static final int PANGO_UNDERLINE_LOW = 3;
 	public static final int PANGO_UNDERLINE_ERROR = 4;
+	public static final int PANGO_VARIANT_NORMAL = 0;
+	public static final int PANGO_VARIANT_SMALL_CAPS = 1;
 	public static final int PANGO_WEIGHT_BOLD = 0x2bc;
 	public static final int PANGO_WEIGHT_NORMAL = 0x190;
 	public static final int PANGO_WRAP_WORD = 0;
@@ -514,6 +527,7 @@ public class OS extends C {
 	public static final byte[] expander_size = ascii("expander-size");
 	public static final byte[] fixed_height_mode = ascii("fixed-height-mode");
 	public static final byte[] focus_line_width = ascii("focus-line-width");
+	public static final byte[] focus_padding = ascii("focus-padding");
 	public static final byte[] font_desc = ascii("font-desc");
 	public static final byte[] foreground_gdk = ascii("foreground-gdk");
 	public static final byte[] grid_line_width = ascii("grid-line-width");
@@ -522,12 +536,17 @@ public class OS extends C {
 	public static final byte[] gtk_cursor_blink_time = ascii("gtk-cursor-blink-time");
 	public static final byte[] gtk_double_click_time = ascii("gtk-double-click-time");
 	public static final byte[] gtk_entry_select_on_focus = ascii("gtk-entry-select-on-focus");
+	public static final byte[] gtk_show_input_method_menu = ascii("gtk-show-input-method-menu");
+	public static final byte[] gtk_menu_bar_accel = ascii("gtk-menu-bar-accel");
 	public static final byte[] inner_border = ascii("inner-border");
 	public static final byte[] horizontal_separator = ascii("horizontal-separator");
 	public static final byte[] inconsistent = ascii("inconsistent");
+	public static final byte[] indicator_size = ascii("indicator-size");
+	public static final byte[] indicator_spacing = ascii("indicator-spacing");
 	public static final byte[] interior_focus = ascii("interior-focus");
 	public static final byte[] mode = ascii("mode");
 	public static final byte[] model = ascii("model");
+	public static final byte[] spacing = ascii("spacing");
 	public static final byte[] pixbuf = ascii("pixbuf");
 	public static final byte[] text = ascii("text");
 	public static final byte[] xalign = ascii("xalign");
@@ -621,6 +640,8 @@ public static final native int /*long*/ localeconv_decimal_point();
  * @param realPath cast=(char *)
  */
 public static final native int /*long*/ realpath(byte[] path, byte[] realPath);
+
+
 
 /** Object private fields accessors */
 
@@ -1287,7 +1308,7 @@ public static final native void memmove(XFocusChangeEvent dest, int /*long*/ src
  */
 public static final native void memmove(XVisibilityEvent dest, int /*long*/ src, int /*long*/ size);
 
-/** @method flags=const*/
+/** @method flags=const */
 public static final native int RTLD_GLOBAL();
 /** @method flags=const */
 public static final native int RTLD_NOW();
@@ -2420,6 +2441,18 @@ public static final void g_list_free_1(int /*long*/ list) {
 		lock.unlock();
 	}
 }
+/**
+ * @param list cast=(GList *)
+ */
+public static final native int /*long*/ _g_list_last(int /*long*/ list);
+public static final int /*long*/ g_list_last(int /*long*/ list) {
+	lock.lock();
+	try {
+		return _g_list_last(list);
+	} finally {
+		lock.unlock();
+	}
+}
 /** @param list cast=(GList *) */
 public static final native int _g_list_length(int /*long*/ list);
 public static final int g_list_length(int /*long*/ list) {
@@ -2628,6 +2661,20 @@ public static final int /*long*/ g_malloc(int /*long*/ size) {
  */
 public static final native void _g_object_get(int /*long*/ object, byte[] first_property_name, int[] value, int /*long*/ terminator);
 public static final void g_object_get(int /*long*/ object, byte[] first_property_name, int[] value, int /*long*/ terminator) {
+	lock.lock();
+	try {
+		_g_object_get(object, first_property_name, value, terminator);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param object cast=(GObject *)
+ * @param first_property_name cast=(const gchar *),flags=no_out
+ * @param terminator cast=(const gchar *),flags=sentinel
+ */
+public static final native void _g_object_get(int /*long*/ object, byte[] first_property_name, long[] value, int /*long*/ terminator);
+public static final void g_object_get(int /*long*/ object, byte[] first_property_name, long[] value, int /*long*/ terminator) {
 	lock.lock();
 	try {
 		_g_object_get(object, first_property_name, value, terminator);
@@ -3345,6 +3392,59 @@ public static final int /*long*/ g_utf8_pointer_to_offset(int /*long*/ str, int 
 	lock.lock();
 	try {
 		return _g_utf8_pointer_to_offset(str, pos);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param str cast=(const gchar *) */
+public static final native int /*long*/ _g_utf16_offset_to_pointer(int /*long*/ str, int /*long*/ offset);
+public static final int /*long*/ g_utf16_offset_to_pointer(int /*long*/ str, int /*long*/ offset) {
+	lock.lock();
+	try {
+		return _g_utf16_offset_to_pointer(str, offset);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param str cast=(const gchar *)
+ * @param pos cast=(const gchar *)
+ */
+public static final native int /*long*/ _g_utf16_pointer_to_offset(int /*long*/ str, int /*long*/ pos);
+public static final int /*long*/ g_utf16_pointer_to_offset(int /*long*/ str, int /*long*/ pos) {
+	lock.lock();
+	try {
+		return _g_utf16_pointer_to_offset(str, pos);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param str cast=(const gchar *) */
+public static final native int /*long*/ _g_utf16_strlen(int /*long*/ str, int /*long*/ max);
+public static final int /*long*/ g_utf16_strlen(int /*long*/ str, int /*long*/ max) {
+	lock.lock();
+	try {
+		return _g_utf16_strlen(str, max);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param str cast=(const gchar *) */
+public static final native int /*long*/ _g_utf8_offset_to_utf16_offset(int /*long*/ str, int /*long*/ offset);
+public static final int /*long*/ g_utf8_offset_to_utf16_offset(int /*long*/ str, int /*long*/ offset) {
+	lock.lock();
+	try {
+		return _g_utf8_offset_to_utf16_offset(str, offset);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param str cast=(const gchar *) */
+public static final native int /*long*/ _g_utf16_offset_to_utf8_offset(int /*long*/ str, int /*long*/ offset);
+public static final int /*long*/ g_utf16_offset_to_utf8_offset(int /*long*/ str, int /*long*/ offset) {
+	lock.lock();
+	try {
+		return _g_utf16_offset_to_utf8_offset(str, offset);
 	} finally {
 		lock.unlock();
 	}
@@ -5033,6 +5133,13 @@ public static final int gdk_text_property_to_utf8_list  (int /*long*/ encoding, 
 		lock.unlock();
 	}
 }
+public static final native void gdk_threads_init ();
+public static final native void gdk_threads_enter ();
+public static final native void gdk_threads_leave ();
+/**
+ * @method flags=dynamic
+ */
+public static final native void gdk_threads_set_lock_functions(int /*long*/ enter_fn, int /*long*/ leave_fn);
 /**
  * @method flags=dynamic
  * @param display cast=(GdkDisplay*)
@@ -5299,6 +5406,16 @@ public static final boolean gdk_window_is_visible(int /*long*/ window) {
 	lock.lock();
 	try {
 		return _gdk_window_is_visible(window);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @param window cast=(GdkWindow *) */
+public static final native boolean _gdk_window_is_viewable (int /*long*/ window);
+public static final boolean gdk_window_is_viewable (int /*long*/ window) {
+	lock.lock();
+	try {
+		return _gdk_window_is_viewable (window);
 	} finally {
 		lock.unlock();
 	}
@@ -5598,6 +5715,29 @@ public static final void gdk_window_thaw_updates(int /*long*/ window) {
 		lock.unlock();
 	}
 }
+public static final native int _gtk_accelerator_get_default_mod_mask();
+public static final int gtk_accelerator_get_default_mod_mask() {
+	lock.lock();
+	try {
+		return _gtk_accelerator_get_default_mod_mask();
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param accelerator cast=(const gchar *)
+ * @param accelerator_key cast=(guint *)
+ * @param accelerator_mods cast=(GdkModifierType *)
+ */
+public static final native void _gtk_accelerator_parse(int /*long*/ accelerator, int [] accelerator_key, int [] accelerator_mods);
+public static final void gtk_accelerator_parse(int /*long*/ accelerator, int [] accelerator_key, int [] accelerator_mods) {
+	lock.lock();
+	try {
+		_gtk_accelerator_parse(accelerator, accelerator_key, accelerator_mods);
+	} finally {
+		lock.unlock();
+	}
+}
 public static final native int /*long*/ _gtk_accel_group_new();
 public static final int /*long*/ gtk_accel_group_new() {
 	lock.lock();
@@ -5837,6 +5977,34 @@ public static final void gtk_calendar_select_day(int /*long*/ calendar, int day)
 /**
  * @method flags=dynamic
  * @param calendar cast=(GtkCalendar *)
+ * @param day cast=(guint)
+ */
+public static final native void _gtk_calendar_mark_day(int /*long*/ calendar, int day);
+public static final void gtk_calendar_mark_day(int /*long*/ calendar, int day) {
+	lock.lock();
+	try {
+		_gtk_calendar_mark_day(calendar, day);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ * @param calendar cast=(GtkCalendar *)
+ * @param day cast=(guint)
+ */
+public static final native void _gtk_calendar_clear_marks(int /*long*/ calendar);
+public static final void gtk_calendar_clear_marks(int /*long*/ calendar) {
+	lock.lock();
+	try {
+		_gtk_calendar_clear_marks(calendar);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ * @param calendar cast=(GtkCalendar *)
  * @param flags cast=(GtkCalendarDisplayOptions)
  */
 public static final native void _gtk_calendar_set_display_options(int /*long*/ calendar, int flags);
@@ -6054,6 +6222,34 @@ public static final boolean gtk_clipboard_set_with_owner(int /*long*/ clipboard,
 	lock.lock();
 	try {
 		return _gtk_clipboard_set_with_owner(clipboard, target, n_targets, get_func, clear_func, user_data);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ * @param clipboard cast=(GtkClipboard *)
+ * @param targets cast=(const GtkTargetEntry *)
+ * @param n_targets cast=(gint)
+ */
+public static final native void _gtk_clipboard_set_can_store(int /*long*/ clipboard, int /*long*/ targets, int n_targets);
+public static final void gtk_clipboard_set_can_store(int /*long*/ clipboard, int /*long*/ targets, int n_targets) {
+	lock.lock();
+	try {
+		_gtk_clipboard_set_can_store(clipboard, targets, n_targets);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ * @param clipboard cast=(GtkClipboard *)
+ */
+public static final native void _gtk_clipboard_store(int /*long*/ clipboard);
+public static final void gtk_clipboard_store(int /*long*/ clipboard) {
+	lock.lock();
+	try {
+		_gtk_clipboard_store(clipboard);
 	} finally {
 		lock.unlock();
 	}
@@ -7465,6 +7661,15 @@ public static final int /*long*/ gtk_hseparator_new() {
 	lock.lock();
 	try {
 		return _gtk_hseparator_new();
+	} finally {
+		lock.unlock();
+	}
+}
+public static final native int /*long*/ _gtk_status_icon_position_menu_func();
+public static final int /*long*/ gtk_status_icon_position_menu_func() {
+	lock.lock();
+	try {
+		return _gtk_status_icon_position_menu_func();
 	} finally {
 		lock.unlock();
 	}
@@ -9301,6 +9506,26 @@ public static final void gtk_print_settings_set_collate(int /*long*/ settings, b
 	}
 }
 /** @method flags=dynamic */
+public static final native int _gtk_print_settings_get_duplex(int /*long*/ settings);
+public static final int gtk_print_settings_get_duplex(int /*long*/ settings) {
+	lock.lock();
+	try {
+		return _gtk_print_settings_get_duplex(settings);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native void _gtk_print_settings_set_duplex(int /*long*/ settings, int duplex);
+public static final void gtk_print_settings_set_duplex(int /*long*/ settings, int duplex) {
+	lock.lock();
+	try {
+		_gtk_print_settings_set_duplex(settings, duplex);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
 public static final native int _gtk_print_settings_get_n_copies(int /*long*/ settings);
 public static final int gtk_print_settings_get_n_copies(int /*long*/ settings) {
 	lock.lock();
@@ -9409,6 +9634,16 @@ public static final int /*long*/ gtk_print_unix_dialog_new(byte[] title, int /*l
 	lock.lock();
 	try {
 		return _gtk_print_unix_dialog_new(title, parent);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native void _gtk_print_unix_dialog_set_embed_page_setup(int /*long*/ dialog, boolean embed);
+public static final void gtk_print_unix_dialog_set_embed_page_setup(int /*long*/ dialog, boolean embed) {
+	lock.lock();
+	try {
+		_gtk_print_unix_dialog_set_embed_page_setup(dialog, embed);
 	} finally {
 		lock.unlock();
 	}
@@ -14397,6 +14632,19 @@ public static final void pango_font_description_set_weight(int /*long*/ desc, in
 	lock.lock();
 	try {
 		_pango_font_description_set_weight(desc, weight);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @param desc cast=(PangoFontDescription *)
+ * @param variant cast=(PangoVariant)
+ */
+public static final native void _pango_font_description_set_variant(int /*long*/ desc, int variant);
+public static final void pango_font_description_set_variant(int /*long*/ desc, int variant) {
+	lock.lock();
+	try {
+		_pango_font_description_set_variant(desc, variant);
 	} finally {
 		lock.unlock();
 	}
