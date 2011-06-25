@@ -1,3 +1,16 @@
+swt-gtk (3.7-1) unstable; urgency=low
+
+  * New upstream release.
+  * Mass rename 3.6[.2] => 3.7
+  * Updated arch64.diff patch for new upstream release.
+  * Removed 02-webkit_linkage and 04-fix-webkit-includes patches as they got
+    applied upstream.
+  * debian/control: Bumped Standards-Version to 3.9.2, no changes needed.
+  * Added 01-as-needed.diff patch to use -Wl,--as-needed when linking
+  * Added debian/libswt-gtk-3.7-java.lintian-overrides
+
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Sat, 25 Jun 2011 11:19:42 +0200
+
 swt-gtk (3.6.2-1) unstable; urgency=low
 
   * New upstream release. (Closes: #592338)
