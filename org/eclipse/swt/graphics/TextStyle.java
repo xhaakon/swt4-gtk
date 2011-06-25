@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -74,7 +74,7 @@ public class TextStyle {
 	 * <p> 
 	 * This value should be one of <code>SWT.UNDERLINE_SINGLE</code>,
 	 * <code>SWT.UNDERLINE_DOUBLE</code>, <code>SWT.UNDERLINE_ERROR</code>,
-	 * or <code>SWT.UNDERLINE_SQUIGGLE</code>.
+	 * <code>SWT.UNDERLINE_SQUIGGLE</code>, or <code>SWT.UNDERLINE_LINK</code>.
 	 * </p>
 	 * 
 	 * @see SWT#UNDERLINE_SINGLE
@@ -262,8 +262,8 @@ public int hashCode() {
 	if (background != null) hash ^= background.hashCode();	
 	if (font != null) hash ^= font.hashCode();
 	if (metrics != null) hash ^= metrics.hashCode();
-	if (underline) hash ^= hash;
-	if (strikeout) hash ^= hash;
+	if (underline) hash ^= (hash << 1);
+	if (strikeout) hash ^= (hash << 2);
 	hash ^= rise;
 	if (underlineColor != null) hash ^= underlineColor.hashCode();
 	if (strikeoutColor != null) hash ^= strikeoutColor.hashCode();

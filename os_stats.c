@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -18,8 +18,8 @@
 
 #ifdef NATIVE_STATS
 
-int OS_nativeFunctionCount = 1370;
-int OS_nativeFunctionCallCount[1370];
+int OS_nativeFunctionCount = 1393;
+int OS_nativeFunctionCallCount[1393];
 char * OS_nativeFunctionNames[] = {
 #ifndef JNI64
 	"Call__IIII",
@@ -265,6 +265,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1g_1list_1data",
 	"_1g_1list_1free",
 	"_1g_1list_1free_11",
+	"_1g_1list_1last",
 	"_1g_1list_1length",
 	"_1g_1list_1next",
 	"_1g_1list_1nth",
@@ -290,7 +291,16 @@ char * OS_nativeFunctionNames[] = {
 	"_1g_1main_1context_1query",
 	"_1g_1main_1context_1release",
 	"_1g_1malloc",
-	"_1g_1object_1get",
+#ifndef JNI64
+	"_1g_1object_1get__I_3B_3II",
+#else
+	"_1g_1object_1get__J_3B_3IJ",
+#endif
+#ifndef JNI64
+	"_1g_1object_1get__I_3B_3JI",
+#else
+	"_1g_1object_1get__J_3B_3JJ",
+#endif
 	"_1g_1object_1get_1qdata",
 	"_1g_1object_1new",
 	"_1g_1object_1notify",
@@ -389,8 +399,13 @@ char * OS_nativeFunctionNames[] = {
 	"_1g_1type_1parent",
 	"_1g_1type_1query",
 	"_1g_1type_1register_1static",
+	"_1g_1utf16_1offset_1to_1pointer",
+	"_1g_1utf16_1offset_1to_1utf8_1offset",
+	"_1g_1utf16_1pointer_1to_1offset",
+	"_1g_1utf16_1strlen",
 	"_1g_1utf16_1to_1utf8",
 	"_1g_1utf8_1offset_1to_1pointer",
+	"_1g_1utf8_1offset_1to_1utf16_1offset",
 	"_1g_1utf8_1pointer_1to_1offset",
 	"_1g_1utf8_1strlen",
 #ifndef JNI64
@@ -556,6 +571,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gdk_1window_1hide",
 	"_1gdk_1window_1invalidate_1rect",
 	"_1gdk_1window_1invalidate_1region",
+	"_1gdk_1window_1is_1viewable",
 	"_1gdk_1window_1is_1visible",
 	"_1gdk_1window_1lookup",
 	"_1gdk_1window_1lower",
@@ -594,6 +610,8 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1accel_1group_1new",
 	"_1gtk_1accel_1groups_1activate",
 	"_1gtk_1accel_1label_1set_1accel_1widget",
+	"_1gtk_1accelerator_1get_1default_1mod_1mask",
+	"_1gtk_1accelerator_1parse",
 	"_1gtk_1adjustment_1changed",
 	"_1gtk_1adjustment_1new",
 	"_1gtk_1adjustment_1set_1value",
@@ -608,8 +626,10 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1button_1get_1relief",
 	"_1gtk_1button_1new",
 	"_1gtk_1button_1set_1relief",
+	"_1gtk_1calendar_1clear_1marks",
 	"_1gtk_1calendar_1display_1options",
 	"_1gtk_1calendar_1get_1date",
+	"_1gtk_1calendar_1mark_1day",
 	"_1gtk_1calendar_1new",
 	"_1gtk_1calendar_1select_1day",
 	"_1gtk_1calendar_1select_1month",
@@ -628,8 +648,10 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1check_1version",
 	"_1gtk_1clipboard_1clear",
 	"_1gtk_1clipboard_1get",
+	"_1gtk_1clipboard_1set_1can_1store",
 	"_1gtk_1clipboard_1set_1with_1data",
 	"_1gtk_1clipboard_1set_1with_1owner",
+	"_1gtk_1clipboard_1store",
 	"_1gtk_1clipboard_1wait_1for_1contents",
 	"_1gtk_1color_1selection_1dialog_1new",
 	"_1gtk_1color_1selection_1get_1current_1color",
@@ -930,6 +952,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1print_1settings_1foreach",
 	"_1gtk_1print_1settings_1get",
 	"_1gtk_1print_1settings_1get_1collate",
+	"_1gtk_1print_1settings_1get_1duplex",
 	"_1gtk_1print_1settings_1get_1n_1copies",
 	"_1gtk_1print_1settings_1get_1orientation",
 	"_1gtk_1print_1settings_1get_1page_1ranges",
@@ -941,6 +964,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1print_1settings_1new",
 	"_1gtk_1print_1settings_1set",
 	"_1gtk_1print_1settings_1set_1collate",
+	"_1gtk_1print_1settings_1set_1duplex",
 	"_1gtk_1print_1settings_1set_1n_1copies",
 	"_1gtk_1print_1settings_1set_1orientation",
 	"_1gtk_1print_1settings_1set_1page_1ranges",
@@ -952,6 +976,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1print_1unix_1dialog_1get_1settings",
 	"_1gtk_1print_1unix_1dialog_1new",
 	"_1gtk_1print_1unix_1dialog_1set_1current_1page",
+	"_1gtk_1print_1unix_1dialog_1set_1embed_1page_1setup",
 	"_1gtk_1print_1unix_1dialog_1set_1manual_1capabilities",
 	"_1gtk_1print_1unix_1dialog_1set_1page_1setup",
 	"_1gtk_1print_1unix_1dialog_1set_1settings",
@@ -1011,6 +1036,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1status_1icon_1get_1geometry",
 	"_1gtk_1status_1icon_1get_1visible",
 	"_1gtk_1status_1icon_1new",
+	"_1gtk_1status_1icon_1position_1menu_1func",
 	"_1gtk_1status_1icon_1set_1from_1pixbuf",
 	"_1gtk_1status_1icon_1set_1tooltip",
 	"_1gtk_1status_1icon_1set_1visible",
@@ -1407,6 +1433,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1pango_1font_1description_1set_1size",
 	"_1pango_1font_1description_1set_1stretch",
 	"_1pango_1font_1description_1set_1style",
+	"_1pango_1font_1description_1set_1variant",
 	"_1pango_1font_1description_1set_1weight",
 	"_1pango_1font_1description_1to_1string",
 	"_1pango_1font_1face_1describe",
@@ -1476,6 +1503,10 @@ char * OS_nativeFunctionNames[] = {
 	"g_1value_1set_1int",
 	"g_1value_1set_1int64",
 	"g_1value_1unset",
+	"gdk_1threads_1enter",
+	"gdk_1threads_1init",
+	"gdk_1threads_1leave",
+	"gdk_1threads_1set_1lock_1functions",
 	"localeconv_1decimal_1point",
 #ifndef JNI64
 	"memmove__ILorg_eclipse_swt_internal_gtk_GInterfaceInfo_2I",

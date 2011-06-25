@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -273,6 +273,7 @@ typedef enum {
 	_1g_1list_1data_FUNC,
 	_1g_1list_1free_FUNC,
 	_1g_1list_1free_11_FUNC,
+	_1g_1list_1last_FUNC,
 	_1g_1list_1length_FUNC,
 	_1g_1list_1next_FUNC,
 	_1g_1list_1nth_FUNC,
@@ -298,7 +299,16 @@ typedef enum {
 	_1g_1main_1context_1query_FUNC,
 	_1g_1main_1context_1release_FUNC,
 	_1g_1malloc_FUNC,
-	_1g_1object_1get_FUNC,
+#ifndef JNI64
+	_1g_1object_1get__I_3B_3II_FUNC,
+#else
+	_1g_1object_1get__J_3B_3IJ_FUNC,
+#endif
+#ifndef JNI64
+	_1g_1object_1get__I_3B_3JI_FUNC,
+#else
+	_1g_1object_1get__J_3B_3JJ_FUNC,
+#endif
 	_1g_1object_1get_1qdata_FUNC,
 	_1g_1object_1new_FUNC,
 	_1g_1object_1notify_FUNC,
@@ -397,8 +407,13 @@ typedef enum {
 	_1g_1type_1parent_FUNC,
 	_1g_1type_1query_FUNC,
 	_1g_1type_1register_1static_FUNC,
+	_1g_1utf16_1offset_1to_1pointer_FUNC,
+	_1g_1utf16_1offset_1to_1utf8_1offset_FUNC,
+	_1g_1utf16_1pointer_1to_1offset_FUNC,
+	_1g_1utf16_1strlen_FUNC,
 	_1g_1utf16_1to_1utf8_FUNC,
 	_1g_1utf8_1offset_1to_1pointer_FUNC,
+	_1g_1utf8_1offset_1to_1utf16_1offset_FUNC,
 	_1g_1utf8_1pointer_1to_1offset_FUNC,
 	_1g_1utf8_1strlen_FUNC,
 #ifndef JNI64
@@ -564,6 +579,7 @@ typedef enum {
 	_1gdk_1window_1hide_FUNC,
 	_1gdk_1window_1invalidate_1rect_FUNC,
 	_1gdk_1window_1invalidate_1region_FUNC,
+	_1gdk_1window_1is_1viewable_FUNC,
 	_1gdk_1window_1is_1visible_FUNC,
 	_1gdk_1window_1lookup_FUNC,
 	_1gdk_1window_1lower_FUNC,
@@ -602,6 +618,8 @@ typedef enum {
 	_1gtk_1accel_1group_1new_FUNC,
 	_1gtk_1accel_1groups_1activate_FUNC,
 	_1gtk_1accel_1label_1set_1accel_1widget_FUNC,
+	_1gtk_1accelerator_1get_1default_1mod_1mask_FUNC,
+	_1gtk_1accelerator_1parse_FUNC,
 	_1gtk_1adjustment_1changed_FUNC,
 	_1gtk_1adjustment_1new_FUNC,
 	_1gtk_1adjustment_1set_1value_FUNC,
@@ -616,8 +634,10 @@ typedef enum {
 	_1gtk_1button_1get_1relief_FUNC,
 	_1gtk_1button_1new_FUNC,
 	_1gtk_1button_1set_1relief_FUNC,
+	_1gtk_1calendar_1clear_1marks_FUNC,
 	_1gtk_1calendar_1display_1options_FUNC,
 	_1gtk_1calendar_1get_1date_FUNC,
+	_1gtk_1calendar_1mark_1day_FUNC,
 	_1gtk_1calendar_1new_FUNC,
 	_1gtk_1calendar_1select_1day_FUNC,
 	_1gtk_1calendar_1select_1month_FUNC,
@@ -636,8 +656,10 @@ typedef enum {
 	_1gtk_1check_1version_FUNC,
 	_1gtk_1clipboard_1clear_FUNC,
 	_1gtk_1clipboard_1get_FUNC,
+	_1gtk_1clipboard_1set_1can_1store_FUNC,
 	_1gtk_1clipboard_1set_1with_1data_FUNC,
 	_1gtk_1clipboard_1set_1with_1owner_FUNC,
+	_1gtk_1clipboard_1store_FUNC,
 	_1gtk_1clipboard_1wait_1for_1contents_FUNC,
 	_1gtk_1color_1selection_1dialog_1new_FUNC,
 	_1gtk_1color_1selection_1get_1current_1color_FUNC,
@@ -938,6 +960,7 @@ typedef enum {
 	_1gtk_1print_1settings_1foreach_FUNC,
 	_1gtk_1print_1settings_1get_FUNC,
 	_1gtk_1print_1settings_1get_1collate_FUNC,
+	_1gtk_1print_1settings_1get_1duplex_FUNC,
 	_1gtk_1print_1settings_1get_1n_1copies_FUNC,
 	_1gtk_1print_1settings_1get_1orientation_FUNC,
 	_1gtk_1print_1settings_1get_1page_1ranges_FUNC,
@@ -949,6 +972,7 @@ typedef enum {
 	_1gtk_1print_1settings_1new_FUNC,
 	_1gtk_1print_1settings_1set_FUNC,
 	_1gtk_1print_1settings_1set_1collate_FUNC,
+	_1gtk_1print_1settings_1set_1duplex_FUNC,
 	_1gtk_1print_1settings_1set_1n_1copies_FUNC,
 	_1gtk_1print_1settings_1set_1orientation_FUNC,
 	_1gtk_1print_1settings_1set_1page_1ranges_FUNC,
@@ -960,6 +984,7 @@ typedef enum {
 	_1gtk_1print_1unix_1dialog_1get_1settings_FUNC,
 	_1gtk_1print_1unix_1dialog_1new_FUNC,
 	_1gtk_1print_1unix_1dialog_1set_1current_1page_FUNC,
+	_1gtk_1print_1unix_1dialog_1set_1embed_1page_1setup_FUNC,
 	_1gtk_1print_1unix_1dialog_1set_1manual_1capabilities_FUNC,
 	_1gtk_1print_1unix_1dialog_1set_1page_1setup_FUNC,
 	_1gtk_1print_1unix_1dialog_1set_1settings_FUNC,
@@ -1019,6 +1044,7 @@ typedef enum {
 	_1gtk_1status_1icon_1get_1geometry_FUNC,
 	_1gtk_1status_1icon_1get_1visible_FUNC,
 	_1gtk_1status_1icon_1new_FUNC,
+	_1gtk_1status_1icon_1position_1menu_1func_FUNC,
 	_1gtk_1status_1icon_1set_1from_1pixbuf_FUNC,
 	_1gtk_1status_1icon_1set_1tooltip_FUNC,
 	_1gtk_1status_1icon_1set_1visible_FUNC,
@@ -1415,6 +1441,7 @@ typedef enum {
 	_1pango_1font_1description_1set_1size_FUNC,
 	_1pango_1font_1description_1set_1stretch_FUNC,
 	_1pango_1font_1description_1set_1style_FUNC,
+	_1pango_1font_1description_1set_1variant_FUNC,
 	_1pango_1font_1description_1set_1weight_FUNC,
 	_1pango_1font_1description_1to_1string_FUNC,
 	_1pango_1font_1face_1describe_FUNC,
@@ -1484,6 +1511,10 @@ typedef enum {
 	g_1value_1set_1int_FUNC,
 	g_1value_1set_1int64_FUNC,
 	g_1value_1unset_FUNC,
+	gdk_1threads_1enter_FUNC,
+	gdk_1threads_1init_FUNC,
+	gdk_1threads_1leave_FUNC,
+	gdk_1threads_1set_1lock_1functions_FUNC,
 	localeconv_1decimal_1point_FUNC,
 #ifndef JNI64
 	memmove__ILorg_eclipse_swt_internal_gtk_GInterfaceInfo_2I_FUNC,

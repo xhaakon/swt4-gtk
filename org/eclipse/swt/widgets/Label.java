@@ -41,8 +41,7 @@ import org.eclipse.swt.graphics.*;
  * SHADOW_NONE is a HINT. Only one of HORIZONTAL and VERTICAL may be specified.
  * Only one of CENTER, LEFT and RIGHT may be specified.
  * </p><p>
- * IMPORTANT: This class is intended to be subclassed <em>only</em>
- * within the SWT implementation.
+ * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
  *
  * @see <a href="http://www.eclipse.org/swt/snippets/#label">Label snippets</a>
@@ -498,11 +497,12 @@ void setForegroundColor (GdkColor color) {
 	if (imageHandle != 0) setForegroundColor (imageHandle, color);
 }
 
-void setOrientation () {
-	super.setOrientation ();
-	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, OS.GTK_TEXT_DIR_RTL);
-		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, OS.GTK_TEXT_DIR_RTL);
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+		int dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;	
+		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, dir);
+		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, dir);
 	}
 }
 

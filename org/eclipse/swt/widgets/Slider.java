@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -487,11 +487,11 @@ public void setMinimum (int value) {
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
-void setOrientation () {
-	super.setOrientation ();
-	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
 		if ((style & SWT.HORIZONTAL) != 0) {
-			OS.gtk_range_set_inverted (handle, true);
+			OS.gtk_range_set_inverted (handle, (style & SWT.RIGHT_TO_LEFT) != 0);
 		}
 	}
 }

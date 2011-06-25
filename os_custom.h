@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+* Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
 * The contents of this file are made available under the terms
 * of the GNU Lesser General Public License (LGPL) Version 2.1 that
 * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -68,8 +68,12 @@
 #define gtk_calendar_get_date_LIB LIB_GTK
 #define gtk_calendar_new_LIB LIB_GTK
 #define gtk_calendar_select_day_LIB LIB_GTK
+#define gtk_calendar_mark_day_LIB LIB_GTK
+#define gtk_calendar_clear_marks_LIB LIB_GTK
 #define gtk_calendar_select_month_LIB LIB_GTK
 #define gtk_calendar_set_display_options_LIB LIB_GTK
+#define gtk_clipboard_store_LIB LIB_GTK
+#define gtk_clipboard_set_can_store_LIB LIB_GTK
 #define gtk_cell_layout_set_attributes_LIB LIB_GTK
 #define gtk_cell_layout_clear_LIB LIB_GTK
 #define gtk_cell_layout_pack_start_LIB LIB_GTK
@@ -145,6 +149,7 @@
 #define gtk_status_icon_set_from_pixbuf_LIB LIB_GTK
 #define gtk_status_icon_set_visible_LIB LIB_GTK
 #define gtk_status_icon_set_tooltip_LIB LIB_GTK
+#define gtk_status_icon_position_menu_LIB LIB_GTK
 #define gtk_window_get_group_LIB LIB_GTK
 #define gtk_window_get_opacity_LIB LIB_GTK
 #define gdk_window_restack_LIB LIB_GDK
@@ -156,6 +161,7 @@
 #define gtk_widget_set_tooltip_text_LIB LIB_GTK
 #define gdk_x11_screen_get_window_manager_name_LIB LIB_GDK
 #define gdk_x11_screen_lookup_visual_LIB LIB_GDK
+#define gdk_threads_set_lock_functions_LIB LIB_GDK
 
 #define atk_object_add_relationship_LIB LIB_ATK
 #define atk_object_remove_relationship_LIB LIB_ATK
@@ -217,6 +223,7 @@
 #define gtk_print_settings_foreach_LIB LIB_GTK
 #define gtk_print_settings_get_LIB LIB_GTK
 #define gtk_print_settings_get_collate_LIB LIB_GTK
+#define gtk_print_settings_get_duplex_LIB LIB_GTK
 #define gtk_print_settings_get_n_copies_LIB LIB_GTK
 #define gtk_print_settings_get_orientation_LIB LIB_GTK
 #define gtk_print_settings_get_page_ranges_LIB LIB_GTK
@@ -228,6 +235,7 @@
 #define gtk_print_settings_new_LIB LIB_GTK
 #define gtk_print_settings_set_LIB LIB_GTK
 #define gtk_print_settings_set_collate_LIB LIB_GTK
+#define gtk_print_settings_set_duplex_LIB LIB_GTK
 #define gtk_print_settings_set_n_copies_LIB LIB_GTK
 #define gtk_print_settings_set_orientation_LIB LIB_GTK
 #define gtk_print_settings_set_page_ranges_LIB LIB_GTK
@@ -240,6 +248,7 @@
 #define gtk_print_unix_dialog_new_LIB LIB_GTK
 #define gtk_print_unix_dialog_set_current_page_LIB LIB_GTK
 #define gtk_print_unix_dialog_set_manual_capabilities_LIB LIB_GTK
+#define gtk_print_unix_dialog_set_embed_page_setup_LIB LIB_GTK
 #define gtk_print_unix_dialog_set_page_setup_LIB LIB_GTK
 #define gtk_print_unix_dialog_set_settings_LIB LIB_GTK
 #define gtk_printer_get_backend_LIB LIB_GTK
@@ -343,3 +352,12 @@
 #define gtk_style_get_white_gc(arg0, arg1) *arg1 = (arg0)->white_gc
 #define localeconv_decimal_point() localeconv()->decimal_point
 
+#define gtk_status_icon_position_menu_func() 0; \
+LOAD_FUNCTION(fp, gtk_status_icon_position_menu) \
+rc = (jintLong)fp;
+
+glong g_utf16_pointer_to_offset(const gchar*, const gchar*);
+gchar* g_utf16_offset_to_pointer(const gchar*, glong);
+glong g_utf16_strlen(const gchar*, glong max);
+glong g_utf16_offset_to_utf8_offset(const gchar*, glong);
+glong g_utf8_offset_to_utf16_offset(const gchar*, glong);

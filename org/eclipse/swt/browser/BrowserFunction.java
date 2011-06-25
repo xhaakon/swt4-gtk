@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008 IBM Corporation and others.
+ * Copyright (c) 2008, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.swt.browser;
+
+import java.util.Random;
 
 import org.eclipse.swt.*;
 
@@ -46,6 +48,7 @@ public class BrowserFunction {
 	String functionString;
 	int index;
 	boolean isEvaluate;
+	long token;
 
 /**
  * Constructs a new instance of this class, which will be invokable
@@ -83,6 +86,10 @@ BrowserFunction (Browser browser, String name, boolean create) {
 	browser.checkWidget ();
 	this.browser = browser;
 	this.name = name;
+
+	Random random = new Random ();
+	long value = random.nextLong ();
+	token = ((value & 0xFFE0000000000000L) >>> 11) ^ (value & 0x1FFFFFFFFFFFFFL);
 	if (create) browser.webBrowser.createFunction (this);
 }
 
@@ -119,12 +126,14 @@ void dispose (boolean remove) {
  * javascript boolean -> <code>java.lang.Boolean</code>
  * javascript array whose elements are all of supported types -> <code>java.lang.Object[]</code>
  *
- * If any of the Javascript arguments are of unsupported types then the
+ * If any of the javascript arguments are of unsupported types then the
  * function invocation will fail and this method will not be called.
  * 
- * This method must return a value with one of these supported types to
- * the javascript caller (note that any subclass of <code>java.lang.Number</code>
- * will be successfully converted to a javascript number).
+ * This method must return a value with one of these supported java types to
+ * the javascript caller.  Note that <code>null</code> values are converted
+ * to javascript's <code>null</code> value (not <code>undefined</code>), and
+ * instances of any <code>java.lang.Number</code> subclass will be converted
+ * to a javascript number.
  * 
  * @param arguments the javascript arguments converted to java equivalents 
  * @return the value to return to the javascript caller

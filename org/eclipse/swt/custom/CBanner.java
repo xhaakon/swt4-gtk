@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -102,7 +102,7 @@ public class CBanner extends Composite {
 public CBanner(Composite parent, int style) {
 	super(parent, checkStyle(style));
 	super.setLayout(new CBannerLayout());
-	resizeCursor = new Cursor(getDisplay(), SWT.CURSOR_SIZEWE);
+	resizeCursor = getDisplay().getSystemCursor(SWT.CURSOR_SIZEWE);
 	
 	listener = new Listener() {
 		public void handleEvent(Event e) {
@@ -261,7 +261,6 @@ void onDispose(Event event) {
 	notifyListeners(SWT.Dispose, event);
 	event.type = SWT.None;
 
-	if (resizeCursor != null) resizeCursor.dispose();
 	resizeCursor = null;
 	left = null;
 	right = null;

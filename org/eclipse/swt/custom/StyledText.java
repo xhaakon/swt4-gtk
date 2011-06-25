@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -149,7 +149,6 @@ public class StyledText extends Canvas {
 	int lastTextChangeReplaceCharCount;
 	int lastCharCount = 0;
 	int lastLineBottom;					// the bottom pixel of the last line been replaced
-	boolean isMirrored;
 	boolean bidiColoring = false;		// apply the BIDI algorithm on text segments of the same color
 	Image leftCaretBitmap = null;
 	Image rightCaretBitmap = null;
@@ -1000,6 +999,7 @@ public class StyledText extends Canvas {
 				write("\\highlight");
 				write(colorIndex);
 			}
+			int fontStyle = style.fontStyle;
 			Font font = style.font;
 			if (font != null) {
 				int fontIndex = getFontIndex(font);
@@ -1008,13 +1008,13 @@ public class StyledText extends Canvas {
 				FontData fontData = font.getFontData()[0];
 				write("\\fs");
 				write(fontData.getHeight() * 2);
-			} else {
-				if ((style.fontStyle & SWT.BOLD) != 0) {
-					write("\\b"); 
-				}
-				if ((style.fontStyle & SWT.ITALIC) != 0) {
-					write("\\i"); 
-				}
+				fontStyle = fontData.getStyle();
+			}
+			if ((fontStyle & SWT.BOLD) != 0) {
+				write("\\b");
+			}
+			if ((fontStyle & SWT.ITALIC) != 0) {
+				write("\\i");
 			}
 			if (style.underline) {
 				write("\\ul");
@@ -1028,13 +1028,11 @@ public class StyledText extends Canvas {
 			// guard against invalid styles and let style processing continue
 			copyEnd = Math.max(copyEnd, lineIndex);
 			write(line, lineIndex, copyEnd);
-			if (font == null) {
-				if ((style.fontStyle & SWT.BOLD) != 0) {
-					write("\\b0"); 
-				}
-				if ((style.fontStyle & SWT.ITALIC) != 0) {
-					write("\\i0"); 
-				}
+			if ((fontStyle & SWT.BOLD) != 0) {
+				write("\\b0");
+			}
+			if ((style.fontStyle & SWT.ITALIC) != 0) {
+				write("\\i0");
 			}
 			if (style.underline) {
 				write("\\ul0");
@@ -1239,7 +1237,6 @@ public StyledText(Composite parent, int style) {
 	super.setForeground(getForeground());
 	super.setDragDetect(false);
 	Display display = getDisplay();
-	isMirrored = (super.getStyle() & SWT.MIRRORED) != 0;
 	fixedLineHeight = true;
 	if ((style & SWT.READ_ONLY) != 0) {
 		setEditable(false);
@@ -1523,7 +1520,7 @@ public void addVerifyListener(VerifyListener verifyListener) {
  */
 public void addWordMovementListener(MovementListener movementListener) {
 	checkWidget();
-	if (listener == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
+	if (movementListener == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	addListener(WordNext, new StyledTextListener(movementListener));
 	addListener(WordPrevious, new StyledTextListener(movementListener));
 }
@@ -2469,20 +2466,16 @@ void doContentEnd() {
 		doLineEnd();
 	} else {
 		int length = content.getCharCount();		
-		if (caretOffset < length) {
-			setCaretOffset(length, SWT.DEFAULT);
-			showCaret();
-		}
+		setCaretOffset(length, SWT.DEFAULT);
+		showCaret();
 	}
 }
 /**
  * Moves the caret in front of the first character of the widget content.
  */
 void doContentStart() {
-	if (caretOffset > 0) {
-		setCaretOffset(0, SWT.DEFAULT);
-		showCaret();
-	}
+	setCaretOffset(0, SWT.DEFAULT);
+	showCaret();
 }
 /**
  * Moves the caret to the start of the selection if a selection exists.
@@ -2636,10 +2629,8 @@ void doLineEnd() {
 		int lineLength = content.getLine(caretLine).length();
 		lineEndOffset = lineOffset + lineLength;
 	}
-	if (caretOffset < lineEndOffset) {
-		setCaretOffset(lineEndOffset, PREVIOUS_OFFSET_TRAILING);
-		showCaret();
-	}
+	setCaretOffset(lineEndOffset, PREVIOUS_OFFSET_TRAILING);
+	showCaret();
 }
 /**
  * Moves the caret to the beginning of the line.
@@ -2655,10 +2646,8 @@ void doLineStart() {
 		lineOffset += offsets[lineIndex];
 		renderer.disposeTextLayout(layout);
 	}
-	if (caretOffset > lineOffset) {
-		setCaretOffset(lineOffset, OFFSET_LEADING);
-		showCaret();
-	}
+	setCaretOffset(lineOffset, OFFSET_LEADING);
+	showCaret();
 }
 /**
  * Moves the caret one line up and to the same character offset relative 
@@ -4471,12 +4460,7 @@ int getOffsetAtPoint(int x, int y, int[] trailing, boolean inTextOnly) {
  * @since 2.1.2
  */
 public int getOrientation () {
-	checkWidget();
-	if (IS_MAC) {
-		int style = super.getStyle();
-		return style & (SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT);
-	}
-	return isMirrored() ? SWT.RIGHT_TO_LEFT : SWT.LEFT_TO_RIGHT;
+	return super.getOrientation ();
 }
 /** 
  * Returns the index of the last partially visible line.
@@ -4770,14 +4754,6 @@ public String getSelectionText() {
 	}
 	return content.getTextRange(selection.x, selection.y - selection.x);
 }
-public int getStyle() {
-	int style = super.getStyle();
-	style &= ~(SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT | SWT.MIRRORED);
-	style |= getOrientation();
-	if (isMirrored()) style |= SWT.MIRRORED;
-	return style;
-}
-
 StyledTextEvent getBidiSegments(int lineOffset, String line) {
 	if (!isBidi()) return null;
 	if (!isListening(LineGetSegments)) {
@@ -5296,6 +5272,7 @@ int getVisualLineIndex(TextLayout layout, int offsetInLine) {
 		int lineY = layout.getLineBounds(lineIndex).y;
 		int caretY = getCaret().getLocation().y - topMargin - getLinePixel(getCaretLine());
 		if (lineY > caretY) lineIndex--;
+		caretAlignment = OFFSET_LEADING;
  	}
 	return lineIndex;
 }
@@ -5442,7 +5419,8 @@ Point getPointAtOffset(int offset) {
 	TextLayout layout = renderer.getTextLayout(lineIndex);
 	if (lineLength != 0  && offsetInLine <= lineLength) {
 		if (offsetInLine == lineLength) {
-			point = layout.getLocation(offsetInLine - 1, true);
+			offsetInLine = layout.getPreviousOffset(offsetInLine, SWT.MOVEMENT_CLUSTER); 
+			point = layout.getLocation(offsetInLine, true);
 		} else {
 			switch (caretAlignment) {
 				case OFFSET_LEADING:
@@ -5453,7 +5431,8 @@ Point getPointAtOffset(int offset) {
 					if (offsetInLine == 0) {
 						point = layout.getLocation(offsetInLine, false);
 					} else {
-						point = layout.getLocation(offsetInLine - 1, true);
+						offsetInLine = layout.getPreviousOffset(offsetInLine, SWT.MOVEMENT_CLUSTER); 
+						point = layout.getLocation(offsetInLine, true);
 					}
 					break;
 			}
@@ -6685,6 +6664,35 @@ void initializeAccessible() {
 			e.result = ACC.OK;
 		}
 	});
+	accessible.addAccessibleEditableTextListener(new AccessibleEditableTextListener() {
+		public void setTextAttributes(AccessibleTextAttributeEvent e) {
+			// This method must be implemented by the application
+			e.result = ACC.OK;
+		}
+		public void replaceText(AccessibleEditableTextEvent e) {
+			StyledText st = StyledText.this;
+			st.replaceTextRange(e.start, e.end - e.start, e.string);
+            e.result = ACC.OK;
+		}
+		public void pasteText(AccessibleEditableTextEvent e) {
+			StyledText st = StyledText.this;
+			st.setSelection(e.start);
+            st.paste();
+            e.result = ACC.OK;
+		}
+		public void cutText(AccessibleEditableTextEvent e) {
+			StyledText st = StyledText.this;
+			st.setSelection(e.start, e.end);
+            st.cut();
+            e.result = ACC.OK;
+		}
+		public void copyText(AccessibleEditableTextEvent e) {
+			StyledText st = StyledText.this;
+			st.setSelection(e.start, e.end);
+            st.copy();
+            e.result = ACC.OK;
+		}
+	});
 	accessible.addAccessibleAttributeListener(new AccessibleAttributeAdapter() {
 		public void getAttributes(AccessibleAttributeEvent e) {
 			StyledText st = StyledText.this;
@@ -7078,7 +7086,7 @@ boolean invokeBlockAction(int action) {
  * Temporary until SWT provides this
  */
 boolean isBidi() {
-	return IS_GTK || IS_MAC || BidiUtil.isBidiPlatform() || isMirrored;
+	return IS_GTK || IS_MAC || BidiUtil.isBidiPlatform() || isMirrored();
 }
 boolean isBidiCaret() {
 	return BidiUtil.isBidiPlatform();
@@ -7111,7 +7119,7 @@ boolean isLineDelimiter(int offset) {
  * 	is left oriented
  */
 boolean isMirrored() {
-	return isMirrored;
+	return (getStyle() & SWT.MIRRORED) != 0;
 }
 /**
  * Returns whether the widget can have only one line.
@@ -9236,28 +9244,17 @@ void setMouseWordSelectionAnchor() {
  * @since 2.1.2
  */
 public void setOrientation(int orientation) {
-	if ((orientation & (SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT)) == 0) { 
-		return;
+	int oldOrientation = getOrientation();
+	super.setOrientation(orientation);
+	int newOrientation = getOrientation();
+	if (oldOrientation != newOrientation) {
+		caretDirection = SWT.NULL;
+		resetCache(0, content.getLineCount());
+		setCaretLocation();
+		keyActionMap.clear();
+		createKeyBindings();
+		super.redraw();
 	}
-	if ((orientation & SWT.RIGHT_TO_LEFT) != 0 && (orientation & SWT.LEFT_TO_RIGHT) != 0) {
-		return;	
-	}
-	if ((orientation & SWT.RIGHT_TO_LEFT) != 0 && isMirrored()) {
-		return;	
-	} 
-	if ((orientation & SWT.LEFT_TO_RIGHT) != 0 && !isMirrored()) {
-		return;
-	}
-	if (!BidiUtil.setOrientation(this, orientation)) {
-		return;
-	}
-	isMirrored = (orientation & SWT.RIGHT_TO_LEFT) != 0;
-	caretDirection = SWT.NULL;
-	resetCache(0, content.getLineCount());
-	setCaretLocation();
-	keyActionMap.clear();
-	createKeyBindings();
-	super.redraw();
 }
 /** 
  * Sets the right margin.

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -224,9 +224,9 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 		}
 	} else {
 		size = minimumSize (wHint, hHint, changed);
+		if (size.x == 0) size.x = DEFAULT_WIDTH;
+		if (size.y == 0) size.y = DEFAULT_HEIGHT;
 	}
-	if (size.x == 0) size.x = DEFAULT_WIDTH;
-	if (size.y == 0) size.y = DEFAULT_HEIGHT;
 	if (wHint != SWT.DEFAULT) size.x = wHint;
 	if (hHint != SWT.DEFAULT) size.y = hHint;
 	Rectangle trim = computeTrim (0, 0, size.x, size.y);
@@ -1197,7 +1197,7 @@ void moveChildren(int oldWidth) {
 		int x = OS.GTK_WIDGET_X (topHandle);
 		int y = OS.GTK_WIDGET_Y (topHandle);
 		int controlWidth = (child.state & ZERO_WIDTH) != 0 ? 0 : OS.GTK_WIDGET_WIDTH (topHandle);
-		x = oldWidth - controlWidth - x; 
+		if (oldWidth > 0) x = oldWidth - controlWidth - x; 
 		int clientWidth = getClientWidth ();
 		x = clientWidth - controlWidth - x;
 		if (child.enableWindow != 0) {
@@ -1226,11 +1226,12 @@ void moveChildren(int oldWidth) {
 
 Point minimumSize (int wHint, int hHint, boolean changed) {
 	Control [] children = _getChildren ();
+	Rectangle clientArea = getClientArea ();
 	int width = 0, height = 0;
 	for (int i=0; i<children.length; i++) {
 		Rectangle rect = children [i].getBounds ();
-		width = Math.max (width, rect.x + rect.width);
-		height = Math.max (height, rect.y + rect.height);
+		width = Math.max (width, rect.x - clientArea.x + rect.width);
+		height = Math.max (height, rect.y - clientArea.y + rect.height);
 	}
 	return new Point (width, height);
 }
@@ -1411,6 +1412,7 @@ public void setLayout (Layout layout) {
  * @since 3.1
  */
 public void setLayoutDeferred (boolean defer) {
+	checkWidget();
 	if (!defer) {
 		if (--layoutCount == 0) {
 			if ((state & LAYOUT_CHILD) != 0 || (state & LAYOUT_NEEDED) != 0) {
@@ -1419,6 +1421,21 @@ public void setLayoutDeferred (boolean defer) {
 		}
 	} else {
 		layoutCount++;
+	}
+}
+
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if (!create) {
+		int flags = SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT;
+		int orientation = style & flags;	
+		Control [] children = _getChildren ();
+		for (int i=0; i<children.length; i++) {
+			children[i].setOrientation (orientation);
+		}
+		if (((style & SWT.RIGHT_TO_LEFT) != 0) != ((style & SWT.MIRRORED) != 0)) {
+			moveChildren (-1);
+		}
 	}
 }
 

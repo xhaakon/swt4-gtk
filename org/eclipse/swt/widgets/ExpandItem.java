@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -513,6 +513,8 @@ boolean setFocus () {
 	if (!OS.gtk_widget_get_child_visible (handle)) return false;
 	OS.GTK_WIDGET_SET_FLAGS (handle, OS.GTK_CAN_FOCUS);
 	OS.gtk_widget_grab_focus (handle);
+	// widget could be disposed at this point
+	if (isDisposed ()) return false;
 	boolean result = OS.gtk_widget_is_focus (handle);
 	if (!result) OS.GTK_WIDGET_UNSET_FLAGS (handle, OS.GTK_CAN_FOCUS);
 	return result;
@@ -589,11 +591,12 @@ public void setImage (Image image) {
 	}
 }
 
-void setOrientation() {
-	super.setOrientation ();
-	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0) {
-		OS.gtk_widget_set_direction (handle, OS.GTK_TEXT_DIR_RTL);
-		OS.gtk_container_forall (handle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);	
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+		int dir = (parent.style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+		OS.gtk_widget_set_direction (handle, dir);
+		OS.gtk_container_forall (handle, display.setDirectionProc, dir);
 	}
 }
 	

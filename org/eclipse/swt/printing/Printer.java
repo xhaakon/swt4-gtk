@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -44,6 +44,8 @@ import org.eclipse.swt.printing.PrinterData;
  */
 public final class Printer extends Device {
 	static PrinterData [] printerList;
+	static int /*long*/ findPrinter;
+	static PrinterData findData;
 	
 	PrinterData data;
 	int /*long*/ printer;
@@ -63,9 +65,20 @@ public final class Printer extends Device {
 	static int start, end;
 
 	static final String GTK_LPR_BACKEND = "GtkPrintBackendLpr"; //$NON-NLS-1$
+	static final String GTK_FILE_BACKEND = "GtkPrintBackendFile"; //$NON-NLS-1$
 
 	static boolean disablePrinting = System.getProperty("org.eclipse.swt.internal.gtk.disablePrinting") != null; //$NON-NLS-1$
 	
+static void gtk_init() {
+	if (!OS.g_thread_supported ()) {
+		OS.g_thread_init (0);
+	}
+	OS.gtk_set_locale();
+	if (!OS.gtk_init_check (new int /*long*/ [] {0}, null)) {
+		SWT.error (SWT.ERROR_NO_HANDLES, null, " [gtk_init_check() failed]");
+	}
+}
+
 /**
  * Returns an array of <code>PrinterData</code> objects
  * representing all available printers.  If there are no
@@ -78,17 +91,18 @@ public static PrinterData[] getPrinterList() {
 	if (OS.GTK_VERSION < OS.VERSION (2, 10, 0) || disablePrinting) {
 		return printerList;
 	}
-	if (!OS.g_thread_supported ()) {
-		OS.g_thread_init (0);
-	}
-	OS.gtk_set_locale();
-	if (!OS.gtk_init_check (new int /*long*/ [] {0}, null)) {
-		SWT.error (SWT.ERROR_NO_HANDLES, null, " [gtk_init_check() failed]");
-	}
+	gtk_init();
 	Callback printerCallback = new Callback(Printer.class, "GtkPrinterFunc_List", 2); //$NON-NLS-1$
 	int /*long*/ GtkPrinterFunc_List = printerCallback.getAddress();
 	if (GtkPrinterFunc_List == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.gtk_enumerate_printers(GtkPrinterFunc_List, 0, 0, true);
+	/*
+	* This call to gdk_threads_leave() is a temporary work around
+	* to avoid deadlocks when gdk_threads_init() is called by native
+	* code outside of SWT (i.e AWT, etc). It ensures that the current
+	* thread leaves the GTK lock acquired by the function above. 
+	*/
+	OS.gdk_threads_leave();
 	printerCallback.dispose ();
 	return printerList;
 }
@@ -121,28 +135,29 @@ static int /*long*/ GtkPrinterFunc_List (int /*long*/ printer, int /*long*/ user
  * @since 2.1
  */
 public static PrinterData getDefaultPrinterData() {
-	printerList = new PrinterData [1];
+	findData = null;
 	if (OS.GTK_VERSION < OS.VERSION (2, 10, 0) || disablePrinting) {
 		return null;
 	}
-	if (!OS.g_thread_supported ()) {
-		OS.g_thread_init (0);
-	}
-	OS.gtk_set_locale();
-	if (!OS.gtk_init_check (new int /*long*/ [] {0}, null)) {
-		SWT.error (SWT.ERROR_NO_HANDLES, null, " [gtk_init_check() failed]");
-	}
+	gtk_init();
 	Callback printerCallback = new Callback(Printer.class, "GtkPrinterFunc_Default", 2); //$NON-NLS-1$
 	int /*long*/ GtkPrinterFunc_Default = printerCallback.getAddress();
 	if (GtkPrinterFunc_Default == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 	OS.gtk_enumerate_printers(GtkPrinterFunc_Default, 0, 0, true);
+	/*
+	* This call to gdk_threads_leave() is a temporary work around
+	* to avoid deadlocks when gdk_threads_init() is called by native
+	* code outside of SWT (i.e AWT, etc). It ensures that the current
+	* thread leaves the GTK lock acquired by the function above. 
+	*/
+	OS.gdk_threads_leave();
 	printerCallback.dispose ();
-	return printerList[0];
+	return findData;
 }
 
 static int /*long*/ GtkPrinterFunc_Default (int /*long*/ printer, int /*long*/ user_data) {
 	if (OS.gtk_printer_is_default(printer)) {
-		printerList[0] = printerDataFromGtkPrinter(printer);
+		findData = printerDataFromGtkPrinter(printer);
 		return 1;
 	} else if (OS.GTK_VERSION < OS.VERSION(2, 10, 12) && printerDataFromGtkPrinter(printer).driver.equals (GTK_LPR_BACKEND)) { 
 		return 1;
@@ -150,20 +165,31 @@ static int /*long*/ GtkPrinterFunc_Default (int /*long*/ printer, int /*long*/ u
 	return 0;
 }
 
-int /*long*/ gtkPrinterFromPrinterData() {
-	Callback printerCallback = new Callback(this, "GtkPrinterFunc_FindNamedPrinter", 2); //$NON-NLS-1$
+static int /*long*/ gtkPrinterFromPrinterData(PrinterData data) {
+	gtk_init();
+	Callback printerCallback = new Callback(Printer.class, "GtkPrinterFunc_FindNamedPrinter", 2); //$NON-NLS-1$
 	int /*long*/ GtkPrinterFunc_FindNamedPrinter = printerCallback.getAddress();
 	if (GtkPrinterFunc_FindNamedPrinter == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
-	printer = 0;
+	findPrinter = 0;
+	findData = data;
 	OS.gtk_enumerate_printers(GtkPrinterFunc_FindNamedPrinter, 0, 0, true);
+	/*
+	* This call to gdk_threads_leave() is a temporary work around
+	* to avoid deadlocks when gdk_threads_init() is called by native
+	* code outside of SWT (i.e AWT, etc). It ensures that the current
+	* thread leaves the GTK lock acquired by the function above. 
+	*/
+	OS.gdk_threads_leave();
 	printerCallback.dispose ();
-	return printer;
+	return findPrinter;
 }
 
-int /*long*/ GtkPrinterFunc_FindNamedPrinter (int /*long*/ printer, int /*long*/ user_data) {
+static int /*long*/ GtkPrinterFunc_FindNamedPrinter (int /*long*/ printer, int /*long*/ user_data) {
 	PrinterData pd = printerDataFromGtkPrinter(printer);
-	if (pd.driver.equals(data.driver) && pd.name.equals(data.name)) {
-		this.printer = printer;
+	if ((pd.driver.equals(findData.driver) && pd.name.equals(findData.name))
+			|| (pd.driver.equals(GTK_FILE_BACKEND)) && findData.printToFile && findData.driver == null && findData.name == null) {
+			// TODO: GTK_FILE_BACKEND is not GTK API (see gtk bug 345590)
+		findPrinter = printer;
 		OS.g_object_ref(printer);
 		return 1;
 	} else if (OS.GTK_VERSION < OS.VERSION (2, 10, 12) && pd.driver.equals(GTK_LPR_BACKEND)) {
@@ -239,13 +265,45 @@ static void restore(byte [] data, int /*long*/ settings, int /*long*/ page_setup
 	OS.gtk_paper_size_free(paper_size);
 }
 
+static byte [] uriFromFilename(String filename) {
+	if (filename == null) return null;
+	int length = filename.length();
+	if (length == 0) return null;
+	char[] chars = new char[length];
+	filename.getChars(0, length, chars, 0);		
+	int /*long*/[] error = new int /*long*/[1];
+	int /*long*/ utf8Ptr = OS.g_utf16_to_utf8(chars, chars.length, null, null, error);
+	if (error[0] != 0 || utf8Ptr == 0) return null;
+	int /*long*/ localePtr = OS.g_filename_from_utf8(utf8Ptr, -1, null, null, error);
+	OS.g_free(utf8Ptr);
+	if (error[0] != 0 || localePtr == 0) return null;
+	int /*long*/ uriPtr = OS.g_filename_to_uri(localePtr, 0, error);
+	OS.g_free(localePtr);
+	if (error[0] != 0 || uriPtr == 0) return null;
+	length = OS.strlen(uriPtr);
+	byte[] uri = new byte[length + 1];
+	OS.memmove (uri, uriPtr, length);
+	OS.g_free(uriPtr);
+	return uri;
+}
+
 static DeviceData checkNull (PrinterData data) {
 	if (data == null) data = new PrinterData();
 	if (data.driver == null || data.name == null) {
-		PrinterData defaultPrinter = getDefaultPrinterData();
-		if (defaultPrinter == null) SWT.error(SWT.ERROR_NO_HANDLES);
-		data.driver = defaultPrinter.driver;
-		data.name = defaultPrinter.name;		
+		PrinterData defaultData = null;
+		if (data.printToFile) {
+			int /*long*/ filePrinter = gtkPrinterFromPrinterData(data);
+			if (filePrinter != 0) {
+				defaultData = printerDataFromGtkPrinter(filePrinter);
+				OS.g_object_unref(filePrinter);
+			}
+		}
+		if (defaultData == null) {
+			defaultData = getDefaultPrinterData();
+			if (defaultData == null) SWT.error(SWT.ERROR_NO_HANDLES);
+		}
+		data.driver = defaultData.driver;
+		data.name = defaultData.name;		
 	}
 	return data;
 }
@@ -257,7 +315,7 @@ static DeviceData checkNull (PrinterData data) {
  * </p>
  *
  * @exception SWTError <ul>
- *    <li>ERROR_NO_HANDLES - if there are no valid printers
+ *    <li>ERROR_NO_HANDLES - if there is no valid default printer
  * </ul>
  *
  * @see Device#dispose
@@ -352,6 +410,9 @@ public Font getSystemFont () {
 	if (systemFont != null) return systemFont;
 	int /*long*/ style = OS.gtk_widget_get_default_style();	
 	int /*long*/ defaultFont = OS.pango_font_description_copy (OS.gtk_style_get_font_desc (style));
+	int size = OS.pango_font_description_get_size(defaultFont);
+	Point dpi = getDPI(), screenDPI = super.getDPI();
+	OS.pango_font_description_set_size(defaultFont, size * dpi.y / screenDPI.y);
 	return systemFont = Font.gtk_new (this, defaultFont);
 }
 
@@ -387,10 +448,15 @@ public int /*long*/ internal_new_GC(GCData data) {
 		data.background = getSystemColor (SWT.COLOR_WHITE).handle;
 		data.foreground = getSystemColor (SWT.COLOR_BLACK).handle;
 		data.font = getSystemFont ();
-		//TODO: We are supposed to return this in pixels, but GTK_UNIT_PIXELS is currently not implemented (gtk bug 346245)
-		data.width = (int)OS.gtk_page_setup_get_paper_width (pageSetup, OS.GTK_UNIT_POINTS);
-		data.height = (int)OS.gtk_page_setup_get_paper_height (pageSetup, OS.GTK_UNIT_POINTS);
+		Point dpi = getDPI(), screenDPI = getIndependentDPI();
+		data.width = (int)(OS.gtk_page_setup_get_paper_width (pageSetup, OS.GTK_UNIT_POINTS) * dpi.x / screenDPI.x);
+		data.height = (int)(OS.gtk_page_setup_get_paper_height (pageSetup, OS.GTK_UNIT_POINTS) * dpi.y / screenDPI.y);
 		if (cairo == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+		Cairo.cairo_identity_matrix(cairo);
+		double printX = OS.gtk_page_setup_get_left_margin(pageSetup, OS.GTK_UNIT_POINTS);
+		double printY = OS.gtk_page_setup_get_top_margin(pageSetup, OS.GTK_UNIT_POINTS);
+		Cairo.cairo_translate(cairo, printX, printY);
+		Cairo.cairo_scale(cairo, screenDPI.x / (float)dpi.x, screenDPI.y / (float)dpi.y);
 		data.cairo = cairo;
 		isGCCreated = true;
 	}
@@ -591,10 +657,9 @@ public Point getDPI() {
 	checkDevice();
 	int resolution = OS.gtk_print_settings_get_resolution(settings);
 	if (DEBUG) System.out.println("print_settings.resolution=" + resolution);
-	//TODO: Return 72 (1/72 inch = 1 point) until gtk bug 346245 is fixed
-	//TODO: Fix this: gtk_print_settings_get_resolution returns 0? (see gtk bug 346252)
-	/*if (resolution == 0)*/ return new Point(72, 72);
-//	return new Point(resolution, resolution);
+	//TODO: use new api for get x resolution and get y resolution
+	if (resolution == 0) return new Point(72, 72);
+	return new Point(resolution, resolution);
 }
 
 /**
@@ -614,9 +679,9 @@ public Point getDPI() {
  */
 public Rectangle getBounds() {
 	checkDevice();
-	//TODO: We are supposed to return this in pixels, but GTK_UNIT_PIXELS is currently not implemented (gtk bug 346245)
-	double width = OS.gtk_page_setup_get_paper_width (pageSetup, OS.GTK_UNIT_POINTS);
-	double height = OS.gtk_page_setup_get_paper_height (pageSetup, OS.GTK_UNIT_POINTS);
+	Point dpi = getDPI(), screenDPI = getIndependentDPI();
+	double width = OS.gtk_page_setup_get_paper_width (pageSetup, OS.GTK_UNIT_POINTS) * dpi.x / screenDPI.x;
+	double height = OS.gtk_page_setup_get_paper_height (pageSetup, OS.GTK_UNIT_POINTS) * dpi.y / screenDPI.y;
 	return new Rectangle(0, 0, (int) width, (int) height);
 }
 
@@ -639,10 +704,14 @@ public Rectangle getBounds() {
  */
 public Rectangle getClientArea() {
 	checkDevice();
-	//TODO: We are supposed to return this in pixels, but GTK_UNIT_PIXELS is currently not implemented (gtk bug 346245)
-	double width = OS.gtk_page_setup_get_page_width(pageSetup, OS.GTK_UNIT_POINTS);
-	double height = OS.gtk_page_setup_get_page_height(pageSetup, OS.GTK_UNIT_POINTS);
+	Point dpi = getDPI(), screenDPI = getIndependentDPI();
+	double width = OS.gtk_page_setup_get_page_width(pageSetup, OS.GTK_UNIT_POINTS) * dpi.x / screenDPI.x;
+	double height = OS.gtk_page_setup_get_page_height(pageSetup, OS.GTK_UNIT_POINTS) * dpi.y / screenDPI.y;
 	return new Rectangle(0, 0, (int) width, (int) height);
+}
+
+Point getIndependentDPI () {
+	return new Point(72, 72);
 }
 
 /**
@@ -682,13 +751,13 @@ public Rectangle getClientArea() {
  */
 public Rectangle computeTrim(int x, int y, int width, int height) {
 	checkDevice();
-	//TODO: We are supposed to return this in pixels, but GTK_UNIT_PIXELS is currently not implemented (gtk bug 346245)
-	double printWidth = OS.gtk_page_setup_get_page_width(pageSetup, OS.GTK_UNIT_POINTS);
-	double printHeight = OS.gtk_page_setup_get_page_height(pageSetup, OS.GTK_UNIT_POINTS);
-	double paperWidth = OS.gtk_page_setup_get_paper_width (pageSetup, OS.GTK_UNIT_POINTS);
-	double paperHeight = OS.gtk_page_setup_get_paper_height (pageSetup, OS.GTK_UNIT_POINTS);
-	double printX = -OS.gtk_page_setup_get_left_margin(pageSetup, OS.GTK_UNIT_POINTS);
-	double printY = -OS.gtk_page_setup_get_top_margin(pageSetup, OS.GTK_UNIT_POINTS);
+	Point dpi = getDPI(), screenDPI = getIndependentDPI();
+	double printWidth = OS.gtk_page_setup_get_page_width(pageSetup, OS.GTK_UNIT_POINTS) * dpi.x / screenDPI.x;
+	double printHeight = OS.gtk_page_setup_get_page_height(pageSetup, OS.GTK_UNIT_POINTS) * dpi.y / screenDPI.y;
+	double paperWidth = OS.gtk_page_setup_get_paper_width (pageSetup, OS.GTK_UNIT_POINTS) * dpi.x / screenDPI.x;
+	double paperHeight = OS.gtk_page_setup_get_paper_height (pageSetup, OS.GTK_UNIT_POINTS) * dpi.y / screenDPI.y;
+	double printX = -OS.gtk_page_setup_get_left_margin(pageSetup, OS.GTK_UNIT_POINTS) * dpi.x / screenDPI.x;
+	double printY = -OS.gtk_page_setup_get_top_margin(pageSetup, OS.GTK_UNIT_POINTS) * dpi.y / screenDPI.y;
 	double hTrim = paperWidth - printWidth;
 	double vTrim = paperHeight - printHeight;
 	return new Rectangle(x + (int)printX, y + (int)printY, width + (int)hTrim, height + (int)vTrim);
@@ -703,7 +772,7 @@ public Rectangle computeTrim(int x, int y, int width, int height) {
 protected void create(DeviceData deviceData) {
 	this.data = (PrinterData)deviceData;
 	if (OS.GTK_VERSION < OS.VERSION (2, 10, 0) || disablePrinting) SWT.error(SWT.ERROR_NO_HANDLES);
-	printer = gtkPrinterFromPrinterData();
+	printer = gtkPrinterFromPrinterData(data);
 	if (printer == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 }
 
@@ -720,7 +789,6 @@ protected void create(DeviceData deviceData) {
  * @see #create
  */
 protected void init() {
-	super.init ();
 	settings = OS.gtk_print_settings_new();
 	pageSetup = OS.gtk_page_setup_new();
 	if (data.otherData != null) {
@@ -728,20 +796,37 @@ protected void init() {
 	}
 	
 	/* Set values of print_settings and page_setup from PrinterData. */
-	//TODO: Should we look at printToFile, or driver/name for "Print to File", or both? (see gtk bug 345590)
 	if (data.printToFile && data.fileName != null) {
-		byte [] buffer = Converter.wcsToMbcs (null, data.fileName, true);
-		OS.gtk_print_settings_set(settings, OS.GTK_PRINT_SETTINGS_OUTPUT_URI, buffer);
-	}
-	if (data.driver.equals("GtkPrintBackendFile") && data.name.equals("Print to File") && data.fileName != null) { //$NON-NLS-1$ //$NON-NLS-2$
-		byte [] buffer = Converter.wcsToMbcs (null, data.fileName, true);
-		OS.gtk_print_settings_set(settings, OS.GTK_PRINT_SETTINGS_OUTPUT_URI, buffer);
+		byte [] uri = uriFromFilename(data.fileName);
+		if (uri != null) {
+			OS.gtk_print_settings_set(settings, OS.GTK_PRINT_SETTINGS_OUTPUT_URI, uri);
+		}
 	}
 	OS.gtk_print_settings_set_n_copies(settings, data.copyCount);
 	OS.gtk_print_settings_set_collate(settings, data.collate);
+	if (data.duplex != SWT.DEFAULT) {
+		int duplex = data.duplex == PrinterData.DUPLEX_LONG_EDGE ? OS.GTK_PRINT_DUPLEX_HORIZONTAL
+			: data.duplex == PrinterData.DUPLEX_SHORT_EDGE ? OS.GTK_PRINT_DUPLEX_VERTICAL
+			: OS.GTK_PRINT_DUPLEX_SIMPLEX;
+		OS.gtk_print_settings_set_duplex (settings, duplex);
+		/* 
+		 * Bug in GTK.  The cups backend only looks at the value
+		 * of the non-API field cups-Duplex in the print_settings.
+		 * The fix is to manually set cups-Duplex to Tumble or NoTumble.
+		 */
+		String cupsDuplexType = null;
+		if (duplex == OS.GTK_PRINT_DUPLEX_HORIZONTAL) cupsDuplexType = "DuplexNoTumble";
+		else if (duplex == OS.GTK_PRINT_DUPLEX_VERTICAL) cupsDuplexType = "DuplexTumble";
+		if (cupsDuplexType != null) {
+			byte [] keyBuffer = Converter.wcsToMbcs (null, "cups-Duplex", true);
+			byte [] valueBuffer = Converter.wcsToMbcs (null, cupsDuplexType, true);
+			OS.gtk_print_settings_set(settings, keyBuffer, valueBuffer);
+		}
+	}
 	int orientation = data.orientation == PrinterData.LANDSCAPE ? OS.GTK_PAGE_ORIENTATION_LANDSCAPE : OS.GTK_PAGE_ORIENTATION_PORTRAIT;
 	OS.gtk_page_setup_set_orientation(pageSetup, orientation);
 	OS.gtk_print_settings_set_orientation(settings, orientation);
+	super.init ();
 }
 
 /**

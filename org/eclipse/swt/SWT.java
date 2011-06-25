@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -715,6 +715,39 @@ public class SWT {
 	 */
 	public static final int OpenDocument = 46;
 	
+	/**
+	 * The touch event type (value is 47).
+	 * 
+	 * <p>
+	 * This event is sent when a touch has been performed
+	 * on a touch-based input source.
+	 * </p>
+	 *
+     * @see org.eclipse.swt.widgets.Display#addListener
+     * @see org.eclipse.swt.widgets.Event
+     * 
+     * @since 3.7
+	 */
+	public static final int Touch = 47;
+
+	/**
+	 * The gesture event type (value is 48).
+	 * 
+	 * <p>
+	 * This event is sent when a gesture has been performed.
+	 * </p>
+	 *  
+     * @see org.eclipse.swt.widgets.Display#addListener
+     * @see org.eclipse.swt.widgets.Event
+     * @see SWT#GESTURE_MAGNIFY
+     * @see SWT#GESTURE_PAN
+     * @see SWT#GESTURE_ROTATE
+     * @see SWT#GESTURE_SWIPE
+     * 
+     * @since 3.7
+	 */
+	public static final int Gesture = 48;
+
 	/* Event Details */
 	
 	/**
@@ -897,6 +930,82 @@ public class SWT {
 	 * (value is 1&lt;&lt;9).
 	 */
 	public static final int TRAVERSE_PAGE_NEXT = 1 << 9;
+
+	/**
+	 * Gesture event detail field value indicating that a continuous
+	 * gesture is about to begin.
+	 * 
+	 * @since 3.7
+	 */
+	public static final int GESTURE_BEGIN = 1 << 1;
+
+	/**
+	 * Gesture event detail field value indicating that a continuous 
+	 * gesture has ended.
+	 * 
+	 * @since 3.7
+	 */
+	public static final int GESTURE_END = 1 << 2;
+
+	/**
+	 * Gesture event detail field value indicating that a 
+	 * rotation gesture has happened. Only the rotation field
+	 * of the event is valid.
+	 * 
+	 * @since 3.7
+	 */
+	public static final int GESTURE_ROTATE = 1 << 3;
+	
+	/**
+	 * Gesture event detail field value indicating that a 
+	 * swipe gesture has happened.
+	 * 
+	 * @since 3.7
+	 */
+	public static final int GESTURE_SWIPE = 1 << 4;
+	
+	/**
+	 * Gesture event detail field value indicating that a 
+	 * magnification gesture has happened.
+	 * 
+	 * @since 3.7
+	 */
+	public static final int GESTURE_MAGNIFY = 1 << 5;
+	
+	/**
+	 * Gesture event detail field value indicating that a 
+	 * panning (two-finger scroll) gesture has happened.
+	 * 
+	 * @since 3.7
+	 */
+	public static final int GESTURE_PAN = 1 << 6;
+	
+	/**
+	 * A constant indicating that a finger touched the device.  
+	 * 
+	 * @see org.eclipse.swt.widgets.Touch#state
+	 * 
+	 * @since 3.7
+	 */
+	public static final int TOUCHSTATE_DOWN = 1 << 0;
+
+	/**
+	 * A constant indicating that a finger moved on the device.
+	 * 
+	 * @see org.eclipse.swt.widgets.Touch#state
+	 * 
+	 * @since 3.7
+	 */
+	public static final int TOUCHSTATE_MOVE = 1 << 1;
+
+	/**
+	 * A constant indicating that a finger was lifted from the device. 
+	 * 
+	 * @see org.eclipse.swt.widgets.Touch#state
+	 * 
+	 * @since 3.7
+	 */
+	public static final int TOUCHSTATE_UP = 1 << 2;
 	
 	/**
 	 * A constant indicating that widgets have changed.
@@ -981,7 +1090,6 @@ public class SWT {
 
 	/**
 	 * Style constant for drop down menu/list behavior (value is 1&lt;&lt;2).
-	 * <br>Note that for <code>DateTime</code> this is a <em>HINT</em>.
 	 * <p><b>Used By:</b><ul>
 	 * <li><code>Menu</code></li>
 	 * <li><code>ToolItem</code></li>
@@ -1009,6 +1117,16 @@ public class SWT {
 	 * </ul></p>
 	 */
 	public static final int SEPARATOR = 1 << 1;
+
+    /**
+     * Constant representing a flexible space separator in a ToolBar.
+	 * <p><b>Used By:</b><ul>
+	 * <li><code>ToolItem.setWidth()</code></li>
+	 * </ul></p>
+	 *
+	 * @since 3.7
+     */
+    public static final int SEPARATOR_FILL = -2;
 
 	/**
 	 * Style constant for toggle button behavior (value is 1&lt;&lt;1).
@@ -1123,6 +1241,7 @@ public class SWT {
 
 	/**
 	 * Style constant for simple (not drop down) behavior (value is 1&lt;&lt;6).
+	 * <br>Note that this is a <em>HINT</em>.
 	 * <p><b>Used By:</b><ul>
 	 * <li><code>Combo</code></li>
 	 * </ul></p>
@@ -1940,6 +2059,18 @@ public class SWT {
 	public static final int MOZILLA = 1 << 15;
 
 	/**
+	 * Style constant specifying that a Browser should use WebKit
+	 * for rendering its content (value is 1&lt;&lt;16).
+	 * <p>
+	 * <p><b>Used By:</b><ul>
+	 * <li><code>Browser</code></li>
+	 * </ul></p>
+	 * 
+	 * @since 3.7
+	 */
+	public static final int WEBKIT = 1 << 16;
+
+	/**
 	 * Style constant for balloon behavior (value is 1&lt;&lt;12).
 	 * <p><b>Used By:</b><ul>
 	 * <li><code>ToolTip</code></li>
@@ -2032,6 +2163,14 @@ public class SWT {
 	 * @since 2.1
 	 */
 	public static final char TAB = '\t';
+						
+	/**
+	 * ASCII character convenience constant for the space character
+	 * (value is the <code>char</code> ' ').
+	 * 
+	 * @since 3.7
+	 */
+	public static final char SPACE = ' ';
 						
 	/**
 	 * keyboard and/or mouse event mask indicating that the ALT key
@@ -3849,6 +3988,66 @@ public class SWT {
 	 */
 	public static final int ALL = 1 << 0;
 	
+	/**
+	 * ID for the About menu item (value is -1).
+	 * 
+	 * @see org.eclipse.swt.widgets.MenuItem#setID(int)
+	 * @see org.eclipse.swt.widgets.MenuItem#getID()
+	 * 
+	 * @since 3.7
+	 */
+	public static final int ID_ABOUT = -1;
+
+	/**
+	 * ID for the Preferences menu item (value is -2).
+	 * 
+	 * @see org.eclipse.swt.widgets.MenuItem#setID(int)
+	 * @see org.eclipse.swt.widgets.MenuItem#getID()
+	 * 
+	 * @since 3.7
+	 */
+	public static final int ID_PREFERENCES = -2;
+
+	/**
+	 * ID for the Hide menu item (value is -3).
+	 * 
+	 * @see org.eclipse.swt.widgets.MenuItem#setID(int)
+	 * @see org.eclipse.swt.widgets.MenuItem#getID()
+	 * 
+	 * @since 3.7
+	 */
+	public static final int ID_HIDE = -3;
+
+	/**
+	 * ID for the Hide Others menu item (value is -4).
+	 * 
+	 * @see org.eclipse.swt.widgets.MenuItem#setID(int)
+	 * @see org.eclipse.swt.widgets.MenuItem#getID()
+	 * 
+	 * @since 3.7
+	 */
+	public static final int ID_HIDE_OTHERS = -4;
+	
+	/**
+	 * ID for the Show All menu item (value is -5).
+	 * 
+	 * @see org.eclipse.swt.widgets.MenuItem#setID(int)
+	 * @see org.eclipse.swt.widgets.MenuItem#getID()
+	 * 
+	 * @since 3.7
+	 */
+	public static final int ID_SHOW_ALL = -5;
+	
+	/**
+	 * ID for the Quit menu item (value is -6).
+	 * 
+	 * @see org.eclipse.swt.widgets.MenuItem#setID(int)
+	 * @see org.eclipse.swt.widgets.MenuItem#getID()
+	 * 
+	 * @since 3.7
+	 */
+	public static final int ID_QUIT = -6;
+
 	/**
 	 * Key value for setting and getting the skin class of a widget. 
 	 * 

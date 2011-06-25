@@ -1,5 +1,5 @@
 #*******************************************************************************
-# Copyright (c) 2000, 2010 IBM Corporation and others.
+# Copyright (c) 2000, 2011 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -91,8 +91,8 @@ MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
 	-DNO_nsDynamicFunctionLoad
 XULRUNNEREXCLUDES = -DNO__1NS_1InitXPCOM2
 
-WEBKITCFLAGS = `pkg-config --cflags gtk+-2.0` -I/usr/include/webkit-1.0 -I/usr/include/libsoup-2.4
-WEBKITLIBS = -lwebkit-1.0
+WEBKITCFLAGS = `pkg-config --cflags webkit-1.0`
+WEBKITLIBS = `pkg-config --libs webkit-1.0`
 
 SWT_OBJECTS = swt.o c.o c_stats.o callback.o
 CDE_OBJECTS = swt.o cde.o cde_structs.o cde_stats.o

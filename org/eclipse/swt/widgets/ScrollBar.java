@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -490,7 +490,6 @@ int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 		case OS.GTK_SCROLL_STEP_LEFT:
 		case OS.GTK_SCROLL_STEP_BACKWARD:	event.detail = SWT.ARROW_UP; break;
 	}
-	detail = OS.GTK_SCROLL_NONE;
 	if (!dragSent) detail = OS.GTK_SCROLL_NONE;
 	sendSelectionEvent (SWT.Selection, event, false);
 	parent.updateScrollBarValue (this);
@@ -504,7 +503,7 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 		case OS.GDK_BUTTON_RELEASE: {
 			GdkEventButton gdkEventButton = new GdkEventButton ();
 			OS.memmove (gdkEventButton, gdkEvent, GdkEventButton.sizeof);
-			if (gdkEventButton.button == 1 && detail == SWT.DRAG) {
+			if (gdkEventButton.button == 1 && detail == OS.GTK_SCROLL_JUMP) {
 				if (!dragSent) {
 					Event event = new Event ();
 					event.detail = SWT.DRAG;
@@ -715,12 +714,12 @@ public void setMinimum (int value) {
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
-void setOrientation () {
-	super.setOrientation ();
-	if ((parent.style & SWT.MIRRORED) != 0) {
+void setOrientation (boolean create) {
+	super.setOrientation (create);
+	if ((parent.style & SWT.MIRRORED) != 0 || !create) {
 		if ((parent.state & CANVAS) != 0) {
 			if ((style & SWT.HORIZONTAL) != 0) {
-				OS.gtk_range_set_inverted (handle, true);
+				OS.gtk_range_set_inverted (handle, (parent.style & SWT.RIGHT_TO_LEFT) != 0);
 			}
 		}
 	}

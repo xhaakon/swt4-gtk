@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -130,17 +130,19 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 		int border_width = OS.gtk_container_get_border_width(buttonHandle);
 		
 		GtkBorder default_border = new GtkBorder();
-		int default_border_ptr = theme.getWidgetProperty(buttonHandle, "default-border");
+		int /*long*/ default_border_ptr = theme.getBorderProperty(buttonHandle, "default-border");
 		if (default_border_ptr != 0) {
-			OS.memmove(default_border, default_border_ptr, GdkRectangle.sizeof);
+			OS.memmove(default_border, default_border_ptr, GtkBorder.sizeof);
+			OS.gtk_border_free(default_border_ptr);
 		} else {
 			default_border.left = default_border.right = default_border.top = default_border.bottom = 1;
 		}
 
 		GtkBorder default_outside_border = new GtkBorder();
-		int default_outside_border_ptr = theme.getWidgetProperty(buttonHandle, "default-outside-border");
+		int /*long*/ default_outside_border_ptr = theme.getBorderProperty(buttonHandle, "default-outside-border");
 		if (default_outside_border_ptr != 0) {
-			OS.memmove(default_outside_border, default_outside_border_ptr, GdkRectangle.sizeof);
+			OS.memmove(default_outside_border, default_outside_border_ptr, GtkBorder.sizeof);
+			OS.gtk_border_free(default_outside_border_ptr);
 		} else {
 			default_outside_border.left = default_outside_border.right = default_outside_border.top = default_outside_border.bottom = 0;
 		}

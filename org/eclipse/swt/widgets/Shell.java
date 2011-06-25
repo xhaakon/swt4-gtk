@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -107,7 +107,7 @@ import org.eclipse.swt.events.*;
  * Note: Only one of the styles APPLICATION_MODAL, MODELESS, 
  * PRIMARY_MODAL and SYSTEM_MODAL may be specified.
  * </p><p>
- * IMPORTANT: This class is not intended to be subclassed.
+ * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
  *
  * @see Decorations
@@ -115,6 +115,7 @@ import org.eclipse.swt.events.*;
  * @see <a href="http://www.eclipse.org/swt/snippets/#shell">Shell snippets</a>
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
+ * @noextend This class is not intended to be subclassed by clients.
  */
 public class Shell extends Decorations {
 	int /*long*/ shellHandle, tooltipsHandle, tooltipWindow, group, modalGroup;
@@ -770,6 +771,27 @@ Composite findDeferredControl () {
 	return layoutCount > 0 ? this : null;
 }
 
+/**
+ * Returns a ToolBar object representing the tool bar that can be shown in the receiver's
+ * trim. This will return <code>null</code> if the platform does not support tool bars that
+ * are not part of the content area of the shell, or if the Shell's style does not support 
+ * having a tool bar. 
+ * <p>
+ * 
+ * @return a ToolBar object representing the Shell's tool bar, or <ocde>null</code>.
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.7
+ */
+public ToolBar getToolBar() {
+	checkWidget ();
+	return null;
+}
+
 boolean hasBorder () {
 	return false;
 }
@@ -1015,7 +1037,8 @@ Shell getModalShell () {
 /**
  * Gets the receiver's modified state.
  *
- * </ul>
+ * @return <code>true</code> if the receiver is marked as modified, or <code>false</code> otherwise
+ * 
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -1046,9 +1069,9 @@ public boolean getVisible () {
 
 /** 
  * Returns the region that defines the shape of the shell,
- * or null if the shell has the default shape.
+ * or <code>null</code> if the shell has the default shape.
  *
- * @return the region that defines the shape of the shell (or null)
+ * @return the region that defines the shape of the shell, or <code>null</code>
  *	
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -1320,9 +1343,33 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ event) {
 }
 
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
-	/* Stop menu mnemonics when the shell is disabled */
 	if (widget == shellHandle) {
-		return (state & DISABLED) != 0 ? 1 : 0;
+		/* Stop menu mnemonics when the shell is disabled */
+		if ((state & DISABLED) != 0) return 1;
+		
+		if (menuBar != null && !menuBar.isDisposed ()) {
+			Control focusControl = display.getFocusControl ();
+			if (focusControl != null && (focusControl.hooks (SWT.KeyDown) || focusControl.filters (SWT.KeyDown))) {
+				int /*long*/ [] accel = new int /*long*/ [1];
+				int /*long*/ setting = OS.gtk_settings_get_default ();
+				OS.g_object_get (setting, OS.gtk_menu_bar_accel, accel, 0);
+				if (accel [0] != 0) {
+					int [] keyval = new int [1];
+					int [] mods = new int [1];
+					OS.gtk_accelerator_parse (accel [0], keyval, mods);
+					OS.g_free (accel [0]);
+					if (keyval [0] != 0) {
+						GdkEventKey keyEvent = new GdkEventKey ();
+						OS.memmove (keyEvent, event, GdkEventKey.sizeof);
+						int mask = OS.gtk_accelerator_get_default_mod_mask ();
+						if (keyEvent.keyval == keyval [0] && (keyEvent.state & mask) == (mods [0] & mask)) {
+							return focusControl.gtk_key_press_event (focusControl.focusHandle (), event);
+						}
+					}
+				}
+			}
+		}
+		return 0;
 	}
 	return super.gtk_key_press_event (widget, event);
 }
@@ -1994,6 +2041,13 @@ public void setVisible (boolean visible) {
 			boolean iconic = false;
 			Shell shell = parent != null ? parent.getShell() : null;
 			do {
+				/*
+				* This call to gdk_threads_leave() is a temporary work around
+				* to avoid deadlocks when gdk_threads_init() is called by native
+				* code outside of SWT (i.e AWT, etc). It ensures that the current
+				* thread leaves the GTK lock before calling the function below. 
+				*/
+				OS.gdk_threads_leave();
 				OS.g_main_context_iteration (0, false);
 				if (isDisposed ()) break;
 				iconic = minimized || (shell != null && shell.minimized);
@@ -2169,13 +2223,24 @@ void updateModal () {
 		} else {
 			shell = modal;
 		}
+		Composite topModalShell = shell;
 		while (shell != null) {
 			if ((shell.style & mask) == 0) {
 				group = shell.getShell ().group;
 				break;
 			}
+			topModalShell = shell;
 			shell = shell.parent;
 		}
+		/*
+		* If a modal shell doesn't have any parent (or modal shell as it's parent), 
+		* then we incorrectly add the modal shell to the default group, due to which 
+		* children of that modal shell are not interactive. The fix is to ensure 
+		* that whenever there is a modal shell in the hierarchy, then we always
+		* add the modal shell's group to that modal shell and it's modelless children
+		* in a different group.
+		*/
+		if (group == 0 && topModalShell != null) group = topModalShell.getShell ().group;
 	}
 	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0) && group == 0) { 
 		/*

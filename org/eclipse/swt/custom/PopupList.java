@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -47,9 +47,12 @@ public PopupList(Shell parent) {
 * @since 3.0 
 */
 public PopupList(Shell parent, int style) {
+	int listStyle = SWT.SINGLE | SWT.V_SCROLL;
+	if ((style & SWT.H_SCROLL) != 0) listStyle |= SWT.H_SCROLL;
+	
 	shell = new Shell(parent, checkStyle(style));
 	
-	list = new List(shell, SWT.SINGLE | SWT.V_SCROLL);	
+	list = new List(shell, listStyle);	
 
 	// close dialog if user selects outside of the shell
 	shell.addListener(SWT.Deactivate, new Listener() {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -143,6 +143,12 @@ public void handleEvent (Event e) {
 			((FocusListener) eventListener).focusLost(new FocusEvent(e));
 			break;
 		}
+		case SWT.Gesture: {
+			GestureEvent event = new GestureEvent(e);
+			((GestureListener)eventListener).gesture(event);
+			e.doit = event.doit;
+			break;
+		}
 		case SWT.Help: {
 			((HelpListener) eventListener).helpRequested (new HelpEvent (e));
 			break;
@@ -239,6 +245,10 @@ public void handleEvent (Event e) {
 		}
 		case SWT.Show: {
 			((MenuListener) eventListener).menuShown(new MenuEvent(e));
+			break;
+		}
+		case SWT.Touch: {
+			((TouchListener)eventListener).touch(new TouchEvent(e));
 			break;
 		}
 		case SWT.Traverse: {

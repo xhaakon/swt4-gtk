@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -210,13 +210,28 @@ void _setVisible (boolean visible) {
 				}
 			}
 			int /*long*/ address = hasLocation ? display.menuPositionProc: 0;
+			int /*long*/ data = 0;
+			if ((OS.GTK_VERSION >=  OS.VERSION (2, 10, 0))) {
+				/*
+				* Popup-menu to the status icon should be aligned to  
+				* Tray rather than to cursor position. There is a 
+				* possibility (unlikely) that TrayItem might have  
+				* been disposed in the listener, for which case  
+				* the menu should be shown in the cursor position. 
+				*/
+				TrayItem item = display.currentTrayItem;
+				if (item != null && !item.isDisposed()) {
+					 data = item.handle;
+					 address = OS.gtk_status_icon_position_menu_func ();
+				}
+			}
 			/*
 			* Bug in GTK.  The timestamp passed into gtk_menu_popup is used
 			* to perform an X pointer grab.  It cannot be zero, else the grab
 			* will fail.  The fix is to ensure that the timestamp of the last
 			* event processed is used.
 			*/
-			OS.gtk_menu_popup (handle, 0, 0, address, 0, 0, display.getLastEventTime ());
+			OS.gtk_menu_popup (handle, 0, 0, address, data, 0, display.getLastEventTime ());
 		} else {
 			sendEvent (SWT.Hide);
 		}
@@ -301,9 +316,15 @@ void createHandle (int index) {
 }
 
 void createIMMenu (int /*long*/ imHandle) {
-	if (this.imHandle == imHandle) return;
-	this.imHandle = imHandle;
-	if (imHandle == 0) {
+	boolean showInputMethod = false;
+	int /*long*/ settings = OS.gtk_settings_get_default ();
+	if (settings != 0) {
+		int [] buffer = new int [1];
+		OS.g_object_get (settings, OS.gtk_show_input_method_menu, buffer, 0);
+		showInputMethod = buffer[0] != 0;
+	}
+	if (imHandle == 0 || !showInputMethod) {
+		this.imHandle = 0;
 		if (imItem != 0) {
 			OS.gtk_widget_destroy (imItem);
 			imItem = 0;
@@ -313,7 +334,10 @@ void createIMMenu (int /*long*/ imHandle) {
 			imSeparator = 0;
 		}
 		return;
-	} 
+	}
+	if (this.imHandle == imHandle) return;
+	this.imHandle = imHandle;
+	
 	if (imSeparator == 0) {
 		imSeparator = OS.gtk_separator_menu_item_new ();
 		OS.gtk_widget_show (imSeparator);
@@ -498,6 +522,24 @@ String getNameText () {
 		result = result + items [length-1].getNameText ();
 	}
 	return result;
+}
+
+/**
+ * Returns the orientation of the receiver, which will be one of the
+ * constants <code>SWT.LEFT_TO_RIGHT</code> or <code>SWT.RIGHT_TO_LEFT</code>.
+ *
+ * @return the orientation style
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.7
+ */
+public int getOrientation () {
+	checkWidget();
+	return style & (SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT);
 }
 
 /**
@@ -955,10 +997,44 @@ public void setLocation (Point location) {
 	setLocation (location.x, location.y);
 }
 
-void setOrientation() {
-	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0) {
-		if (handle != 0) OS.gtk_widget_set_direction (handle, OS.GTK_TEXT_DIR_RTL);
-	}
+/**
+ * Sets the orientation of the receiver, which must be one
+ * of the constants <code>SWT.LEFT_TO_RIGHT</code> or <code>SWT.RIGHT_TO_LEFT</code>.
+ * <p>
+ *
+ * @param orientation new orientation style
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.7  
+ */
+public void setOrientation (int orientation) {
+    checkWidget ();    
+    if ((style & (SWT.BAR | SWT.DROP_DOWN)) != 0) return;
+    _setOrientation (orientation);
+}
+
+void _setOrientation (int orientation) {
+    if (OS.GTK_VERSION < OS.VERSION (2, 4, 0)) return;
+    int flags = SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT;
+    if ((orientation & flags) == 0 || (orientation & flags) == flags) return;
+    style &= ~flags;
+    style |= orientation & flags;
+    setOrientation (false);
+}
+
+void setOrientation (boolean create) {
+    if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
+    	int dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
+        if (handle != 0) OS.gtk_widget_set_direction (handle, dir);
+        MenuItem [] items = getItems ();
+        for (int i = 0; i < items.length; i++) {
+            items [i].setOrientation (create);
+        }
+    }
 }
 
 /**

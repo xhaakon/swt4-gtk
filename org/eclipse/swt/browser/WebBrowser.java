@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2010 IBM Corporation and others.
+ * Copyright (c) 2003, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -171,7 +171,7 @@ abstract class WebBrowser {
 		{19,	SWT.PAUSE},
 		{3,		SWT.BREAK},
 
-		/* WebKit/Safari-specific */
+		/* WebKit-specific */
 		{186,	';'},
 		{187,	'='},
 		{189,	'-'},
@@ -300,7 +300,7 @@ static void SetPendingCookies (Vector pendingCookies) {
 	}
 }
 
-public abstract boolean create (Composite parent, int style);
+public abstract void create (Composite parent, int style);
 
 static String CreateErrorString (String error) {
 	return ERROR_ID + error;
@@ -325,7 +325,7 @@ public void createFunction (BrowserFunction function) {
 		Object key = keys.nextElement ();
 		BrowserFunction current = (BrowserFunction)functions.get (key);
 		if (current.name.equals (function.name)) {
-			functions.remove (key);
+			deregisterFunction (current);
 			break;
 		}
 	}
@@ -339,6 +339,8 @@ public void createFunction (BrowserFunction function) {
 	buffer.append (function.name);
 	buffer.append ("() {var result = window.external.callJava("); //$NON-NLS-1$
 	buffer.append (function.index);
+	buffer.append (',');
+	buffer.append (function.token);
 	buffer.append (",Array.prototype.slice.call(arguments)); if (typeof result == 'string' && result.indexOf('"); //$NON-NLS-1$
 	buffer.append (ERROR_ID);
 	buffer.append ("') == 0) {var error = new Error(result.substring("); //$NON-NLS-1$
@@ -390,14 +392,20 @@ public Object evaluate (String script) throws SWTException {
 	buffer.append (functionName);
 	buffer.append (" == undefined) {window.external.callJava("); // $NON-NLS-1$
 	buffer.append (index);
+	buffer.append (',');
+	buffer.append (function.token);
 	buffer.append (", ['"); // $NON-NLS-1$
 	buffer.append (ERROR_ID);
 	buffer.append ("']);} else {try {var result = "); // $NON-NLS-1$
 	buffer.append (functionName);
 	buffer.append ("(); window.external.callJava("); // $NON-NLS-1$
 	buffer.append (index);
+	buffer.append (',');
+	buffer.append (function.token);
 	buffer.append (", [result]);} catch (e) {window.external.callJava("); // $NON-NLS-1$
 	buffer.append (index);
+	buffer.append (',');
+	buffer.append (function.token);
 	buffer.append (", ['"); // $NON-NLS-1$
 	buffer.append (ERROR_ID);
 	buffer.append ("' + e.message]);}}"); // $NON-NLS-1$
