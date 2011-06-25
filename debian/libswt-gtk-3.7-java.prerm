@@ -4,7 +4,7 @@ set -e
 case "$1" in
     remove|upgrade|deconfigure)
 		update-alternatives --remove swt.jar \
-                /usr/lib/java/swt-gtk-3.6.2.jar
+                /usr/lib/java/swt-gtk-3.7.jar
 	;;
     failed-upgrade)
 	;;
