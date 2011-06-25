@@ -1,5 +1,6 @@
 Description: Use -Wl,--as-needed when linking
 Author: أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
+Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
 --- a/make_linux.mak
 +++ b/make_linux.mak
 @@ -137,7 +137,7 @@
