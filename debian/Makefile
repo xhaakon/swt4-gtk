@@ -8,7 +8,7 @@ RM=rm -f
 
 all: $(JAVA)
 	$(MAKE) -f make_linux.mak make_atk make_awt make_cairo make_glx \
-		make_gnome make_mozilla make_swt make_xpcominit make_xulrunner make_webkit
+		make_gnome make_swt make_webkit
 
 clean distclean:
 	$(RM) $(CLEANFILES)

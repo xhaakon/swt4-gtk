@@ -1,3 +1,0 @@
-libswt-mozilla-*[0-9].so usr/lib/jni
-libswt-xulrunner-*[0-9].so usr/lib/jni
-libswt-xpcominit-*[0-9].so usr/lib/jni

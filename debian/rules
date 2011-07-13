@@ -42,6 +42,3 @@ ifneq (,$(filter $(DEB_HOST_ARCH), $(gcj_native_archs)))
 common-binary-post-install-arch::
 	dh_nativejava -a
 endif
-
-common-binary-predeb-arch::
-	dh_xulrunner

@@ -6,7 +6,7 @@ Uploaders: Adrian Perez <blackxored@debian.org>,
            أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
 DM-Upload-Allowed: yes
 Build-Depends: default-jdk, gcj-native-helper, libgnomeui-dev, libxtst-dev,
- xulrunner-dev, libxcb-render-util0-dev, libxt-dev,
+ libxcb-render-util0-dev, libxt-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev,
  fastjar, cdbs, patchutils, debhelper (>= 8), libwebkit-dev
 Standards-Version: 3.9.2
@@ -50,17 +50,6 @@ Description: Standard Widget Toolkit for GTK+ GNOME JNI library
  .
  This package includes the GNOME JNI library.
 
-Package: libswt-mozilla-gtk-3-jni
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Standard Widget Toolkit for GTK+ Mozilla JNI library
- The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
- programming language. SWT provides efficient, portable and fast access to
- native controls and user interface facilities on the platforms where it has
- been implemented.
- .
- This package includes the Mozilla JNI libraries.
-
 Package: libswt-cairo-gtk-3-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -102,7 +91,6 @@ Depends: ${misc:Depends}, ${shlibs:Depends},
 	  libswt-glx-gtk-3-jni (= ${binary:Version}),
 	  libswt-gnome-gtk-3-jni (= ${binary:Version}),
 	  libswt-gtk-3-jni (= ${binary:Version}),
-	  libswt-mozilla-gtk-3-jni (= ${binary:Version}),
 	  libswt-webkit-gtk-3-jni (= ${binary:Version})
 Description: Standard Widget Toolkit for GTK+ native library
  The Standard Widget Toolkit (SWT) is a fast and rich GUI toolkit for the Java
