@@ -1,3 +1,16 @@
+swt-gtk (3.7-2) unstable; urgency=low
+
+  * Disable xulrunner support and enable webkit (Closes: #631048)
+    + debian/control:
+      - Remove xulrunner-dev from Build-Deps
+      - Remove libswt-mozilla-gtk-3-jni package
+    + debian/Makefile: do not build mozilla/xpcom/xulrunner extensions
+    + debian/rules: do not call dh_xulrunner
+    + remove debian/libswt-mozilla-gtk-3-jni.install
+    (Patch from Ubuntu)
+
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Wed, 13 Jul 2011 17:57:26 +0200
+
 swt-gtk (3.7-1) unstable; urgency=low
 
   * New upstream release.
