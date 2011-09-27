@@ -1465,12 +1465,30 @@ public static final int /*long*/ GDK_TYPE_PIXBUF() {
 	} finally {
 		lock.unlock();
 	}
+} 
+public static final native boolean _GTK_IS_ACCEL_LABEL(int /*long*/ obj);
+public static final boolean GTK_IS_ACCEL_LABEL(int /*long*/ obj) {
+	lock.lock();
+	try {
+		return _GTK_IS_ACCEL_LABEL(obj);
+	} finally {
+		lock.unlock();
+	}
 }
 public static final native boolean _GTK_IS_BUTTON(int /*long*/ obj);
 public static final boolean GTK_IS_BUTTON(int /*long*/ obj) {
 	lock.lock();
 	try {
 		return _GTK_IS_BUTTON(obj);
+	} finally {
+		lock.unlock();
+	}
+}
+public static final native boolean _GTK_IS_LABEL(int /*long*/ obj);
+public static final boolean GTK_IS_LABEL(int /*long*/ obj) {
+	lock.lock();
+	try {
+		return _GTK_IS_LABEL(obj);
 	} finally {
 		lock.unlock();
 	}
@@ -3584,6 +3602,16 @@ public static final void gdk_cairo_region(int /*long*/ cairo, int /*long*/ regio
 	lock.lock();
 	try {
 		_gdk_cairo_region(cairo, region);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native void _gdk_cairo_reset_clip(int /*long*/ cairo, int /*long*/ drawable);
+public static final void gdk_cairo_reset_clip(int /*long*/ cairo, int /*long*/ drawable) {
+	lock.lock();
+	try {
+		_gdk_cairo_reset_clip(cairo, drawable);
 	} finally {
 		lock.unlock();
 	}
