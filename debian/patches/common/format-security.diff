@@ -1,0 +1,15 @@
+Description: Fix FTBFS with -Werror=format-security compiler flag set
+Author: أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
+Bug: https://bugs.eclipse.org/bugs/show_bug.cgi?id=359538
+Forwarded: https://bugs.eclipse.org/bugs/attachment.cgi?id=204356
+--- a/os.c
++++ b/os.c
+@@ -10830,7 +10830,7 @@
+ 	jintLong rc = 0;
+ 	OS_NATIVE_ENTER(env, that, _1gtk_1message_1dialog_1new_FUNC);
+ 	if (arg4) if ((lparg4 = (*env)->GetByteArrayElements(env, arg4, NULL)) == NULL) goto fail;
+-	rc = (jintLong)gtk_message_dialog_new((GtkWindow *)arg0, (GtkDialogFlags)arg1, (GtkMessageType)arg2, (GtkButtonsType)arg3, (const gchar *)lparg4);
++	rc = (jintLong)gtk_message_dialog_new((GtkWindow *)arg0, (GtkDialogFlags)arg1, (GtkMessageType)arg2, (GtkButtonsType)arg3, "%s", (const gchar *)lparg4);
+ fail:
+ 	if (arg4 && lparg4) (*env)->ReleaseByteArrayElements(env, arg4, lparg4, 0);
+ 	OS_NATIVE_EXIT(env, that, _1gtk_1message_1dialog_1new_FUNC);
