@@ -1,3 +1,18 @@
+swt-gtk (3.7.1-1) unstable; urgency=low
+
+  * New upstream release
+  * Updated arch64.diff patch for new upstream release.
+  * debian/copyright: Updated copyright format & years
+  * debian/libswt-gtk-3-java.{postinst,prerm}: Modify the alternatives links
+    to /usr/share/java/swt-gtk-<majorversion>.jar instead of
+    /usr/lib/java/swt-gtk-<version>.jar
+  * debian/java-config/libswt-gtk-3-java, debian/libswt-gtk-3-java.links,
+    debian/libswt-gtk-3-java.lintian-overrides: Bumped version
+  * Added format-security.diff patch to fix FTBFS with -Werror=format-security
+    compiler flag set.
+
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Fri, 30 Sep 2011 11:27:58 +0200
+
 swt-gtk (3.7-2) unstable; urgency=low
 
   * Disable xulrunner support and enable webkit (Closes: #631048)
