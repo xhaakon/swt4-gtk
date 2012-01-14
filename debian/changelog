@@ -1,6 +1,7 @@
 swt-gtk (3.7.1-2) UNRELEASED; urgency=low
 
   * Add OSGi metadata to jar manifest
+  * Add Jakub Adam to Uploaders
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sat, 14 Jan 2012 17:28:31 +0100
 
