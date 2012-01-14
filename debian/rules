@@ -31,6 +31,7 @@ export AWT_LIB_PATH=/usr/lib/jvm/default-java/jre/lib/$(AWT_LIB_DIR)
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/javahelper.mk
 
 include /usr/share/gcj/debian_defaults
 
