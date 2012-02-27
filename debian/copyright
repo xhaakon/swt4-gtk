@@ -1,58 +1,58 @@
-Format: http://anonscm.debian.org/viewvc/dep/web/deps/dep5.mdwn?view=co&pathrev=174
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0
 Upstream-Name: SWT
 Upstream-Contact: The Eclipse Foundation <platform-swt-dev@eclipse.org>
 Source: http://www.eclipse.org/swt/
 
 Files: *
-Copyright: 2000-2011, IBM Corporation and others
+Copyright: 2000-2011 IBM Corporation and others
 License: EPL-1.0
 
 Files: debian/*
-Copyright: 2009-2010, Adrian Perez <adrianperez.deb@gmail.com>
-           2004-2009, Shaun Jackman <sjackman@debian.org>
-           2011 أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
+Copyright: 2009-2010 Adrian Perez <adrianperez.deb@gmail.com>
+           2004-2009 Shaun Jackman <sjackman@debian.org>
+           2011-2012 أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
 License: GPL-3+
 
 Files: gnome*.[c|h] os*[.c|h] atk*.[c|h]
-Copyright: 2000-2010, IBM Corporation and others
+Copyright: 2000-2010 IBM Corporation and others
 License: LGPL-2.1
 
 Files: cairo*.[c|h] org/eclipse/swt/internal/cairo/*
-Copyright: 2000-2009, IBM Corporation
+Copyright: 2000-2009 IBM Corporation
 License: MPL-1.1
 
 Files: nsIScript*
-Copyright: 2009, IBM Corporation and others
-           1998-1999, Netscape Communications Corporation
+Copyright: 2009 IBM Corporation and others
+           1998-1999 Netscape Communications Corporation
 License: MPL-1.1 or GPL-2+ or LGPL-2.1
 
 Files: org/eclipse/swt/internal/mozilla/*.java
-Copyright: 2003-2011, IBM Corporation
-           1998-1999, Netscape Communications Corporation
+Copyright: 2003-2011 IBM Corporation
+           1998-1999 Netscape Communications Corporation
 License: MPL-1.1
 
 Files: org/eclipse/swt/internal/accessibility/gtk/*
-Copyright: 2000-2010, IBM Corporation
+Copyright: 2000-2010 IBM Corporation
 License: LGPL-2.1
 
 Files: org/eclipse/swt/internal/gtk/[^X]*.java
-Copyright: 2000-2011, IBM Corporation and others
+Copyright: 2000-2011 IBM Corporation and others
 License: LGPL-2.1
 
 Files: org/eclipse/swt/internal/gnome/*
-Copyright: 2000-2010, IBM Corporation and others
+Copyright: 2000-2010 IBM Corporation and others
 License: LGPL-2.1
 
 Files: org/eclipse/swt/internal/cde/*
-Copyright: 2000-2008, IBM Corporation and others
+Copyright: 2000-2008 IBM Corporation and others
 License: LGPL-2.1
 
 Files: org/eclipse/swt/internal/image/JPEGFileFormat.java
-Copyright: 2000-2008, IBM Corporation and others
+Copyright: 2000-2008 IBM Corporation and others
 License: other
 
 Files: webkitgtk* org/eclipse/internal/webkit/*
-Copyright: 2009-2011, IBM Corporation and others
+Copyright: 2009-2011 IBM Corporation and others
 License: LGPL-2.1
 
 
