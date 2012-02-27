@@ -10,7 +10,7 @@ Build-Depends: default-jdk, gcj-native-helper, libgnomeui-dev, libxtst-dev,
  libxcb-render-util0-dev, libxt-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev,
  fastjar, cdbs, patchutils, debhelper (>= 8), libwebkit-dev, javahelper
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Vcs-Git: git://git.debian.org/git/pkg-java/swt-gtk.git
 Vcs-Browser: http://git.debian.org/?p=pkg-java/swt-gtk.git
 Homepage: http://www.eclipse.org/swt/
