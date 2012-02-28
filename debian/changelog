@@ -1,9 +1,20 @@
-swt-gtk (3.7.1-2) UNRELEASED; urgency=low
+swt-gtk (3.7.2-1) unstable; urgency=low
 
+  [ أحمد المحمودي (Ahmed El-Mahmoudy) ]
+  * New upstream release.
+  * Updated arch64.diff patch for new upstream release.
+  * debian/java-config/libswt-gtk-3-java, debian/libswt-gtk-3-java.links,
+    debian/libswt-gtk-3-java.lintian-overrides, debian/manifest: Bumped
+    version.
+  * debian/control: Updated Standards-Version to 3.9.3
+  * Bumped compat level to 9
+  * debian/copyright: Updated copyright years & format URL.
+
+  [ Jakub Adam ]
   * Add OSGi metadata to jar manifest
   * Add Jakub Adam to Uploaders
 
- -- Jakub Adam <jakub.adam@ktknet.cz>  Sat, 14 Jan 2012 17:28:31 +0100
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Mon, 27 Feb 2012 22:42:15 +0200
 
 swt-gtk (3.7.1-1) unstable; urgency=low
 
