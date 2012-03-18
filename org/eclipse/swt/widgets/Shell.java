@@ -659,9 +659,7 @@ void createHandle (int index) {
 			if (!isUndecorated ()) {
 				OS.gtk_window_set_type_hint (shellHandle, OS.GDK_WINDOW_TYPE_HINT_DIALOG);
 			} else {
-				if (OS.GTK_VERSION >= OS.VERSION (2, 2, 0)) {
-					OS.gtk_window_set_skip_taskbar_hint (shellHandle, true);
-				}
+				OS.gtk_window_set_skip_taskbar_hint (shellHandle, true);
 			}
 		}
 		/*
@@ -725,7 +723,9 @@ int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*
 					case OS.NotifyNonlinear:
 					case OS.NotifyNonlinearVirtual:
 					case OS.NotifyAncestor:
-						if (tooltipsHandle != 0) OS.gtk_tooltips_enable (tooltipsHandle);
+						if (tooltipsHandle != 0 && OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
+						    OS.gtk_tooltips_enable (tooltipsHandle);
+						}
 						display.activeShell = this;
 						display.activePending = false;
 						sendEvent (SWT.Activate);
@@ -743,7 +743,9 @@ int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*
 					case OS.NotifyNonlinear:
 					case OS.NotifyNonlinearVirtual:
 					case OS.NotifyVirtual:
-						if (tooltipsHandle != 0) OS.gtk_tooltips_disable (tooltipsHandle);
+						if (tooltipsHandle != 0 && OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
+							OS.gtk_tooltips_disable (tooltipsHandle);
+						}
 						Display display = this.display;
 						sendEvent (SWT.Deactivate);
 						setActiveControl (null);
@@ -1687,7 +1689,7 @@ void setCursor (int /*long*/ cursor) {
 		if (!OS.GDK_WINDOWING_X11 ()) {
 			OS.gdk_flush ();
 		} else {
-			int /*long*/ xDisplay = OS.GDK_DISPLAY ();
+			int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
 			OS.XFlush (xDisplay);
 		}
 	}
@@ -1737,7 +1739,7 @@ public void setEnabled (boolean enabled) {
 				if (!OS.GDK_WINDOWING_X11 ()) {
 					OS.gdk_flush ();
 				} else {
-					int /*long*/ xDisplay = OS.GDK_DISPLAY ();
+					int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
 					OS.XFlush (xDisplay);
 				}
 			}
@@ -2035,6 +2037,8 @@ public void setVisible (boolean visible) {
 				OS.GDK_MAP,
 				OS.GDK_UNMAP,
 				OS.GDK_NO_EXPOSE,
+				OS.GDK_VISIBILITY_NOTIFY,
+				OS.GDK_WINDOW_STATE 
 			};
 			Display display = this.display;
 			display.putGdkEvents();
@@ -2118,7 +2122,7 @@ void showWidget () {
 		* no focusIn events are generated on the window until the window loses
 		* and gain focus.
 		*/
-		if (OS.GTK_VERSION >= OS.VERSION (2, 4, 0) && OS.gtk_window_is_active (shellHandle)) {
+		if (OS.gtk_window_is_active (shellHandle)) {
 			display.activeShell = this;
 			display.activePending = true;
 		}
@@ -2259,9 +2263,6 @@ void updateModal () {
 			OS.gtk_window_group_remove_window (modalGroup, shellHandle);
 		}
 	}
-	if (OS.GTK_VERSION < OS.VERSION (2, 4, 0)) {
-		fixModal (group, modalGroup);
-	}
 	modalGroup = group;
 }
 
@@ -2395,6 +2396,12 @@ void setToolTipText (int /*long*/ rootWidget, int /*long*/ tipWidget, String str
 			char [] chars = fixMnemonic (string, false);
 			buffer = Converter.wcsToMbcs (null, chars, true);
 		}
+		int /*long*/ oldTooltip = OS.gtk_widget_get_tooltip_text (rootWidget);
+		if (buffer == null && oldTooltip == 0) {
+			return;
+		} else if (buffer != null && oldTooltip != 0) {
+				if (OS.strcmp (oldTooltip, buffer) == 0) return;
+		}
 		OS.gtk_widget_set_tooltip_text (rootWidget, null);
 		/*
 		* Bug in GTK. In GTK 2.12, due to a miscalculation of window
@@ -2436,6 +2443,17 @@ void setToolTipText (int /*long*/ rootWidget, int /*long*/ tipWidget, String str
 			char [] chars = fixMnemonic (string, false);
 			buffer = Converter.wcsToMbcs (null, chars, true);
 		}
+		int /*long*/ tipData = OS.gtk_tooltips_data_get(tipWidget);
+		if (tipData != 0) {
+			int /*long*/ oldTooltip = OS.GTK_TOOLTIPS_GET_TIP_TEXT(tipData);
+			if (string == null && oldTooltip == 0) {
+				return;
+			} else if (string != null && oldTooltip != 0) {
+				if (buffer != null) {
+					if (OS.strcmp (oldTooltip, buffer) == 0) return;
+				}
+			}
+		}
 		if (tooltipsHandle == 0) {
 			tooltipsHandle = OS.gtk_tooltips_new ();
 			if (tooltipsHandle == 0) error (SWT.ERROR_NO_HANDLES);
@@ -2451,10 +2469,10 @@ void setToolTipText (int /*long*/ rootWidget, int /*long*/ tipWidget, String str
 		* Bug in Solaris-GTK.  Invoking gtk_tooltips_force_window()
 		* can cause a crash in older versions of GTK.  The fix is
 		* to avoid this call if the GTK version is older than 2.2.x.
+		* The call is to be avoided on GTK versions newer than 2.12.0
+		* where it's deprecated.
 		*/
-		if (OS.GTK_VERSION >= OS.VERSION (2, 2, 1)) {
-			OS.gtk_tooltips_force_window (tooltipsHandle);
-		}
+		OS.gtk_tooltips_force_window (tooltipsHandle);
 		int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (tooltipsHandle);
 		if (tipWindow != 0 && tipWindow != tooltipWindow) {
 			OS.g_signal_connect (tipWindow, OS.size_allocate, display.sizeAllocateProc, shellHandle);

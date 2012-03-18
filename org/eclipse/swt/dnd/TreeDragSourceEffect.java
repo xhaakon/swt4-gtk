@@ -98,7 +98,8 @@ public class TreeDragSourceEffect extends DragSourceEffect {
 		if (count == 1) {
 			int /*long*/ path = OS.g_list_nth_data (list, 0);
 			int /*long*/ pixmap = OS.gtk_tree_view_create_row_drag_icon(handle, path);
-			dragSourceImage =  Image.gtk_new(display, SWT.ICON, pixmap, 0); 
+			dragSourceImage =  Image.gtk_new(display, SWT.ICON, pixmap, 0);
+			OS.gtk_tree_path_free (path);
 		} else {
 			int width = 0, height = 0;
 			int[] w = new int[1], h = new int[1];
@@ -114,10 +115,11 @@ public class TreeDragSourceEffect extends DragSourceEffect {
 				height = rect.y + h[0] - yy[0];
 				yy[i] = rect.y;
 				hh[i] = h[0];
+				OS.gtk_tree_path_free (path);
 			}
-			int /*long*/ source = OS.gdk_pixmap_new(OS.GDK_ROOT_PARENT(), width, height, -1);
+			int /*long*/ source = OS.gdk_pixmap_new(OS.gdk_get_default_root_window(), width, height, -1);
 			int /*long*/ gcSource = OS.gdk_gc_new(source);
-			int /*long*/ mask = OS.gdk_pixmap_new(OS.GDK_ROOT_PARENT(), width, height, 1);
+			int /*long*/ mask = OS.gdk_pixmap_new(OS.gdk_get_default_root_window(), width, height, 1);
 			int /*long*/ gcMask = OS.gdk_gc_new(mask);
 			GdkColor color = new GdkColor();
 			color.pixel = 0;

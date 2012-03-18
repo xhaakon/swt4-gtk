@@ -74,7 +74,7 @@ static int getDesktop(final Display display) {
 	int desktop = DESKTOP_UNKNOWN;
 
 	/* Get the list of properties on the root window. */
-	int /*long*/ xDisplay = OS.GDK_DISPLAY();
+	int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
 	int /*long*/ rootWindow = OS.XDefaultRootWindow(xDisplay);
 	int[] numProp = new int[1];
 	int /*long*/ propList = OS.XListProperties(xDisplay, rootWindow, numProp);
@@ -307,7 +307,7 @@ static boolean cde_init(Display display) {
 	/* Use the character encoding for the default locale */
 	CDE.XtToolkitInitialize();
 	int /*long*/ xtContext = CDE.XtCreateApplicationContext ();
-	int /*long*/ xDisplay = OS.GDK_DISPLAY();
+	int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
 	byte[] appName = Converter.wcsToMbcs(null, "CDE", true);
 	byte[] appClass = Converter.wcsToMbcs(null, "CDE", true);
 	int /*long*/ [] argc = new int /*long*/ [] {0};
@@ -954,7 +954,7 @@ static boolean gio_isExecutable(String fileName) {
 static boolean gio_launch(String fileName) {
 	boolean result = false;
 	byte[] fileNameBuffer = Converter.wcsToMbcs (null, fileName, true);
-	int /*long*/ file = OS.g_file_new_for_path (fileNameBuffer);
+	int /*long*/ file = OS.g_file_new_for_commandline_arg (fileNameBuffer);
 	if (file != 0) {
 		int /*long*/ uri = OS.g_file_get_uri (file);
 		if (uri != 0) {

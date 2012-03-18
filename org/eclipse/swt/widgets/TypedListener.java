@@ -185,6 +185,7 @@ public void handleEvent (Event e) {
 			e.x = event.x;
 			e.y = event.y;
 			e.doit = event.doit;
+			e.detail = event.detail;
 			break;
 		}
 		case SWT.MouseDown: {
@@ -232,6 +233,13 @@ public void handleEvent (Event e) {
 		}
 		case SWT.Resize: {
 			((ControlListener) eventListener).controlResized(new ControlEvent(e));
+			break;
+		}
+		case SWT.Segments: {
+			SegmentEvent event = new SegmentEvent(e);
+			((SegmentListener) eventListener).getSegments(event);
+			e.segments = event.segments;
+			e.segmentsChars = event.segmentsChars;
 			break;
 		}
 		case SWT.Selection: {

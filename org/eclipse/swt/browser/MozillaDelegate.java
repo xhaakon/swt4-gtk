@@ -69,12 +69,38 @@ static Browser findBrowser (int /*long*/ handle) {
 	return (Browser)display.findWidget (parent); 
 }
 
+static String getJSLibraryName () {
+	return "libxul.so"; //$NON-NLS-1$
+}
+
+static String getJSLibraryName_Pre4() {
+	return "libmozjs.so"; //$NON-NLS-1$
+}
+
 static String getLibraryName () {
 	return "libxpcom.so"; //$NON-NLS-1$
 }
 
+static String getSWTInitLibraryName () {
+	return "swt-xpcominit"; //$NON-NLS-1$
+}
+
+static void loadAdditionalLibraries (String mozillaPath) {
+// the following is intentionally commented
+
+//	if (!Mozilla.IsPre_4) {
+//		System.loadLibrary ("swt-xulrunner10"); // get it extracted
+//		byte[] bytes = Converter.wcsToMbcs (null, /* path to libswt-xulrunner10.so */ "", true); //$NON-NLS-1$
+//		OS.dlopen (bytes, OS.RTLD_NOW | OS.RTLD_GLOBAL);
+//	}
+}
+
 static char[] mbcsToWcs (String codePage, byte [] buffer) {
 	return Converter.mbcsToWcs (codePage, buffer);
+}
+
+static boolean needsSpinup () {
+	return true;
 }
 
 static byte[] wcsToMbcs (String codePage, String string, boolean terminate) {
@@ -105,17 +131,9 @@ int /*long*/ getHandle () {
 	return embedHandle;
 }
 
-String getJSLibraryName () {
-	return "libmozjs.so"; //$NON-NLS-1$
-}
-
 String getProfilePath () {
 	String baseDir = System.getProperty ("user.home"); //$NON-NLS-1$
 	return baseDir + Mozilla.SEPARATOR_OS + ".mozilla" + Mozilla.SEPARATOR_OS + "eclipse"; //$NON-NLS-1$ //$NON-NLS-2$
-}
-
-static String GetSWTInitLibraryName () {
-	return "swt-xpcominit"; //$NON-NLS-1$
 }
 
 int /*long*/ gtk_event (int /*long*/ handle, int /*long*/ gdkEvent, int /*long*/ pointer) {
@@ -210,10 +228,6 @@ void init () {
 			OS.g_signal_connect (mozillaHandle, OS.button_press_event, eventProc, STOP_PROPOGATE);
 		}
 	}
-}
-
-boolean needsSpinup () {
-	return true;
 }
 
 void onDispose (int /*long*/ embedHandle) {

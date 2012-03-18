@@ -55,7 +55,15 @@ JNIEXPORT jint JNICALL XPCOM_NATIVE(_1JS_1EvaluateUCScriptForPrincipals)
 	{
 	
 #ifdef _WIN32
-		LOAD_FUNCTION(fp, JS_EvaluateUCScriptForPrincipals)
+		static int initialized = 0;
+		static FARPROC fp = NULL;
+		if (!initialized) {
+			HMODULE hm = LoadLibrary((const char *)lpmozillaPath);
+			if (hm) {
+				fp = GetProcAddress(hm, "JS_EvaluateUCScriptForPrincipals");
+			}
+			initialized = 1;
+		}
 		if (fp) {
 			rc = (jint)((jint (*)(jintLong, jintLong, jintLong, jchar *, jint, jbyte *, jint, jintLong *))fp)(arg0, arg1, arg2, lparg3, arg4, lparg5, arg6, lparg7);
 		}
@@ -85,6 +93,55 @@ fail:
 }
 #endif
 
+#ifndef NO__1JS_1GetGlobalObject
+JNIEXPORT jintLong JNICALL XPCOM_NATIVE(_1JS_1GetGlobalObject)
+	(JNIEnv *env, jclass that, jbyteArray mozillaPath, jintLong arg0)
+{
+	jbyte *lpmozillaPath=NULL;
+	jintLong rc = 0;
+	XPCOM_NATIVE_ENTER(env, that, _1JS_1GetGlobalObject_FUNC);
+	if (mozillaPath) if ((lpmozillaPath = env->GetByteArrayElements(mozillaPath, NULL)) == NULL) goto fail;
+/*
+	rc = (jint)JS_GetGlobalObject(arg0);
+*/
+	{
+	
+#ifdef _WIN32
+		static int initialized = 0;
+		static FARPROC fp = NULL;
+		if (!initialized) {
+			HMODULE hm = LoadLibrary((const char *)lpmozillaPath);
+			if (hm) {
+				fp = GetProcAddress(hm, "JS_GetGlobalObject");
+			}
+			initialized = 1;
+		}
+		if (fp) {
+			rc = (jintLong)((jint (*)(jintLong))fp)(arg0);
+		}
+#else
+#define CALLING_CONVENTION
+		static int initialized = 0;
+		static void *fp = NULL;
+		if (!initialized) {
+			void* handle = dlopen((const char *)lpmozillaPath, RTLD_LAZY);
+			if (handle) {
+				fp = dlsym(handle, "JS_GetGlobalObject");
+			}
+			initialized = 1;
+		}
+		if (fp) {
+			rc = (jintLong)((jint (CALLING_CONVENTION*)(jintLong))fp)(arg0);
+		}
+#endif /* _WIN32 */
+	}
+fail:
+	if (mozillaPath && lpmozillaPath) env->ReleaseByteArrayElements(mozillaPath, lpmozillaPath, 0);
+	XPCOM_NATIVE_EXIT(env, that, _1JS_1GetGlobalObject_FUNC);
+	return rc;
+}
+#endif
+
 #ifndef NO__1NS_1Free
 JNIEXPORT jint JNICALL XPCOM_NATIVE(_1NS_1Free)
 	(JNIEnv *env, jclass that, jbyteArray mozillaPath, jintLong arg0)
@@ -99,7 +156,7 @@ JNIEXPORT jint JNICALL XPCOM_NATIVE(_1NS_1Free)
 	{
 	
 #ifdef _WIN32
-		LOAD_FUNCTION(fp, NS_Free)
+		XPCOM_LOAD_FUNCTION(fp, NS_Free)
 		if (fp) {
 			((jint (*)(void *))fp)((void *)arg0);
 			rc = 1;

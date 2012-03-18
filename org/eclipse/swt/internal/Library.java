@@ -11,6 +11,8 @@
 package org.eclipse.swt.internal;
 
 import java.io.*;
+import java.net.*;
+import java.util.jar.*;
 
 public class Library {
 
@@ -24,7 +26,7 @@ public class Library {
 	/**
 	 * SWT Minor version number (must be in the range 0..999)
 	 */
-    static int MINOR_VERSION = 740;
+    static int MINOR_VERSION = 823;
 	
 	/**
 	 * SWT revision number (must be >= 0)
@@ -158,6 +160,50 @@ static boolean extract (String fileName, String mappedName, StringBuffer message
 			if (is != null) is.close ();
 		} catch (IOException e1) {}
 		if (extracted && file.exists ()) file.delete ();
+	}
+	return false;
+}
+
+static boolean isLoadable () {
+	URL url = Platform.class.getClassLoader ().getResource ("org/eclipse/swt/internal/Library.class"); //$NON-NLS-1$
+	if (!url.getProtocol ().equals ("jar")) { //$NON-NLS-1$
+		/* SWT is presumably running in a development environment */
+		return true;
+	}
+
+	try {
+		url = new URL (url.getPath ());
+	} catch (MalformedURLException e) {
+		/* should never happen since url's initial path value must be valid */
+	}
+	String path = url.getPath ();
+	int index = path.indexOf ('!');
+	File file = new File (path.substring (0, index));
+
+	Attributes attributes = null;
+	try {
+		JarFile jar = new JarFile (file);
+		attributes = jar.getManifest ().getMainAttributes ();
+	} catch (IOException e) {
+		/* should never happen for a valid SWT jar with the expected manifest values */
+		return false;
+	}
+
+	String os = os ();
+	String arch = arch ();
+	String manifestOS = attributes.getValue ("SWT-OS"); //$NON-NLS-1$
+	String manifestArch = attributes.getValue ("SWT-Arch"); //$NON-NLS-1$
+	if (arch.equals (manifestArch) && os.equals (manifestOS)) {
+		return true;
+	}
+
+	/*
+	* Mac has a special case since SWT's 32-bit libraries on Mac contain natives
+	* for both the x86 and PPC architectures.  For this reason SWT's manifest file
+	* for 32-bit Mac does not specify a value for SWT-Arch. 
+	*/
+	if (os.equals ("macosx") && os.equals (manifestOS)) { //$NON-NLS-1$
+		return manifestArch.length () == 0 && (arch.equals ("ppc") || arch.equals ("x86")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 	return false;
 }

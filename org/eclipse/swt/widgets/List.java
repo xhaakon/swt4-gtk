@@ -207,6 +207,7 @@ void createHandle (int index) {
 	if (columnHandle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_tree_view_column_pack_start (columnHandle, textRenderer, true);
 	OS.gtk_tree_view_column_add_attribute (columnHandle, textRenderer, OS.text, TEXT_COLUMN);
+	OS.gtk_tree_view_column_set_min_width (columnHandle, 0);
 	OS.gtk_tree_view_insert_column (handle, columnHandle, index);
 	OS.gtk_container_add (fixedHandle, scrolledHandle);
 	OS.gtk_container_add (scrolledHandle, handle);
@@ -250,6 +251,8 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
 	if (hHint != SWT.DEFAULT && hHint < 0) hHint = 0;
 	Point size = computeNativeSize (handle, wHint, hHint, changed);
+	if (size.x == 0 && wHint == SWT.DEFAULT) size.x = DEFAULT_WIDTH;
+	if (size.y == 0 && hHint == SWT.DEFAULT) size.y = DEFAULT_HEIGHT;
 	Rectangle trim = computeTrim (0, 0, size.x, size.y);
 	size.x = trim.width;
 	size.y = trim.height;
@@ -576,12 +579,6 @@ public String [] getSelection () {
 public int getSelectionCount () {
 	checkWidget();
 	int /*long*/ selection = OS.gtk_tree_view_get_selection (handle);
-	if (OS.GTK_VERSION < OS.VERSION (2, 2, 0)) {
-		display.treeSelectionLength = 0;
-		display.treeSelection = null;
-		OS.gtk_tree_selection_selected_foreach (selection, display.treeSelectionProc, handle);
-		return display.treeSelectionLength;
-	}
 	return OS.gtk_tree_selection_count_selected_rows (selection);
 }
 
@@ -599,21 +596,7 @@ public int getSelectionCount () {
 public int getSelectionIndex () {
 	checkWidget();
 	int /*long*/ selection = OS.gtk_tree_view_get_selection (handle);
-	if (OS.GTK_VERSION < OS.VERSION (2, 2, 0)) {
-		int itemCount = OS.gtk_tree_model_iter_n_children (modelHandle, 0);
-		display.treeSelectionLength  = 0;
-		display.treeSelection = new int [itemCount];
-		OS.gtk_tree_selection_selected_foreach (selection, display.treeSelectionProc, handle);
-		if (display.treeSelectionLength == 0) return -1;
-		return display.treeSelection [0];
-	}
-	/*
-	* Bug in GTK.  gtk_tree_selection_get_selected_rows() segmentation faults
-	* in versions smaller than 2.2.4 if the model is NULL.  The fix is
-	* to give a valid pointer instead.
-	*/
-	int /*long*/ [] model = OS.GTK_VERSION < OS.VERSION (2, 2, 4) ? new int /*long*/ [1] : null;
-	int /*long*/ list = OS.gtk_tree_selection_get_selected_rows (selection, model);
+	int /*long*/ list = OS.gtk_tree_selection_get_selected_rows (selection, null);
 	if (list != 0) {
 		int count = OS.g_list_length (list);
 		int [] index = new int [1];
@@ -622,8 +605,13 @@ public int getSelectionIndex () {
 			int /*long*/ indices = OS.gtk_tree_path_get_indices (data);
 			if (indices != 0) {
 				OS.memmove (index, indices, 4);
+				for (int j = i; j < count; j++) {
+					data = OS.g_list_nth_data (list, j);
+					OS.gtk_tree_path_free (data);
+				}
 				break;
 			}
+			OS.gtk_tree_path_free (data);
 		}
 		OS.g_list_free (list);
 		return index [0];
@@ -650,23 +638,7 @@ public int getSelectionIndex () {
 public int [] getSelectionIndices () {
 	checkWidget();
 	int /*long*/ selection = OS.gtk_tree_view_get_selection (handle);
-	if (OS.GTK_VERSION < OS.VERSION (2, 2, 0)) {
-		int itemCount = OS.gtk_tree_model_iter_n_children (modelHandle, 0);
-		display.treeSelectionLength  = 0;
-		display.treeSelection = new int [itemCount];
-		OS.gtk_tree_selection_selected_foreach (selection, display.treeSelectionProc, handle);
-		if (display.treeSelectionLength == display.treeSelection.length) return display.treeSelection;
-		int [] result = new int [display.treeSelectionLength];
-		System.arraycopy (display.treeSelection, 0, result, 0, display.treeSelectionLength);
-		return result;
-	}
-	/*
-	* Bug in GTK.  gtk_tree_selection_get_selected_rows() segmentation faults
-	* in versions smaller than 2.2.4 if the model is NULL.  The fix is
-	* to give a valid pointer instead.
-	*/
-	int /*long*/ [] model = OS.GTK_VERSION < OS.VERSION (2, 2, 4) ? new int /*long*/ [1] : null;
-	int /*long*/ list = OS.gtk_tree_selection_get_selected_rows (selection, model);
+	int /*long*/ list = OS.gtk_tree_selection_get_selected_rows (selection, null);
 	if (list != 0) {
 		int count = OS.g_list_length (list);
 		int [] treeSelection = new int [count];
@@ -680,6 +652,7 @@ public int [] getSelectionIndices () {
 				treeSelection [length] = index [0];
 				length++;
 			}
+			OS.gtk_tree_path_free (data);
 		}
 		OS.g_list_free (list);
 		int [] result = new int [length];
@@ -790,29 +763,6 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	*/
 	if (!OS.GTK_WIDGET_HAS_FOCUS (handle)) {
 		OS.gtk_widget_grab_focus (handle);
-	}
-	return result;
-}
-
-int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
-	int /*long*/ result = super.gtk_key_press_event (widget, event);
-	if (result != 0) return result;
-	if (OS.GTK_VERSION < OS.VERSION (2, 2 ,0)) {
-		/*
-		* Feature in GTK 2.0.x.  When an item is default selected using
-		* the return key, GTK does not issue notification. The fix is
-		* to issue this notification when the return key is pressed.
-		*/
-		GdkEventKey keyEvent = new GdkEventKey ();
-		OS.memmove (keyEvent, event, GdkEventKey.sizeof);
-		int key = keyEvent.keyval;
-		switch (key) {
-			case OS.GDK_Return:
-			case OS.GDK_KP_Enter: {
-				sendSelectionEvent (SWT.DefaultSelection);
-				break;
-			}
-		}
 	}
 	return result;
 }
@@ -1582,7 +1532,11 @@ public void showSelection () {
 	GdkRectangle cellRect = new GdkRectangle ();
 	OS.gtk_tree_view_get_cell_area (handle, path, 0, cellRect);
 	int[] tx = new int[1], ty = new int[1];
-	OS.gtk_tree_view_widget_to_tree_coords(handle, cellRect.x, cellRect.y, tx, ty);
+	if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
+		OS.gtk_tree_view_convert_widget_to_bin_window_coords(handle, cellRect.x, cellRect.y, tx, ty);
+	} else {
+		OS.gtk_tree_view_widget_to_tree_coords(handle, cellRect.x, cellRect.y, tx, ty);
+	}
 	if (ty[0] < visibleRect.y ) {
 		OS.gtk_tree_view_scroll_to_cell (handle, path, 0, true, 0f, 0f);
 		OS.gtk_tree_view_scroll_to_point (handle, -1, ty[0]);
@@ -1596,18 +1550,6 @@ public void showSelection () {
 	}
 	OS.gtk_tree_path_free (path);
 	OS.g_free (iter);
-}
-
-int /*long*/ treeSelectionProc (int /*long*/ model, int /*long*/ path, int /*long*/ iter, int[] selection, int length) {
-	if (selection != null) { 
-		int /*long*/ indices = OS.gtk_tree_path_get_indices (path);
-		if (indices != 0) {
-			int [] index = new int [1];
-			OS.memmove (index, indices, 4);
-			selection [length] = index [0];
-		}
-	}
-	return 0;
 }
 
 }

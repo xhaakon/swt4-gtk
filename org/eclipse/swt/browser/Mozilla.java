@@ -46,7 +46,7 @@ class Mozilla extends WebBrowser {
 	int chromeFlags = nsIWebBrowserChrome.CHROME_DEFAULT;
 	int registerFunctionsOnState = 0;
 	int refCount, lastKeyCode, lastCharCode, authCount;
-	int /*long*/ request;
+	int /*long*/ request, badCertRequest;
 	Point location, size;
 	boolean visible, isChild, ignoreDispose, isRetrievingBadCert, isViewingErrorPage, ignoreAllMessages, untrustedText;
 	boolean updateLastNavigateUrl;
@@ -62,7 +62,7 @@ class Mozilla extends WebBrowser {
 	static int BrowserCount, NextJSFunctionIndex = 1;
 	static Hashtable AllFunctions = new Hashtable ();
 	static Listener DisplayListener;
-	static boolean Initialized, IsPre_1_8, IsPre_1_9, IsXULRunner, PerformedVersionCheck, XPCOMWasGlued, XPCOMInitWasGlued;
+	static boolean Initialized, IsPre_1_8, IsPre_1_9, IsPre_4, IsXULRunner, PerformedVersionCheck, XPCOMWasGlued, XPCOMInitWasGlued;
 	static String MozillaPath;
 	static String oldProxyHostFTP, oldProxyHostHTTP, oldProxyHostSSL;
 	static int oldProxyPortFTP = -1, oldProxyPortHTTP = -1, oldProxyPortSSL = -1, oldProxyType = -1;
@@ -83,7 +83,8 @@ class Mozilla extends WebBrowser {
 	static final char SEPARATOR_OS = System.getProperty ("file.separator").charAt (0); //$NON-NLS-1$
 	static final String ABOUT_BLANK = "about:blank"; //$NON-NLS-1$
 	static final String DISPOSE_LISTENER_HOOKED = "org.eclipse.swt.browser.Mozilla.disposeListenerHooked"; //$NON-NLS-1$
-	static final String HEADER_CONTENTTYPE = "Content-Type"; //$NON-NLS-1
+	static final String HEADER_CONTENTLENGTH = "content-length"; //$NON-NLS-1
+	static final String HEADER_CONTENTTYPE = "content-type"; //$NON-NLS-1
 	static final String MIMETYPE_FORMURLENCODED = "application/x-www-form-urlencoded"; //$NON-NLS-1$
 	static final String PREFIX_JAVASCRIPT = "javascript:"; //$NON-NLS-1$
 	static final String PREFERENCE_CHARSET = "intl.charset.default"; //$NON-NLS-1$
@@ -545,8 +546,7 @@ static String Arch () {
 static void LoadLibraries () {
 	boolean initLoaded = false;
 
-	String greInitialized = System.getProperty (GRE_INITIALIZED);
-	if (TRUE.equals (greInitialized)) {
+	if (Boolean.getBoolean (GRE_INITIALIZED)) {
 		/* 
 		 * Another browser has already initialized xulrunner in this process,
 		 * so just bind to it instead of trying to initialize a new one.
@@ -576,7 +576,7 @@ static void LoadLibraries () {
 
 	if (MozillaPath == null) {
 		try {
-			String libName = MozillaDelegate.GetSWTInitLibraryName ();
+			String libName = MozillaDelegate.getSWTInitLibraryName ();
 			Library.loadLibrary (libName);
 			initLoaded = true;
 		} catch (UnsatisfiedLinkError e) {
@@ -696,7 +696,7 @@ public void create (Composite parent, int style) {
 			/* write external.xpt to the file system if needed */
 			initExternal (profilePath);
 
-			/* load swt's mozilla/xulrunner library and invoke appropriate Init function */
+			/* invoke appropriate Init function (based on mozilla version) */
 			initXPCOM (MozillaPath, IsXULRunner);
 		}
 
@@ -735,11 +735,7 @@ public void create (Composite parent, int style) {
 		 * Check for the property indicating that factories have already been registered,
 		 * in which case this browser should not overwrite them with its own.
 		 */
-		boolean factoriesRegistered = false;
-		String propertyString = System.getProperty (FACTORIES_REGISTERED);
-		if (TRUE.equals (propertyString)) {
-			factoriesRegistered = true;
-		}
+		boolean factoriesRegistered = Boolean.getBoolean (FACTORIES_REGISTERED);
 
 		/* init our WindowCreator, which mozilla uses for the creation of child browsers in external Shells */
 		if (!factoriesRegistered) {
@@ -790,11 +786,13 @@ public void create (Composite parent, int style) {
 	result[0] = 0;
 
 	/* create the nsIWebBrowser instance */
-	nsID NS_IWEBBROWSER_CID = new nsID ("F1EAC761-87E9-11d3-AF80-00A024FFC08C"); //$NON-NLS-1$
-	rc = componentManager.CreateInstance (NS_IWEBBROWSER_CID, 0, nsIWebBrowser.NS_IWEBBROWSER_IID, result);
+	rc = componentManager.CreateInstance (XPCOM.NS_IWEBBROWSER_CID, 0, nsIWebBrowser.NS_IWEBBROWSER_10_IID, result);
 	if (rc != XPCOM.NS_OK) {
-		browser.dispose ();
-		error (rc);
+		rc = componentManager.CreateInstance (XPCOM.NS_IWEBBROWSER_CID, 0, nsIWebBrowser.NS_IWEBBROWSER_IID, result);
+		if (rc != XPCOM.NS_OK) {
+			browser.dispose ();
+			error (rc);
+		}
 	}
 	if (result[0] == 0) {
 		browser.dispose ();
@@ -826,27 +824,10 @@ public void create (Composite parent, int style) {
 		result[0] = 0;
 
 		/*
-		 * Check for the property indicating that factories have already been registered,
-		 * in which case this browser should not overwrite them with its own.
-		 */
-		boolean factoriesRegistered = false;
-		String propertyString = System.getProperty (FACTORIES_REGISTERED);
-		if (TRUE.equals (propertyString)) {
-			factoriesRegistered = true;
-		}
-
-		if (!factoriesRegistered) {
-			HelperAppLauncherDialogFactory dialogFactory = new HelperAppLauncherDialogFactory ();
-			dialogFactory.AddRef ();
-			byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_HELPERAPPLAUNCHERDIALOG_CONTRACTID, true);
-			byte[] aClassName = MozillaDelegate.wcsToMbcs (null, "swtHelperAppLauncherDialog", true); //$NON-NLS-1$
-			rc = componentRegistrar.RegisterFactory (XPCOM.NS_HELPERAPPLAUNCHERDIALOG_CID, aClassName, aContractID, dialogFactory.getAddress ());
-			if (rc != XPCOM.NS_OK) {
-				browser.dispose ();
-				error (rc);
-			}
-			dialogFactory.Release ();
-		}
+		* Check for the property indicating that factories have already been registered,
+		* in which case this browser should not overwrite them with its own.
+		*/
+		boolean factoriesRegistered = Boolean.getBoolean (FACTORIES_REGISTERED);
 
 		/*
 		* Check for the availability of the pre-1.8 implementation of nsIDocShell
@@ -869,8 +850,9 @@ public void create (Composite parent, int style) {
 			IsPre_1_8 = true;
 			new nsISupports (result[0]).Release ();
 		}
-		result[0] = 0;
 		IsPre_1_9 = true;
+		IsPre_4 = true;
+		result[0] = 0;
 
 		/*
 		* A Download factory for contract "Transfer" must be registered iff the GRE's version is 1.8.x.
@@ -901,12 +883,31 @@ public void create (Composite parent, int style) {
 				}
 			} else { /* >= 1.9 */
 				IsPre_1_9 = false;
+				result[0] = 0;
+				rc = interfaceRequestor.GetInterface(nsIDocShell_1_8.NS_IDOCSHELL_10_IID, result);
+				if (rc == XPCOM.NS_OK && result[0] != 0) { /* >= 4.0 */
+					IsPre_4 = false;
+					new nsISupports (result[0]).Release();
+				}
 			}
 		}
 		result[0] = 0;
 		interfaceRequestor.Release ();
 		componentRegistrar.Release ();
 
+		if (!factoriesRegistered) {
+			HelperAppLauncherDialogFactory dialogFactory = new HelperAppLauncherDialogFactory ();
+			dialogFactory.AddRef ();
+			byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_HELPERAPPLAUNCHERDIALOG_CONTRACTID, true);
+			byte[] aClassName = MozillaDelegate.wcsToMbcs (null, "swtHelperAppLauncherDialog", true); //$NON-NLS-1$
+			rc = componentRegistrar.RegisterFactory (XPCOM.NS_HELPERAPPLAUNCHERDIALOG_CID, aClassName, aContractID, dialogFactory.getAddress ());
+			if (rc != XPCOM.NS_OK) {
+				browser.dispose ();
+				error (rc);
+			}
+			dialogFactory.Release ();
+		}
+		
 		System.setProperty (FACTORIES_REGISTERED, TRUE);
 	}
 	componentManager.Release ();
@@ -953,7 +954,56 @@ public void create (Composite parent, int style) {
 					break;
 				}
 				case SWT.Resize: onResize (); break;
-				case SWT.FocusIn: Activate (); break;
+				case SWT.FocusIn: {
+					Activate ();
+
+					/* if tabbing onto a page for the first time then full-Browser focus ring should be shown */
+
+					int /*long*/[] result = new int /*long*/[1];
+					int rc = XPCOM.NS_GetServiceManager (result);
+					if (rc != XPCOM.NS_OK) error (rc);
+					if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
+					nsIServiceManager serviceManager = new nsIServiceManager (result[0]);
+					result[0] = 0;
+					byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_FOCUSMANAGER_CONTRACTID, true);
+					rc = serviceManager.GetServiceByContractID (aContractID, !IsPre_4 ? nsIFocusManager.NS_IFOCUSMANAGER_10_IID : nsIFocusManager.NS_IFOCUSMANAGER_IID, result);
+					serviceManager.Release ();
+
+					if (rc == XPCOM.NS_OK && result[0] != 0) {
+						nsIFocusManager focusManager = new nsIFocusManager (result[0]);
+						result[0] = 0;
+						rc = focusManager.GetFocusedElement (result);
+						if (rc == XPCOM.NS_OK) {
+							if (result[0] != 0) {
+								new nsISupports (result[0]).Release ();
+								result[0] = 0;
+							} else {
+								/* show full browser focus ring */
+								rc = webBrowser.GetContentDOMWindow (result);
+								if (rc == XPCOM.NS_OK && result[0] != 0) {
+									nsIDOMWindow domWindow = new nsIDOMWindow (result[0]);
+									result[0] = 0;
+									rc = domWindow.GetDocument (result);
+									domWindow.Release ();
+									if (rc == XPCOM.NS_OK && result[0] != 0) {
+										nsIDOMDocument domDocument = new nsIDOMDocument (result[0]);
+										result[0] = 0;
+										rc = domDocument.GetDocumentElement (result);
+										domDocument.Release ();
+										if (rc == XPCOM.NS_OK && result[0] != 0) {
+											nsIDOMElement domElement = new nsIDOMElement (result[0]);
+											result[0] = 0;
+											rc = focusManager.SetFocus (domElement.getAddress (), nsIFocusManager.FLAG_BYKEY);
+											domElement.Release ();
+										}
+									}
+								}
+							}
+						}
+						focusManager.Release ();
+					}
+					break;
+				}
 				case SWT.Activate: Activate (); break;
 				case SWT.Deactivate: {
 					Display display = event.display;
@@ -1228,114 +1278,126 @@ public boolean execute (String script) {
 
 		nsIServiceManager serviceManager = new nsIServiceManager (result[0]);
 		result[0] = 0;
-		nsIPrincipal principal = null;
 		byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_SCRIPTSECURITYMANAGER_CONTRACTID, true);
-		rc = serviceManager.GetServiceByContractID (aContractID, nsIScriptSecurityManager_1_9_1.NS_ISCRIPTSECURITYMANAGER_IID, result);
-		if (rc == XPCOM.NS_OK && result[0] != 0) {
-			nsIScriptSecurityManager_1_9_1 securityManager = new nsIScriptSecurityManager_1_9_1 (result[0]);
+		rc = serviceManager.GetServiceByContractID (aContractID, nsIScriptSecurityManager.NS_ISCRIPTSECURITYMANAGER_10_IID, result);
+		if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
 			result[0] = 0;
-			rc = securityManager.GetSystemPrincipal (result);
-			if (rc != XPCOM.NS_OK) error (rc);
-			if (result[0] == 0) error (XPCOM.NS_ERROR_NULL_POINTER);
-			principal = new nsIPrincipal (result[0]);
-			result[0] = 0;
-			securityManager.Release ();
-		} else {
-			rc = serviceManager.GetServiceByContractID (aContractID, nsIScriptSecurityManager_1_9.NS_ISCRIPTSECURITYMANAGER_IID, result);
-			if (rc == XPCOM.NS_OK && result[0] != 0) {
-				nsIScriptSecurityManager_1_9 securityManager = new nsIScriptSecurityManager_1_9 (result[0]);
+			rc = serviceManager.GetServiceByContractID (aContractID, nsIScriptSecurityManager.NS_ISCRIPTSECURITYMANAGER_191_IID, result);
+			if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
 				result[0] = 0;
-				rc = securityManager.GetSystemPrincipal (result);
-				if (rc != XPCOM.NS_OK) error (rc);
-				if (result[0] == 0) error (XPCOM.NS_ERROR_NULL_POINTER);
-				principal = new nsIPrincipal (result[0]);
-				result[0] = 0;
-				securityManager.Release ();
+				rc = serviceManager.GetServiceByContractID (aContractID, nsIScriptSecurityManager.NS_ISCRIPTSECURITYMANAGER_IID, result);
 			}
 		}
 
-		if (principal != null) {
-			rc = webBrowser.QueryInterface (nsIInterfaceRequestor.NS_IINTERFACEREQUESTOR_IID, result);
-			if (rc != XPCOM.NS_OK) error (rc);
-			if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
-
-			nsIInterfaceRequestor interfaceRequestor = new nsIInterfaceRequestor (result[0]);
+		if (rc == XPCOM.NS_OK && result[0] != 0) {
+			nsIScriptSecurityManager securityManager = new nsIScriptSecurityManager (result[0]);
 			result[0] = 0;
-			nsID scriptGlobalObjectNSID_1_9 = new nsID ("6afecd40-0b9a-4cfd-8c42-0f645cd91829"); /* nsIScriptGlobalObject */ //$NON-NLS-1$
-			rc = interfaceRequestor.GetInterface (scriptGlobalObjectNSID_1_9, result);
-			if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
-				result[0] = 0;
-				nsID scriptGlobalObjectNSID_1_9_2 = new nsID ("e9f3f2c1-2d94-4722-bbd4-2bf6fdf42f48"); /* nsIScriptGlobalObject */ //$NON-NLS-1$
-				rc = interfaceRequestor.GetInterface (scriptGlobalObjectNSID_1_9_2, result);
-			}
-			interfaceRequestor.Release ();
+			rc = securityManager.GetSystemPrincipal (result);
+			securityManager.Release ();
 
 			if (rc == XPCOM.NS_OK && result[0] != 0) {
-				int /*long*/ scriptGlobalObject = result[0];
+				nsIPrincipal principal = new nsIPrincipal (result[0]);
 				result[0] = 0;
-				rc = (int/*64*/)XPCOM.nsIScriptGlobalObject_EnsureScriptEnvironment (scriptGlobalObject, 2); /* nsIProgrammingLanguage.JAVASCRIPT */
+				rc = webBrowser.QueryInterface (nsIInterfaceRequestor.NS_IINTERFACEREQUESTOR_IID, result);
 				if (rc != XPCOM.NS_OK) error (rc);
-				int /*long*/ scriptContext = XPCOM.nsIScriptGlobalObject_GetScriptContext (scriptGlobalObject, 2); /* nsIProgrammingLanguage.JAVASCRIPT */
-				int /*long*/ globalJSObject = XPCOM.nsIScriptGlobalObject_GetScriptGlobal (scriptGlobalObject, 2); /* nsIProgrammingLanguage.JAVASCRIPT */
-				new nsISupports (scriptGlobalObject).Release ();
+				if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 
-				if (scriptContext != 0 && globalJSObject != 0) {
-					/* ensure that the received nsIScriptContext implements the expected interface */
-					nsID scriptContextNSID_1_9 = new nsID ("e7b9871d-3adc-4bf7-850d-7fb9554886bf"); /* nsIScriptContext */ //$NON-NLS-1$					
-					rc = new nsISupports (scriptContext).QueryInterface (scriptContextNSID_1_9, result);
+				nsIInterfaceRequestor interfaceRequestor = new nsIInterfaceRequestor (result[0]);
+				result[0] = 0;
+				nsID scriptGlobalObjectNSID_10 = new nsID ("08f73284-26e3-4fa6-bf89-8326f92a94b3"); /* nsIScriptGlobalObject */ //$NON-NLS-1$
+				rc = interfaceRequestor.GetInterface (scriptGlobalObjectNSID_10, result);
+				if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
+					result[0] = 0;
+					nsID scriptGlobalObjectNSID_1_9_2 = new nsID ("e9f3f2c1-2d94-4722-bbd4-2bf6fdf42f48"); /* nsIScriptGlobalObject */ //$NON-NLS-1$
+					rc = interfaceRequestor.GetInterface (scriptGlobalObjectNSID_1_9_2, result);
 					if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
 						result[0] = 0;
-						nsID scriptContextNSID_1_9_2 = new nsID ("87482b5e-e019-4df5-9bc2-b2a51b1f2d28"); /* nsIScriptContext */ //$NON-NLS-1$					
-						rc = new nsISupports (scriptContext).QueryInterface (scriptContextNSID_1_9_2, result);
+						nsID scriptGlobalObjectNSID_1_9 = new nsID ("6afecd40-0b9a-4cfd-8c42-0f645cd91829"); /* nsIScriptGlobalObject */ //$NON-NLS-1$
+						rc = interfaceRequestor.GetInterface (scriptGlobalObjectNSID_1_9, result);
 					}
+				}
+				interfaceRequestor.Release ();
 
-					if (rc == XPCOM.NS_OK && result[0] != 0) {
-						new nsISupports (result[0]).Release ();
-						result[0] = 0;
+				if (rc == XPCOM.NS_OK && result[0] != 0) {
+					int /*long*/ scriptGlobalObject = result[0];
+					result[0] = 0;
+					rc = (int/*64*/)XPCOM.nsIScriptGlobalObject_EnsureScriptEnvironment (scriptGlobalObject, 2); /* nsIProgrammingLanguage.JAVASCRIPT */
+					if (rc != XPCOM.NS_OK) {
+						new nsISupports (scriptGlobalObject).Release ();
+					} else {
+						int /*long*/ scriptContext = XPCOM.nsIScriptGlobalObject_GetScriptContext (scriptGlobalObject, 2); /* nsIProgrammingLanguage.JAVASCRIPT */
+						new nsISupports (scriptGlobalObject).Release ();
 
-						int /*long*/ nativeContext = XPCOM.nsIScriptContext_GetNativeContext (scriptContext);
-						if (nativeContext != 0) {
-							int length = script.length ();
-							char[] scriptChars = new char[length];
-							script.getChars(0, length, scriptChars, 0);
-							byte[] urlbytes = MozillaDelegate.wcsToMbcs (null, getUrl (), true);
-							rc = principal.GetJSPrincipals (nativeContext, result);
-							if (rc == XPCOM.NS_OK && result[0] != 0) {
-								int /*long*/ principals = result[0];
+						if (scriptContext != 0) {
+							/* ensure that the received nsIScriptContext implements the expected interface */
+							nsISupports supports = new nsISupports (scriptContext);
+							nsID scriptContextNSID_10 = new nsID ("2e583bf4-3c1f-432d-8283-8dee7eccc88b"); /* nsIScriptContext */ //$NON-NLS-1$					
+							rc = supports.QueryInterface (scriptContextNSID_10, result);
+							if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
 								result[0] = 0;
-								principal.Release ();
-								if (pathBytes_JSEvaluateUCScriptForPrincipals == null) {
-									String mozillaPath = getMozillaPath () + delegate.getJSLibraryName () + '\0';
-									try {
-										pathBytes_JSEvaluateUCScriptForPrincipals = mozillaPath.getBytes ("UTF-8"); //$NON-NLS-1$
-									} catch (UnsupportedEncodingException e) {
-										pathBytes_JSEvaluateUCScriptForPrincipals = mozillaPath.getBytes ();
+								nsID scriptContextNSID_1_9_2 = new nsID ("87482b5e-e019-4df5-9bc2-b2a51b1f2d28"); /* nsIScriptContext */ //$NON-NLS-1$					
+								rc = supports.QueryInterface (scriptContextNSID_1_9_2, result);
+								if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
+									result[0] = 0;
+									nsID scriptContextNSID_1_9 = new nsID ("e7b9871d-3adc-4bf7-850d-7fb9554886bf"); /* nsIScriptContext */ //$NON-NLS-1$					
+									rc = supports.QueryInterface (scriptContextNSID_1_9, result);
+								}
+							}
+
+							if (rc == XPCOM.NS_OK && result[0] != 0) {
+								new nsISupports (result[0]).Release ();
+								result[0] = 0;
+
+								int /*long*/ nativeContext = XPCOM.nsIScriptContext_GetNativeContext (scriptContext);
+								if (nativeContext != 0) {
+									int length = script.length ();
+									char[] scriptChars = new char[length];
+									script.getChars(0, length, scriptChars, 0);
+									byte[] urlbytes = MozillaDelegate.wcsToMbcs (null, getUrl (), true);
+									rc = principal.GetJSPrincipals (nativeContext, result);
+									if (rc == XPCOM.NS_OK && result[0] != 0) {
+										int /*long*/ principals = result[0];
+										result[0] = 0;
+										String jsLibraryName = IsPre_4 ? MozillaDelegate.getJSLibraryName_Pre4() : MozillaDelegate.getJSLibraryName();
+										if (pathBytes_JSEvaluateUCScriptForPrincipals == null) {
+											String mozillaPath = getMozillaPath () + jsLibraryName + '\0';
+											try {
+												pathBytes_JSEvaluateUCScriptForPrincipals = mozillaPath.getBytes ("UTF-8"); //$NON-NLS-1$
+											} catch (UnsupportedEncodingException e) {
+												pathBytes_JSEvaluateUCScriptForPrincipals = mozillaPath.getBytes ();
+											}
+										}
+
+										int /*long*/ globalJSObject = XPCOM.JS_GetGlobalObject (pathBytes_JSEvaluateUCScriptForPrincipals, nativeContext);
+										if (globalJSObject != 0) {
+											aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_CONTEXTSTACK_CONTRACTID, true);
+											rc = serviceManager.GetServiceByContractID (aContractID, nsIJSContextStack.NS_IJSCONTEXTSTACK_IID, result);
+											if (rc == XPCOM.NS_OK && result[0] != 0) {
+												nsIJSContextStack stack = new nsIJSContextStack (result[0]);
+												result[0] = 0;
+												rc = stack.Push (nativeContext);
+												if (rc != XPCOM.NS_OK) {
+													stack.Release ();
+												} else {
+													boolean success = XPCOM.JS_EvaluateUCScriptForPrincipals (pathBytes_JSEvaluateUCScriptForPrincipals, nativeContext, globalJSObject, principals, scriptChars, length, urlbytes, 0, result) != 0;
+													result[0] = 0;
+													rc = stack.Pop (result);
+													stack.Release ();
+													// should principals be Release()d too?
+													principal.Release ();
+													serviceManager.Release ();
+													return success;
+												}
+											}
+										}
 									}
 								}
-
-								aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_CONTEXTSTACK_CONTRACTID, true);
-								rc = serviceManager.GetServiceByContractID (aContractID, nsIJSContextStack.NS_IJSCONTEXTSTACK_IID, result);
-								if (rc != XPCOM.NS_OK) error (rc);
-								if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
-								serviceManager.Release ();
-
-								nsIJSContextStack stack = new nsIJSContextStack (result[0]);
-								result[0] = 0;
-								rc = stack.Push (nativeContext);
-								if (rc != XPCOM.NS_OK) error (rc);
-								boolean success = XPCOM.JS_EvaluateUCScriptForPrincipals (pathBytes_JSEvaluateUCScriptForPrincipals, nativeContext, globalJSObject, principals, scriptChars, length, urlbytes, 0, result) != 0;
-								result[0] = 0;
-								rc = stack.Pop (result);
-								if (rc != XPCOM.NS_OK) error (rc);
-								stack.Release ();
-
-								return success;
 							}
 						}
 					}
 				}
+				principal.Release ();
 			}
-			principal.Release ();
 		}
 		serviceManager.Release ();
 	}
@@ -1360,7 +1422,7 @@ static Browser findBrowser (int /*long*/ handle) {
 	return MozillaDelegate.findBrowser (handle);
 }
 
-static Browser findBrowser (nsIDOMWindow aDOMWindow) {
+static Browser getBrowser (int /*long*/ aDOMWindow) {
 	int /*long*/[] result = new int /*long*/[1];
 	int rc = XPCOM.NS_GetServiceManager (result);
 	if (rc != XPCOM.NS_OK) Mozilla.error (rc);
@@ -1377,7 +1439,8 @@ static Browser findBrowser (nsIDOMWindow aDOMWindow) {
 	nsIWindowWatcher windowWatcher = new nsIWindowWatcher (result[0]);
 	result[0] = 0;
 	/* the chrome will only be answered for the top-level nsIDOMWindow */
-	rc = aDOMWindow.GetTop (result);
+	nsIDOMWindow window = new nsIDOMWindow (aDOMWindow);
+	rc = window.GetTop (result);
 	if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 	if (result[0] == 0) Mozilla.error (XPCOM.NS_NOINTERFACE);
 	int /*long*/ topDOMWindow = result[0];
@@ -1458,17 +1521,17 @@ static String getMozillaPath () {
 
 	nsIFile mozillaDir = new nsIFile (result[0]);
 	result[0] = 0;
-	int /*long*/ path = XPCOM.nsEmbedCString_new ();
-	rc = mozillaDir.GetNativePath (path);
+	int /*long*/ path = XPCOM.nsEmbedString_new ();
+	rc = mozillaDir.GetPath (path);
 	if (rc != XPCOM.NS_OK) error (rc);
-	int length = XPCOM.nsEmbedCString_Length (path);
-	int /*long*/ ptr = XPCOM.nsEmbedCString_get (path);
-	buffer = new byte[length];
-	XPCOM.memmove (buffer, ptr, length);
-	XPCOM.nsEmbedCString_delete (path);
+	int length = XPCOM.nsEmbedString_Length (path);
+	int /*long*/ ptr = XPCOM.nsEmbedString_get (path);
+	char[] chars = new char[length];
+	XPCOM.memmove (chars, ptr, length * 2);
+	XPCOM.nsEmbedString_delete (path);
 	mozillaDir.Release ();
 
-	return new String (MozillaDelegate.mbcsToWcs (null, buffer)) + SEPARATOR_OS;
+	return new String (chars) + SEPARATOR_OS;
 }
 
 int getNextFunctionIndex () {
@@ -1586,7 +1649,7 @@ public Object getWebBrowser () {
 		Method method = clazz.getMethod ("getInstance", new Class[0]); //$NON-NLS-1$
 		Object mozilla = method.invoke (null, new Object[0]);
 		method = clazz.getMethod ("wrapXPCOMObject", new Class[] {Long.TYPE, String.class}); //$NON-NLS-1$
-		webBrowserObject = method.invoke (mozilla, new Object[] {new Long (webBrowser.getAddress ()), nsIWebBrowser.NS_IWEBBROWSER_IID_STR});
+		webBrowserObject = method.invoke (mozilla, new Object[] {new Long (webBrowser.getAddress ()), !IsPre_4 ? nsIWebBrowser.NS_IWEBBROWSER_10_IID_STR : nsIWebBrowser.NS_IWEBBROWSER_IID_STR});
 		/*
 		 * The following AddRef() is needed to offset the automatic Release() that
 		 * will be performed by JavaXPCOM when webBrowserObject is finalized.
@@ -1722,7 +1785,23 @@ void initFactories (nsIServiceManager serviceManager, nsIComponentManager compon
 		browser.dispose ();
 		error (rc);
 	}
-	factory.Release ();
+	if (!IsPre_4) {
+		aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_PROMPTER_CONTRACTID, true);
+		aClassName = MozillaDelegate.wcsToMbcs (null, "swtPrompter", true); //$NON-NLS-1$
+		rc = componentRegistrar.RegisterFactory (XPCOM.NS_PROMPTER_CID, aClassName, aContractID, factory.getAddress ());
+		if (rc != XPCOM.NS_OK) {
+			browser.dispose ();
+			error (rc);
+		}
+		aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_AUTHPROMPTER_CONTRACTID, true);
+		aClassName = MozillaDelegate.wcsToMbcs (null, "swtAuthPrompter", true); //$NON-NLS-1$
+		rc = componentRegistrar.RegisterFactory (XPCOM.NS_AUTHPROMPTER_CID, aClassName, aContractID, factory.getAddress ());
+		if (rc != XPCOM.NS_OK) {
+			browser.dispose ();
+			error (rc);
+		}
+	}
+	factory.Release();
 
 	ExternalFactory externalFactory = new ExternalFactory ();
 	externalFactory.AddRef ();
@@ -1743,7 +1822,7 @@ void initFactories (nsIServiceManager serviceManager, nsIComponentManager compon
 	result[0] = 0;
 	byte[] category = MozillaDelegate.wcsToMbcs (null, "JavaScript global property", true); //$NON-NLS-1$
 	byte[] entry = MozillaDelegate.wcsToMbcs (null, "external", true); //$NON-NLS-1$
-	rc = categoryManager.AddCategoryEntry(category, entry, aContractID, 1, 1, result);
+	rc = categoryManager.AddCategoryEntry(category, entry, aContractID, 0, 1, result);
 	result[0] = 0;
 	categoryManager.Release ();
 
@@ -1754,26 +1833,25 @@ void initFactories (nsIServiceManager serviceManager, nsIComponentManager compon
 	* If the GRE version is >= 1.9 then no Download factory is registered because this
 	*   functionality is provided by the GRE.
 	*/
-	DownloadFactory downloadFactory = new DownloadFactory ();
-	downloadFactory.AddRef ();
-	aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_DOWNLOAD_CONTRACTID, true);
-	aClassName = MozillaDelegate.wcsToMbcs (null, "swtDownload", true); //$NON-NLS-1$
-	rc = componentRegistrar.RegisterFactory (XPCOM.NS_DOWNLOAD_CID, aClassName, aContractID, downloadFactory.getAddress ());
-	if (rc != XPCOM.NS_OK) {
-		browser.dispose ();
-		error (rc);
+	if (IsPre_4) {
+		DownloadFactory downloadFactory = new DownloadFactory ();
+		downloadFactory.AddRef ();
+		aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_DOWNLOAD_CONTRACTID, true);
+		aClassName = MozillaDelegate.wcsToMbcs (null, "swtDownload", true); //$NON-NLS-1$
+		rc = componentRegistrar.RegisterFactory (XPCOM.NS_DOWNLOAD_CID, aClassName, aContractID, downloadFactory.getAddress ());
+		if (rc != XPCOM.NS_OK) {
+			browser.dispose ();
+			error (rc);
+		}
+		downloadFactory.Release ();
 	}
-	downloadFactory.Release ();
 
-	FilePickerFactory pickerFactory = isXULRunner ? new FilePickerFactory_1_8 () : new FilePickerFactory ();
+	FilePickerFactory pickerFactory = new FilePickerFactory ();
 	pickerFactory.AddRef ();
 	aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_FILEPICKER_CONTRACTID, true);
 	aClassName = MozillaDelegate.wcsToMbcs (null, "swtFilePicker", true); //$NON-NLS-1$
 	rc = componentRegistrar.RegisterFactory (XPCOM.NS_FILEPICKER_CID, aClassName, aContractID, pickerFactory.getAddress ());
-	if (rc != XPCOM.NS_OK) {
-		browser.dispose ();
-		error (rc);
-	}
+	/* a failure here is fine, it likely indicates that the OS has provided a default implementation */
 	pickerFactory.Release ();
 
 	componentRegistrar.Release ();
@@ -1884,13 +1962,37 @@ void initXPCOM (String mozillaPath, boolean isXULRunner) {
 		int /*long*/ ptr = C.malloc (size * 2);
 		C.memset (ptr, 0, size * 2);
 		nsDynamicFunctionLoad functionLoad = new nsDynamicFunctionLoad ();
-		byte[] bytes = MozillaDelegate.wcsToMbcs (null, "XRE_InitEmbedding", true); //$NON-NLS-1$
+
+		/* 
+		 * Attempt to load the XRE_InitEmbedding2 function first, which is present in
+		 * mozilla versions > 3.x.
+		 */
+		byte[] bytes = MozillaDelegate.wcsToMbcs (null, "XRE_InitEmbedding2", true); //$NON-NLS-1$
 		functionLoad.functionName = C.malloc (bytes.length);
 		C.memmove (functionLoad.functionName, bytes, bytes.length);
 		functionLoad.function = C.malloc (C.PTR_SIZEOF);
 		C.memmove (functionLoad.function, new int /*long*/[] {0} , C.PTR_SIZEOF);
 		XPCOM.memmove (ptr, functionLoad, XPCOM.nsDynamicFunctionLoad_sizeof ());
-		XPCOM.XPCOMGlueLoadXULFunctions (ptr);
+		rc = XPCOM.XPCOMGlueLoadXULFunctions (ptr);
+		if (rc == XPCOM.NS_OK) {
+			IsPre_4 = false;
+			nsISupports.IsXULRunner10 = true;
+		} else {
+			/*
+			 * XRE_InitEmbedding2 was not found, so fall back to XRE_InitEmbedding, which is
+			 * present in older mozilla versions.
+			 */
+			C.free (functionLoad.functionName);
+			bytes = MozillaDelegate.wcsToMbcs (null, "XRE_InitEmbedding", true); //$NON-NLS-1$
+			functionLoad.functionName = C.malloc (bytes.length);
+			C.memmove (functionLoad.functionName, bytes, bytes.length);
+			rc = XPCOM.XPCOMGlueLoadXULFunctions (ptr);
+			if (rc == XPCOM.NS_OK) {
+				IsPre_4 = true;
+				nsISupports.IsXULRunner10 = false;
+			}
+		}
+
 		C.memmove (result, functionLoad.function, C.PTR_SIZEOF);
 		int /*long*/ functionPtr = result[0];
 		result[0] = 0;
@@ -1901,7 +2003,11 @@ void initXPCOM (String mozillaPath, boolean isXULRunner) {
 			browser.dispose ();
 			error (XPCOM.NS_ERROR_NULL_POINTER);
 		}
-		rc = XPCOM.Call (functionPtr, localFile.getAddress (), localFile.getAddress (), LocationProvider.getAddress (), 0, 0);
+		if (IsPre_4) {
+			rc = XPCOM.Call (functionPtr, localFile.getAddress (), localFile.getAddress (), LocationProvider.getAddress (), 0, 0);
+		} else {
+			rc = XPCOM.Call (functionPtr, localFile.getAddress (), localFile.getAddress (), LocationProvider.getAddress ());
+		}
 		if (rc == XPCOM.NS_OK) {
 			System.setProperty (XULRUNNER_PATH, mozillaPath);
 		}
@@ -2115,17 +2221,9 @@ void initPreferences (nsIServiceManager serviceManager, nsIComponentManager comp
 	* preferences with these values if needed.
 	*/
 	String proxyHost = System.getProperty (PROPERTY_PROXYHOST);
-	String proxyPortString = System.getProperty (PROPERTY_PROXYPORT);
-
 	int port = -1;
-	if (proxyPortString != null) {
-		try {
-			int value = Integer.valueOf (proxyPortString).intValue ();
-			if (0 <= value && value <= MAX_PORT) port = value;
-		} catch (NumberFormatException e) {
-			/* do nothing, java property has non-integer value */
-		}
-	}
+	int propertyValue = Integer.getInteger (PROPERTY_PROXYPORT, -1).intValue ();
+	if (0 <= propertyValue && propertyValue <= MAX_PORT) port = propertyValue;
 
 	if (proxyHost != null) {
 		byte[] contractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_PREFLOCALIZEDSTRING_CONTRACTID, true);
@@ -2347,7 +2445,7 @@ void initProfile (nsIServiceManager serviceManager, boolean isXULRunner) {
 }
 
 void initSpinup (nsIComponentManager componentManager) {
-	if (delegate.needsSpinup ()) {
+	if (MozillaDelegate.needsSpinup ()) {
 		int /*long*/[] result = new int /*long*/[1];
 
 		/* nsIAppShell is discontinued as of xulrunner 1.9, so do not fail if it is not found */
@@ -2386,10 +2484,13 @@ void initWebBrowserWindows () {
 	}
 
 	int /*long*/[] result = new int /*long*/[1];
-	rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
+	rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_10_IID, result);
 	if (rc != XPCOM.NS_OK) {
-		browser.dispose ();
-		error (rc);
+		rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
+		if (rc != XPCOM.NS_OK) {
+			browser.dispose ();
+			error (rc);
+		}
 	}
 	if (result[0] == 0) {
 		browser.dispose ();
@@ -2457,6 +2558,14 @@ String initXULRunner (String mozillaPath) {
 	} catch (UnsatisfiedLinkError e) {
 		SWT.error (SWT.ERROR_NO_HANDLES, e);
 	}
+
+	/*
+	* Remove the trailing xpcom lib name from mozillaPath because the
+	* Mozilla.initialize and NS_InitXPCOM2 invocations require a directory name only.
+	*/
+	String mozillaDirPath = mozillaPath.substring (0, mozillaPath.lastIndexOf (SEPARATOR_OS));
+	MozillaDelegate.loadAdditionalLibraries (mozillaDirPath);
+
 	byte[] path = MozillaDelegate.wcsToMbcs (null, mozillaPath, true);
 	int rc = XPCOM.XPCOMGlueStartup (path);
 	if (rc != XPCOM.NS_OK) {
@@ -2465,11 +2574,7 @@ String initXULRunner (String mozillaPath) {
 	}
 	XPCOMWasGlued = true;
 
-	/*
-	 * Remove the trailing xpcom lib name from mozillaPath because the
-	 * Mozilla.initialize and NS_InitXPCOM2 invocations require a directory name only.
-	 */ 
-	return mozillaPath.substring (0, mozillaPath.lastIndexOf (SEPARATOR_OS));
+	return mozillaDirPath;
 }
 
 public boolean isBackEnabled () {
@@ -2499,7 +2604,7 @@ public boolean isForwardEnabled () {
 }
 
 static String error (int code) {
-	throw new SWTError ("XPCOM error " + code); //$NON-NLS-1$
+	throw new SWTError ("XPCOM error 0x" + Integer.toHexString(code)); //$NON-NLS-1$
 }
 
 void onDispose (Display display) {
@@ -2511,6 +2616,10 @@ void onDispose (Display display) {
 		execute ("window.location.replace('about:blank');"); //$NON-NLS-1$
 		ignoreAllMessages = false;
 		locationListeners = oldLocationListeners;	
+	}
+
+	if (badCertRequest != 0) {
+		new nsISupports (badCertRequest).Release ();
 	}
 
 	int rc = webBrowser.RemoveWebBrowserListener (weakReference.getAddress (), nsIWebProgressListener.NS_IWEBPROGRESSLISTENER_IID);
@@ -2525,8 +2634,11 @@ void onDispose (Display display) {
 	unhookDOMListeners ();
 
 	int /*long*/[] result = new int /*long*/[1];
-	rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
-	if (rc != XPCOM.NS_OK) error (rc);
+	rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_10_IID, result);
+	if (rc != XPCOM.NS_OK) {
+		rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
+		if (rc != XPCOM.NS_OK) error (rc);
+	}
 	if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
 
 	nsIBaseWindow baseWindow = new nsIBaseWindow (result[0]);
@@ -2592,14 +2704,161 @@ void Deactivate () {
 	webBrowserFocus.Release ();
 }
 
+void navigate (int /*long*/ requestHandle) {
+	nsIRequest request = new nsIRequest (requestHandle);
+
+	/* get the request post data, if any */
+	int /*long*/[] result = new int /*long*/[1];
+	byte[] postData = null;
+	final Vector headers = new Vector ();
+	int rc = request.QueryInterface (nsIUploadChannel.NS_IUPLOADCHANNEL_IID, result);
+	if (rc == XPCOM.NS_OK && result[0] != 0) {
+		nsIUploadChannel uploadChannel = new nsIUploadChannel (result[0]);
+		result[0] = 0;
+		rc = uploadChannel.GetUploadStream (result);
+		if (rc == XPCOM.NS_OK && result[0] != 0) {
+			nsIInputStream inputStream = new nsIInputStream (result[0]);
+			result[0] = 0;
+			rc = inputStream.QueryInterface (nsISeekableStream.NS_ISEEKABLESTREAM_IID, result);
+			if (rc == XPCOM.NS_OK && result[0] != 0) {
+				nsISeekableStream seekableStream = new nsISeekableStream (result[0]);
+				result[0] = 0;
+				long[] initialOffset = new long[1];
+				rc = seekableStream.Tell (initialOffset);
+				if (rc == XPCOM.NS_OK) {
+					rc = seekableStream.Seek (nsISeekableStream.NS_SEEK_SET, 0);
+					if (rc == XPCOM.NS_OK) {
+						int[] available = new int[1];
+						rc = inputStream.Available (available);
+						if (rc == XPCOM.NS_OK) {
+							int length = available[0];
+							byte[] bytes = new byte[length];
+							int[] retVal = new int[1];
+							rc = inputStream.Read (bytes, length, retVal);
+							if (rc == XPCOM.NS_OK) {
+								int start = 0;
+								for (int i = 0; i < length; i++) {
+									if (bytes[i] == 13) {
+										byte[] current = new byte[i - start];
+										System.arraycopy (bytes, start, current, 0, i - start);
+										String string = new String (current).trim ();
+										if (string.length () != 0) {
+											headers.add (string);
+										} else {
+											start = i + 2; /* skip \r\n */
+											postData = new byte[length - start];
+											System.arraycopy (bytes, start, postData, 0, length - start);
+											break;
+										}
+										start = i;
+									}
+								}
+							}
+						}
+					}
+					seekableStream.Seek (nsISeekableStream.NS_SEEK_SET, initialOffset[0]);
+				}
+				seekableStream.Release ();
+			}
+			inputStream.Release ();
+		}
+		uploadChannel.Release ();
+	}
+
+	/* get the request headers */
+	XPCOMObject visitor = new XPCOMObject (new int[] {2, 0, 0, 2}) {
+		int refCount = 0;
+		public int /*long*/ method0 (int /*long*/[] args) {
+			/* QueryInterface */
+			int /*long*/ riid = args[0];
+			int /*long*/ ppvObject = args[1];
+			if (riid == 0 || ppvObject == 0) return XPCOM.NS_ERROR_NO_INTERFACE;
+			nsID guid = new nsID ();
+			XPCOM.memmove (guid, riid, nsID.sizeof);
+			if (guid.Equals (nsISupports.NS_ISUPPORTS_IID) || guid.Equals (nsIHttpHeaderVisitor.NS_IHTTPHEADERVISITOR_IID)) {
+				XPCOM.memmove (ppvObject, new int /*long*/[] {getAddress ()}, C.PTR_SIZEOF);
+				refCount++;
+				return XPCOM.NS_OK;
+			}
+			XPCOM.memmove (ppvObject, new int /*long*/[] {0}, C.PTR_SIZEOF);
+			return XPCOM.NS_ERROR_NO_INTERFACE;
+		}
+		public int /*long*/ method1 (int /*long*/[] args) {
+			/* AddRef */
+			return ++refCount;
+		}
+		public int /*long*/ method2 (int /*long*/[] args) {
+			/* Release */
+			if (--refCount == 0) dispose ();
+			return refCount;
+		}
+		public int /*long*/ method3 (int /*long*/[] args) {
+			/* VisitHeader */
+			int /*long*/ aHeader = args[0];
+			int /*long*/ aValue = args[1];
+
+			int length = XPCOM.nsEmbedCString_Length (aHeader);
+			int /*long*/ buffer = XPCOM.nsEmbedCString_get (aHeader);
+			byte[] dest = new byte[length];
+			XPCOM.memmove (dest, buffer, length);
+			String header = new String (dest);
+
+			length = XPCOM.nsEmbedCString_Length (aValue);
+			buffer = XPCOM.nsEmbedCString_get (aValue);
+			dest = new byte[length];
+			XPCOM.memmove (dest, buffer, length);
+			String value = new String (dest);
+
+			headers.add(header + ':' + value);
+			return XPCOM.NS_OK;
+		}
+	};
+
+	new nsISupports (visitor.getAddress ()).AddRef ();
+	rc = request.QueryInterface (nsIHttpChannel.NS_IHTTPCHANNEL_IID, result);
+	if (rc == XPCOM.NS_OK && result[0] != 0) {
+		nsIHttpChannel httpChannel = new nsIHttpChannel (result[0]);
+		result[0] = 0;
+		httpChannel.VisitRequestHeaders (visitor.getAddress ());
+		httpChannel.Release ();
+	}
+	new nsISupports (visitor.getAddress ()).Release ();
+
+	String[] headersArray = null;
+	int size = headers.size ();
+	if (size > 0) {
+		headersArray = new String[size];
+		headers.copyInto (headersArray);
+	}
+
+	/* a request's name often (but not always) is its url */
+	String url = lastNavigateURL;
+	int /*long*/ name = XPCOM.nsEmbedCString_new ();
+	rc = request.GetName (name);
+	if (rc == XPCOM.NS_OK) {
+		int length = XPCOM.nsEmbedCString_Length (name);
+		int /*long*/ buffer = XPCOM.nsEmbedCString_get (name);
+		byte[] bytes = new byte[length];
+		XPCOM.memmove (bytes, buffer, length);
+		String value = new String (bytes);
+		if (value.indexOf (":/") != -1) url = value;	//$NON-NLS-1$
+	}
+	XPCOM.nsEmbedCString_delete (name);
+
+	setUrl (url, postData, headersArray);
+}
+
 void onResize () {
 	Rectangle rect = browser.getClientArea ();
 	int width = Math.max (1, rect.width);
 	int height = Math.max (1, rect.height);
 
 	int /*long*/[] result = new int /*long*/[1];
-	int rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
-	if (rc != XPCOM.NS_OK) error (rc);
+	int rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_10_IID, result);
+	if (rc != XPCOM.NS_OK) {
+		rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
+		if (rc != XPCOM.NS_OK) error (rc);
+	}
 	if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
 
 	delegate.setSize (embedHandle, width, height);
@@ -2781,6 +3040,14 @@ public boolean setText (String html, boolean trusted) {
 }
 
 public boolean setUrl (String url, String postData, String[] headers) {
+	byte[] postDataBytes = null;
+	if (postData != null) {
+		postDataBytes = MozillaDelegate.wcsToMbcs (null, postData, false);
+	}
+	return setUrl (url, postDataBytes, headers);
+}
+
+boolean setUrl (String url, byte[] postData, String[] headers) {
 	htmlBytes = null;
 
 	int /*long*/[] result = new int /*long*/[1];
@@ -2813,18 +3080,35 @@ public boolean setUrl (String url, String postData, String[] headers) {
 		componentManager.Release();
 
 		if (rc == XPCOM.NS_OK && result[0] != 0) { /* nsIMIMEInputStream is not in mozilla 1.4 */
-			byte[] bytes = MozillaDelegate.wcsToMbcs (null, postData, false);
-			dataStream = new InputStream (bytes);
+			dataStream = new InputStream (postData);
 			dataStream.AddRef ();
 			postDataStream = new nsIMIMEInputStream (result[0]);
 			rc = postDataStream.SetData (dataStream.getAddress ());
 			if (rc != XPCOM.NS_OK) error (rc);
-			rc = postDataStream.SetAddContentLength (1);
+
+			boolean foundLength = false;
+			boolean foundType = false;
+			if (headers != null) {
+				for (int i = 0; i < headers.length; i++) {
+					int index = headers[i].indexOf (':');
+					if (index != -1) {
+						String name = headers[i].substring (0, index).trim ().toLowerCase ();
+						if (name.equals (HEADER_CONTENTLENGTH)) {
+							foundLength = true;
+						} else if (name.equals (HEADER_CONTENTTYPE)) {
+							foundType = true;
+						}
+					}
+				}
+			}
+			rc = postDataStream.SetAddContentLength (foundLength ? 0 : 1);
 			if (rc != XPCOM.NS_OK) error (rc);
-			byte[] name = MozillaDelegate.wcsToMbcs (null, HEADER_CONTENTTYPE, true);
-			byte[] value = MozillaDelegate.wcsToMbcs (null, MIMETYPE_FORMURLENCODED, true);
-			rc = postDataStream.AddHeader (name, value);
-			if (rc != XPCOM.NS_OK) error (rc);
+			if (!foundType) {
+				byte[] name = MozillaDelegate.wcsToMbcs (null, HEADER_CONTENTTYPE, true);
+				byte[] value = MozillaDelegate.wcsToMbcs (null, MIMETYPE_FORMURLENCODED, true);
+				rc = postDataStream.AddHeader (name, value);
+				if (rc != XPCOM.NS_OK) error (rc);
+			}
 		}
 		result[0] = 0;
 	}
@@ -2881,25 +3165,25 @@ public void stop () {
 
 void hookDOMListeners (nsIDOMEventTarget target, boolean isTop) {
 	nsEmbedString string = new nsEmbedString (XPCOM.DOMEVENT_FOCUS);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_UNLOAD);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_MOUSEDOWN);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_MOUSEUP);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_MOUSEMOVE);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_MOUSEWHEEL);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_MOUSEDRAG);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 
 	/*
@@ -2908,21 +3192,21 @@ void hookDOMListeners (nsIDOMEventTarget target, boolean isTop) {
 	*/
 	if (isTop && delegate.hookEnterExit ()) {
 		string = new nsEmbedString (XPCOM.DOMEVENT_MOUSEOVER);
-		target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+		target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 		string.dispose ();
 		string = new nsEmbedString (XPCOM.DOMEVENT_MOUSEOUT);
-		target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+		target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 		string.dispose ();
 	}
 
 	string = new nsEmbedString (XPCOM.DOMEVENT_KEYDOWN);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_KEYPRESS);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 	string = new nsEmbedString (XPCOM.DOMEVENT_KEYUP);
-	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0);
+	target.AddEventListener (string.getAddress (), domEventListener.getAddress (), 0, 1, 0);
 	string.dispose ();
 }
 
@@ -2933,10 +3217,9 @@ void unhookDOMListeners () {
 
 	nsIDOMWindow window = new nsIDOMWindow (result[0]);
 	result[0] = 0;
-	rc = window.QueryInterface (nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
+	rc = window.QueryInterface (!IsPre_4 ? nsIDOMEventTarget.NS_IDOMEVENTTARGET_10_IID : nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
 	if (rc != XPCOM.NS_OK) error (rc);
 	if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
-
 	nsIDOMEventTarget target = new nsIDOMEventTarget (result[0]);
 	result[0] = 0;
 	unhookDOMListeners (target);
@@ -2961,7 +3244,7 @@ void unhookDOMListeners () {
 
 			nsIDOMWindow frame = new nsIDOMWindow (result[0]);
 			result[0] = 0;
-			rc = frame.QueryInterface (nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
+			rc = frame.QueryInterface (!IsPre_4 ? nsIDOMEventTarget.NS_IDOMEVENTTARGET_10_IID : nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
 			if (rc != XPCOM.NS_OK) error (rc);
 			if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
 
@@ -3110,7 +3393,7 @@ int GetInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	if (riid == 0 || ppvObject == 0) return XPCOM.NS_ERROR_NO_INTERFACE;
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
-	if (guid.Equals (nsIDOMWindow.NS_IDOMWINDOW_IID)) {
+	if (guid.Equals (nsIDOMWindow.NS_IDOMWINDOW_10_IID) || guid.Equals (nsIDOMWindow.NS_IDOMWINDOW_IID)) {
 		int /*long*/[] aContentDOMWindow = new int /*long*/[1];
 		int rc = webBrowser.GetContentDOMWindow (aContentDOMWindow);
 		if (rc != XPCOM.NS_OK) error (rc);
@@ -3182,10 +3465,12 @@ int OnStateChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int aStateF
 		* callbacks on the channel so that our nsIBadCertListener2 will be invoked.
 		*/
 		if (isRetrievingBadCert) {
-			isRetrievingBadCert = false;
 			nsIRequest request = new nsIRequest (aRequest);
-			int rc = request.QueryInterface (nsIChannel.NS_ICHANNEL_IID, result);
-			if (rc != XPCOM.NS_OK) error (rc);
+			int rc = request.QueryInterface (nsIChannel.NS_ICHANNEL_10_IID, result);
+			if (rc != XPCOM.NS_OK) {
+				rc = request.QueryInterface (nsIChannel.NS_ICHANNEL_IID, result);
+				if (rc != XPCOM.NS_OK) error (rc);
+			}
 			if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 
 			nsIChannel channel = new nsIChannel (result[0]);
@@ -3214,6 +3499,37 @@ int OnStateChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int aStateF
 		registerFunctionsOnState = nsIWebProgressListener.STATE_TRANSFERRING;
 		updateLastNavigateUrl = true;
 	} else if ((aStateFlags & nsIWebProgressListener.STATE_STOP) != 0) {
+		if (isRetrievingBadCert) {
+			isRetrievingBadCert = false;
+			return XPCOM.NS_OK;
+		}
+
+		/*
+		* If a site with a bad certificate is being encountered for the first time
+		* then store the request for future reference, set the isRetrievingBadCert
+		* flag and re-navigate to the site so that notification callbacks can be
+		* hooked on it to get its certificate info.
+		*/
+		switch (aStatus) {
+			case XPCOM.SSL_ERROR_BAD_CERT_DOMAIN:
+			case XPCOM.SEC_ERROR_CA_CERT_INVALID:
+			case XPCOM.SEC_ERROR_EXPIRED_CERTIFICATE:
+			case XPCOM.SEC_ERROR_EXPIRED_ISSUER_CERTIFICATE:
+			case XPCOM.SEC_ERROR_INADEQUATE_KEY_USAGE:
+			case XPCOM.SEC_ERROR_UNKNOWN_ISSUER:
+			case XPCOM.SEC_ERROR_UNTRUSTED_CERT:
+			case XPCOM.SEC_ERROR_UNTRUSTED_ISSUER: {
+				new nsISupports (aRequest).AddRef ();
+				if (badCertRequest != 0) {
+					new nsISupports (badCertRequest).Release ();
+				}
+				badCertRequest = aRequest;
+				isRetrievingBadCert = true;
+				navigate (aRequest);
+				return XPCOM.NS_OK;
+			}
+		}
+
 		/*
 		* If this page's nsIDOMWindow handle is still in unhookedDOMWindows then
 		* add its DOM listeners now.  It's possible for this to happen since
@@ -3221,32 +3537,36 @@ int OnStateChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int aStateF
 		* received for every window in a page, which is when these listeners
 		* are typically added.
 		*/
-		int /*long*/[] result = new int /*long*/[1];
-		nsIWebProgress progress = new nsIWebProgress (aWebProgress);
-		int rc = progress.GetDOMWindow (result);
-		if (rc != XPCOM.NS_OK) error (rc);
-		if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
-		nsIDOMWindow domWindow = new nsIDOMWindow (result[0]);
 
+		int /*long*/[] result = new int /*long*/[1];
+		int rc;
 		LONG ptrObject = new LONG (result[0]);
 		result[0] = 0;
 		int index = unhookedDOMWindows.indexOf (ptrObject);
 		if (index != -1) {
+			int /*long*/[] window = new int /*long*/[1];
+			nsIWebProgress progress = new nsIWebProgress (aWebProgress);
+			rc = progress.GetDOMWindow (window);
+			if (rc != XPCOM.NS_OK) error (rc);
+			if (window[0] == 0) error (XPCOM.NS_NOINTERFACE);
+			
 			rc = webBrowser.GetContentDOMWindow (result);
 			if (rc != XPCOM.NS_OK) error (rc);
 			if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
-			boolean isTop = result[0] == domWindow.getAddress ();
+			boolean isTop = result[0] == window[0];
 			new nsISupports (result[0]).Release ();
 			result[0] = 0;
 
-			rc = domWindow.QueryInterface (nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
+			nsIDOMWindow domWindow = new nsIDOMWindow (window[0]);
+			rc = domWindow.QueryInterface (!IsPre_4 ? nsIDOMEventTarget.NS_IDOMEVENTTARGET_10_IID : nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
+			domWindow.Release();
 			if (rc != XPCOM.NS_OK) error (rc);
 			if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
 
 			nsIDOMEventTarget target = new nsIDOMEventTarget (result[0]);
-			result[0] = 0;
 			hookDOMListeners (target, isTop);
 			target.Release ();
+			result[0] = 0;
 
 			/*
 			* Remove and unreference the nsIDOMWindow from the collection of windows
@@ -3370,25 +3690,33 @@ int OnStateChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int aStateF
 				*/
 				deferCompleted = true;
 
+				int /*long*/[] window = new int /*long*/[1];
+				nsIWebProgress progress = new nsIWebProgress (aWebProgress);
+				rc = progress.GetDOMWindow (window);
+				if (rc != XPCOM.NS_OK) error (rc);
+				if (window[0] == 0) error (XPCOM.NS_NOINTERFACE);
+				
 				rc = webBrowser.GetContentDOMWindow (result);
 				if (rc != XPCOM.NS_OK) error (rc);
 				if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
-				boolean isTop = result[0] == domWindow.getAddress ();
+				boolean isTop = result[0] == window[0];
 				new nsISupports (result[0]).Release ();
 				result[0] = 0;
 
-				rc = domWindow.QueryInterface (nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
+				nsIDOMWindow domWindow = new nsIDOMWindow (window[0]);
+				rc = domWindow.QueryInterface (!IsPre_4 ? nsIDOMEventTarget.NS_IDOMEVENTTARGET_10_IID : nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
+				domWindow.Release();
 				if (rc != XPCOM.NS_OK) error (rc);
 				if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
+
 				nsIDOMEventTarget target = new nsIDOMEventTarget (result[0]);
-				result[0] = 0;
 				hookDOMListeners (target, isTop);
 				target.Release ();
+				result[0] = 0;
 			} else {
 				registerFunctionsOnState = 0;
 			}
 		}
-		domWindow.Release ();
 
 		/*
 		* Feature in Mozilla.  When a request is redirected (STATE_REDIRECTING),
@@ -3430,10 +3758,13 @@ int OnStateChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int aStateF
 	} else if ((aStateFlags & nsIWebProgressListener.STATE_TRANSFERRING) != 0) {
 		if (updateLastNavigateUrl) {
 			updateLastNavigateUrl = false;
-			int /*long*/[] result = new int /*long*/[1];
 			nsIRequest request = new nsIRequest (aRequest);
 
-			int rc = request.QueryInterface (nsIChannel.NS_ICHANNEL_IID, result);
+			int /*long*/[] result = new int /*long*/[1];
+			int rc = request.QueryInterface (nsIChannel.NS_ICHANNEL_10_IID, result);
+			if (rc != XPCOM.NS_OK) {
+				rc = request.QueryInterface (nsIChannel.NS_ICHANNEL_IID, result);
+			}
 			if (rc == XPCOM.NS_OK && result[0] != 0) {
 				nsIChannel channel = new nsIChannel (result[0]);
 				result[0] = 0;
@@ -3479,14 +3810,14 @@ int OnStateChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int aStateF
 			new nsISupports (result[0]).Release ();
 			result[0] = 0;
 
-			rc = domWindow.QueryInterface (nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
+			rc = domWindow.QueryInterface (!IsPre_4 ? nsIDOMEventTarget.NS_IDOMEVENTTARGET_10_IID : nsIDOMEventTarget.NS_IDOMEVENTTARGET_IID, result);
 			if (rc != XPCOM.NS_OK) error (rc);
 			if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
 
 			nsIDOMEventTarget target = new nsIDOMEventTarget (result[0]);
-			result[0] = 0;
 			hookDOMListeners (target, isTop);
 			target.Release ();
+			result[0] = 0;
 
 			/*
 			* Remove and unreference the nsIDOMWindow from the collection of windows
@@ -3533,13 +3864,12 @@ int OnLocationChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int /*lo
 	if (rc != XPCOM.NS_OK) error (rc);
 	if (aDOMWindow[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
 	
-	nsIDOMWindow domWindow = new nsIDOMWindow (aDOMWindow[0]);
 	int /*long*/[] aTop = new int /*long*/[1];
+	nsIDOMWindow domWindow = new nsIDOMWindow (aDOMWindow[0]);
 	rc = domWindow.GetTop (aTop);
+	domWindow.Release ();
 	if (rc != XPCOM.NS_OK) error (rc);
 	if (aTop[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
-	domWindow.Release ();
-	
 	nsIDOMWindow topWindow = new nsIDOMWindow (aTop[0]);
 	topWindow.Release ();
 	
@@ -3708,8 +4038,8 @@ int ShowAsModal () {
 }
 
 int IsWindowModal (int /*long*/ retval) {
-	int result = (chromeFlags & nsIWebBrowserChrome.CHROME_MODAL) != 0 ? 1 : 0;
-	XPCOM.memmove (retval, new int[] {result}, 4); /* PRBool */
+	boolean result = (chromeFlags & nsIWebBrowserChrome.CHROME_MODAL) != 0;
+	XPCOM.memmove (retval, new boolean[] {result});
 	return XPCOM.NS_OK;
 }
    
@@ -3762,8 +4092,11 @@ int GetDimensions (int flags, int /*long*/ x, int /*long*/ y, int /*long*/ cx, i
 
 int SetFocus () {
 	int /*long*/[] result = new int /*long*/[1];
-	int rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
-	if (rc != XPCOM.NS_OK) error (rc);
+	int rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_10_IID, result);
+	if (rc != XPCOM.NS_OK) {
+		rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
+		if (rc != XPCOM.NS_OK) error (rc);
+	}
 	if (result[0] == 0) error (XPCOM.NS_ERROR_NO_INTERFACE);
 	
 	nsIBaseWindow baseWindow = new nsIBaseWindow (result[0]);
@@ -3781,7 +4114,7 @@ int SetFocus () {
 
 int GetVisibility (int /*long*/ aVisibility) {
 	boolean visible = browser.isVisible () && !browser.getShell ().getMinimized ();
-	XPCOM.memmove (aVisibility, new int[] {visible ? 1 : 0}, 4); /* PRBool */
+	XPCOM.memmove (aVisibility, new boolean[] {visible});
 	return XPCOM.NS_OK;
 }
 
@@ -3901,12 +4234,12 @@ int FocusPrevElement () {
 int OnShowContextMenu (int aContextFlags, int /*long*/ aEvent, int /*long*/ aNode) {
 	nsIDOMEvent domEvent = new nsIDOMEvent (aEvent);
 	int /*long*/[] result = new int /*long*/[1];
-	int rc = domEvent.QueryInterface (nsIDOMMouseEvent.NS_IDOMMOUSEEVENT_IID, result);
+	int rc = domEvent.QueryInterface (!IsPre_4 ? nsIDOMMouseEvent.NS_IDOMMOUSEEVENT_10_IID : nsIDOMMouseEvent.NS_IDOMMOUSEEVENT_IID, result);
 	if (rc != XPCOM.NS_OK) error (rc);
 	if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 
-	nsIDOMMouseEvent domMouseEvent = new nsIDOMMouseEvent (result[0]);
 	int[] aScreenX = new int[1], aScreenY = new int[1];
+	nsIDOMMouseEvent domMouseEvent = new nsIDOMMouseEvent (result[0]);
 	rc = domMouseEvent.GetScreenX (aScreenX);
 	if (rc != XPCOM.NS_OK) error (rc);
 	rc = domMouseEvent.GetScreenY (aScreenY);
@@ -3952,9 +4285,9 @@ int OnStartURIOpen (int /*long*/ aURI, int /*long*/ retval) {
 	* to the page with the bad certificate so that NotifyCertProblem will be invoked.
 	*/
 	if (value.indexOf ("aboutCertError.xhtml") != -1 || (isViewingErrorPage && value.indexOf ("javascript:showSecuritySection") != -1)) { //$NON-NLS-1$ //$NON-NLS-2$
-		XPCOM.memmove (retval, new int[] {1}, 4); /* PRBool */
+		XPCOM.memmove (retval, new boolean[] {true});
 		isRetrievingBadCert = true;
-		setUrl (lastNavigateURL, null, null);
+		setUrl (lastNavigateURL, (byte[])null, null);
 		return XPCOM.NS_OK;
 	}
 	isViewingErrorPage = value.indexOf ("netError.xhtml") != -1; //$NON-NLS-1$
@@ -4009,7 +4342,7 @@ int OnStartURIOpen (int /*long*/ aURI, int /*long*/ retval) {
 			}
 		}
 	}
-	XPCOM.memmove (retval, new int[] {doit ? 0 : 1}, 4); /* PRBool */
+	XPCOM.memmove (retval, new boolean[] {!doit});
 	return XPCOM.NS_OK;
 }
 
@@ -4068,7 +4401,7 @@ int IsPreferred (int /*long*/ aContentType, int /*long*/ aDesiredContentType, in
 		}
 	}
 
-	XPCOM.memmove(retval, new int[] {preferred ? 1 : 0}, 4); /* PRBool */
+	XPCOM.memmove(retval, new boolean[] {preferred});
 	if (preferred) {
 		XPCOM.memmove (aDesiredContentType, new int /*long*/[] {0}, C.PTR_SIZEOF);
 	}
@@ -4133,11 +4466,8 @@ int OnHideTooltip () {
 	return XPCOM.NS_OK;
 }
 
-/* nsIDOMEventListener */
-
 int HandleEvent (int /*long*/ event) {
 	nsIDOMEvent domEvent = new nsIDOMEvent (event);
-
 	int /*long*/ type = XPCOM.nsEmbedString_new ();
 	int rc = domEvent.GetType (type);
 	if (rc != XPCOM.NS_OK) error (rc);
@@ -4167,7 +4497,7 @@ int HandleEvent (int /*long*/ event) {
 
 	if (XPCOM.DOMEVENT_KEYDOWN.equals (typeString)) {
 		int /*long*/[] result = new int /*long*/[1];
-		rc = domEvent.QueryInterface (nsIDOMKeyEvent.NS_IDOMKEYEVENT_IID, result);
+		rc = domEvent.QueryInterface (!IsPre_4 ? nsIDOMKeyEvent.NS_IDOMKEYEVENT_10_IID : nsIDOMKeyEvent.NS_IDOMKEYEVENT_IID, result);
 		if (rc != XPCOM.NS_OK) error (rc);
 		if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 		nsIDOMKeyEvent domKeyEvent = new nsIDOMKeyEvent (result[0]);
@@ -4275,7 +4605,7 @@ int HandleEvent (int /*long*/ event) {
 		}
 
 		int /*long*/[] result = new int /*long*/[1];
-		rc = domEvent.QueryInterface (nsIDOMKeyEvent.NS_IDOMKEYEVENT_IID, result);
+		rc = domEvent.QueryInterface (!IsPre_4 ? nsIDOMKeyEvent.NS_IDOMKEYEVENT_10_IID : nsIDOMKeyEvent.NS_IDOMKEYEVENT_IID, result);
 		if (rc != XPCOM.NS_OK) error (rc);
 		if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 		nsIDOMKeyEvent domKeyEvent = new nsIDOMKeyEvent (result[0]);
@@ -4331,7 +4661,7 @@ int HandleEvent (int /*long*/ event) {
 
 	if (XPCOM.DOMEVENT_KEYUP.equals (typeString)) {
 		int /*long*/[] result = new int /*long*/[1];
-		rc = domEvent.QueryInterface (nsIDOMKeyEvent.NS_IDOMKEYEVENT_IID, result);
+		rc = domEvent.QueryInterface (!IsPre_4 ? nsIDOMKeyEvent.NS_IDOMKEYEVENT_10_IID : nsIDOMKeyEvent.NS_IDOMKEYEVENT_IID, result);
 		if (rc != XPCOM.NS_OK) error (rc);
 		if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 		nsIDOMKeyEvent domKeyEvent = new nsIDOMKeyEvent (result[0]);
@@ -4388,7 +4718,7 @@ int HandleEvent (int /*long*/ event) {
 	/* mouse event */
 
 	int /*long*/[] result = new int /*long*/[1];
-	rc = domEvent.QueryInterface (nsIDOMMouseEvent.NS_IDOMMOUSEEVENT_IID, result);
+	rc = domEvent.QueryInterface (!IsPre_4 ? nsIDOMMouseEvent.NS_IDOMMOUSEEVENT_10_IID : nsIDOMMouseEvent.NS_IDOMMOUSEEVENT_IID, result);
 	if (rc != XPCOM.NS_OK) error (rc);
 	if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 	nsIDOMMouseEvent domMouseEvent = new nsIDOMMouseEvent (result[0]);
@@ -4520,8 +4850,11 @@ int NotifyCertProblem (int /*long*/ socketInfo, int /*long*/ status, int /*long*
 
 	int /*long*/[] result = new int /*long*/[1];
 	nsISupports supports = new nsISupports (status);
-	int rc = supports.QueryInterface (nsISSLStatus.NS_ISSLSTATUS_IID, result);
-	if (rc != XPCOM.NS_OK) error (rc);
+	int rc = supports.QueryInterface (nsISSLStatus.NS_ISSLSTATUS_10_IID, result);
+	if (rc != XPCOM.NS_OK) {
+		rc = supports.QueryInterface (nsISSLStatus.NS_ISSLSTATUS_IID, result);
+		if (rc != XPCOM.NS_OK) error (rc);
+	}
 	if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 
 	nsISSLStatus sslStatus = new nsISSLStatus (result[0]);
@@ -4616,37 +4949,39 @@ int NotifyCertProblem (int /*long*/ socketInfo, int /*long*/ status, int /*long*
 	browser.getDisplay().asyncExec(new Runnable() {
 		public void run() {
 			if (browser.isDisposed ()) return;
-			if (!url.equals (lastNavigateURL)) return;	/* user has navigated elsewhere */
-
-			String message = Compatibility.getMessage ("SWT_InvalidCert_Message", new String[] {urlPort}); //$NON-NLS-1$
-			if (new PromptDialog (browser.getShell ()).invalidCert (browser, message, finalProblems, cert)) {
-				int /*long*/[] result = new int /*long*/[1];
-				int rc = XPCOM.NS_GetServiceManager (result);
-				if (rc != XPCOM.NS_OK) error (rc);
-				if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
-		
-				nsIServiceManager serviceManager = new nsIServiceManager (result[0]);
-				result[0] = 0;
-				byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_CERTOVERRIDE_CONTRACTID, true);
-				rc = serviceManager.GetServiceByContractID (aContractID, nsICertOverrideService.NS_ICERTOVERRIDESERVICE_IID, result);
-				if (rc != XPCOM.NS_OK) error (rc);
-				if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
-				serviceManager.Release ();
-		
-				nsICertOverrideService overrideService = new nsICertOverrideService (result[0]);
-				result[0] = 0;
-				byte[] hostBytes = MozillaDelegate.wcsToMbcs (null, host, false);
-				int /*long*/ hostString = XPCOM.nsEmbedCString_new (hostBytes, hostBytes.length);
-				rc = overrideService.RememberValidityOverride (hostString, port, cert.getAddress (), finalFlags, 1);
-				browser.setUrl (url);
-				XPCOM.nsEmbedCString_delete (hostString);
-				overrideService.Release ();
+			if (url.equals (lastNavigateURL)) {
+				String message = Compatibility.getMessage ("SWT_InvalidCert_Message", new String[] {urlPort}); //$NON-NLS-1$
+				if (new PromptDialog (browser.getShell ()).invalidCert (browser, message, finalProblems, cert)) {
+					int /*long*/[] result = new int /*long*/[1];
+					int rc = XPCOM.NS_GetServiceManager (result);
+					if (rc != XPCOM.NS_OK) error (rc);
+					if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
+			
+					nsIServiceManager serviceManager = new nsIServiceManager (result[0]);
+					result[0] = 0;
+					byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_CERTOVERRIDE_CONTRACTID, true);
+					rc = serviceManager.GetServiceByContractID (aContractID, nsICertOverrideService.NS_ICERTOVERRIDESERVICE_IID, result);
+					if (rc != XPCOM.NS_OK) error (rc);
+					if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
+					serviceManager.Release ();
+			
+					nsICertOverrideService overrideService = new nsICertOverrideService (result[0]);
+					result[0] = 0;
+					byte[] hostBytes = MozillaDelegate.wcsToMbcs (null, host, false);
+					int /*long*/ hostString = XPCOM.nsEmbedCString_new (hostBytes, hostBytes.length);
+					rc = overrideService.RememberValidityOverride (hostString, port, cert.getAddress (), finalFlags, 1);
+					navigate (badCertRequest);
+					XPCOM.nsEmbedCString_delete (hostString);
+					overrideService.Release ();
+				}
 			}
 			cert.Release ();
+			new nsISupports (badCertRequest).Release ();
+			badCertRequest = 0;
 		}
 	});
 
-	C.memmove (_suppressError, new int[] {1}, 4); /* PRInt32 */
+	XPCOM.memmove (_suppressError, new boolean[] {true});
 	return XPCOM.NS_OK;
 }
 

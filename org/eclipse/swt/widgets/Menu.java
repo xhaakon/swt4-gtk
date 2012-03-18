@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.swt.widgets;
 
-
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.*;
@@ -210,6 +209,7 @@ void _setVisible (boolean visible) {
 				}
 			}
 			int /*long*/ address = hasLocation ? display.menuPositionProc: 0;
+			hasLocation = false;
 			int /*long*/ data = 0;
 			if ((OS.GTK_VERSION >=  OS.VERSION (2, 10, 0))) {
 				/*
@@ -658,6 +658,13 @@ int /*long*/ gtk_hide (int /*long*/ widget) {
 		*/
 		postEvent (SWT.Hide);
 	}
+	if (OS.ubuntu_menu_proxy_get() != 0) {
+		MenuItem[] items = getItems();
+		for (int i=0; i<items.length; i++) {
+			MenuItem item = items [i];
+			if (item.updateAcceleratorText(false)) continue;
+		}
+	}
 	return 0;
 }
 
@@ -667,6 +674,13 @@ int /*long*/ gtk_show (int /*long*/ widget) {
 		return 0;
 	} 
 	sendEvent (SWT.Show);
+	if (OS.ubuntu_menu_proxy_get() != 0) {
+		MenuItem[] items = getItems();
+		for (int i=0; i<items.length; i++) {
+			MenuItem item = items [i];
+			if (item.updateAcceleratorText(true)) continue;
+		}
+	}
 	return 0;
 }
 
