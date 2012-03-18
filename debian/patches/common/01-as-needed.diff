@@ -3,7 +3,7 @@ Author: أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
 Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
 --- a/make_linux.mak
 +++ b/make_linux.mak
-@@ -137,7 +137,7 @@
+@@ -136,7 +136,7 @@
  	$(CC) $(CFLAGS) -DUSE_ASSEMBLER -c callback.c
  
  $(SWTPI_LIB): $(SWTPI_OBJECTS)
@@ -12,7 +12,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  swt.o: swt.c swt.h
  	$(CC) $(CFLAGS) -c swt.c
-@@ -156,7 +156,7 @@
+@@ -155,7 +155,7 @@
  make_cairo: $(CAIRO_LIB)
  
  $(CAIRO_LIB): $(CAIRO_OBJECTS)
@@ -21,7 +21,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  cairo.o: cairo.c cairo.h swt.h
  	$(CC) $(CFLAGS) $(CAIROCFLAGS) -c cairo.c
-@@ -172,7 +172,7 @@
+@@ -171,7 +171,7 @@
  make_cde: $(CDE_LIB)
  
  $(CDE_LIB): $(CDE_OBJECTS)
@@ -30,7 +30,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  #
  # AWT lib
-@@ -180,7 +180,7 @@
+@@ -179,7 +179,7 @@
  make_awt:$(AWT_LIB)
  
  $(AWT_LIB): $(AWT_OBJECTS)
@@ -39,7 +39,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  #
  # Atk lib
-@@ -188,7 +188,7 @@
+@@ -187,7 +187,7 @@
  make_atk: $(ATK_LIB)
  
  $(ATK_LIB): $(ATK_OBJECTS)
@@ -48,7 +48,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  atk.o: atk.c atk.h
  	$(CC) $(CFLAGS) $(ATKCFLAGS) -c atk.c
-@@ -205,7 +205,7 @@
+@@ -204,7 +204,7 @@
  make_gnome: $(GNOME_LIB)
  
  $(GNOME_LIB): $(GNOME_OBJECTS)
@@ -57,7 +57,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  gnome.o: gnome.c 
  	$(CC) $(CFLAGS) $(GNOMECFLAGS) -c gnome.c
-@@ -222,7 +222,7 @@
+@@ -221,7 +221,7 @@
  make_mozilla:$(MOZILLA_LIB)
  
  $(MOZILLA_LIB): $(MOZILLA_OBJECTS)
@@ -66,7 +66,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  xpcom.o: xpcom.cpp
  	$(CXX) $(MOZILLACFLAGS) $(MOZILLAEXCLUDES) ${MOZILLA_INCLUDES} -c xpcom.cpp
-@@ -242,7 +242,7 @@
+@@ -241,7 +241,7 @@
  make_xulrunner:$(XULRUNNER_LIB)
  
  $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
@@ -75,7 +75,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  xpcomxul.o: xpcom.cpp
  	$(CXX) -o xpcomxul.o $(MOZILLACFLAGS) $(XULRUNNEREXCLUDES) ${XULRUNNER_INCLUDES} -c xpcom.cpp
-@@ -262,7 +262,7 @@
+@@ -261,7 +261,7 @@
  make_xpcominit:$(XPCOMINIT_LIB)
  
  $(XPCOMINIT_LIB): $(XPCOMINIT_OBJECTS)
@@ -84,16 +84,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  xpcominit.o: xpcominit.cpp
  	$(CXX) $(MOZILLACFLAGS) ${XULRUNNER_INCLUDES} -c xpcominit.cpp
-@@ -279,7 +279,7 @@
- make_webkit: $(WEBKIT_LIB)
- 
- $(WEBKIT_LIB): $(WEBKIT_OBJECTS)
--	$(CC) $(LFLAGS) -o $(WEBKIT_LIB) $(WEBKIT_OBJECTS) $(WEBKITLIBS)
-+	$(CC) $(LFLAGS) -o $(WEBKIT_LIB) $(WEBKIT_OBJECTS) -Wl,--as-needed $(WEBKITLIBS)
- 
- webkit.o: webkitgtk.c 
- 	$(CC) $(CFLAGS) $(WEBKITCFLAGS) -c webkitgtk.c -o webkit.o
-@@ -296,7 +296,7 @@
+@@ -295,7 +295,7 @@
  make_glx: $(GLX_LIB)
  
  $(GLX_LIB): $(GLX_OBJECTS)
