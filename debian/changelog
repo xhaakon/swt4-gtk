@@ -4,6 +4,7 @@ swt-gtk (3.8.0~m6-1) UNRELEASED; urgency=low
   * debian/Makefile: Add missing SWTMessages*.properties files to
     swt-gtk-$(RELEASE).jar
   * Updated 01-as-needed.diff patch for new upstream release.
+  * Updated arch64.diff patch for new upstream release.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 18 Mar 2012 19:44:15 +0100
 
