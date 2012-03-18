@@ -1,2 +1,2 @@
 # swt-gtk-3.jar is architecture-dependent:
-libswt-gtk-3-java: jar-not-in-usr-share usr/lib/java/swt-gtk-3.7.2.jar
+libswt-gtk-3-java: jar-not-in-usr-share usr/lib/java/swt-gtk-3.8.0.jar

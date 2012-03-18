@@ -6,7 +6,7 @@ case "$1" in
         update-alternatives --install \
                 /usr/share/java/swt.jar \
                 swt.jar \
-                /usr/share/java/swt-gtk-3.7.jar \
+                /usr/share/java/swt-gtk-3.8.jar \
                 103
     ;;
 
