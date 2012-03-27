@@ -1,3 +1,10 @@
+swt-gtk (3.7.2-2) unstable; urgency=low
+
+  * debian/control: Change build-dep: libwebkit-dev -> libwebkitgtk-dev
+    (Closes: #635428)
+
+ -- أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>  Tue, 27 Mar 2012 14:55:53 +0200
+
 swt-gtk (3.7.2-1) unstable; urgency=low
 
   [ أحمد المحمودي (Ahmed El-Mahmoudy) ]
