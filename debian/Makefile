@@ -18,12 +18,15 @@ clean distclean:
 .PHONY: all clean distclean
 
 swt-gtk-$(RELEASE).files:
-	find org -name *.java | sort > $@
+	find org -name *.java -o -name *.properties | sort > $@
 
 %-stamp: %.files
 	mkdir -p $*
 	for i in `cat $<`; do \
-		if [ -e $*/$${i%java}class ]; then \
+		if [ "$${i##*.}" = "properties" ]; then \
+			echo cp $$i $*/$$i; \
+			cp $$i $*/$$i; \
+		elif [ -e $*/$${i%java}class ]; then \
 			echo SKIPPING $$i; \
 		else \
 			echo $(JAVAC) -d $* $$i; \
