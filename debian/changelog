@@ -5,6 +5,8 @@ swt-gtk (3.8.0~m6-1) UNRELEASED; urgency=low
     swt-gtk-$(RELEASE).jar
   * Updated 01-as-needed.diff patch for new upstream release.
   * Updated arch64.diff patch for new upstream release.
+  * Search for JNI libraries in Debian location /usr/lib/jni
+    (Closes: #663734 #665195 #668002)
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 18 Mar 2012 19:44:15 +0100
 
