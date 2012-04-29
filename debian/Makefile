@@ -1,4 +1,4 @@
-RELEASE=$(strip $(shell dpkg-parsechangelog | grep Version: | cut -d: -f2 | cut -d- -f1))
+RELEASE=$(strip $(shell dpkg-parsechangelog | grep Version: | cut -d: -f2 | cut -d- -f1 | cut -d~ -f1))
 JAVA=swt-gtk-$(RELEASE).jar
 CLEANFILES=*.files *.jar *-stamp
 
