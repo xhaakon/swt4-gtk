@@ -92,8 +92,12 @@ int CreateInstance (int /*long*/ aOuter, int /*long*/ iid, int /*long*/ result) 
 		HelperAppLauncherDialog helperAppLauncherDialog = new HelperAppLauncherDialog ();
 		helperAppLauncherDialog.AddRef ();
 		XPCOM.memmove (result, new int /*long*/[] {helperAppLauncherDialog.getAddress ()}, C.PTR_SIZEOF);
-	} else {
+	} else if (Mozilla.IsPre_4){
 		HelperAppLauncherDialog_1_9 helperAppLauncherDialog = new HelperAppLauncherDialog_1_9 ();
+		helperAppLauncherDialog.AddRef ();
+		XPCOM.memmove (result, new int /*long*/[] {helperAppLauncherDialog.getAddress ()}, C.PTR_SIZEOF);
+	} else {
+		HelperAppLauncherDialog_10 helperAppLauncherDialog = new HelperAppLauncherDialog_10 ();
 		helperAppLauncherDialog.AddRef ();
 		XPCOM.memmove (result, new int /*long*/[] {helperAppLauncherDialog.getAddress ()}, C.PTR_SIZEOF);
 	}

@@ -13,7 +13,6 @@ package org.eclipse.swt.accessibility;
 
 import java.util.*;
 import org.eclipse.swt.*;
-import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.internal.gtk.*;
 
@@ -112,12 +111,6 @@ public class Accessible {
 		super ();
 		this.control = control;
 		AccessibleFactory.registerAccessible (this);
-		control.addDisposeListener (new DisposeListener () {
-			public void widgetDisposed (DisposeEvent e) {
-				AccessibleFactory.unregisterAccessible (Accessible.this);
-				release ();
-			}
-		});
 	}	
 	
 	/**
@@ -496,6 +489,23 @@ public class Accessible {
 	}
 
 	/**
+	 * Invokes platform specific functionality to dispose an accessible object.
+	 * <p>
+	 * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
+	 * API for <code>Accessible</code>. It is marked public only so that it
+	 * can be shared within the packages provided by SWT. It is not
+	 * available on all platforms, and should never be called from
+	 * application code.
+	 * </p>
+	 * 
+	 * @noreference This method is not intended to be referenced by clients.
+	 */
+	public void internal_dispose_Accessible() {
+		AccessibleFactory.unregisterAccessible (Accessible.this);
+		release ();
+	}
+	
+	/**
 	 * Invokes platform specific functionality to allocate a new accessible object.
 	 * <p>
 	 * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
@@ -873,6 +883,50 @@ public class Accessible {
 		checkWidget();
 		if (accessibleObject != null) {
 			accessibleObject.sendEvent(event, eventData);
+		}
+	}
+	
+	/**
+	 * Sends a message with event-specific data and a childID
+	 * to accessible clients, indicating that something has changed
+	 * within a custom control.
+	 * 
+	 * NOTE: This API is intended for applications that are still using childIDs.
+	 * Moving forward, applications should use accessible objects instead of childIDs.
+	 *
+	 * @param event an <code>ACC</code> constant beginning with EVENT_* indicating the message to send
+	 * @param eventData an object containing event-specific data, or null if there is no event-specific data
+	 * (eventData is specified in the documentation for individual ACC.EVENT_* constants)
+	 * @param childID an identifier specifying a child of the control
+	 * 
+	 * @exception SWTException <ul>
+	 *    <li>ERROR_WIDGET_DISPOSED - if the receiver's control has been disposed</li>
+	 *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver's control</li>
+	 * </ul>
+	 * 
+	 * @see ACC#EVENT_DESCRIPTION_CHANGED
+	 * @see ACC#EVENT_LOCATION_CHANGED
+	 * @see ACC#EVENT_NAME_CHANGED
+	 * @see ACC#EVENT_SELECTION_CHANGED
+	 * @see ACC#EVENT_STATE_CHANGED
+	 * @see ACC#EVENT_TEXT_SELECTION_CHANGED
+	 * @see ACC#EVENT_VALUE_CHANGED
+	 * 
+	 * @since 3.8
+	 */
+	public void sendEvent(int event, Object eventData, int childID) {
+		checkWidget();
+		if (accessibleObject != null) {
+			switch (event) {
+				case ACC.EVENT_STATE_CHANGED:
+				case ACC.EVENT_NAME_CHANGED:
+				case ACC.EVENT_VALUE_CHANGED:
+				case ACC.EVENT_LOCATION_CHANGED:
+				case ACC.EVENT_SELECTION_CHANGED:
+				case ACC.EVENT_TEXT_SELECTION_CHANGED:
+				case ACC.EVENT_DESCRIPTION_CHANGED:
+					accessibleObject.sendEvent(event, eventData, childID);
+			}
 		}
 	}
 	

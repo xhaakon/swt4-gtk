@@ -270,6 +270,8 @@ void createHandle (int index) {
 		* Bug in Solaris-GTK.  Invoking gtk_tooltips_force_window()
 		* can cause a crash in older versions of GTK.  The fix is
 		* to avoid this call if the GTK version is older than 2.2.x.
+		* The call is to be avoided on GTK versions newer than 2.12.0
+		* where it's deprecated.
 		*/
 		if (OS.GTK_VERSION >= OS.VERSION (2, 2, 1)) { 
 			OS.gtk_tooltips_force_window (handle);
@@ -470,6 +472,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	if ((state & OBSCURED) != 0) return 0;
 	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
+	//TODO: Use Cairo
 	int /*long*/ gdkGC = OS.gdk_gc_new (window);
 	OS.gdk_draw_polygon (window, gdkGC, 0, borderPolygon, borderPolygon.length / 2);
 	int x = BORDER + PADDING;
@@ -576,11 +579,12 @@ void register () {
 
 void releaseWidget () {
 	super.releaseWidget ();
+	setVisible(false);
 	if (layoutText != 0) OS.g_object_unref (layoutText);
 	layoutText = 0;
 	if (layoutMessage != 0) OS.g_object_unref (layoutMessage);
 	layoutMessage = 0;
-	if (timerId != 0) OS.gtk_timeout_remove(timerId);
+	if (timerId != 0) OS.g_source_remove(timerId);
 	timerId = 0;
 	text = null;
 	message = null;
@@ -626,9 +630,9 @@ public void removeSelectionListener (SelectionListener listener) {
  * @see #getVisible
  * @see #setVisible
  */
-public void setAutoHide (boolean autohide) {
+public void setAutoHide (boolean autoHide) {
 	checkWidget ();
-	this.autohide = autohide;
+	this.autohide = autoHide;
 	//TODO - update when visible
 }
 
@@ -781,7 +785,7 @@ public void setText (String string) {
  */
 public void setVisible (boolean visible) {
 	checkWidget ();
-	if (timerId != 0) OS.gtk_timeout_remove(timerId);
+	if (timerId != 0) OS.g_source_remove(timerId);
 	timerId = 0;
 	if (visible) {
 		if ((style & SWT.BALLOON) != 0) {
@@ -793,18 +797,27 @@ public void setVisible (boolean visible) {
 			if (text.length () > 0) string.append ("\n\n");
 			string.append (message);
 			byte [] buffer = Converter.wcsToMbcs (null, string.toString(), true);
-			OS.gtk_tooltips_set_tip (handle, vboxHandle, buffer, null);
-			int /*long*/ data = OS.gtk_tooltips_data_get (vboxHandle);
-			OS.GTK_TOOLTIPS_SET_ACTIVE (handle, data);
-			OS.gtk_tooltips_set_tip (handle, vboxHandle, buffer, null);
+			if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
+				OS.gtk_widget_set_tooltip_text(vboxHandle, buffer);
+			} else {
+				OS.gtk_tooltips_set_tip (handle, vboxHandle, buffer, null);
+				int /*long*/ data = OS.gtk_tooltips_data_get (vboxHandle);
+				OS.GTK_TOOLTIPS_SET_ACTIVE (handle, data);
+				OS.gtk_tooltips_set_tip (handle, vboxHandle, buffer, null);
+			}
 		}		
-		if (autohide) timerId = OS.gtk_timeout_add (DELAY, display.windowTimerProc, handle);
+		if (autohide) timerId = OS.g_timeout_add (DELAY, display.windowTimerProc, handle);
 	} else {
 		if ((style & SWT.BALLOON) != 0) {
 			OS.gtk_widget_hide (handle);
 		} else {
-			int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (handle);
-			OS.gtk_widget_hide (tipWindow);
+			int /*long*/ vboxHandle = parent.vboxHandle;
+			byte[] buffer = Converter.wcsToMbcs(null, "", true);
+			if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
+				OS.gtk_widget_set_tooltip_text(vboxHandle, buffer);
+			} else {
+				OS.gtk_tooltips_set_tip(handle, vboxHandle, buffer, null);
+			}
 		}
 	}
 }

@@ -33,13 +33,15 @@ class WebKit extends WebBrowser {
 	BrowserFunction eventFunction;
 
 	static int /*long*/ ExternalClass, PostString;
-	static boolean LibraryLoaded;
+	static boolean IsWebKitGTK14orNewer, LibraryLoaded;
+	static Hashtable WindowMappings = new Hashtable ();
 
 	static final String ABOUT_BLANK = "about:blank"; //$NON-NLS-1$
 	static final String CHARSET_UTF8 = "UTF-8"; //$NON-NLS-1$
 	static final String CLASSNAME_EXTERNAL = "External"; //$NON-NLS-1$
-	static final String ENCODING_FORM = "Content-Type: application/x-www-form-urlencoded"; //$NON-NLS-1$
 	static final String FUNCTIONNAME_CALLJAVA = "callJava"; //$NON-NLS-1$
+	static final String HEADER_CONTENTTYPE = "content-type"; //$NON-NLS-1$
+	static final String MIMETYPE_FORMURLENCODED = "application/x-www-form-urlencoded"; //$NON-NLS-1$
 	static final String OBJECTNAME_EXTERNAL = "external"; //$NON-NLS-1$
 	static final String PROPERTY_LENGTH = "length"; //$NON-NLS-1$
 	static final String PROPERTY_PROXYHOST = "network.proxy_host"; //$NON-NLS-1$
@@ -51,6 +53,7 @@ class WebKit extends WebBrowser {
 	static final int MAX_PORT = 65535;
 	static final int MAX_PROGRESS = 100;
 	static final int[] MIN_VERSION = {1, 2, 0};
+	static final int SENTINEL_KEYPRESS = -1;
 	static final char SEPARATOR_FILE = System.getProperty ("file.separator").charAt (0); //$NON-NLS-1$
 	static final int STOP_PROPOGATE = 1;
 
@@ -84,25 +87,16 @@ class WebKit extends WebBrowser {
 
 	static final String KEY_CHECK_SUBWINDOW = "org.eclipse.swt.internal.control.checksubwindow"; //$NON-NLS-1$
 
-	// the following Callbacks are never freed
+	/* the following Callbacks are never freed */
 	static Callback Proc2, Proc3, Proc4, Proc5, Proc6;
 	static Callback JSObjectHasPropertyProc, JSObjectGetPropertyProc, JSObjectCallAsFunctionProc;
+	static Callback JSDOMEventProc;
 
 	static {
-
-		/*
-		* WebKitGTK is binary-incompatible between its 1.2 and 1.4 releases,
-		* so swt has separate libraries compiled against each.
-		*/
 		try {
-			Library.loadLibrary ("swt-webkit12"); // $NON-NLS-1$
+			Library.loadLibrary ("swt-webkit"); // $NON-NLS-1$
 			LibraryLoaded = true;
 		} catch (Throwable e) {
-			try {
-				Library.loadLibrary ("swt-webkit"); // $NON-NLS-1$
-				LibraryLoaded = true;
-			} catch (Throwable e2) {
-			}
 		}
 
 		if (LibraryLoaded) {
@@ -122,6 +116,8 @@ class WebKit extends WebBrowser {
 			if (JSObjectGetPropertyProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 			JSObjectCallAsFunctionProc = new Callback (WebKit.class, "JSObjectCallAsFunctionProc", 6); //$NON-NLS-1$
 			if (JSObjectCallAsFunctionProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
+			JSDOMEventProc = new Callback (WebKit.class, "JSDOMEventProc", 3); //$NON-NLS-1$
+			if (JSDOMEventProc.getAddress () == 0) SWT.error (SWT.ERROR_NO_MORE_CALLBACKS);
 
 			NativeClearSessions = new Runnable () {
 				public void run () {
@@ -140,7 +136,7 @@ class WebKit extends WebBrowser {
 							/* indicates a session cookie */
 							WebKitGTK.soup_cookie_jar_delete_cookie (jar, cookie);
 						}
-						// WebKitGTK.soup_cookie_free (cookie);
+						WebKitGTK.soup_cookie_free (cookie);
 						current = OS.g_slist_next (current);
 					}
 					OS.g_slist_free (cookies);
@@ -214,14 +210,14 @@ class WebKit extends WebBrowser {
 		}
 	}
 
-static Browser findBrowser (int /*long*/ webView) {
+static Browser FindBrowser (int /*long*/ webView) {
 	if (webView == 0) return null;
 	int /*long*/ parent = OS.gtk_widget_get_parent (webView);
 	parent = OS.gtk_widget_get_parent (parent);
 	return (Browser)Display.getCurrent ().findWidget (parent);
 }
 
-static boolean isInstalled () {
+static boolean IsInstalled () {
 	if (!LibraryLoaded) return false;
 	// TODO webkit_check_version() should take care of the following, but for some
 	// reason this symbol is missing from the latest build.  If it is present in
@@ -229,6 +225,9 @@ static boolean isInstalled () {
 	int major = WebKitGTK.webkit_major_version ();
 	int minor = WebKitGTK.webkit_minor_version ();
 	int micro = WebKitGTK.webkit_micro_version ();
+	IsWebKitGTK14orNewer = major > 1 ||
+		(major == 1 && minor > 4) ||
+		(major == 1 && minor == 4 && micro >= 0);
 	return major > MIN_VERSION[0] ||
 		(major == MIN_VERSION[0] && minor > MIN_VERSION[1]) ||
 		(major == MIN_VERSION[0] && minor == MIN_VERSION[1] && micro >= MIN_VERSION[2]);
@@ -241,7 +240,7 @@ static int /*long*/ JSObjectCallAsFunctionProc (int /*long*/ ctx, int /*long*/ f
 	int /*long*/ ptr = WebKitGTK.JSObjectGetPrivate (thisObject);
 	int /*long*/[] handle = new int /*long*/[1];
 	C.memmove (handle, ptr, C.PTR_SIZEOF);
-	Browser browser = findBrowser (handle[0]);
+	Browser browser = FindBrowser (handle[0]);
 	if (browser == null) return 0;
 	WebKit webkit = (WebKit)browser.webBrowser;
 	return webkit.callJava (ctx, function, thisObject, argumentCount, arguments, exception);
@@ -270,8 +269,17 @@ static int /*long*/ JSObjectHasPropertyProc (int /*long*/ ctx, int /*long*/ obje
 	return WebKitGTK.JSStringIsEqualToUTF8CString (propertyName, bytes);
 }
 
+static int /*long*/ JSDOMEventProc (int /*long*/ window, int /*long*/ event, int /*long*/ user_data) {
+	LONG webViewHandle = (LONG)WindowMappings.get (new LONG (window));
+	if (webViewHandle == null) return 0;
+	Browser browser = FindBrowser (webViewHandle.value);
+	if (browser == null) return 0;
+	WebKit webkit = (WebKit)browser.webBrowser;
+	return webkit.handleEvent (event, (int)user_data) ? 0 : 1;
+}
+
 static int /*long*/ Proc (int /*long*/ handle, int /*long*/ user_data) {
-	Browser browser = findBrowser (handle);
+	Browser browser = FindBrowser (handle);
 	if (browser == null) return 0;
 	WebKit webkit = (WebKit)browser.webBrowser;
 	return webkit.webViewProc (handle, user_data);
@@ -287,12 +295,12 @@ static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ u
 	}
 
 	int /*long*/ webView;
-	if (WebKitGTK.WEBKIT_IS_WEB_FRAME (handle)) {
+	if (OS.G_TYPE_CHECK_INSTANCE_TYPE (handle, WebKitGTK.webkit_web_frame_get_type ())) {
 		webView = WebKitGTK.webkit_web_frame_get_web_view (handle);
 	} else {
 		webView = handle;
 	}
-	Browser browser = findBrowser (webView); 
+	Browser browser = FindBrowser (webView); 
 	if (browser == null) return 0;
 	WebKit webkit = (WebKit)browser.webBrowser;
 	if (webView == handle) {
@@ -303,7 +311,7 @@ static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ u
 }
 
 static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ user_data) {
-	Browser browser = findBrowser (handle);
+	Browser browser = FindBrowser (handle);
 	if (browser == null) return 0;
 	WebKit webkit = (WebKit)browser.webBrowser;
 	return webkit.webViewProc (handle, arg0, arg1, user_data);
@@ -311,12 +319,12 @@ static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ a
 
 static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ user_data) {
 	int /*long*/ webView;
-	if (WebKitGTK.SOUP_IS_SESSION (handle)) {
+	if (OS.G_TYPE_CHECK_INSTANCE_TYPE (handle, WebKitGTK.soup_session_get_type ())) {
 		webView = user_data;
 	} else {
 		webView = handle;
 	}
-	Browser browser = findBrowser (webView);
+	Browser browser = FindBrowser (webView);
 	if (browser == null) return 0;
 	WebKit webkit = (WebKit)browser.webBrowser;
 	if (webView == handle) {
@@ -327,7 +335,7 @@ static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ a
 }
 
 static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3, int /*long*/ user_data) {
-	Browser browser = findBrowser (handle);
+	Browser browser = FindBrowser (handle);
 	if (browser == null) return 0;
 	WebKit webkit = (WebKit)browser.webBrowser;
 	return webkit.webViewProc (handle, arg0, arg1, arg2, arg3, user_data);
@@ -561,7 +569,7 @@ public void create (Composite parent, int style) {
 
 	eventFunction = new BrowserFunction (browser, "HandleWebKitEvent") { //$NON-NLS-1$
 		public Object function(Object[] arguments) {
-			return handleEvent (arguments) ? Boolean.TRUE : Boolean.FALSE;
+			return handleEventFromFunction (arguments) ? Boolean.TRUE : Boolean.FALSE;
 		};	
 	};
 
@@ -576,17 +584,44 @@ public void create (Composite parent, int style) {
 	browser.setData (KEY_CHECK_SUBWINDOW, Boolean.FALSE);
 }
 
-void addEventHandlers (boolean top) {
+void addEventHandlers (int /*long*/ web_view, boolean top) {
+	if (top && IsWebKitGTK14orNewer) {
+		int /*long*/ domDocument = WebKitGTK.webkit_web_view_get_dom_document (web_view);
+		if (domDocument != 0) {
+			WindowMappings.put (new LONG (domDocument), new LONG (web_view));
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.dragstart, JSDOMEventProc.getAddress (), 0, SWT.DragDetect);
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.keydown, JSDOMEventProc.getAddress (), 0, SWT.KeyDown);
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.keypress, JSDOMEventProc.getAddress (), 0, SENTINEL_KEYPRESS);
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.keyup, JSDOMEventProc.getAddress (), 0, SWT.KeyUp);
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.mousedown, JSDOMEventProc.getAddress (), 0, SWT.MouseDown);
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.mousemove, JSDOMEventProc.getAddress (), 0, SWT.MouseMove);
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.mouseup, JSDOMEventProc.getAddress (), 0, SWT.MouseUp);
+			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.mousewheel, JSDOMEventProc.getAddress (), 0, SWT.MouseWheel);
+
+			/*
+			* The following two lines are intentionally commented because they cannot be used to
+			* consistently send MouseEnter/MouseExit events until https://bugs.webkit.org/show_bug.cgi?id=35246
+			* is fixed.
+			*/ 
+			//WebKitGTK.webkit_dom_event_target_add_event_listener (domWindow, WebKitGTK.mouseover, JSDOMEventProc.getAddress (), 0, SWT.MouseEnter);
+			//WebKitGTK.webkit_dom_event_target_add_event_listener (domWindow, WebKitGTK.mouseout, JSDOMEventProc.getAddress (), 0, SWT.MouseExit);
+		}
+		return;
+	}
+
+	/* install the JS call-out to the registered BrowserFunction */
+	StringBuffer buffer = new StringBuffer ("window.SWTkeyhandler = function SWTkeyhandler(e) {"); //$NON-NLS-1$
+	buffer.append ("try {e.returnValue = HandleWebKitEvent(e.type, e.keyCode, e.charCode, e.altKey, e.ctrlKey, e.shiftKey, e.metaKey);} catch (e) {}};"); //$NON-NLS-1$
+	execute (buffer.toString ());
+	buffer = new StringBuffer ("window.SWTmousehandler = function SWTmousehandler(e) {"); //$NON-NLS-1$
+	buffer.append ("try {e.returnValue = HandleWebKitEvent(e.type, e.screenX, e.screenY, e.detail, e.button, e.altKey, e.ctrlKey, e.shiftKey, e.metaKey, e.relatedTarget != null);} catch (e) {}};"); //$NON-NLS-1$
+	execute (buffer.toString ());
+
 	if (top) {
-		StringBuffer buffer = new StringBuffer ("window.SWTkeyhandler = function SWTkeyhandler(e) {"); //$NON-NLS-1$
-		buffer.append ("try {e.returnValue = HandleWebKitEvent(e.type, e.keyCode, e.charCode, e.altKey, e.ctrlKey, e.shiftKey, e.metaKey);} catch (e) {}};"); //$NON-NLS-1$
-		buffer.append ("document.addEventListener('keydown', SWTkeyhandler, true);"); //$NON-NLS-1$
+		/* DOM API is not available, so add listener to top-level document */
+		buffer = new StringBuffer ("document.addEventListener('keydown', SWTkeyhandler, true);"); //$NON-NLS-1$
 		buffer.append ("document.addEventListener('keypress', SWTkeyhandler, true);"); //$NON-NLS-1$
 		buffer.append ("document.addEventListener('keyup', SWTkeyhandler, true);"); //$NON-NLS-1$
-		execute (buffer.toString ());
-
-		buffer = new StringBuffer ("window.SWTmousehandler = function SWTmousehandler(e) {"); //$NON-NLS-1$
-		buffer.append ("try {e.returnValue = HandleWebKitEvent(e.type, e.screenX, e.screenY, e.detail, e.button + 1, e.altKey, e.ctrlKey, e.shiftKey, e.metaKey, e.relatedTarget != null);} catch (e) {}};"); //$NON-NLS-1$
 		buffer.append ("document.addEventListener('mousedown', SWTmousehandler, true);"); //$NON-NLS-1$
 		buffer.append ("document.addEventListener('mouseup', SWTmousehandler, true);"); //$NON-NLS-1$
 		buffer.append ("document.addEventListener('mousemove', SWTmousehandler, true);"); //$NON-NLS-1$
@@ -602,21 +637,23 @@ void addEventHandlers (boolean top) {
 		//buffer.append ("document.addEventListener('mouseout', SWTmousehandler, true);"); //$NON-NLS-1$
 
 		execute (buffer.toString ());
-	} else {
-		StringBuffer buffer = new StringBuffer ("for (var i = 0; i < frames.length; i++) {"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('keydown', window.SWTkeyhandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('keypress', window.SWTkeyhandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('keyup', window.SWTkeyhandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('mousedown', window.SWTmousehandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('mouseup', window.SWTmousehandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('mousemove', window.SWTmousehandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('mouseover', window.SWTmousehandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('mouseout', window.SWTmousehandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('mousewheel', window.SWTmousehandler, true);"); //$NON-NLS-1$
-		buffer.append ("frames[i].document.addEventListener('dragstart', window.SWTmousehandler, true);"); //$NON-NLS-1$
-		buffer.append ('}');
-		execute (buffer.toString ());
+		return;
 	}
+
+	/* add JS event listener in frames */
+	buffer = new StringBuffer ("for (var i = 0; i < frames.length; i++) {"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('keydown', window.SWTkeyhandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('keypress', window.SWTkeyhandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('keyup', window.SWTkeyhandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('mousedown', window.SWTmousehandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('mouseup', window.SWTmousehandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('mousemove', window.SWTmousehandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('mouseover', window.SWTmousehandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('mouseout', window.SWTmousehandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('mousewheel', window.SWTmousehandler, true);"); //$NON-NLS-1$
+	buffer.append ("frames[i].document.addEventListener('dragstart', window.SWTmousehandler, true);"); //$NON-NLS-1$
+	buffer.append ('}');
+	execute (buffer.toString ());
 }
 
 public boolean back () {
@@ -746,17 +783,87 @@ public String getUrl () {
 	return url;
 }
 
-boolean handleEvent (Object[] arguments) {
-
+boolean handleEvent (int /*long*/ event, int type) {
 	/*
-	* DOM events are currently received by hooking DOM listeners
-	* in javascript that invoke this method via a BrowserFunction.
-	* It should be possible to replace this mechanism with more
-	* typical callbacks from C once WebKitGTK enhancement request
-	* https://bugs.webkit.org/show_bug.cgi?id=33590 is completed.
-	* In the meantime, the argument lists received here are:
-	* 
-	* For key events:
+	* This method handles JS events that are received through the DOM
+	* listener API that was introduced in WebKitGTK 1.4.
+	*/
+	String typeString = null;
+	boolean isMouseEvent = false;
+	switch (type) {
+		case SWT.DragDetect: {
+			typeString = "dragstart"; //$NON-NLS-1$
+			isMouseEvent = true;
+			break;
+		}
+		case SWT.MouseDown: {
+			typeString = "mousedown"; //$NON-NLS-1$
+			isMouseEvent = true;
+			break;
+		}
+		case SWT.MouseMove: {
+			typeString = "mousemove"; //$NON-NLS-1$
+			isMouseEvent = true;
+			break;
+		}
+		case SWT.MouseUp: {
+			typeString = "mouseup"; //$NON-NLS-1$
+			isMouseEvent = true;
+			break;
+		}
+		case SWT.MouseWheel: {
+			typeString = "mousewheel"; //$NON-NLS-1$
+			isMouseEvent = true;
+			break;
+		}
+		case SWT.KeyDown: {
+			typeString = "keydown"; //$NON-NLS-1$
+			break;	
+		}
+		case SWT.KeyUp: {
+			typeString = "keyup"; //$NON-NLS-1$
+			break;	
+		}
+		case SENTINEL_KEYPRESS: {
+			typeString = "keypress"; //$NON-NLS-1$
+			break;	
+		}
+	}
+
+	if (isMouseEvent) {
+		int screenX = (int)WebKitGTK.webkit_dom_mouse_event_get_screen_x (event);
+		int screenY = (int)WebKitGTK.webkit_dom_mouse_event_get_screen_y (event);
+		int button = (int)WebKitGTK.webkit_dom_mouse_event_get_button (event) + 1;
+		boolean altKey = WebKitGTK.webkit_dom_mouse_event_get_alt_key (event) != 0;
+		boolean ctrlKey = WebKitGTK.webkit_dom_mouse_event_get_ctrl_key (event) != 0;
+		boolean shiftKey = WebKitGTK.webkit_dom_mouse_event_get_shift_key (event) != 0;
+		boolean metaKey = WebKitGTK.webkit_dom_mouse_event_get_meta_key (event) != 0;
+		int detail = (int)WebKitGTK.webkit_dom_ui_event_get_detail (event);
+		boolean hasRelatedTarget = false; //WebKitGTK.webkit_dom_mouse_event_get_related_target (event) != 0;
+		return handleMouseEvent(typeString, screenX, screenY, detail, button, altKey, ctrlKey, shiftKey, metaKey, hasRelatedTarget);
+	}
+
+	/* key event */
+	int keyCode = (int)WebKitGTK.webkit_dom_ui_event_get_key_code (event);
+	int charCode = (int)WebKitGTK.webkit_dom_ui_event_get_char_code (event);
+	boolean altKey = WebKitGTK.webkit_dom_mouse_event_get_alt_key (event) != 0;
+	boolean ctrlKey = WebKitGTK.webkit_dom_mouse_event_get_ctrl_key (event) != 0;
+	boolean shiftKey = WebKitGTK.webkit_dom_mouse_event_get_shift_key (event) != 0;
+	boolean metaKey = WebKitGTK.webkit_dom_mouse_event_get_meta_key (event) != 0;
+	return handleKeyEvent(typeString, keyCode, charCode, altKey, ctrlKey, shiftKey, metaKey);
+}
+
+boolean handleEventFromFunction (Object[] arguments) {
+	/*
+	* Prior to WebKitGTK 1.4 there was no API for hooking DOM listeners.
+	* As a workaround, eventFunction was introduced to capture JS events
+	* and report them back to the java side.  This method handles these
+	* events by extracting their arguments and passing them to the
+	* handleKeyEvent()/handleMouseEvent() event handler methods.
+	*/
+
+	/* 
+	* The arguments for key events are:
 	* 	argument 0: type (String)
 	* 	argument 1: keyCode (Double)
 	* 	argument 2: charCode (Double)
@@ -766,7 +873,7 @@ boolean handleEvent (Object[] arguments) {
 	* 	argument 6: metaKey (Boolean)
 	* 	returns doit
 	* 
-	* For mouse events
+	* The arguments for mouse events are:
 	* 	argument 0: type (String)
 	* 	argument 1: screenX (Double)
 	* 	argument 2: screenY (Double)
@@ -781,8 +888,33 @@ boolean handleEvent (Object[] arguments) {
 	*/
 
 	String type = (String)arguments[0];
+	if (type.equals (DOMEVENT_KEYDOWN) || type.equals (DOMEVENT_KEYPRESS) || type.equals (DOMEVENT_KEYUP)) {
+		return handleKeyEvent(
+			type,
+			((Double)arguments[1]).intValue (),
+			((Double)arguments[2]).intValue (),
+			((Boolean)arguments[3]).booleanValue (),
+			((Boolean)arguments[4]).booleanValue (),
+			((Boolean)arguments[5]).booleanValue (),
+			((Boolean)arguments[6]).booleanValue ());
+	}
+
+	return handleMouseEvent(
+		type,
+		((Double)arguments[1]).intValue (),
+		((Double)arguments[2]).intValue (),
+		((Double)arguments[3]).intValue (),
+		((Double)arguments[4]).intValue () + 1,
+		((Boolean)arguments[5]).booleanValue (),
+		((Boolean)arguments[6]).booleanValue (),
+		((Boolean)arguments[7]).booleanValue (),
+		((Boolean)arguments[8]).booleanValue (),
+		((Boolean)arguments[9]).booleanValue ());
+}
+
+boolean handleKeyEvent (String type, int keyCode, int charCode, boolean altKey, boolean ctrlKey, boolean shiftKey, boolean metaKey) {
 	if (type.equals (DOMEVENT_KEYDOWN)) {
-		int keyCode = translateKey (((Double)arguments[1]).intValue ());
+		keyCode = translateKey (keyCode);
 		lastKeyCode = keyCode;
 		switch (keyCode) {
 			case SWT.SHIFT:
@@ -831,11 +963,7 @@ boolean handleEvent (Object[] arguments) {
 					case SWT.TAB: keyEvent.character = SWT.TAB; break;
 				}
 				lastCharCode = keyEvent.character;
-				keyEvent.stateMask =
-					(((Boolean)arguments[3]).booleanValue () ? SWT.ALT : 0) |
-					(((Boolean)arguments[4]).booleanValue () ? SWT.CTRL : 0) |
-					(((Boolean)arguments[5]).booleanValue () ? SWT.SHIFT : 0) |
-					(((Boolean)arguments[6]).booleanValue () ? SWT.COMMAND : 0);
+				keyEvent.stateMask = (altKey ? SWT.ALT : 0) | (ctrlKey ? SWT.CTRL : 0) | (shiftKey ? SWT.SHIFT : 0) | (metaKey ? SWT.COMMAND : 0);
 				keyEvent.stateMask &= ~keyCode;		/* remove current keydown if it's a state key */
 				final int stateMask = keyEvent.stateMask;
 				if (!sendKeyEvent (keyEvent) || browser.isDisposed ()) return false;
@@ -866,8 +994,8 @@ boolean handleEvent (Object[] arguments) {
 		*/
 		if (lastKeyCode == 0) return true;
 
-		lastCharCode = ((Double)arguments[2]).intValue ();
-		if (((Boolean)arguments[4]).booleanValue () && (0 <= lastCharCode && lastCharCode <= 0x7F)) {
+		lastCharCode = charCode;
+		if (ctrlKey && (0 <= lastCharCode && lastCharCode <= 0x7F)) {
 			if ('a' <= lastCharCode && lastCharCode <= 'z') lastCharCode -= 'a' - 'A';
 			if (64 <= lastCharCode && lastCharCode <= 95) lastCharCode -= 64;
 		}
@@ -877,51 +1005,43 @@ boolean handleEvent (Object[] arguments) {
 		keyEvent.type = SWT.KeyDown;
 		keyEvent.keyCode = lastKeyCode;
 		keyEvent.character = (char)lastCharCode;
-		keyEvent.stateMask =
-			(((Boolean)arguments[3]).booleanValue () ? SWT.ALT : 0) |
-			(((Boolean)arguments[4]).booleanValue () ? SWT.CTRL : 0) |
-			(((Boolean)arguments[5]).booleanValue () ? SWT.SHIFT : 0) |
-			(((Boolean)arguments[6]).booleanValue () ? SWT.COMMAND : 0);
+		keyEvent.stateMask = (altKey ? SWT.ALT : 0) | (ctrlKey ? SWT.CTRL : 0) | (shiftKey ? SWT.SHIFT : 0) | (metaKey ? SWT.COMMAND : 0);
 		return sendKeyEvent (keyEvent) && !browser.isDisposed ();
 	}
 
-	if (type.equals(DOMEVENT_KEYUP)) {
-		int keyCode = translateKey (((Double)arguments[1]).intValue ());
-		if (keyCode == 0) {
-			/* indicates a key for which key events are not sent */
-			return true;
-		}
-		if (keyCode != lastKeyCode) {
-			/* keyup does not correspond to the last keydown */
-			lastKeyCode = keyCode;
-			lastCharCode = 0;
-		}
+	/* keyup */
 
-		Event keyEvent = new Event ();
-		keyEvent.widget = browser;
-		keyEvent.type = SWT.KeyUp;
-		keyEvent.keyCode = lastKeyCode;
-		keyEvent.character = (char)lastCharCode;
-		keyEvent.stateMask =
-			(((Boolean)arguments[3]).booleanValue () ? SWT.ALT : 0) |
-			(((Boolean)arguments[4]).booleanValue () ? SWT.CTRL : 0) |
-			(((Boolean)arguments[5]).booleanValue () ? SWT.SHIFT : 0) |
-			(((Boolean)arguments[6]).booleanValue () ? SWT.COMMAND : 0);
-		switch (lastKeyCode) {
-			case SWT.SHIFT:
-			case SWT.CONTROL:
-			case SWT.ALT:
-			case SWT.COMMAND: {
-				keyEvent.stateMask |= lastKeyCode;
-			}
-		}
-		browser.notifyListeners (keyEvent.type, keyEvent);
-		lastKeyCode = lastCharCode = 0;
-		return keyEvent.doit && !browser.isDisposed ();
+	keyCode = translateKey (keyCode);
+	if (keyCode == 0) {
+		/* indicates a key for which key events are not sent */
+		return true;
+	}
+	if (keyCode != lastKeyCode) {
+		/* keyup does not correspond to the last keydown */
+		lastKeyCode = keyCode;
+		lastCharCode = 0;
 	}
 
-	/* mouse events */
+	Event keyEvent = new Event ();
+	keyEvent.widget = browser;
+	keyEvent.type = SWT.KeyUp;
+	keyEvent.keyCode = lastKeyCode;
+	keyEvent.character = (char)lastCharCode;
+	keyEvent.stateMask = (altKey ? SWT.ALT : 0) | (ctrlKey ? SWT.CTRL : 0) | (shiftKey ? SWT.SHIFT : 0) | (metaKey ? SWT.COMMAND : 0);
+	switch (lastKeyCode) {
+		case SWT.SHIFT:
+		case SWT.CONTROL:
+		case SWT.ALT:
+		case SWT.COMMAND: {
+			keyEvent.stateMask |= lastKeyCode;
+		}
+	}
+	browser.notifyListeners (keyEvent.type, keyEvent);
+	lastKeyCode = lastCharCode = 0;
+	return keyEvent.doit && !browser.isDisposed ();
+}
 
+boolean handleMouseEvent (String type, int screenX, int screenY, int detail, int button, boolean altKey, boolean ctrlKey, boolean shiftKey, boolean metaKey, boolean hasRelatedTarget) {
 	/*
 	 * MouseOver and MouseOut events are fired any time the mouse enters or exits
 	 * any element within the Browser.  To ensure that SWT events are only
@@ -943,35 +1063,31 @@ boolean handleEvent (Object[] arguments) {
 	 * coordinates relative to themselves rather than relative to their top-
 	 * level page.  Convert screen-relative coordinates to be browser-relative.
 	 */
-	Point position = new Point (((Double)arguments[1]).intValue (), ((Double)arguments[2]).intValue ());
+	Point position = new Point (screenX, screenY);
 	position = browser.getDisplay ().map (null, browser, position); 
 
 	Event mouseEvent = new Event ();
 	mouseEvent.widget = browser;
 	mouseEvent.x = position.x;
 	mouseEvent.y = position.y;
-	int mask =
-		(((Boolean)arguments[5]).booleanValue () ? SWT.ALT : 0) |
-		(((Boolean)arguments[6]).booleanValue () ? SWT.CTRL : 0) |
-		(((Boolean)arguments[7]).booleanValue () ? SWT.SHIFT : 0) |
-		(((Boolean)arguments[8]).booleanValue () ? SWT.COMMAND : 0);
+	int mask = (altKey ? SWT.ALT : 0) | (ctrlKey ? SWT.CTRL : 0) | (shiftKey ? SWT.SHIFT : 0) | (metaKey ? SWT.COMMAND : 0);
 	mouseEvent.stateMask = mask;
 
 	if (type.equals (DOMEVENT_MOUSEDOWN)) {
 		mouseEvent.type = SWT.MouseDown;
-		mouseEvent.count = ((Double)arguments[3]).intValue ();
-		mouseEvent.button = ((Double)arguments[4]).intValue ();
+		mouseEvent.count = detail;
+		mouseEvent.button = button;
 		browser.notifyListeners (mouseEvent.type, mouseEvent);
 		if (browser.isDisposed ()) return true;
-		if (((Double)arguments[3]).intValue () == 2) {
+		if (detail == 2) {
 			mouseEvent = new Event ();
 			mouseEvent.type = SWT.MouseDoubleClick;
 			mouseEvent.widget = browser;
 			mouseEvent.x = position.x;
 			mouseEvent.y = position.y;
 			mouseEvent.stateMask = mask;
-			mouseEvent.count = ((Double)arguments[3]).intValue ();
-			mouseEvent.button = ((Double)arguments[4]).intValue ();
+			mouseEvent.count = detail;
+			mouseEvent.button = button;
 			browser.notifyListeners (mouseEvent.type, mouseEvent);
 		}
 		return true;
@@ -979,13 +1095,13 @@ boolean handleEvent (Object[] arguments) {
 
 	if (type.equals (DOMEVENT_MOUSEUP)) {
 		mouseEvent.type = SWT.MouseUp;
-		mouseEvent.count = ((Double)arguments[3]).intValue ();
-		mouseEvent.button = ((Double)arguments[4]).intValue ();
+		mouseEvent.count = detail;
+		mouseEvent.button = button;
 	} else if (type.equals (DOMEVENT_MOUSEMOVE)) {
 		mouseEvent.type = SWT.MouseMove;
 	} else if (type.equals (DOMEVENT_MOUSEWHEEL)) {
 		mouseEvent.type = SWT.MouseWheel;
-		mouseEvent.count = ((Double)arguments[3]).intValue ();
+		mouseEvent.count = detail;
 
 	/*
 	* The following is intentionally commented because MouseOver and MouseOut events
@@ -998,7 +1114,7 @@ boolean handleEvent (Object[] arguments) {
 
 	} else if (type.equals (DOMEVENT_DRAGSTART)) {
 		mouseEvent.type = SWT.DragDetect;
-		mouseEvent.button = ((Double)arguments[4]).intValue () + 1;
+		mouseEvent.button = button;
 		switch (mouseEvent.button) {
 			case 1: mouseEvent.stateMask |= SWT.BUTTON1; break;
 			case 2: mouseEvent.stateMask |= SWT.BUTTON2; break;
@@ -1006,14 +1122,16 @@ boolean handleEvent (Object[] arguments) {
 			case 4: mouseEvent.stateMask |= SWT.BUTTON4; break;
 			case 5: mouseEvent.stateMask |= SWT.BUTTON5; break;
 		}
-		browser.notifyListeners (mouseEvent.type, mouseEvent);
 		/*
-		* Bug in WebKitGTK.  Dragging an image quickly and repeatedly can cause
-		* WebKitGTK to take the mouse grab indefinitely and lock up the display,
-		* see https://bugs.webkit.org/show_bug.cgi?id=32840.  The workaround is
-		* to veto all drag attempts.
+		* Bug in WebKitGTK 1.2.x.  Dragging an image quickly and repeatedly can
+		* cause WebKitGTK to take the mouse grab indefinitely and lock up the
+		* display, see https://bugs.webkit.org/show_bug.cgi?id=32840.  The
+		* workaround is to veto all drag attempts if using WebKitGTK 1.2.x.
 		*/
-		return false;
+		if (!IsWebKitGTK14orNewer) {
+			browser.notifyListeners (mouseEvent.type, mouseEvent);
+			return false;
+		}
 	}
 
 	browser.notifyListeners (mouseEvent.type, mouseEvent);
@@ -1160,6 +1278,11 @@ void onDispose (Event e) {
 		((BrowserFunction)elements.nextElement ()).dispose (false);
 	}
 	functions = null;
+	
+	if (eventFunction != null) {
+		eventFunction.dispose (false);
+		eventFunction = null;
+	}
 
 	C.free (webViewData);
 	postData = null;
@@ -1629,10 +1752,23 @@ int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long
 				WebKitGTK.soup_message_body_flatten (body);
 
 				if (headers == null) headers = new String[0];
-				String[] temp = new String[headers.length + 1];
-				System.arraycopy (headers, 0, temp, 0, headers.length);
-				temp[headers.length] = ENCODING_FORM;
-				headers = temp;
+				boolean found = false;
+				for (int i = 0; i < headers.length; i++) {
+					int index = headers[i].indexOf (':');
+					if (index != -1) {
+						String name = headers[i].substring (0, index).trim ().toLowerCase ();
+						if (name.equals (HEADER_CONTENTTYPE)) {
+							found = true;
+							break;
+						}
+					}
+				}
+				if (!found) {
+					String[] temp = new String[headers.length + 1];
+					System.arraycopy (headers, 0, temp, 0, headers.length);
+					temp[headers.length] = HEADER_CONTENTTYPE + ':' + MIMETYPE_FORMURLENCODED;
+					headers = temp;
+				}
 				postData = null;
 			}
 
@@ -1736,7 +1872,7 @@ int /*long*/ webkit_window_object_cleared (int /*long*/ web_view, int /*long*/ f
 	}
 	int /*long*/ mainFrame = WebKitGTK.webkit_web_view_get_main_frame (webView);
 	boolean top = mainFrame == frame;
-	addEventHandlers (top);
+	addEventHandlers (web_view, top);
 	return 0;
 }
 
@@ -1752,10 +1888,10 @@ int /*long*/ callJava (int /*long*/ ctx, int /*long*/ func, int /*long*/ thisObj
 			Object key = new Integer (index);
 			C.memmove (result, arguments + C.PTR_SIZEOF, C.PTR_SIZEOF);
 			type = WebKitGTK.JSValueGetType (ctx, result[0]);
-			if (type == WebKitGTK.kJSTypeNumber) {
-				long token = ((Double)convertToJava (ctx, result[0])).longValue ();
+			if (type == WebKitGTK.kJSTypeString) {
+				String token = (String)convertToJava (ctx, result[0]);
 				BrowserFunction function = (BrowserFunction)functions.get (key);
-				if (function != null && token == function.token) {
+				if (function != null && token.equals (function.token)) {
 					try {
 						C.memmove (result, arguments + 2 * C.PTR_SIZEOF, C.PTR_SIZEOF);
 						Object temp = convertToJava (ctx, result[0]);

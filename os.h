@@ -18,9 +18,12 @@
 
 #define NDEBUG
 
-/*
 #define G_DISABLE_DEPRECATED
+#define GTK_DISABLE_SINGLE_INCLUDES
+/*
 #define GTK_DISABLE_DEPRECATED
+#define GDK_DISABLE_DEPRECATED
+#define GSEAL_ENABLE
 */
 
 #include <stdlib.h>
@@ -32,6 +35,8 @@
 #include <dlfcn.h>
 #include <locale.h>
 #include <unistd.h>
+
+#define OS_LOAD_FUNCTION LOAD_FUNCTION
 
 #ifndef GDK_WINDOWING_X11
 

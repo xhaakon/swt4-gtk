@@ -162,6 +162,14 @@ public CCombo (Composite parent, int style) {
 	for (int i=0; i<arrowEvents.length; i++) arrow.addListener (arrowEvents [i], listener);
 	
 	createPopup(null, -1);
+	if ((style & SWT.SIMPLE) == 0) {
+		int itemHeight = list.getItemHeight ();
+		if (itemHeight != 0) {
+			int maxHeight = getMonitor().getClientArea().height / 3;
+			visibleItemCount = Math.max(visibleItemCount, maxHeight / itemHeight);
+		}
+	}
+
 	initAccessible();
 }
 static int checkStyle (int style) {
@@ -1742,7 +1750,18 @@ void textEvent (Event event) {
 		case SWT.MenuDetect: {
 			Event e = new Event ();
 			e.time = event.time;
+			e.detail = event.detail;
+			e.x = event.x;
+			e.y = event.y;
+			if (event.detail == SWT.MENU_KEYBOARD) {
+				Point pt = getDisplay().map(text, null, text.getCaretLocation());
+				e.x = pt.x;
+				e.y = pt.y;
+			}
 			notifyListeners (SWT.MenuDetect, e);
+			event.doit = e.doit;
+			event.x = e.x;
+			event.y = e.y;
 			break;
 		}
 		case SWT.Modify: {

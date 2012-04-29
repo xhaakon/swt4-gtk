@@ -43,6 +43,7 @@ public class TrayItem extends Item {
 	int /*long*/ imageHandle;
 	int /*long*/ tooltipsHandle;
 	ImageList imageList;
+	Image highlightImage;
 
 /**
  * Constructs a new instance of this class given its parent
@@ -173,7 +174,7 @@ void createHandle (int index) {
 		byte [] trayBuffer = Converter.wcsToMbcs (null, "_NET_SYSTEM_TRAY_S" + monitor, true);
 		int /*long*/ trayAtom = OS.gdk_atom_intern (trayBuffer, true);
 		int /*long*/ xTrayAtom = OS.gdk_x11_atom_to_xatom (trayAtom);
-		int /*long*/ xDisplay = OS.GDK_DISPLAY ();
+		int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
 		int /*long*/ trayWindow = OS.XGetSelectionOwner (xDisplay, xTrayAtom);
 		byte [] messageBuffer = Converter.wcsToMbcs (null, "_NET_SYSTEM_TRAY_OPCODE", true);
 		int /*long*/ messageAtom = OS.gdk_atom_intern (messageBuffer, true);
@@ -218,6 +219,11 @@ void destroyWidget () {
 public Tray getParent () {
 	checkWidget ();
 	return parent;
+}
+
+public Image getHighlightImage () {
+	checkWidget ();
+	return highlightImage;
 }
 
 /**
@@ -397,6 +403,7 @@ void releaseWidget () {
 	if (imageList != null) imageList.dispose ();
 	imageList = null;
 	toolTipText = null;
+	highlightImage = null;
 }
 
 /**
@@ -449,6 +456,12 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
 	eventTable.unhook (SWT.DefaultSelection, listener);
+}
+
+public void setHighlightImage (Image image) {
+	checkWidget ();
+	if (image != null && image.isDisposed ()) error (SWT.ERROR_INVALID_ARGUMENT);
+	highlightImage = image;
 }
 
 /**

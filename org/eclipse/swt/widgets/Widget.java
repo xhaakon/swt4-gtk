@@ -176,7 +176,20 @@ public abstract class Widget {
 	static final int ICON_RELEASE = 67;
 	static final int SELECTION_DONE = 68;
 	static final int START_INTERACTIVE_SEARCH = 69;
-	static final int LAST_SIGNAL = 70;
+	static final int BACKSPACE = 70;
+	static final int BACKSPACE_INVERSE = 71;
+	static final int COPY_CLIPBOARD = 72;
+	static final int COPY_CLIPBOARD_INVERSE = 73;
+	static final int CUT_CLIPBOARD = 74;
+	static final int CUT_CLIPBOARD_INVERSE = 75;
+	static final int PASTE_CLIPBOARD = 76;
+	static final int PASTE_CLIPBOARD_INVERSE = 77;
+	static final int DELETE_FROM_CURSOR = 78;
+	static final int DELETE_FROM_CURSOR_INVERSE = 79;
+	static final int MOVE_CURSOR = 80;
+	static final int MOVE_CURSOR_INVERSE = 81;
+	static final int DIRECTION_CHANGED = 82;
+	static final int LAST_SIGNAL = 83;
 	
 	static final String IS_ACTIVE = "org.eclipse.swt.internal.control.isactive"; //$NON-NLS-1$
 	static final String KEY_CHECK_SUBWINDOW = "org.eclipse.swt.internal.control.checksubwindow"; //$NON-NLS-1$
@@ -1136,11 +1149,11 @@ void releaseWidget () {
  * @see #getListeners(int)
  * @see #notifyListeners
  */
-public void removeListener (int eventType, Listener handler) {
+public void removeListener (int eventType, Listener listener) {
 	checkWidget ();
-	if (handler == null) error (SWT.ERROR_NULL_ARGUMENT);
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
-	eventTable.unhook (eventType, handler);
+	eventTable.unhook (eventType, listener);
 }
 
 /**
@@ -1676,10 +1689,6 @@ int /*long*/ topHandle () {
 }
 
 int /*long*/ timerProc (int /*long*/ widget) {
-	return 0;
-}
-
-int /*long*/ treeSelectionProc (int /*long*/ model, int /*long*/ path, int /*long*/ iter, int [] selection, int length) {
 	return 0;
 }
 

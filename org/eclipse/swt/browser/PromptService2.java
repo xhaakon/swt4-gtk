@@ -21,17 +21,6 @@ class PromptService2 {
 	XPCOMObject promptService2;
 	int refCount = 0;
 	
-	static final String[] certErrorCodes = new String[] {
-		"ssl_error_bad_cert_domain",
-		"sec_error_ca_cert_invalid",
-		"sec_error_expired_certificate",
-		"sec_error_expired_issuer_certificate",
-		"sec_error_inadequate_key_usage",
-		"sec_error_unknown_issuer",
-		"sec_error_untrusted_cert",
-		"sec_error_untrusted_issuer",
-	};	//$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$
-
 PromptService2 () {
 	createCOMInterfaces ();
 }
@@ -134,8 +123,7 @@ int Release () {
 
 Browser getBrowser (int /*long*/ aDOMWindow) {
 	if (aDOMWindow == 0) return null;
-	nsIDOMWindow window = new nsIDOMWindow (aDOMWindow);
-	return Mozilla.findBrowser (window);
+	return Mozilla.getBrowser (aDOMWindow);
 }
 
 String getLabel (int buttonFlag, int index, int /*long*/ buttonTitle) {
@@ -173,22 +161,12 @@ int Alert (int /*long*/ aParent, int /*long*/ aDialogTitle, int /*long*/ aText) 
 	String textLabel = new String (dest);
 
 	/*
-	* If mozilla is showing its errors with dialogs (as opposed to pages) then the only
-	* opportunity to detect that a page has an invalid certificate, without receiving
-	* all notification callbacks on the channel, is to detect the displaying of an alert
-	* whose message contains an internal cert error code.  If a such a message is
-	* detected then instead of showing it, re-navigate to the page with the invalid
-	* certificate so that the browser's nsIBadCertListener2 will be invoked.
+	* If mozilla is re-navigating to a page with a bad certificate in order
+	* to get its certificate info then do not show cert error message alerts.
 	*/
 	if (browser != null) {
-		for (int i = 0; i < certErrorCodes.length; i++) {
-			if (textLabel.indexOf (certErrorCodes[i]) != -1) {
-				Mozilla mozilla = (Mozilla)browser.webBrowser;
-				mozilla.isRetrievingBadCert = true;
-				browser.setUrl (mozilla.lastNavigateURL);
-				return XPCOM.NS_OK;
-			}
-		}
+		Mozilla mozilla = (Mozilla)browser.webBrowser;
+		if (mozilla.isRetrievingBadCert) return XPCOM.NS_OK;
 	}
 
 	Shell shell = browser == null ? new Shell () : browser.getShell (); 
@@ -219,10 +197,10 @@ int AlertCheck (int /*long*/ aParent, int /*long*/ aDialogTitle, int /*long*/ aT
 
 	Shell shell = browser == null ? new Shell () : browser.getShell ();
 	PromptDialog dialog = new PromptDialog (shell);
-	int[] check = new int[1];
-	if (aCheckState != 0) XPCOM.memmove (check, aCheckState, 4); /* PRBool */
+	boolean[] check = new boolean[1];
+	if (aCheckState != 0) XPCOM.memmove (check, aCheckState);
 	dialog.alertCheck (titleLabel, textLabel, checkLabel, check);
-	if (aCheckState != 0) XPCOM.memmove (aCheckState, check, 4); /* PRBool */
+	if (aCheckState != 0) XPCOM.memmove (aCheckState, check);
 	return XPCOM.NS_OK;
 }
 
@@ -234,7 +212,7 @@ int Confirm (int /*long*/ aParent, int /*long*/ aDialogTitle, int /*long*/ aText
 	Browser browser = getBrowser (aParent);
 
 	if (browser != null && ((Mozilla)browser.webBrowser).ignoreAllMessages) {
-		XPCOM.memmove (_retval, new int[] {1}, 4); /* PRBool */
+		XPCOM.memmove (_retval, new boolean[] {true});
 		return XPCOM.NS_OK;
 	}
 
@@ -253,8 +231,8 @@ int Confirm (int /*long*/ aParent, int /*long*/ aDialogTitle, int /*long*/ aText
 	messageBox.setText (titleLabel);
 	messageBox.setMessage (textLabel);
 	int id = messageBox.open ();
-	int[] result = {id == SWT.OK ? 1 : 0};
-	XPCOM.memmove (_retval, result, 4); /* PRBool */
+	boolean[] result = {id == SWT.OK};
+	XPCOM.memmove (_retval, result);
 	return XPCOM.NS_OK;
 }
 
@@ -296,10 +274,11 @@ int ConfirmEx (int /*long*/ aParent, int /*long*/ aDialogTitle, int /*long*/ aTe
 	
 	Shell shell = browser == null ? new Shell () : browser.getShell ();
 	PromptDialog dialog = new PromptDialog (shell);
-	int[] check = new int[1], result = new int[1];
-	if (aCheckState != 0) XPCOM.memmove (check, aCheckState, 4);
+	boolean[] check = new boolean[1];
+	int[] result = new int[1];
+	if (aCheckState != 0) XPCOM.memmove (check, aCheckState);
 	dialog.confirmEx (titleLabel, textLabel, checkLabel, button0Label, button1Label, button2Label, defaultIndex, check, result);
-	if (aCheckState != 0) XPCOM.memmove (aCheckState, check, 4);
+	if (aCheckState != 0) XPCOM.memmove (aCheckState, check);
 	XPCOM.memmove (_retval, result, 4);
 	return XPCOM.NS_OK;
 }
@@ -342,12 +321,12 @@ int Prompt (int /*long*/ aParent, int /*long*/ aDialogTitle, int /*long*/ aText,
 
 	Shell shell = browser == null ? new Shell () : browser.getShell ();
 	PromptDialog dialog = new PromptDialog (shell);
-	int[] check = new int[1], result = new int[1];
-	if (aCheckState != 0) XPCOM.memmove (check, aCheckState, 4);
+	boolean[] check = new boolean[1], result = new boolean[1];
+	if (aCheckState != 0) XPCOM.memmove (check, aCheckState);
 	dialog.prompt (titleLabel, textLabel, checkLabel, valueLabel, check, result);
 
-	XPCOM.memmove (_retval, result, 4);
-	if (result[0] == 1) {
+	XPCOM.memmove (_retval, result);
+	if (result[0]) {
 		/* 
 		* User selected OK. User name and password are returned as PRUnichar values. Any default
 		* value that we override must be freed using the nsIMemory service.
@@ -383,7 +362,7 @@ int Prompt (int /*long*/ aParent, int /*long*/ aDialogTitle, int /*long*/ aText,
 			memory.Release ();
 		}
 	}
-	if (aCheckState != 0) XPCOM.memmove (aCheckState, check, 4);
+	if (aCheckState != 0) XPCOM.memmove (aCheckState, check);
 	return XPCOM.NS_OK;
 }
 
@@ -404,7 +383,7 @@ int PromptAuth(int /*long*/ aParent, int /*long*/ aChannel, int level, int /*lon
 				event.location = mozilla.lastNavigateURL;
 				mozilla.authenticationListeners[i].authenticate (event);
 				if (!event.doit) {
-					XPCOM.memmove (_retval, new int[] {0}, 4);	/* PRBool */
+					XPCOM.memmove (_retval, new boolean[] {false});
 					return XPCOM.NS_OK;
 				}
 				if (event.user != null && event.password != null) {
@@ -416,7 +395,7 @@ int PromptAuth(int /*long*/ aParent, int /*long*/ aChannel, int level, int /*lon
 					rc = auth.SetPassword (string.getAddress ());
 					if (rc != XPCOM.NS_OK) SWT.error (rc);
 					string.dispose ();
-					XPCOM.memmove (_retval, new int[] {1}, 4);	/* PRBool */
+					XPCOM.memmove (_retval, new boolean[] {true});
 					return XPCOM.NS_OK;
 				}
 			}
@@ -426,7 +405,7 @@ int PromptAuth(int /*long*/ aParent, int /*long*/ aChannel, int level, int /*lon
 	/* no listener handled the challenge, so show an authentication dialog */
 
 	String checkLabel = null;
-	int[] checkValue = new int[1];
+	boolean[] checkValue = new boolean[1];
 	String[] userLabel = new String[1], passLabel = new String[1];
 
 	String title = SWT.getMessage ("SWT_Authentication_Required"); //$NON-NLS-1$
@@ -436,7 +415,7 @@ int PromptAuth(int /*long*/ aParent, int /*long*/ aChannel, int level, int /*lon
 		char[] dest = new char[length];
 		XPCOM.memmove (dest, checkboxLabel, length * 2);
 		checkLabel = new String (dest);
-		XPCOM.memmove (checkValue, checkboxValue, 4); /* PRBool */
+		XPCOM.memmove (checkValue, checkboxValue);
 	}
 
 	/* get initial username and password values */
@@ -501,11 +480,11 @@ int PromptAuth(int /*long*/ aParent, int /*long*/ aChannel, int level, int /*lon
 	/* open the prompter */
 	Shell shell = browser == null ? new Shell () : browser.getShell ();
 	PromptDialog dialog = new PromptDialog (shell);
-	int[] result = new int[1];
+	boolean[] result = new boolean[1];
 	dialog.promptUsernameAndPassword (title, message, checkLabel, userLabel, passLabel, checkValue, result);
 
-	XPCOM.memmove (_retval, result, 4);	/* PRBool */
-	if (result[0] == 1) {	/* User selected OK */
+	XPCOM.memmove (_retval, result);
+	if (result[0]) {	/* User selected OK */
 		nsEmbedString string = new nsEmbedString (userLabel[0]);
 		rc = auth.SetUsername(string.getAddress ());
 		if (rc != XPCOM.NS_OK) SWT.error (rc);
@@ -517,7 +496,7 @@ int PromptAuth(int /*long*/ aParent, int /*long*/ aChannel, int level, int /*lon
 		string.dispose ();
 	}
 
-	if (checkboxValue != 0) XPCOM.memmove (checkboxValue, checkValue, 4); /* PRBool */
+	if (checkboxValue != 0) XPCOM.memmove (checkboxValue, checkValue);
 	return XPCOM.NS_OK;
 }
 
@@ -538,13 +517,13 @@ int PromptUsernameAndPassword (int /*long*/ aParent, int /*long*/ aDialogTitle, 
 				event.location = mozilla.lastNavigateURL;
 				mozilla.authenticationListeners[i].authenticate (event);
 				if (!event.doit) {
-					XPCOM.memmove (_retval, new int[] {0}, 4);	/* PRBool */
+					XPCOM.memmove (_retval, new boolean[] {false});
 					return XPCOM.NS_OK;
 				}
 				if (event.user != null && event.password != null) {
 					user = event.user;
 					password = event.password;
-					XPCOM.memmove (_retval, new int[] {1}, 4);	/* PRBool */
+					XPCOM.memmove (_retval, new boolean[] {true});
 					break;
 				}
 			}
@@ -601,17 +580,17 @@ int PromptUsernameAndPassword (int /*long*/ aParent, int /*long*/ aDialogTitle, 
 	
 		Shell shell = browser == null ? new Shell () : browser.getShell ();
 		PromptDialog dialog = new PromptDialog (shell);
-		int[] check = new int[1], result = new int[1];
-		if (aCheckState != 0) XPCOM.memmove (check, aCheckState, 4);	/* PRBool */
+		boolean[] check = new boolean[1], result = new boolean[1];
+		if (aCheckState != 0) XPCOM.memmove (check, aCheckState);
 		dialog.promptUsernameAndPassword (titleLabel, textLabel, checkLabel, userLabel, passLabel, check, result);
 	
-		XPCOM.memmove (_retval, result, 4);	/* PRBool */
-		if (result[0] == 1) {
+		XPCOM.memmove (_retval, result);
+		if (result[0]) {
 			/* User selected OK */
 			user = userLabel[0];
 			password = passLabel[0];
 		}
-		if (aCheckState != 0) XPCOM.memmove (aCheckState, check, 4); /* PRBool */
+		if (aCheckState != 0) XPCOM.memmove (aCheckState, check);
 	}
 
 	if (user != null) {

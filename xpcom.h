@@ -28,6 +28,8 @@
 #include "nsIScriptGlobalObject.h"
 #endif /* nsIScriptContext_h__ */
 
+#define XPCOM_LOAD_FUNCTION LOAD_FUNCTION
+
 #ifdef _WIN32
 #define STDMETHODCALLTYPE __stdcall
 #define NO__1NS_1InitXPCOM2
@@ -38,6 +40,7 @@
 #endif /* __APPLE__ */
 #endif /* _WIN32 */
 
+#define SWT_XREInitEmbedding2 nsresult (*)(nsILocalFile *,nsILocalFile *,nsIDirectoryServiceProvider *)
 #define SWT_XREInitEmbedding nsresult (*)(nsILocalFile *,nsILocalFile *,nsIDirectoryServiceProvider *,nsStaticModuleInfo const *,PRUint32)
 
 #endif /* INC_xpcom_H */
