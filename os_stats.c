@@ -18,8 +18,8 @@
 
 #ifdef NATIVE_STATS
 
-int OS_nativeFunctionCount = 1385;
-int OS_nativeFunctionCallCount[1385];
+int OS_nativeFunctionCount = 1401;
+int OS_nativeFunctionCallCount[1401];
 char * OS_nativeFunctionNames[] = {
 #ifndef JNI64
 	"Call__IIII",
@@ -436,10 +436,10 @@ char * OS_nativeFunctionNames[] = {
 	"_1gdk_1colormap_1free_1colors",
 	"_1gdk_1colormap_1get_1system",
 	"_1gdk_1colormap_1query_1color",
-	"_1gdk_1cursor_1destroy",
 	"_1gdk_1cursor_1new",
 	"_1gdk_1cursor_1new_1from_1pixbuf",
 	"_1gdk_1cursor_1new_1from_1pixmap",
+	"_1gdk_1cursor_1unref",
 	"_1gdk_1display_1get_1default",
 	"_1gdk_1display_1supports_1cursor_1color",
 	"_1gdk_1drag_1status",
@@ -464,7 +464,6 @@ char * OS_nativeFunctionNames[] = {
 	"_1gdk_1event_1free",
 	"_1gdk_1event_1get",
 	"_1gdk_1event_1get_1coords",
-	"_1gdk_1event_1get_1graphics_1expose",
 	"_1gdk_1event_1get_1root_1coords",
 	"_1gdk_1event_1get_1state",
 	"_1gdk_1event_1get_1time",
@@ -478,7 +477,6 @@ char * OS_nativeFunctionNames[] = {
 	"_1gdk_1gc_1set_1background",
 	"_1gdk_1gc_1set_1clip_1mask",
 	"_1gdk_1gc_1set_1clip_1origin",
-	"_1gdk_1gc_1set_1clip_1rectangle",
 	"_1gdk_1gc_1set_1clip_1region",
 	"_1gdk_1gc_1set_1dashes",
 	"_1gdk_1gc_1set_1exposures",
@@ -869,6 +867,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1menu_1shell_1insert",
 	"_1gtk_1menu_1shell_1select_1item",
 	"_1gtk_1menu_1shell_1set_1take_1focus",
+	"_1gtk_1menu_1tool_1button_1new",
 	"_1gtk_1message_1dialog_1new",
 	"_1gtk_1micro_1version",
 	"_1gtk_1minor_1version",
@@ -1010,6 +1009,8 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1selection_1data_1free",
 	"_1gtk_1selection_1data_1set",
 	"_1gtk_1separator_1menu_1item_1new",
+	"_1gtk_1separator_1tool_1item_1new",
+	"_1gtk_1separator_1tool_1item_1set_1draw",
 	"_1gtk_1set_1locale",
 	"_1gtk_1settings_1get_1default",
 	"_1gtk_1settings_1set_1string_1property",
@@ -1106,9 +1107,24 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1toggle_1button_1set_1active",
 	"_1gtk_1toggle_1button_1set_1inconsistent",
 	"_1gtk_1toggle_1button_1set_1mode",
+	"_1gtk_1toggle_1tool_1button_1get_1active",
+	"_1gtk_1toggle_1tool_1button_1new",
+	"_1gtk_1toggle_1tool_1button_1set_1active",
+	"_1gtk_1tool_1button_1new",
+	"_1gtk_1tool_1button_1set_1icon_1widget",
+	"_1gtk_1tool_1button_1set_1label",
+	"_1gtk_1tool_1button_1set_1label_1widget",
+	"_1gtk_1tool_1button_1set_1use_1underline",
+	"_1gtk_1tool_1item_1get_1proxy_1menu_1item",
+	"_1gtk_1tool_1item_1retrieve_1proxy_1menu_1item",
+	"_1gtk_1tool_1item_1set_1is_1important",
+	"_1gtk_1tool_1item_1set_1proxy_1menu_1item",
+	"_1gtk_1toolbar_1insert",
 	"_1gtk_1toolbar_1insert_1widget",
 	"_1gtk_1toolbar_1new",
 	"_1gtk_1toolbar_1set_1orientation",
+	"_1gtk_1toolbar_1set_1show_1arrow",
+	"_1gtk_1toolbar_1set_1style",
 	"_1gtk_1tooltips_1data_1get",
 	"_1gtk_1tooltips_1disable",
 	"_1gtk_1tooltips_1enable",

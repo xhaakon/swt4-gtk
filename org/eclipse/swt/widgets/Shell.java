@@ -1334,7 +1334,7 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ event) {
 					int /*long*/ window = OS.GTK_WIDGET_WINDOW (shellHandle);
 					int /*long*/ cursor = OS.gdk_cursor_new (mode);
 					OS.gdk_window_set_cursor (window, cursor);
-					OS.gdk_cursor_destroy (cursor);
+					OS.gdk_cursor_unref (cursor);
 					display.resizeMode = mode;
 				}
 			}
@@ -2025,11 +2025,11 @@ public void setVisible (boolean visible) {
 		* the shell not will be mapped until the parent is
 		* unminimized or shown on the desktop.
 		*/
+		mapped = false;
 		OS.gtk_widget_show (shellHandle);
 		if (enableWindow != 0) OS.gdk_window_raise (enableWindow);
+		if (isDisposed ()) return;
 		if (!OS.GTK_IS_PLUG (shellHandle)) {
-			mapped = false;
-			if (isDisposed ()) return;
 			display.dispatchEvents = new int [] {
 				OS.GDK_EXPOSE,
 				OS.GDK_FOCUS_CHANGE,

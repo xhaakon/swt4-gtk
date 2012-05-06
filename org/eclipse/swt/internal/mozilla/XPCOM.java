@@ -47,7 +47,7 @@ public class XPCOM extends C {
 	public static final String DOMEVENT_KEYDOWN = "keydown"; //$NON-NLS-1$
 	public static final String DOMEVENT_KEYPRESS = "keypress"; //$NON-NLS-1$
 	public static final String DOMEVENT_KEYUP = "keyup"; //$NON-NLS-1$
-	
+
 	/* CID constants */
 	public static final nsID EXTERNAL_CID = new nsID ("f2c59ad0-bd76-11dd-ad8b-0800200c9a66"); //$NON-NLS-1$
 	public static final nsID NS_APPSHELL_CID =	new nsID("2d96b3df-c051-11d1-a827-0040959a28c9"); //$NON-NLS-1$
@@ -62,6 +62,10 @@ public class XPCOM extends C {
 	public static final nsID NS_PROMPTER_CID = new nsID("f2112d6a-0e28-421f-b46a-25c0b308cbd0"); //$NON-NLS-1$
 	public static final nsID NS_PROMPTSERVICE_CID = new nsID("a2112d6a-0e28-421f-b46a-25c0b308cbd0"); //$NON-NLS-1$
 	public static final nsID NS_IWEBBROWSER_CID = new nsID ("F1EAC761-87E9-11d3-AF80-00A024FFC08C"); //$NON-NLS-1$
+	public static final nsID NS_IXPCONNECT_CID = new nsID ("CB6593E0-F9B2-11d2-BDD6-000064657374"); //$NON-NLS-1$
+
+	public static final nsID NS_ISCRIPTOBJECTOWNER_IID = new nsID ("8f6bca7e-ce42-11d1-b724-00600891d8c9"); //$NON-NLS-1$
+	public static final nsID NS_ISECURITYCHECKEDCOMPONENT_IID = new nsID ("0dad9e8c-a12d-4dcb-9a6f-7d09839356e1"); //$NON-NLS-1$
 
 	public static final String EXTERNAL_CONTRACTID = "@eclipse.org/external;1"; //$NON-NLS-1$
 	public static final String NS_AUTHPROMPTER_CONTRACTID = "@mozilla.org/passwordmanager/authpromptfactory;1"; //$NON-NLS-1$
@@ -147,6 +151,13 @@ public class XPCOM extends C {
 	public static final int SEC_ERROR_UNTRUSTED_ISSUER = 0x805A1FEC;
 	public static final int SSL_ERROR_BAD_CERT_DOMAIN = 0x805A2FF4;
 
+	/* JSAPI constants */
+	public static final int JSPROP_ENUMERATE = 0x1;
+	public static final int JSPROP_PERMANENT = 0x4;
+	public static final int JSPROP_READONLY = 0x2;
+	public static final int JS_FALSE = 0x0;
+	public static final int JS_TRUE = 0x1;
+
 public static final native int nsDynamicFunctionLoad_sizeof ();
 
 public static void memmove(int /*long*/ dest, boolean[] src) {
@@ -191,6 +202,19 @@ public static final native void memmove(int /*long*/ dest, nsID src, int nbytes)
 public static final native int strlen_PRUnichar(int /*long*/ s);
 
 /** @method flags=no_gen */
+public static final native int /*long*/ CALLBACK_JSNative(int /*long*/ func);
+
+/** @method flags=no_gen */
+public static final native int /*long*/ _JS_DefineFunction(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, byte[] name, int /*long*/ call, int nargs, int flags);	
+public static final int /*long*/ JS_DefineFunction(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, byte[] name, int /*long*/ call, int nargs, int flags) {
+	lock.lock();
+	try {
+		return _JS_DefineFunction(mozillaPath, cx, obj, name, call, nargs, flags);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
 public static final native int _JS_EvaluateUCScriptForPrincipals(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/[] retVal);	
 public static final int JS_EvaluateUCScriptForPrincipals(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/[] retVal) {
 	lock.lock();
@@ -206,6 +230,16 @@ public static final int /*long*/ JS_GetGlobalObject(byte[] mozillaPath, int /*lo
 	lock.lock();
 	try {
 		return _JS_GetGlobalObject(mozillaPath, cx);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
+public static final native int /*long*/ _JS_NewObject(byte[] mozillaPath, int /*long*/ cx, int /*long*/ clasp, int /*long*/ proto, int /*long*/ parent);	
+public static final int /*long*/ JS_NewObject(byte[] mozillaPath, int /*long*/ cx, int /*long*/ clasp, int /*long*/ proto, int /*long*/ parent) {
+	lock.lock();
+	try {
+		return _JS_NewObject(mozillaPath, cx, clasp, proto, parent);
 	} finally {
 		lock.unlock();
 	}
@@ -368,7 +402,6 @@ public static final int /*long*/ nsIScriptContext_GetNativeContext(int /*long*/ 
 		lock.unlock();
 	}
 }
-
 /**
  * @method flags=cpp
  * @param ptr cast=(nsEmbedCString *)
@@ -1607,6 +1640,15 @@ static final int VtblCall(int fnNumber, int /*long*/ ppVtbl, int arg0, int arg1,
 }
 static final native int _VtblCall(int fnNumber, int /*long*/ ppVtbl, long arg0, long arg1, long arg2, int[] arg3);
 static final int VtblCall(int fnNumber, int /*long*/ ppVtbl, long arg0, long arg1, long arg2, int[] arg3) {
+	lock.lock();
+	try {
+		return _VtblCall(fnNumber, ppVtbl, arg0, arg1, arg2, arg3);
+	} finally {
+		lock.unlock();
+	}
+}
+static final native int _VtblCall(int fnNumber, int /*long*/ ppVtbl, long arg0, long arg1, long arg2, long arg3);
+static final int VtblCall(int fnNumber, int /*long*/ ppVtbl, long arg0, long arg1, long arg2, long arg3) {
 	lock.lock();
 	try {
 		return _VtblCall(fnNumber, ppVtbl, arg0, arg1, arg2, arg3);

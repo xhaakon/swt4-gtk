@@ -125,6 +125,7 @@
 #define gtk_icon_theme_get_default_LIB LIB_GTK
 #define gtk_menu_item_remove_submenu_LIB LIB_GTK
 #define gtk_menu_shell_set_take_focus_LIB LIB_GTK
+#define gtk_menu_tool_button_new_LIB LIB_GTK
 #define gtk_window_set_keep_below_LIB LIB_GTK
 #define gtk_set_locale_LIB LIB_GTK
 #define gtk_toolbar_set_orientation_LIB LIB_GTK
@@ -147,7 +148,19 @@
 #define gdk_cursor_new_from_pixbuf_LIB LIB_GDK
 #define gdk_display_get_default_LIB LIB_GDK
 #define gdk_display_supports_cursor_color_LIB LIB_GDK
+#define gdk_draw_arc_LIB LIB_GDK
+#define gdk_draw_layout_with_colors_LIB LIB_GDK
+#define gdk_draw_line_LIB LIB_GDK
+#define gdk_draw_lines_LIB LIB_GDK
 #define gdk_draw_pixbuf_LIB LIB_GDK
+#define gdk_draw_point_LIB LIB_GDK
+#define gdk_gc_set_background_LIB LIB_GDK
+#define gdk_gc_set_clip_mask_LIB LIB_GDK
+#define gdk_gc_set_clip_origin_LIB LIB_GDK
+#define gdk_gc_set_dashes_LIB LIB_GDK
+#define gdk_gc_set_line_attributes_LIB LIB_GDK
+#define gdk_gc_set_tile_LIB LIB_GDK
+#define gdk_gc_set_ts_origin_LIB LIB_GDK
 #define gdk_pixbuf_save_to_bufferv_LIB LIB_GDK
 #define gdk_screen_get_default_LIB LIB_GDK
 #define gdk_screen_get_monitor_at_point_LIB LIB_GDK

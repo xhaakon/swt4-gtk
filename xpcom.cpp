@@ -13,7 +13,9 @@
 #include "xpcom_structs.h"
 #include "xpcom_stats.h"
 
+#ifndef XPCOM_NATIVE
 #define XPCOM_NATIVE(func) Java_org_eclipse_swt_internal_mozilla_XPCOM_##func
+#endif
 
 #if (!defined(NO__1Call__I) && !defined(JNI64)) || (!defined(NO__1Call__J) && defined(JNI64))
 #ifndef JNI64
@@ -3226,6 +3228,31 @@ fail:
 	XPCOM_NATIVE_EXIT(env, that, _1VtblCall__IIJJJI_3C_3BJJIJI_3J_3J_FUNC);
 #else
 	XPCOM_NATIVE_EXIT(env, that, _1VtblCall__IJJJJI_3C_3BJJIJI_3J_3J_FUNC);
+#endif
+	return rc;
+}
+#endif
+
+#if (!defined(NO__1VtblCall__IIJJJJ) && !defined(JNI64)) || (!defined(NO__1VtblCall__IJJJJJ) && defined(JNI64))
+#ifndef JNI64
+extern "C" JNIEXPORT jint JNICALL XPCOM_NATIVE(_1VtblCall__IIJJJJ)(JNIEnv *env, jclass that, jint arg0, jintLong arg1, jlong arg2, jlong arg3, jlong arg4, jlong arg5);
+JNIEXPORT jint JNICALL XPCOM_NATIVE(_1VtblCall__IIJJJJ)(JNIEnv *env, jclass that, jint arg0, jintLong arg1, jlong arg2, jlong arg3, jlong arg4, jlong arg5)
+#else
+extern "C" JNIEXPORT jint JNICALL XPCOM_NATIVE(_1VtblCall__IJJJJJ)(JNIEnv *env, jclass that, jint arg0, jintLong arg1, jlong arg2, jlong arg3, jlong arg4, jlong arg5);
+JNIEXPORT jint JNICALL XPCOM_NATIVE(_1VtblCall__IJJJJJ)(JNIEnv *env, jclass that, jint arg0, jintLong arg1, jlong arg2, jlong arg3, jlong arg4, jlong arg5)
+#endif
+{
+	jint rc = 0;
+#ifndef JNI64
+	XPCOM_NATIVE_ENTER(env, that, _1VtblCall__IIJJJJ_FUNC);
+#else
+	XPCOM_NATIVE_ENTER(env, that, _1VtblCall__IJJJJJ_FUNC);
+#endif
+	rc = (jint)((jint (STDMETHODCALLTYPE *)(jintLong, jlong, jlong, jlong, jlong))(*(jintLong **)arg1)[arg0])(arg1, arg2, arg3, arg4, arg5);
+#ifndef JNI64
+	XPCOM_NATIVE_EXIT(env, that, _1VtblCall__IIJJJJ_FUNC);
+#else
+	XPCOM_NATIVE_EXIT(env, that, _1VtblCall__IJJJJJ_FUNC);
 #endif
 	return rc;
 }

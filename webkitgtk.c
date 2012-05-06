@@ -17,7 +17,9 @@
 #include "webkitgtk_structs.h"
 #include "webkitgtk_stats.h"
 
+#ifndef WebKitGTK_NATIVE
 #define WebKitGTK_NATIVE(func) Java_org_eclipse_swt_internal_webkit_WebKitGTK_##func
+#endif
 
 #ifndef NO_JSClassDefinition_1sizeof
 JNIEXPORT jint JNICALL WebKitGTK_NATIVE(JSClassDefinition_1sizeof)
@@ -1998,6 +2000,26 @@ JNIEXPORT jintLong JNICALL WebKitGTK_NATIVE(_1webkit_1web_1view_1get_1title)
 		}
 	}
 	WebKitGTK_NATIVE_EXIT(env, that, _1webkit_1web_1view_1get_1title_FUNC);
+	return rc;
+}
+#endif
+
+#ifndef NO__1webkit_1web_1view_1get_1type
+JNIEXPORT jintLong JNICALL WebKitGTK_NATIVE(_1webkit_1web_1view_1get_1type)
+	(JNIEnv *env, jclass that)
+{
+	jintLong rc = 0;
+	WebKitGTK_NATIVE_ENTER(env, that, _1webkit_1web_1view_1get_1type_FUNC);
+/*
+	rc = (jintLong)webkit_web_view_get_type();
+*/
+	{
+		WebKitGTK_LOAD_FUNCTION(fp, webkit_web_view_get_type)
+		if (fp) {
+			rc = (jintLong)((jintLong (CALLING_CONVENTION*)())fp)();
+		}
+	}
+	WebKitGTK_NATIVE_EXIT(env, that, _1webkit_1web_1view_1get_1type_FUNC);
 	return rc;
 }
 #endif
