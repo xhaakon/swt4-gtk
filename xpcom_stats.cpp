@@ -14,9 +14,10 @@
 
 #ifdef NATIVE_STATS
 
-int XPCOM_nativeFunctionCount = 247;
-int XPCOM_nativeFunctionCallCount[247];
+int XPCOM_nativeFunctionCount = 251;
+int XPCOM_nativeFunctionCallCount[251];
 char * XPCOM_nativeFunctionNames[] = {
+	"CALLBACK_1JSNative",
 #ifndef JNI64
 	"_1Call__I",
 #else
@@ -37,8 +38,10 @@ char * XPCOM_nativeFunctionNames[] = {
 #else
 	"_1Call__JJJ_3BII_3I",
 #endif
+	"_1JS_1DefineFunction",
 	"_1JS_1EvaluateUCScriptForPrincipals",
 	"_1JS_1GetGlobalObject",
+	"_1JS_1NewObject",
 	"_1NS_1Free",
 	"_1NS_1GetComponentManager",
 	"_1NS_1GetServiceManager",
@@ -548,6 +551,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIJJJI_3C_3BJJIJI_3J_3J",
 #else
 	"_1VtblCall__IJJJJI_3C_3BJJIJI_3J_3J",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIJJJJ",
+#else
+	"_1VtblCall__IJJJJJ",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IIJJJJIJ_3C_3I_3J",

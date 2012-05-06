@@ -63,10 +63,11 @@ class Mozilla extends WebBrowser {
 	static Hashtable AllFunctions = new Hashtable ();
 	static Listener DisplayListener;
 	static boolean Initialized, IsPre_1_8, IsPre_1_9, IsPre_4, IsXULRunner, PerformedVersionCheck, XPCOMWasGlued, XPCOMInitWasGlued;
+	static boolean IsGettingSiteWindow;
 	static String MozillaPath;
 	static String oldProxyHostFTP, oldProxyHostHTTP, oldProxyHostSSL;
 	static int oldProxyPortFTP = -1, oldProxyPortHTTP = -1, oldProxyPortSSL = -1, oldProxyType = -1;
-	static byte[] pathBytes_JSEvaluateUCScriptForPrincipals;
+	static byte[] jsLibPathBytes;
 	static byte[] pathBytes_NSFree;
 
 	/* XULRunner detect constants */
@@ -543,6 +544,17 @@ static String Arch () {
 	return osArch;
 }
 
+static String OS() {
+	String osName = System.getProperty("os.name"); //$NON-NLS-1$
+	if (osName.equals ("Linux")) return "linux"; //$NON-NLS-1$ $NON-NLS-2$
+	if (osName.equals ("AIX")) return "aix"; //$NON-NLS-1$ $NON-NLS-2$
+	if (osName.equals ("Solaris") || osName.equals ("SunOS")) return "solaris"; //$NON-NLS-1$ $NON-NLS-2$ $NON-NLS-3$
+	if (osName.equals ("HP-UX")) return "hpux"; //$NON-NLS-1$ $NON-NLS-2$
+	if (osName.equals ("Mac OS X")) return "macosx"; //$NON-NLS-1$ $NON-NLS-2$
+	if (osName.startsWith ("Win")) return "win32"; //$NON-NLS-1$ $NON-NLS-2$
+	return osName;
+}
+
 static void LoadLibraries () {
 	boolean initLoaded = false;
 
@@ -689,12 +701,10 @@ public void create (Composite parent, int style) {
 
 		if (!Initialized) {
 			/* create LocationProvider, which tells mozilla where to find things on the file system */
-			String profilePath = delegate.getProfilePath ();
-			LocationProvider = new AppFileLocProvider (MozillaPath, profilePath, IsXULRunner);
+			String profilePath = MozillaDelegate.getProfilePath ();
+			String cacheParentPath = MozillaDelegate.getCacheParentPath ();
+			LocationProvider = new AppFileLocProvider (MozillaPath, profilePath, cacheParentPath, IsXULRunner);
 			LocationProvider.AddRef ();
-
-			/* write external.xpt to the file system if needed */
-			initExternal (profilePath);
 
 			/* invoke appropriate Init function (based on mozilla version) */
 			initXPCOM (MozillaPath, IsXULRunner);
@@ -864,7 +874,7 @@ public void create (Composite parent, int style) {
 		*   functionality is provided by the GRE.
 		*/
 		if (!IsPre_1_8) {
-			rc = interfaceRequestor.GetInterface (nsIDocShell_1_8.NS_IDOCSHELL_IID, result);
+			rc = interfaceRequestor.GetInterface (nsIDocShell.NS_IDOCSHELL_1_8_IID, result);
 			if (rc == XPCOM.NS_OK && result[0] != 0) { /* 1.8 */
 				new nsISupports (result[0]).Release ();
 				result[0] = 0;
@@ -884,7 +894,7 @@ public void create (Composite parent, int style) {
 			} else { /* >= 1.9 */
 				IsPre_1_9 = false;
 				result[0] = 0;
-				rc = interfaceRequestor.GetInterface(nsIDocShell_1_8.NS_IDOCSHELL_10_IID, result);
+				rc = interfaceRequestor.GetInterface(nsIDocShell.NS_IDOCSHELL_10_IID, result);
 				if (rc == XPCOM.NS_OK && result[0] != 0) { /* >= 4.0 */
 					IsPre_4 = false;
 					new nsISupports (result[0]).Release();
@@ -894,6 +904,9 @@ public void create (Composite parent, int style) {
 		result[0] = 0;
 		interfaceRequestor.Release ();
 		componentRegistrar.Release ();
+
+		/* write external.xpt to the file system if needed */
+		initExternal (LocationProvider.profilePath);
 
 		if (!factoriesRegistered) {
 			HelperAppLauncherDialogFactory dialogFactory = new HelperAppLauncherDialogFactory ();
@@ -1358,17 +1371,9 @@ public boolean execute (String script) {
 									if (rc == XPCOM.NS_OK && result[0] != 0) {
 										int /*long*/ principals = result[0];
 										result[0] = 0;
-										String jsLibraryName = IsPre_4 ? MozillaDelegate.getJSLibraryName_Pre4() : MozillaDelegate.getJSLibraryName();
-										if (pathBytes_JSEvaluateUCScriptForPrincipals == null) {
-											String mozillaPath = getMozillaPath () + jsLibraryName + '\0';
-											try {
-												pathBytes_JSEvaluateUCScriptForPrincipals = mozillaPath.getBytes ("UTF-8"); //$NON-NLS-1$
-											} catch (UnsupportedEncodingException e) {
-												pathBytes_JSEvaluateUCScriptForPrincipals = mozillaPath.getBytes ();
-											}
-										}
 
-										int /*long*/ globalJSObject = XPCOM.JS_GetGlobalObject (pathBytes_JSEvaluateUCScriptForPrincipals, nativeContext);
+										byte[] jsLibPath = getJSLibPathBytes ();
+										int /*long*/ globalJSObject = XPCOM.JS_GetGlobalObject (jsLibPath, nativeContext);
 										if (globalJSObject != 0) {
 											aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_CONTEXTSTACK_CONTRACTID, true);
 											rc = serviceManager.GetServiceByContractID (aContractID, nsIJSContextStack.NS_IJSCONTEXTSTACK_IID, result);
@@ -1379,7 +1384,7 @@ public boolean execute (String script) {
 												if (rc != XPCOM.NS_OK) {
 													stack.Release ();
 												} else {
-													boolean success = XPCOM.JS_EvaluateUCScriptForPrincipals (pathBytes_JSEvaluateUCScriptForPrincipals, nativeContext, globalJSObject, principals, scriptChars, length, urlbytes, 0, result) != 0;
+													boolean success = XPCOM.JS_EvaluateUCScriptForPrincipals (jsLibPath, nativeContext, globalJSObject, principals, scriptChars, length, urlbytes, 0, result) != 0;
 													result[0] = 0;
 													rc = stack.Pop (result);
 													stack.Release ();
@@ -1460,7 +1465,9 @@ static Browser getBrowser (int /*long*/ aDOMWindow) {
 
 	nsIEmbeddingSiteWindow embeddingSiteWindow = new nsIEmbeddingSiteWindow (result[0]);
 	result[0] = 0;
+	IsGettingSiteWindow = true;
 	rc = embeddingSiteWindow.GetSiteWindow (result);
+	IsGettingSiteWindow = false;
 	if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 	if (result[0] == 0) Mozilla.error (XPCOM.NS_NOINTERFACE);		
 	embeddingSiteWindow.Release ();
@@ -1485,6 +1492,19 @@ public boolean forward () {
 
 public String getBrowserType () {
 	return "mozilla"; //$NON-NLS-1$
+}
+
+static byte[] getJSLibPathBytes () {
+	if (jsLibPathBytes == null) {
+		String jsLibraryName = IsPre_4 ? MozillaDelegate.getJSLibraryName_Pre4 () : MozillaDelegate.getJSLibraryName ();
+		String mozillaPath = getMozillaPath () + jsLibraryName + '\0';
+		try {
+			jsLibPathBytes = mozillaPath.getBytes ("UTF-8"); //$NON-NLS-1$
+		} catch (UnsupportedEncodingException e) {
+			jsLibPathBytes = mozillaPath.getBytes ();
+		}
+	}
+	return jsLibPathBytes;
 }
 
 static String getMozillaPath () {
@@ -1737,6 +1757,13 @@ static String InitDiscoverXULRunner () {
 }
 
 void initExternal (String profilePath) {
+	/*
+	 * external.xpt does not need to be written to the file system if the
+	 * XULRunner version is >= 4 since External.java handles this case
+	 * differently than for earlier XULRunner releases.
+	 */
+	if (!IsPre_4) return;
+
 	File componentsDir = new File (profilePath, AppFileLocProvider.COMPONENTS_DIR);
 	java.io.InputStream is = Library.class.getResourceAsStream ("/external.xpt"); //$NON-NLS-1$
 	if (is != null) {
@@ -1805,7 +1832,7 @@ void initFactories (nsIServiceManager serviceManager, nsIComponentManager compon
 
 	ExternalFactory externalFactory = new ExternalFactory ();
 	externalFactory.AddRef ();
-	aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.EXTERNAL_CONTRACTID, true); 
+	aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.EXTERNAL_CONTRACTID, true);
 	aClassName = MozillaDelegate.wcsToMbcs (null, "External", true); //$NON-NLS-1$
 	rc = componentRegistrar.RegisterFactory (XPCOM.EXTERNAL_CID, aClassName, aContractID, externalFactory.getAddress ());
 	if (rc != XPCOM.NS_OK) {
@@ -1820,10 +1847,18 @@ void initFactories (nsIServiceManager serviceManager, nsIComponentManager compon
 
 	nsICategoryManager categoryManager = new nsICategoryManager (result[0]);
 	result[0] = 0;
-	byte[] category = MozillaDelegate.wcsToMbcs (null, "JavaScript global property", true); //$NON-NLS-1$
 	byte[] entry = MozillaDelegate.wcsToMbcs (null, "external", true); //$NON-NLS-1$
-	rc = categoryManager.AddCategoryEntry(category, entry, aContractID, 0, 1, result);
+
+	/* register for mozilla versions <= 3.6.x */
+	byte[] category = MozillaDelegate.wcsToMbcs (null, "JavaScript global property", true); //$NON-NLS-1$
+	rc = categoryManager.AddCategoryEntry (category, entry, aContractID, 0, 1, result);
 	result[0] = 0;
+
+	/* register for mozilla versions >= 3.6.x */
+	category = MozillaDelegate.wcsToMbcs (null, "JavaScript-global-property", true); //$NON-NLS-1$
+	rc = categoryManager.AddCategoryEntry (category, entry, aContractID, 0, 1, result);
+	result[0] = 0;
+
 	categoryManager.Release ();
 
 	/*
@@ -3756,6 +3791,10 @@ int OnStateChange (int /*long*/ aWebProgress, int /*long*/ aRequest, int aStateF
 			}
 		}
 	} else if ((aStateFlags & nsIWebProgressListener.STATE_TRANSFERRING) != 0) {
+		if (!IsPre_4) {
+			registerFunctionsOnState = nsIWebProgressListener.STATE_IS_REQUEST | nsIWebProgressListener.STATE_STOP;
+		}
+
 		if (updateLastNavigateUrl) {
 			updateLastNavigateUrl = false;
 			nsIRequest request = new nsIRequest (aRequest);
@@ -4185,15 +4224,16 @@ int SetTitle (int /*long*/ aTitle) {
 
 int GetSiteWindow (int /*long*/ aSiteWindow) {
 	/*
-	* Note.  The handle is expected to be an HWND on Windows and
-	* a GtkWidget* on GTK.  This callback is invoked on Windows
-	* when the javascript window.print is invoked and the print
-	* dialog comes up. If no handle is returned, the print dialog
-	* does not come up on this platform.  
+	* This is expected to be an HWND on Windows, a GtkWidget* on GTK, and
+	* a WindowPtr on OS X.  This callback is invoked on Windows when the
+	* print dialog is to be shown.  If no handle is returned then no print
+	* dialog is shown with XULRunner versions < 4.
 	*/
-	XPCOM.memmove (aSiteWindow, new int /*long*/[] {embedHandle}, C.PTR_SIZEOF);
+
+	int /*long*/ siteWindow = delegate.getSiteWindow ();
+	XPCOM.memmove (aSiteWindow, new int /*long*/[] {siteWindow}, C.PTR_SIZEOF);
 	return XPCOM.NS_OK;     	
-}  
+}
  
 /* nsIWebBrowserChromeFocus */
 
@@ -4324,9 +4364,8 @@ int OnStartURIOpen (int /*long*/ aURI, int /*long*/ retval) {
 			}
 
 			if (doit) {
-				if (jsEnabledChanged) {
-					jsEnabledChanged = false;
-	
+				if (jsEnabled != jsEnabledOnNextPage) {
+					jsEnabled = jsEnabledOnNextPage;
 					int /*long*/[] result = new int /*long*/[1];
 					int rc = webBrowser.QueryInterface (nsIWebBrowserSetup.NS_IWEBBROWSERSETUP_IID, result);
 					if (rc != XPCOM.NS_OK) error (rc);

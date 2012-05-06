@@ -25,6 +25,7 @@ extern char* XPCOM_nativeFunctionNames[];
 #endif
 
 typedef enum {
+	CALLBACK_1JSNative_FUNC,
 #ifndef JNI64
 	_1Call__I_FUNC,
 #else
@@ -45,8 +46,10 @@ typedef enum {
 #else
 	_1Call__JJJ_3BII_3I_FUNC,
 #endif
+	_1JS_1DefineFunction_FUNC,
 	_1JS_1EvaluateUCScriptForPrincipals_FUNC,
 	_1JS_1GetGlobalObject_FUNC,
+	_1JS_1NewObject_FUNC,
 	_1NS_1Free_FUNC,
 	_1NS_1GetComponentManager_FUNC,
 	_1NS_1GetServiceManager_FUNC,
@@ -556,6 +559,11 @@ typedef enum {
 	_1VtblCall__IIJJJI_3C_3BJJIJI_3J_3J_FUNC,
 #else
 	_1VtblCall__IJJJJI_3C_3BJJIJI_3J_3J_FUNC,
+#endif
+#ifndef JNI64
+	_1VtblCall__IIJJJJ_FUNC,
+#else
+	_1VtblCall__IJJJJJ_FUNC,
 #endif
 #ifndef JNI64
 	_1VtblCall__IIJJJJIJ_3C_3I_3J_FUNC,
