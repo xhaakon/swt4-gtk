@@ -2,6 +2,7 @@ swt-gtk (3.8.0~m7-1) UNRELEASED; urgency=low
 
   * New upstream release.
   * Updated arch64.diff patch for new upstream release.
+  * Updated 01-as-needed.diff patch for new upstream release.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 07 May 2012 00:05:05 +0200
 

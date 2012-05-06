@@ -66,16 +66,16 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  xpcom.o: xpcom.cpp
  	$(CXX) $(MOZILLACFLAGS) $(MOZILLAEXCLUDES) ${MOZILLA_INCLUDES} -c xpcom.cpp
-@@ -241,7 +241,7 @@
- make_xulrunner:$(XULRUNNER_LIB)
+@@ -242,7 +242,7 @@
  
  $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
+ 	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | gcc --shared -xc - -o libswt-xulrunner-fix.so
 -	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
 +	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) -Wl,--as-needed ${XULRUNNER_LIBS}
  
  xpcomxul.o: xpcom.cpp
  	$(CXX) -o xpcomxul.o $(MOZILLACFLAGS) $(XULRUNNEREXCLUDES) ${XULRUNNER_INCLUDES} -c xpcom.cpp
-@@ -261,7 +261,7 @@
+@@ -262,7 +262,7 @@
  make_xpcominit:$(XPCOMINIT_LIB)
  
  $(XPCOMINIT_LIB): $(XPCOMINIT_OBJECTS)
@@ -84,7 +84,7 @@ Forwarded: https://bugs.eclipse.org/bugs/show_bug.cgi?id=350346
  
  xpcominit.o: xpcominit.cpp
  	$(CXX) $(MOZILLACFLAGS) ${XULRUNNER_INCLUDES} -c xpcominit.cpp
-@@ -295,7 +295,7 @@
+@@ -296,7 +296,7 @@
  make_glx: $(GLX_LIB)
  
  $(GLX_LIB): $(GLX_OBJECTS)
