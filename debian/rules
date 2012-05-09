@@ -1,39 +1,34 @@
 #!/usr/bin/make -f
 
-alpha := 64
-amd64 := 64
-ia64  := 64
-ppc64 := 64
-DEB_PATCHDIRS = debian/patches/common debian/patches/$($(DEB_HOST_ARCH_CPU))
+DPKG_EXPORT_BUILDFLAGS:=1
+include /usr/share/dpkg/buildflags.mk
 
-DEB_DH_MAKESHLIBS_ARGS_ALL := -Xjni
-
-AWT_LIB_DIR = $(DEB_HOST_ARCH_CPU)
-
-ifneq (,$(filter $(DEB_HOST_ARCH), lpia))
-	AWT_LIB_DIR = i386
-endif
-
-ifneq (,$(filter $(DEB_HOST_ARCH), powerpc))
-	AWT_LIB_DIR = ppc
-endif
-
-ifneq (,$(filter $(DEB_HOST_ARCH), powerpcspe))
-	AWT_LIB_DIR = ppc
-endif
-
-ifneq (,$(filter $(DEB_HOST_ARCH), sh4))
-	AWT_LIB_DIR = sh
-endif 
-
-export AWT_LIB_PATH=/usr/lib/jvm/default-java/jre/lib/$(AWT_LIB_DIR)
-
-include /usr/share/cdbs/1/rules/simple-patchsys.mk
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/javahelper.mk
 
+include /usr/share/javahelper/java-vars.mk
+
 include /usr/share/gcj/debian_defaults
+
+DEB_PATCHDIRS = debian/patches/common
+BITS = $(shell dpkg-architecture -qDEB_HOST_ARCH_BITS)
+
+ifeq (64,$(BITS))
+DEB_PATCHDIES += debian/patches/64
+endif
+
+# Must be included after setting DEB_PATCHDIRS
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+
+
+
+DEB_DH_MAKESHLIBS_ARGS_ALL := -Xjni
+
+AWT_LIB_DIR := $(JAVA_ARCH)
+
+export AWT_LIB_PATH=/usr/lib/jvm/default-java/jre/lib/$(AWT_LIB_DIR)
+
 
 makecleanbuildir::patch
 

@@ -8,6 +8,7 @@ swt-gtk (3.8.0~m7-1) UNRELEASED; urgency=low
   [ Niels Thykier ]
   * Merge make_linux.mak patches and pass LDFLAGS + CPPFLAGS
     to the underlying build system.
+  * Refactored the d/rules files.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 07 May 2012 00:05:05 +0200
 
