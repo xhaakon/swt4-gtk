@@ -1,4 +1,4 @@
-swt-gtk (3.8.0~m7-1) UNRELEASED; urgency=low
+swt-gtk (3.8.0~m7-1) experimental; urgency=low
 
   [ Jakub Adam ]
   * New upstream release.
@@ -10,7 +10,7 @@ swt-gtk (3.8.0~m7-1) UNRELEASED; urgency=low
     to the underlying build system.
   * Refactored the d/rules files.
 
- -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 07 May 2012 00:05:05 +0200
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Wed, 09 May 2012 17:00:58 +0200
 
 swt-gtk (3.8.0~m6-1) experimental; urgency=low
 
