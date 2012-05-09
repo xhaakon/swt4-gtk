@@ -17,7 +17,7 @@ DEB_PATCHDIRS = debian/patches/common
 BITS = $(shell dpkg-architecture -qDEB_HOST_ARCH_BITS)
 
 ifeq (64,$(BITS))
-DEB_PATCHDIES += debian/patches/64
+DEB_PATCHDIRS += debian/patches/64
 endif
 
 # Must be included after setting DEB_PATCHDIRS
