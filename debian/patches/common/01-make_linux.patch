@@ -30,7 +30,7 @@ index c8cc080..998cfcd 100644
  GLX_OBJECTS = swt.o glx.o glx_structs.o glx_stats.o
  
 -CFLAGS = -O -Wall \
-+override CFLAGS += $(CPPFLAGS) \
++override CFLAGS = \
  		-DSWT_VERSION=$(SWT_VERSION) \
  		$(NATIVE_STATS) \
  		-DLINUX -DGTK \
@@ -39,7 +39,7 @@ index c8cc080..998cfcd 100644
  		-fPIC \
  		${SWT_PTR_CFLAGS}
 -LFLAGS = -shared -fPIC ${SWT_LFLAGS}
-+override LFLAGS += -shared -fPIC ${SWT_LFLAGS}
++LFLAGS += $(DEB_LDFLAGS) -shared -fPIC ${SWT_LFLAGS}
  
 +NO_STRIP=1
  ifndef NO_STRIP
@@ -77,7 +77,7 @@ index c8cc080..998cfcd 100644
  
  $(AWT_LIB): $(AWT_OBJECTS)
 -	$(CC) $(AWT_LFLAGS) -o $(AWT_LIB) $(AWT_OBJECTS) $(AWT_LIBS)
-+	$(CC) $(AWT_LFLAGS) -o $(AWT_LIB) $(AWT_OBJECTS) -Wl,--as-needed $(AWT_LIBS)
++	$(CC) $(AWT_LFLAGS) $(DEB_LDFLAGS) -o $(AWT_LIB) $(AWT_OBJECTS) -Wl,--as-needed $(AWT_LIBS)
  
  #
  # Atk lib
