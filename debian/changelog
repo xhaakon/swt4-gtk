@@ -11,6 +11,7 @@ swt-gtk (3.7.2-3) UNRELEASED; urgency=low
     This avoid this issue new and old versions of SWT and its JNI
     libraries being used (and crashing).  (Closes: #670756,
     LP: #1000272)
+  * Remove alternatives for /usr/share/java/swt.jar.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 08 Apr 2012 22:41:29 +0200
 
