@@ -1,3 +1,15 @@
+swt-gtk (3.8.0~m7-3) UNRELEASED; urgency=low
+
+  * Use breaks to ensure that the SWT JNI libraries are upgraded
+    together with the Java package.
+  * Add conflicts with older versions of SWT and its JNI libraries.
+    This avoid this issue new and old versions of SWT and its JNI
+    libraries being used (and crashing).  (Closes: #670756,
+    LP: #1000272)
+  * Remove alternatives for /usr/share/java/swt.jar.
+
+ -- Niels Thykier <niels@thykier.net>  Thu, 24 May 2012 09:44:43 +0200
+
 swt-gtk (3.8.0~m7-2) experimental; urgency=low
 
   * Fix build on 64-bit platforms.

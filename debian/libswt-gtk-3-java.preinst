@@ -2,11 +2,10 @@
 set -e
 
 case "$1" in
-    remove|upgrade|deconfigure)
-		update-alternatives --remove swt.jar \
-                /usr/share/java/swt-gtk-3.8.jar
-	;;
-    failed-upgrade)
+    install|upgrade)
+        if update-alternatives --list swt.jar >/dev/null 2>&1 ; then
+		update-alternatives --remove-all swt.jar
+        fi
 	;;
     *)
         echo "prerm called with unknown argument \`$1'" >&2
