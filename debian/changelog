@@ -1,4 +1,4 @@
-swt-gtk (3.7.2-3) UNRELEASED; urgency=low
+swt-gtk (3.7.2-3) unstable; urgency=low
 
   [ Jakub Adam ]
   * debian/Makefile: Add missing SWTMessages*.properties files to
@@ -14,7 +14,7 @@ swt-gtk (3.7.2-3) UNRELEASED; urgency=low
   * Remove alternatives for /usr/share/java/swt.jar.
   * Add myself to uploaders.
 
- -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 08 Apr 2012 22:41:29 +0200
+ -- Niels Thykier <niels@thykier.net>  Thu, 24 May 2012 09:18:54 +0200
 
 swt-gtk (3.7.2-2) unstable; urgency=low
 
