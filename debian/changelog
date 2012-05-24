@@ -1,7 +1,16 @@
 swt-gtk (3.7.2-3) UNRELEASED; urgency=low
 
+  [ Jakub Adam ]
   * debian/Makefile: Add missing SWTMessages*.properties files to
     swt-gtk-$(RELEASE).jar
+
+  [ Niels Thykier ]
+  * Use breaks to ensure that the SWT JNI libraries are upgraded
+    together with the Java package.
+  * Add conflicts with older versions of SWT and its JNI libraries.
+    This avoid this issue new and old versions of SWT and its JNI
+    libraries being used (and crashing).  (Closes: #670756,
+    LP: #1000272)
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 08 Apr 2012 22:41:29 +0200
 
