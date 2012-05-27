@@ -1,5 +1,6 @@
-swt-gtk (3.8.0~m7-3) UNRELEASED; urgency=low
+swt-gtk (3.8.0~rc2-1) UNRELEASED; urgency=low
 
+  [ Niels Thykier ]
   * Use breaks to ensure that the SWT JNI libraries are upgraded
     together with the Java package.
   * Add conflicts with older versions of SWT and its JNI libraries.
@@ -8,7 +9,10 @@ swt-gtk (3.8.0~m7-3) UNRELEASED; urgency=low
     LP: #1000272)
   * Remove alternatives for /usr/share/java/swt.jar.
 
- -- Niels Thykier <niels@thykier.net>  Thu, 24 May 2012 09:44:43 +0200
+  [ Jakub Adam ]
+  * New upstream release.
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 27 May 2012 13:49:43 +0200
 
 swt-gtk (3.8.0~m7-2) experimental; urgency=low
 
