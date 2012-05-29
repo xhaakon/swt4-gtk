@@ -1,4 +1,4 @@
-swt-gtk (3.8.0~rc2-1) UNRELEASED; urgency=low
+swt-gtk (3.8.0~rc2-1) experimental; urgency=low
 
   [ Niels Thykier ]
   * Use breaks to ensure that the SWT JNI libraries are upgraded
@@ -13,7 +13,7 @@ swt-gtk (3.8.0~rc2-1) UNRELEASED; urgency=low
   * New upstream release.
   * Updated arch64.diff patch for new upstream release.
 
- -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 27 May 2012 13:49:43 +0200
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Tue, 29 May 2012 17:02:51 +0200
 
 swt-gtk (3.8.0~m7-2) experimental; urgency=low
 
