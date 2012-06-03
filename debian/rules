@@ -1,10 +1,6 @@
 #!/usr/bin/make -f
 
-alpha := 64
-amd64 := 64
-ia64  := 64
-ppc64 := 64
-DEB_PATCHDIRS = debian/patches/common debian/patches/$($(DEB_HOST_ARCH_CPU))
+DEB_PATCHDIRS = debian/patches/common debian/patches/$(DEB_HOST_ARCH_BITS)
 
 DEB_DH_MAKESHLIBS_ARGS_ALL := -Xjni
 
