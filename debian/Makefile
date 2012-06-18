@@ -3,7 +3,7 @@ JAVA=swt-gtk-$(RELEASE).jar
 CLEANFILES=*.files *.jar *-stamp
 
 JAR=fastjar
-JAVAC=javac -classpath .
+JAVAC=javac -classpath . -source 1.5 -target 1.5
 RM=rm -f
 
 all: $(JAVA)
