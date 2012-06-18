@@ -22,17 +22,8 @@ swt-gtk-$(RELEASE).files:
 
 %-stamp: %.files
 	mkdir -p $*
-	for i in `cat $<`; do \
-		if [ "$${i##*.}" = "properties" ]; then \
-			echo cp $$i $*/$$i; \
-			cp $$i $*/$$i; \
-		elif [ -e $*/$${i%java}class ]; then \
-			echo SKIPPING $$i; \
-		else \
-			echo $(JAVAC) -d $* $$i; \
-			$(JAVAC) -d $* $$i || exit $$?; \
-		fi \
-	done
+	grep \.java $< | xargs -r $(JAVAC) -d $*
+	grep \.properties $< | xargs -r cp --parents -t $*
 	touch $@
 
 %.jar: %-stamp
