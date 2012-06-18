@@ -4,6 +4,7 @@ swt-gtk (3.8.0~rc2-2) UNRELEASED; urgency=low
     to breaks.
   * Add breaks on the -JNI libraries built from 3.8.0~rc2-1
     to ensure the tight dependency is used.
+  * Bump source format to 3.0 (quilt).
 
  -- Niels Thykier <niels@thykier.net>  Mon, 18 Jun 2012 09:40:52 +0200
 
