@@ -1,3 +1,12 @@
+swt-gtk (3.8.0~rc2-2) UNRELEASED; urgency=low
+
+  * Prefer tight dependencies between the -JNI libraries
+    to breaks.
+  * Add breaks on the -JNI libraries built from 3.8.0~rc2-1
+    to ensure the tight dependency is used.
+
+ -- Niels Thykier <niels@thykier.net>  Mon, 18 Jun 2012 09:40:52 +0200
+
 swt-gtk (3.8.0~rc2-1) experimental; urgency=low
 
   [ Niels Thykier ]
