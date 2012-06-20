@@ -1,11 +1,14 @@
-swt-gtk (3.8.0~rc2-3) UNRELEASED; urgency=low
+swt-gtk (3.8.0~rc2-3) unstable; urgency=low
 
+  * Upload to unstable.
   * Compile java code with source/target 1.5 to ensure java
     classes are compatible with Java 1.5+.  Thanks to James
     Page for the report and the patch.
     (Closes: #677025, LP: #1011103)
+  * Add breaks on eclipse-rcp to ensure eclipse 3.7 is not
+    installed with swt-gtk 3.8.
 
- -- Niels Thykier <niels@thykier.net>  Mon, 18 Jun 2012 16:27:00 +0200
+ -- Niels Thykier <niels@thykier.net>  Wed, 20 Jun 2012 12:38:50 +0200
 
 swt-gtk (3.8.0~rc2-2) experimental; urgency=low
 
