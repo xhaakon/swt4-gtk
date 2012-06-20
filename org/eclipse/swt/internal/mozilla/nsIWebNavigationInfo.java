@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2005 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -42,11 +42,8 @@ public class nsIWebNavigationInfo extends nsISupports {
 	}
 
 	public static final int UNSUPPORTED = 0;
-
 	public static final int IMAGE = 1;
-
 	public static final int PLUGIN = 2;
-
 	public static final int OTHER = 32768;
 
 	public int IsTypeSupported(int /*long*/ aType, int /*long*/ aWebNav, int[] _retval) {

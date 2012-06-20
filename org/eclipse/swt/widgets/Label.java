@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -339,12 +339,12 @@ boolean mnemonicHit (char key) {
 	if (labelHandle == 0) return false;
 	boolean result = super.mnemonicHit (labelHandle, key);
 	if (result) {
-		Composite control = this.parent;
-		while (control != null) {
-			Control [] children = control._getChildren ();
+		Control control = this;
+		while (control.parent != null) {
+			Control [] children = control.parent._getChildren ();
 			int index = 0;
 			while (index < children.length) {
-				if (children [index] == this) break;
+				if (children [index] == control) break;
 				index++;
 			}
 			index++;

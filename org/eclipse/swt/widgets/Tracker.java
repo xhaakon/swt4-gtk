@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -306,11 +306,12 @@ Rectangle [] computeProportions (Rectangle [] rects) {
 }
 
 void drawRectangles (Rectangle [] rects) {
-	int /*long*/ window = OS.GDK_ROOT_PARENT ();
+	int /*long*/ window = OS.gdk_get_default_root_window();
 	if (parent != null) {
 		window = OS.GTK_WIDGET_WINDOW (parent.paintHandle());
 	} 
 	if (window == 0) return;
+	//TODO: Use Cairo
 	int /*long*/ gc = OS.gdk_gc_new (window);
 	if (gc == 0) return;
 	int /*long*/ colormap = OS.gdk_colormap_get_system ();
@@ -661,7 +662,7 @@ void moveRectangles (int xChange, int yChange) {
  */
 public boolean open () {
 	checkWidget();
-	window = OS.GDK_ROOT_PARENT ();
+	window = OS.gdk_get_default_root_window();
 	if (parent != null) {
 		window = OS.GTK_WIDGET_WINDOW (parent.paintHandle());
 	} 
@@ -934,9 +935,9 @@ void resizeRectangles (int xChange, int yChange) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
-public void setCursor (Cursor value) {
+public void setCursor (Cursor newCursor) {
 	checkWidget ();
-	cursor = value;
+	cursor = newCursor;
 }
 
 /**

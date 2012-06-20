@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -132,6 +132,7 @@ Color _getBackground () {
 	if (ptr [0] == 0) return parent.getBackground ();
 	GdkColor gdkColor = new GdkColor ();
 	OS.memmove (gdkColor, ptr [0], GdkColor.sizeof);
+	OS.gdk_color_free (ptr [0]);
 	return Color.gtk_new (display, gdkColor);
 }
 
@@ -144,6 +145,7 @@ Color _getBackground (int index) {
 	if (ptr [0] == 0) return _getBackground ();
 	GdkColor gdkColor = new GdkColor ();
 	OS.memmove (gdkColor, ptr [0], GdkColor.sizeof);
+	OS.gdk_color_free (ptr [0]);
 	return Color.gtk_new (display, gdkColor);
 }
 
@@ -159,6 +161,7 @@ Color _getForeground () {
 	if (ptr [0] == 0) return parent.getForeground ();
 	GdkColor gdkColor = new GdkColor ();
 	OS.memmove (gdkColor, ptr [0], GdkColor.sizeof);
+	OS.gdk_color_free (ptr [0]);
 	return Color.gtk_new (display, gdkColor);
 }
 
@@ -171,6 +174,7 @@ Color _getForeground (int index) {
 	if (ptr [0] == 0) return _getForeground ();
 	GdkColor gdkColor = new GdkColor ();
 	OS.memmove (gdkColor, ptr [0], GdkColor.sizeof);
+	OS.gdk_color_free (ptr [0]);
 	return Color.gtk_new (display, gdkColor);
 }
 
@@ -183,6 +187,7 @@ Image _getImage (int index) {
 	if (ptr [0] == 0) return null;
 	ImageList imageList = parent.imageList;
 	int imageIndex = imageList.indexOf (ptr [0]);
+	OS.g_object_unref (ptr [0]);
 	if (imageIndex == -1) return null;
 	return imageList.get (imageIndex);
 }
@@ -218,7 +223,7 @@ void clear () {
 		* invalidate the row when it is cleared.
 		*/
 		if ((parent.style & SWT.VIRTUAL) != 0) {
-			if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+			if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 				redraw ();
 			}
 		}
@@ -303,17 +308,9 @@ public Rectangle getBounds () {
 	int horizontalSeparator = buffer[0];
 	rect.x += horizontalSeparator;
 	
-	if (OS.GTK_VERSION >= OS.VERSION (2, 1, 3)) {
-		OS.gtk_tree_view_column_cell_get_position (column, textRenderer, x, null);
-		rect.x += x [0];
-	} else {
-		if ((parent.style & SWT.CHECK) != 0) {
-			OS.gtk_cell_renderer_get_size (parent.checkRenderer, parentHandle, null, null, null, w, null);
-			rect.x += w [0] + horizontalSeparator;
-		}
-		OS.gtk_cell_renderer_get_size (pixbufRenderer, parentHandle, null, null, null, w, null);
-		rect.x += w [0] + horizontalSeparator;
-	}
+	OS.gtk_tree_view_column_cell_get_position (column, textRenderer, x, null);
+	rect.x += x [0];
+		
 	if (parent.columnCount > 0) {
 		if (rect.x + rect.width > right) {
 			rect.width = Math.max (0, right - rect.x);
@@ -373,19 +370,10 @@ public Rectangle getBounds (int index) {
 	if ((parent.getStyle () & SWT.MIRRORED) != 0) rect.x = parent.getClientWidth () - rect.width - rect.x;
 	
 	if (index == 0 && (parent.style & SWT.CHECK) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 1, 3)) {
-			int [] x = new int [1], w = new int [1];
-			OS.gtk_tree_view_column_cell_get_position (column, parent.checkRenderer, x, w);
-			rect.x += x [0] + w [0];
-			rect.width -= x [0] + w [0];
-		} else {
-			int [] w = new int [1];
-			OS.gtk_cell_renderer_get_size (parent.checkRenderer, parentHandle, null, null, null, w, null);
-			int [] buffer = new int [1];
-			OS.gtk_widget_style_get (parentHandle, OS.horizontal_separator, buffer, 0);
-			rect.x += w [0]  + buffer [0];
-			rect.width -= w [0]  + buffer [0];
-		}
+		int [] x = new int [1], w = new int [1];
+		OS.gtk_tree_view_column_cell_get_position (column, parent.checkRenderer, x, w);
+		rect.x += x [0] + w [0];
+		rect.width -= x [0] + w [0];
 	}
 	int width = OS.gtk_tree_view_column_get_visible (column) ? rect.width + 1 : 0;
 	return new Rectangle (rect.x, rect.y, width, rect.height + 1);
@@ -565,26 +553,10 @@ public Rectangle getImageBounds (int index) {
 	OS.gtk_tree_view_get_cell_area (parentHandle, path, column, rect);
 	OS.gtk_tree_path_free (path);
 	if ((parent.getStyle () & SWT.MIRRORED) != 0) rect.x = parent.getClientWidth () - rect.width - rect.x;
-	/*
-	* The OS call gtk_cell_renderer_get_size() provides the width of image to be drawn
-	* by the cell renderer.  If there is no image in the cell, the width is zero.  If the table contains
-	* images of varying widths, gtk_cell_renderer_get_size() will return the width of the image, 
-	* not the width of the area in which the image is drawn.
-	* New API was added in GTK 2.1.3 for determining the full width of the renderer area.
-	* For earlier versions of GTK, the result is only correct if all rows have images of the same
-	* width.
-	*/
-	if (OS.GTK_VERSION >= OS.VERSION (2, 1, 3)) {
-		int [] x = new int [1], w = new int[1];
-		OS.gtk_tree_view_column_cell_get_position (column, pixbufRenderer, x, w);
-		rect.x += x [0];
-		rect.width = w [0];
-	} else {
-		int [] w = new int [1];
-		OS.gtk_tree_view_column_cell_set_cell_data (column, parent.modelHandle, handle, false, false);
-		OS.gtk_cell_renderer_get_size (pixbufRenderer, parentHandle, null, null, null, w, null);
-		rect.width = w [0];
-	}
+	int [] x = new int [1], w = new int[1];
+	OS.gtk_tree_view_column_cell_get_position (column, pixbufRenderer, x, w);
+	rect.x += x [0];
+	rect.width = w [0];
 	int width = OS.gtk_tree_view_column_get_visible (column) ? rect.width : 0;
 	return new Rectangle (rect.x, rect.y, width, rect.height + 1);
 }
@@ -713,17 +685,8 @@ public Rectangle getTextBounds (int index) {
 	int horizontalSeparator = buffer[0];
 	rect.x += horizontalSeparator;
 	
-	if (OS.GTK_VERSION >= OS.VERSION (2, 1, 3)) {
-		OS.gtk_tree_view_column_cell_get_position (column, textRenderer, x, null);
-		rect.x += x [0];
-	} else {
-		if ((parent.style & SWT.CHECK) != 0) {
-			OS.gtk_cell_renderer_get_size (parent.checkRenderer, parentHandle, null, null, null, w, null);
-			rect.x += w [0] + horizontalSeparator;
-		}
-		OS.gtk_cell_renderer_get_size (pixbufRenderer, parentHandle, null, null, null, w, null);
-		rect.x += w [0] + horizontalSeparator;
-	}
+	OS.gtk_tree_view_column_cell_get_position (column, textRenderer, x, null);
+	rect.x += x [0];
 	if (parent.columnCount > 0) {
 		if (rect.x + rect.width > right) {
 			rect.width = Math.max (0, right - rect.x);
@@ -782,7 +745,7 @@ void releaseWidget () {
 public void setBackground (Color color) {
 	checkWidget ();
 	if (color != null && color.isDisposed ()) {
-		SWT.error (SWT.ERROR_INVALID_ARGUMENT);
+		error (SWT.ERROR_INVALID_ARGUMENT);
 	}
 	if (_getBackground ().equals (color)) return;
 	GdkColor gdkColor = color != null ? color.handle : null;
@@ -793,7 +756,7 @@ public void setBackground (Color color) {
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}
@@ -821,7 +784,7 @@ public void setBackground (Color color) {
 public void setBackground (int index, Color color) {
 	checkWidget ();
 	if (color != null && color.isDisposed ()) {
-		SWT.error (SWT.ERROR_INVALID_ARGUMENT);
+		error (SWT.ERROR_INVALID_ARGUMENT);
 	}
 	if (_getBackground (index).equals (color)) return;
 	int count = Math.max (1, parent.getColumnCount ());
@@ -835,7 +798,7 @@ public void setBackground (int index, Color color) {
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}
@@ -912,7 +875,7 @@ public void setChecked (boolean checked) {
 public void setFont (Font font){
 	checkWidget ();
 	if (font != null && font.isDisposed ()) {
-		SWT.error (SWT.ERROR_INVALID_ARGUMENT);
+		error (SWT.ERROR_INVALID_ARGUMENT);
 	}
 	Font oldFont = this.font;
 	if (oldFont == font) return;
@@ -926,7 +889,7 @@ public void setFont (Font font){
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}
@@ -955,7 +918,7 @@ public void setFont (Font font){
 public void setFont (int index, Font font) {
 	checkWidget ();
 	if (font != null && font.isDisposed ()) {
-		SWT.error (SWT.ERROR_INVALID_ARGUMENT);
+		error (SWT.ERROR_INVALID_ARGUMENT);
 	}
 	int count = Math.max (1, parent.getColumnCount ());
 	if (0 > index || index > count - 1) return;
@@ -977,7 +940,7 @@ public void setFont (int index, Font font) {
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}
@@ -1029,7 +992,7 @@ public void setFont (int index, Font font) {
 public void setForeground (Color color){
 	checkWidget ();
 	if (color != null && color.isDisposed ()) {
-		SWT.error (SWT.ERROR_INVALID_ARGUMENT);
+		error (SWT.ERROR_INVALID_ARGUMENT);
 	}
 	if (_getForeground ().equals (color)) return;
 	GdkColor gdkColor = color != null ? color.handle : null;
@@ -1040,7 +1003,7 @@ public void setForeground (Color color){
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}
@@ -1068,7 +1031,7 @@ public void setForeground (Color color){
 public void setForeground (int index, Color color){
 	checkWidget ();
 	if (color != null && color.isDisposed ()) {
-		SWT.error (SWT.ERROR_INVALID_ARGUMENT);
+		error (SWT.ERROR_INVALID_ARGUMENT);
 	}
 	if (_getForeground (index).equals (color)) return;
 	int count = Math.max (1, parent.getColumnCount ());
@@ -1082,7 +1045,7 @@ public void setForeground (int index, Color color){
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}
@@ -1180,7 +1143,7 @@ public void setImage (int index, Image image) {
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}
@@ -1190,24 +1153,22 @@ public void setImage (int index, Image image) {
 	 * more space is required.
 	 */
 	if ((parent.style & SWT.VIRTUAL) != 0 && parent.currentItem == null) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2)) {
-			if (image != null) {
-				int /*long*/parentHandle = parent.handle;
-				int /*long*/ column = OS.gtk_tree_view_get_column (parentHandle, index);
-				int [] w = new int [1];
-				int /*long*/ pixbufRenderer = parent.getPixbufRenderer(column);
-				OS.gtk_tree_view_column_cell_get_position (column, pixbufRenderer, null, w);
-				if (w[0] < image.getBounds().width) {
-					/*
-					* There is no direct way to clear the cell renderer width so we
-					* are relying on the fact that it is done as part of modifying
-					* the style.
-					*/
-					int /*long*/ style = OS.gtk_widget_get_modifier_style (parentHandle);
-					parent.modifyStyle (parentHandle, style);
-				}
-			} 
-		}
+		if (image != null) {
+			int /*long*/parentHandle = parent.handle;
+			int /*long*/ column = OS.gtk_tree_view_get_column (parentHandle, index);
+			int [] w = new int [1];
+			int /*long*/ pixbufRenderer = parent.getPixbufRenderer(column);
+			OS.gtk_tree_view_column_cell_get_position (column, pixbufRenderer, null, w);
+			if (w[0] < image.getBounds().width) {
+				/*
+				* There is no direct way to clear the cell renderer width so we
+				* are relying on the fact that it is done as part of modifying
+				* the style.
+				*/
+				int /*long*/ style = OS.gtk_widget_get_modifier_style (parentHandle);
+				parent.modifyStyle (parentHandle, style);
+			}
+		} 
 	}
 	cached = true;
 }
@@ -1288,7 +1249,7 @@ public void setText (int index, String string) {
 	* invalidate the row when it is cleared.
 	*/
 	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 3, 2) && OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
+		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
 			redraw ();
 		}
 	}

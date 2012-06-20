@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2007 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -14,7 +14,13 @@
  *******************************************************************************/
 package org.eclipse.swt.internal;
 
+
 public class Platform {
 	public static final String PLATFORM = "gtk"; //$NON-NLS-1$
-	public static final Lock lock = new Lock();
+	public static final Lock lock = new Lock ();
+
+public static boolean isLoadable () {
+	return Library.isLoadable ();	
+}
+
 }

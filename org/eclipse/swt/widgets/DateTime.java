@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,7 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.accessibility.*;
-import org.eclipse.swt.internal.gtk.OS;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class are selectable user interface
@@ -343,11 +343,7 @@ void createHandle (int index) {
 		handle = OS.gtk_calendar_new ();
 		if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 		OS.gtk_container_add (fixedHandle, handle);
-		if (OS.GTK_VERSION >= OS.VERSION(2, 4, 0)) {
-			OS.gtk_calendar_set_display_options(handle, OS.GTK_CALENDAR_SHOW_HEADING | OS.GTK_CALENDAR_SHOW_DAY_NAMES);
-		} else {
-			OS.gtk_calendar_display_options(handle, OS.GTK_CALENDAR_SHOW_HEADING | OS.GTK_CALENDAR_SHOW_DAY_NAMES);			
-		}
+		OS.gtk_calendar_set_display_options(handle, OS.GTK_CALENDAR_SHOW_HEADING | OS.GTK_CALENDAR_SHOW_DAY_NAMES);
 	} else {
 		super.createHandle(index);
 	}
@@ -458,6 +454,14 @@ String formattedStringValue(int fieldName, int value, boolean adjust) {
 		}
 	}
 	return String.valueOf(value);
+}
+
+GdkColor getBackgroundColor () {
+	if ((style & SWT.CALENDAR) != 0) {
+		return getBaseColor ();
+	} else {
+		return super.getBackgroundColor ();
+	}
 }
 
 String getComputeSizeString(int style) {
@@ -1061,9 +1065,20 @@ void sendSelectionEvent () {
 
 public void setBackground(Color color) {
 	super.setBackground(color);
+	if (((style & SWT.CALENDAR) != 0) && color == null) {
+		OS.gtk_widget_modify_base(handle, 0, null);
+	}
 	bg = color;
 	if (text != null) text.setBackground(color);
 	if (popupCalendar != null) popupCalendar.setBackground(color);
+}
+
+void setBackgroundColor (GdkColor color) {
+	if ((style & SWT.CALENDAR) != 0) {
+		OS.gtk_widget_modify_base(handle, 0, color);
+	} else {
+		super.setBackgroundColor (color);
+	}
 }
 
 public void setEnabled (boolean enabled){

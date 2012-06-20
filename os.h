@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -18,9 +18,12 @@
 
 #define NDEBUG
 
-/*
 #define G_DISABLE_DEPRECATED
+#define GTK_DISABLE_SINGLE_INCLUDES
+/*
 #define GTK_DISABLE_DEPRECATED
+#define GDK_DISABLE_DEPRECATED
+#define GSEAL_ENABLE
 */
 
 #include <stdlib.h>
@@ -32,6 +35,8 @@
 #include <dlfcn.h>
 #include <locale.h>
 #include <unistd.h>
+
+#define OS_LOAD_FUNCTION LOAD_FUNCTION
 
 #ifndef GDK_WINDOWING_X11
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2009 IBM Corporation and others.
+ * Copyright (c) 2003, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -126,7 +126,7 @@ int ReadSegments (int /*long*/ aWriter, int /*long*/ aClosure, int aCount, int /
 
 int IsNonBlocking (int /*long*/ _retval) {
 	/* blocking */
-	XPCOM.memmove (_retval, new int[] {0}, 4);
+	XPCOM.memmove (_retval, new boolean[] {false});
 	return XPCOM.NS_OK;
 }		
 }

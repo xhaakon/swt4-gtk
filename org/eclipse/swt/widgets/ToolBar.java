@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,10 +45,16 @@ import org.eclipse.swt.graphics.*;
  * @noextend This class is not intended to be subclassed by clients.
  */
 public class ToolBar extends Composite {
-	ToolItem lastFocus;
+	ToolItem currentFocusItem;
 	ToolItem [] tabItemList;
 	ImageList imageList;
-
+	boolean hasChildFocus;
+	static Callback menuItemSelectedFunc;
+	static {
+		menuItemSelectedFunc = new Callback(ToolBar.class, "MenuItemSelectedProc", 2);
+		if (menuItemSelectedFunc.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
+	}
+	
 /**
  * Constructs a new instance of this class given its parent
  * and a style value describing its behavior and appearance.
@@ -98,17 +104,14 @@ public ToolBar (Composite parent, int style) {
 		this.style |= SWT.HORIZONTAL;
 	}
 	int orientation = (style & SWT.VERTICAL) != 0 ? OS.GTK_ORIENTATION_VERTICAL : OS.GTK_ORIENTATION_HORIZONTAL;
-	OS.gtk_toolbar_set_orientation (handle, orientation);
+	if (OS.GTK_VERSION < OS.VERSION (2, 16, 0)) {
+		OS.gtk_toolbar_set_orientation (handle, orientation);
+	} else {
+		OS.gtk_orientable_set_orientation(handle, orientation);
+	}
 }
 
 static int checkStyle (int style) {
-	/*
-	* Feature in GTK.  It is not possible to create
-	* a toolbar that wraps.  Therefore, no matter what 
-	* style bits are specified,	clear the WRAP bits so 
-	* that the style matches the behavior.
-	*/
-	if ((style & SWT.WRAP) != 0) style &= ~SWT.WRAP;
 	/*
 	* Even though it is legal to create this widget
 	* with scroll bars, they serve no useful purpose
@@ -141,7 +144,16 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
 	if (hHint != SWT.DEFAULT && hHint < 0) hHint = 0;
-	return computeNativeSize (handle, wHint, hHint, changed);
+	/*
+	 * Feature in GTK. Size of toolbar is calculated incorrectly
+	 * and appears as just the overflow arrow, if the arrow is enabled
+	 * to display. The fix is to disable it before the computation of
+	 * size and enable it if WRAP style is set.
+	 */
+	OS.gtk_toolbar_set_show_arrow (handle, false);
+	Point size = computeNativeSize (handle, wHint, hHint, changed);
+	if ((style & SWT.WRAP) != 0) OS.gtk_toolbar_set_show_arrow (handle, true);
+	return size;
 }
 
 Widget computeTabGroup () {
@@ -151,11 +163,8 @@ Widget computeTabGroup () {
 		while (i < items.length && items [i].control == null) i++;
 		if (i == items.length) return super.computeTabGroup (); 
 	}
-	int index = 0;
-	while (index < items.length) {
-		if (items[index].hasFocus ()) break;
-		index++;
-	}
+	int index = indexOf(currentFocusItem);
+	if (index == -1) index = items.length - 1;
 	while (index >= 0) {
 		ToolItem item = items [index];
 		if (item.isTabGroup ()) return item;
@@ -211,12 +220,15 @@ void fixChildren (Shell newShell, Shell oldShell, Decorations newDecorations, De
 }
 
 boolean forceFocus (int /*long*/ focusHandle) {
-	if (lastFocus != null && lastFocus.setFocus ()) return true;
-	ToolItem [] items = getItems ();
-	for (int i = 0; i < items.length; i++) {
-		ToolItem item = items [i];
-		if (item.setFocus ()) return true;
-	}
+	int dir = OS.GTK_DIR_TAB_FORWARD;
+	if ((style & SWT.MIRRORED) != 0) dir = OS.GTK_DIR_TAB_BACKWARD;
+	int /*long*/ childHandle = handle;
+	if (currentFocusItem != null)  childHandle = currentFocusItem.handle;
+	/*
+	 * Feature in GTK. GtkToolBar takes care of navigating through
+	 * items by Up/Down arrow keys.
+	 */
+	if (OS.gtk_widget_child_focus (childHandle, dir)) return true;
 	return super.forceFocus (focusHandle);
 }
 
@@ -368,53 +380,35 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	if (!hasFocus ()) return 0;
 	int /*long*/ result = super.gtk_key_press_event (widget, eventPtr);
 	if (result != 0) return result;
-	ToolItem [] items = getItems ();
-	int length = items.length;
-	int index = 0;
-	while (index < length) {
-		if (items [index].hasFocus ()) break;
-		index++;
-	}
 	GdkEventKey gdkEvent = new GdkEventKey ();
 	OS.memmove (gdkEvent, eventPtr, GdkEventKey.sizeof);
-	boolean next = false;
 	switch (gdkEvent.keyval) {
-		case OS.GDK_Up:
-		case OS.GDK_Left: next = false; break;
 		case OS.GDK_Down: {
-			if (0 <= index && index < length) {
-				ToolItem item = items [index];
-				if ((item.style & SWT.DROP_DOWN) != 0) {
-					Event event = new Event ();
-					event.detail = SWT.ARROW;
-					int /*long*/ topHandle = item.topHandle ();
-					event.x = OS.GTK_WIDGET_X (topHandle);
-					event.y = OS.GTK_WIDGET_Y (topHandle) + OS.GTK_WIDGET_HEIGHT (topHandle);
-					if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth() - OS.GTK_WIDGET_WIDTH(topHandle) - event.x;
-					item.sendSelectionEvent  (SWT.Selection, event, false);
-					return result;
-				}
+			if (OS.GTK_VERSION < OS.VERSION (2, 6, 0) && (currentFocusItem != null) && (currentFocusItem.style & SWT.DROP_DOWN) != 0) {
+				Event event = new Event ();
+				event.detail = SWT.ARROW;
+				int /*long*/ topHandle = currentFocusItem.topHandle ();
+				event.x = OS.GTK_WIDGET_X (topHandle);
+				event.y = OS.GTK_WIDGET_Y (topHandle) + OS.GTK_WIDGET_HEIGHT (topHandle);
+				if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth() - OS.GTK_WIDGET_WIDTH(topHandle) - event.x;
+				currentFocusItem.sendSelectionEvent  (SWT.Selection, event, false);
+				/*
+				 * Stop GTK from processing the event further as key_down binding
+				 * will move the focus to the next item.
+				 */
+				return 1;
 			}
-			//FALL THROUGH
 		}
-		case OS.GDK_Right: next = true; break;
 		default: return result;
 	}
-	if ((style & SWT.MIRRORED) != 0) next= !next;
-	int start = index, offset = next ? 1 : -1;
-	while ((index = (index + offset + length) % length) != start) {
-		ToolItem item = items [index];
-		if (item.setFocus ()) return result;
-	}
-	return result;
+}
+
+int /*long*/ gtk_focus (int /*long*/ widget, int /*long*/ directionType) {
+	return 0;
 }
 
 boolean hasFocus () {
-	ToolItem [] items = getItems ();
-	for (int i=0; i<items.length; i++) {
-		ToolItem item = items [i];
-		if (item.hasFocus ()) return true;
-	}
+	if (hasChildFocus) return true;
 	return super.hasFocus();
 }
 
@@ -446,6 +440,42 @@ public int indexOf (ToolItem item) {
 	return -1;
 }
 
+static int /*long*/ MenuItemSelectedProc (int /*long*/ widget, int /*long*/	user_data) {
+	Display display = Display.getCurrent ();
+	ToolItem item = (ToolItem) display.getWidget (user_data);
+	if (item != null) {
+		return item.getParent ().menuItemSelected (widget, item);
+	}
+	return 0;
+}
+
+int /*long*/ menuItemSelected (int /*long*/ widget, ToolItem item) {
+	Event event = new Event ();
+	switch (item.style) {
+		case SWT.DROP_DOWN :
+			/*
+			 * Feature in GTK. The DROP_DOWN item does not 
+			 * contain arrow button in the overflow menu. So, it
+			 * is impossible to select the menu of that item.
+			 * The fix is to consider the item selection  
+			 * as Arrow click, in order to popup the drop-down. 
+			 */
+			event.detail = SWT.ARROW;
+			event.x = OS.GTK_WIDGET_X (widget);
+			if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth () - OS.GTK_WIDGET_WIDTH (widget) - event.x;
+			event.y = OS.GTK_WIDGET_Y (widget) + OS.GTK_WIDGET_HEIGHT (widget);
+			break;
+		case SWT.RADIO :
+			if ((style & SWT.NO_RADIO_GROUP) == 0)	item.selectRadio ();
+			break;
+		case SWT.CHECK :
+			boolean currentSelection = item.getSelection();
+			item.setSelection (!currentSelection);
+	}
+	item.sendSelectionEvent  (SWT.Selection, event, false);
+	return 0;
+}
+
 boolean mnemonicHit (char key) {
 	ToolItem [] items = getItems ();
 	for (int i=0; i<items.length; i++) {
@@ -466,10 +496,28 @@ boolean mnemonicMatch (char key) {
 
 void relayout () {
 	ToolItem [] items = getItems ();
+	boolean hasText = false, hasImage = false;
 	for (int i=0; i<items.length; i++) {
 		ToolItem item = items [i];
-		if (item != null) item.resizeControl ();
+		if (item != null) {
+			item.resizeControl ();
+			hasText |= item.text != null && item.text.length() > 0;
+			hasImage |= item.image != null;
+		}
 	}
+	int type = OS.GTK_TOOLBAR_ICONS;
+	if (hasText && hasImage) {
+		if ((style & SWT.RIGHT) != 0) { 
+			type = OS.GTK_TOOLBAR_BOTH_HORIZ;
+		} else {
+			type = OS.GTK_TOOLBAR_BOTH;
+		}
+	} else if (hasText) {
+		type = OS.GTK_TOOLBAR_TEXT;
+	} else if (hasImage) {
+		type = OS.GTK_TOOLBAR_ICONS;
+	}
+	OS.gtk_toolbar_set_style (handle, type);
 }
 
 void releaseChildren (boolean destroy) {
@@ -510,8 +558,10 @@ void reskinChildren (int flags) {
 }
 
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
+	OS.gtk_toolbar_set_show_arrow (handle, false);
 	int result = super.setBounds (x, y, width, height, move, resize);
 	if ((result & RESIZED) != 0) relayout ();
+	if ((style & SWT.WRAP) != 0) OS.gtk_toolbar_set_show_arrow (handle, true);
 	return result;
 }
 

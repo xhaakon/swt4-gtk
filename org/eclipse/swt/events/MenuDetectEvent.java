@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,14 +26,14 @@ import org.eclipse.swt.widgets.Event;
 public final class MenuDetectEvent extends TypedEvent {
 
 	/**
-	 * the display-relative x coordinate of the pointer
-	 * at the time the context menu trigger occurred
+	 * The display-relative x coordinate of the pointer
+	 * at the time the context menu trigger occurred.
 	 */
 	public int x;
 	
 	/**
-	 * the display-relative y coordinate of the pointer
-	 * at the time the context menu trigger occurred
+	 * The display-relative y coordinate of the pointer
+	 * at the time the context menu trigger occurred.
 	 */	
 	public int y;
 	
@@ -43,6 +43,25 @@ public final class MenuDetectEvent extends TypedEvent {
 	 */
 	public boolean doit;
 
+	/**
+	 * The context menu trigger type.
+	 * <p><ul>
+	 * <li>{@link org.eclipse.swt.SWT#MENU_MOUSE}</li>
+	 * <li>{@link org.eclipse.swt.SWT#MENU_KEYBOARD}</li>
+	 * </ul></p>
+	 * 
+	 * A field indicating whether the context menu was triggered by a
+	 * pointing device such as a mouse (indicated by <code>MENU_MOUSE</code>),
+	 * or by a focus-based device such as a keyboard (<code>MENU_KEYBOARD</code>).
+	 * If the trigger was <code>MENU_KEYBOARD</code>, then the application should
+	 * provide new display-relative x and y coordinates based on the current
+	 * selection or the current focus.
+	 * 
+	 * @since 3.8
+	 */
+	public int detail;
+	
+	
 	private static final long serialVersionUID = -3061660596590828941L;
 
 /**
@@ -56,6 +75,7 @@ public MenuDetectEvent(Event e) {
 	this.x = e.x;
 	this.y = e.y;
 	this.doit = e.doit;
+	this.detail = e.detail;
 }
 
 /**
@@ -70,6 +90,7 @@ public String toString() {
 		+ " x=" + x
 		+ " y=" + y
 		+ " doit=" + doit
+		+ " detail=" + detail
 		+ "}";
 }
 }

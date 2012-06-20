@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -34,11 +34,11 @@ public class AtkTableIface {
 	public int /*long*/ get_row_extent_at;
 	/** @field cast=(AtkObject* (*)()) */
 	public int /*long*/ get_caption;
-	/** @field cast=(G_CONST_RETURN gchar* (*)()) */
+	/** @field cast=(const gchar* (*)()) */
 	public int /*long*/ get_column_description;
 	/** @field cast=(AtkObject* (*)()) */
 	public int /*long*/ get_column_header;
-	/** @field cast=(G_CONST_RETURN gchar* (*)()) */
+	/** @field cast=(const gchar* (*)()) */
 	public int /*long*/ get_row_description;
 	/** @field cast=(AtkObject* (*)()) */
 	public int /*long*/ get_row_header;

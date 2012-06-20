@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,13 +14,19 @@
 
 #ifdef NATIVE_STATS
 
-int XPCOM_nativeFunctionCount = 226;
-int XPCOM_nativeFunctionCallCount[226];
+int XPCOM_nativeFunctionCount = 251;
+int XPCOM_nativeFunctionCallCount[251];
 char * XPCOM_nativeFunctionNames[] = {
+	"CALLBACK_1JSNative",
 #ifndef JNI64
 	"_1Call__I",
 #else
 	"_1Call__J",
+#endif
+#ifndef JNI64
+	"_1Call__IIII",
+#else
+	"_1Call__JJJJ",
 #endif
 #ifndef JNI64
 	"_1Call__IIIIII",
@@ -32,7 +38,10 @@ char * XPCOM_nativeFunctionNames[] = {
 #else
 	"_1Call__JJJ_3BII_3I",
 #endif
+	"_1JS_1DefineFunction",
 	"_1JS_1EvaluateUCScriptForPrincipals",
+	"_1JS_1GetGlobalObject",
+	"_1JS_1NewObject",
 	"_1NS_1Free",
 	"_1NS_1GetComponentManager",
 	"_1NS_1GetServiceManager",
@@ -52,6 +61,16 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIF",
 #else
 	"_1VtblCall__IJF",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIFF_3I",
+#else
+	"_1VtblCall__IJFF_3I",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIFF_3J",
+#else
+	"_1VtblCall__IJFF_3J",
 #endif
 #ifndef JNI64
 	"_1VtblCall__III",
@@ -94,6 +113,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJIIIIIIIIIIIIISI",
 #endif
 #ifndef JNI64
+	"_1VtblCall__IIIIIIIIIIIIIIISIFS",
+#else
+	"_1VtblCall__IJIIIIIIIIIIIIISIFS",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IIIIIIIII_3I",
 #else
 	"_1VtblCall__IJIIIIIII_3I",
@@ -129,6 +153,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJIIII_3C_3I_3I",
 #endif
 #ifndef JNI64
+	"_1VtblCall__IIIIII_3I",
+#else
+	"_1VtblCall__IJIIII_3I",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IIIIII_3I_3I",
 #else
 	"_1VtblCall__IJIIII_3I_3I",
@@ -162,6 +191,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIIIJJJJ",
 #else
 	"_1VtblCall__IJIIJJJJ",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIIIS",
+#else
+	"_1VtblCall__IJIIS",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IIII_3B",
@@ -217,6 +251,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIII_3J",
 #else
 	"_1VtblCall__IJII_3J",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIIJ",
+#else
+	"_1VtblCall__IJIJ",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IIIJJ",
@@ -364,6 +403,16 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJI_3I_3I_3J",
 #endif
 #ifndef JNI64
+	"_1VtblCall__III_3J",
+#else
+	"_1VtblCall__IJI_3J",
+#endif
+#ifndef JNI64
+	"_1VtblCall__III_3S",
+#else
+	"_1VtblCall__IJI_3S",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IIJ",
 #else
 	"_1VtblCall__IJJ",
@@ -374,6 +423,21 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJJI",
 #endif
 #ifndef JNI64
+	"_1VtblCall__IIJII",
+#else
+	"_1VtblCall__IJJII",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIJIIIIII_3I",
+#else
+	"_1VtblCall__IJJIIIIII_3I",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIJIIJI",
+#else
+	"_1VtblCall__IJJIIJI",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IIJIIJIIIIII",
 #else
 	"_1VtblCall__IJJIIJIIIIII",
@@ -382,6 +446,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIJIIJIIIIIIIIISJ",
 #else
 	"_1VtblCall__IJJIIJIIIIIIIIISJ",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIJIIJIIIIIIIIISJFS",
+#else
+	"_1VtblCall__IJJIIJIIIIIIIIISJFS",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IIJIIJ_3I_3J",
@@ -399,6 +468,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJJIJII",
 #endif
 #ifndef JNI64
+	"_1VtblCall__IIJIJI_3J",
+#else
+	"_1VtblCall__IJJIJI_3J",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IIJIJJ_3I_3I_3I",
 #else
 	"_1VtblCall__IJJIJJ_3I_3I_3I",
@@ -412,6 +486,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIJI_3J",
 #else
 	"_1VtblCall__IJJI_3J",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIJI_3J_3J",
+#else
+	"_1VtblCall__IJJI_3J_3J",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IIJJ",
@@ -432,6 +511,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIJJIIII",
 #else
 	"_1VtblCall__IJJJIIII",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIJJII_3J",
+#else
+	"_1VtblCall__IJJJII_3J",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IIJJIJ_3C_3I_3I",
@@ -469,6 +553,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJJJJI_3C_3BJJIJI_3J_3J",
 #endif
 #ifndef JNI64
+	"_1VtblCall__IIJJJJ",
+#else
+	"_1VtblCall__IJJJJJ",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IIJJJJIJ_3C_3I_3J",
 #else
 	"_1VtblCall__IJJJJJIJ_3C_3I_3J",
@@ -494,6 +583,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJJJJJJ_3J",
 #endif
 #ifndef JNI64
+	"_1VtblCall__IIJJJJ_3J",
+#else
+	"_1VtblCall__IJJJJJ_3J",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IIJJJ_3B_3BJ",
 #else
 	"_1VtblCall__IJJJJ_3B_3BJ",
@@ -507,6 +601,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IIJJJ_3J",
 #else
 	"_1VtblCall__IJJJJ_3J",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIJJS",
+#else
+	"_1VtblCall__IJJJS",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IIJJ_3B",
@@ -674,6 +773,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IJJ_3J",
 #endif
 #ifndef JNI64
+	"_1VtblCall__IIJ_3S",
+#else
+	"_1VtblCall__IJJ_3S",
+#endif
+#ifndef JNI64
 	"_1VtblCall__IILorg_eclipse_swt_internal_mozilla_nsID_2I",
 #else
 	"_1VtblCall__IJLorg_eclipse_swt_internal_mozilla_nsID_2I",
@@ -732,6 +836,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__IILorg_eclipse_swt_internal_mozilla_nsID_2_3J",
 #else
 	"_1VtblCall__IJLorg_eclipse_swt_internal_mozilla_nsID_2_3J",
+#endif
+#ifndef JNI64
+	"_1VtblCall__IIS",
+#else
+	"_1VtblCall__IJS",
 #endif
 #ifndef JNI64
 	"_1VtblCall__IISIII",
@@ -817,6 +926,11 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1VtblCall__II_3BLorg_eclipse_swt_internal_mozilla_nsID_2_3J",
 #else
 	"_1VtblCall__IJ_3BLorg_eclipse_swt_internal_mozilla_nsID_2_3J",
+#endif
+#ifndef JNI64
+	"_1VtblCall__II_3BS",
+#else
+	"_1VtblCall__IJ_3BS",
 #endif
 #ifndef JNI64
 	"_1VtblCall__II_3B_3B",
@@ -1009,7 +1123,6 @@ char * XPCOM_nativeFunctionNames[] = {
 	"_1nsIScriptContext_1GetNativeContext",
 	"_1nsIScriptGlobalObject_1EnsureScriptEnvironment",
 	"_1nsIScriptGlobalObject_1GetScriptContext",
-	"_1nsIScriptGlobalObject_1GetScriptGlobal",
 #ifndef JNI64
 	"memmove__ILorg_eclipse_swt_internal_mozilla_nsDynamicFunctionLoad_2I",
 #else

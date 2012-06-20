@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -275,6 +275,7 @@ public void scroll (int destX, int destY, int x, int y, int width, int height, b
 //		GC gc = new GC (this);
 //		gc.copyArea (x, y, width, height, destX, destY);
 //		gc.dispose ();
+		//TODO: Use Cairo
 		int /*long*/ gdkGC = OS.gdk_gc_new (window);
 		OS.gdk_gc_set_exposures (gdkGC, true);
 		OS.gdk_draw_drawable (window, gdkGC, window, copyRect.x, copyRect.y, copyRect.x + deltaX, copyRect.y + deltaY, copyRect.width, copyRect.height);

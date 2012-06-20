@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,10 @@
  */
 #include "callback.h"
 #include <string.h>
+
+#ifndef CALLBACK_NATIVE
+#define CALLBACK_NATIVE(func) Java_org_eclipse_swt_internal_Callback_##func
+#endif
 
 /* define this to print out debug statements */
 /* #define DEBUG_CALL_PRINTS */
@@ -979,7 +983,7 @@ jintLong fnx_array[MAX_ARGS+1][MAX_CALLBACKS] = {
 
 /* --------------- callback class calls --------------- */
 
-JNIEXPORT jintLong JNICALL Java_org_eclipse_swt_internal_Callback_bind
+JNIEXPORT jintLong JNICALL CALLBACK_NATIVE(bind)
   (JNIEnv *env, jclass that, jobject callbackObject, jobject object, jstring method, jstring signature, jint argCount, jboolean isStatic, jboolean isArrayBased, jintLong errorResult)
 {
 	int i;
@@ -1119,7 +1123,7 @@ fail:
     return 0;
 }
 
-JNIEXPORT void JNICALL Java_org_eclipse_swt_internal_Callback_unbind
+JNIEXPORT void JNICALL CALLBACK_NATIVE(unbind)
   (JNIEnv *env, jclass that, jobject callback)
 {
 	int i;
@@ -1132,25 +1136,25 @@ JNIEXPORT void JNICALL Java_org_eclipse_swt_internal_Callback_unbind
     }
 }
 
-JNIEXPORT jboolean JNICALL Java_org_eclipse_swt_internal_Callback_getEnabled
+JNIEXPORT jboolean JNICALL CALLBACK_NATIVE(getEnabled)
   (JNIEnv *env, jclass that)
 {
 	return (jboolean)callbackEnabled;
 }
 
-JNIEXPORT jint JNICALL Java_org_eclipse_swt_internal_Callback_getEntryCount
+JNIEXPORT jint JNICALL CALLBACK_NATIVE(getEntryCount)
   (JNIEnv *env, jclass that)
 {
 	return (jint)callbackEntryCount;
 }
 
-JNIEXPORT void JNICALL Java_org_eclipse_swt_internal_Callback_setEnabled
+JNIEXPORT void JNICALL CALLBACK_NATIVE(setEnabled)
   (JNIEnv *env, jclass that, jboolean enable)
 {
 	callbackEnabled = enable;
 }
 
-JNIEXPORT void JNICALL Java_org_eclipse_swt_internal_Callback_reset
+JNIEXPORT void JNICALL CALLBACK_NATIVE(reset)
   (JNIEnv *env, jclass that)
 {
     memset((void *)&callbackData, 0, sizeof(callbackData));

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2011 IBM Corporation and others.
+ * Copyright (c) 2003, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.swt.browser;
+
+import java.io.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -69,12 +71,88 @@ static Browser findBrowser (int /*long*/ handle) {
 	return (Browser)display.findWidget (parent); 
 }
 
+static String getCacheParentPath () {
+	return getProfilePath ();
+}
+
+static String getJSLibraryName () {
+	return "libxul.so"; //$NON-NLS-1$
+}
+
+static String getJSLibraryName_Pre4() {
+	return "libmozjs.so"; //$NON-NLS-1$
+}
+
 static String getLibraryName () {
 	return "libxpcom.so"; //$NON-NLS-1$
 }
 
+static String getProfilePath () {
+	String baseDir = System.getProperty ("user.home"); //$NON-NLS-1$
+	
+	/*
+	 * Bug in Sun JRE.  Under some circumstances the value of java property "user.home" is
+	 * "?", even when the HOME environment variable has a valid value.  If this happens
+	 * then attempt to read the value from the environment directly.
+	 */
+	if (baseDir.equals ("?")) { //$NON-NLS-1$
+		int /*long*/ ptr = C.getenv (wcsToMbcs (null, "HOME", true)); //$NON-NLS-1$
+		if (ptr != 0) {
+			int length = C.strlen (ptr);
+			byte[] bytes = new byte[length];
+			C.memmove (bytes, ptr, length);
+			baseDir = new String (mbcsToWcs (null, bytes));
+		}
+	}
+	
+	return baseDir + Mozilla.SEPARATOR_OS + ".mozilla" + Mozilla.SEPARATOR_OS + "eclipse"; //$NON-NLS-1$ //$NON-NLS-2$
+}
+
+static String getSWTInitLibraryName () {
+	return "swt-xpcominit"; //$NON-NLS-1$
+}
+
+static void loadAdditionalLibraries (String mozillaPath) {
+	if (Mozilla.IsPre_4) return;
+
+	/*
+	* The use of the swt-xulrunner-fix library works around mozilla bug
+	* https://bugzilla.mozilla.org/show_bug.cgi?id=720682 (XULRunner 10).
+	*/
+	String libName = "libswt-xulrunner-fix.so"; //$NON-NLS-1$
+	File libsDir = new File (getProfilePath () + "/libs/" + Mozilla.OS() + '/' + Mozilla.Arch ()); //$NON-NLS-1$
+	File file = new File (libsDir, libName);
+	java.io.InputStream is = Library.class.getResourceAsStream ('/' + libName);
+	if (is != null) {
+		if (!libsDir.exists ()) {
+			libsDir.mkdirs ();
+		}
+		int read;
+		byte [] buffer = new byte [4096];
+		try {
+			FileOutputStream os = new FileOutputStream (file);
+			while ((read = is.read (buffer)) != -1) {
+				os.write(buffer, 0, read);
+			}
+			os.close ();
+			is.close ();
+		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
+		}
+	}
+
+	if (file.exists ()) {
+		byte[] bytes = Converter.wcsToMbcs (null, file.getAbsolutePath (), true);
+		OS.dlopen (bytes, OS.RTLD_NOW | OS.RTLD_GLOBAL);
+	}
+}
+
 static char[] mbcsToWcs (String codePage, byte [] buffer) {
 	return Converter.mbcsToWcs (codePage, buffer);
+}
+
+static boolean needsSpinup () {
+	return true;
 }
 
 static byte[] wcsToMbcs (String codePage, String string, boolean terminate) {
@@ -105,17 +183,8 @@ int /*long*/ getHandle () {
 	return embedHandle;
 }
 
-String getJSLibraryName () {
-	return "libmozjs.so"; //$NON-NLS-1$
-}
-
-String getProfilePath () {
-	String baseDir = System.getProperty ("user.home"); //$NON-NLS-1$
-	return baseDir + Mozilla.SEPARATOR_OS + ".mozilla" + Mozilla.SEPARATOR_OS + "eclipse"; //$NON-NLS-1$ //$NON-NLS-2$
-}
-
-static String GetSWTInitLibraryName () {
-	return "swt-xpcominit"; //$NON-NLS-1$
+int /*long*/ getSiteWindow () {
+	return embedHandle;
 }
 
 int /*long*/ gtk_event (int /*long*/ handle, int /*long*/ gdkEvent, int /*long*/ pointer) {
@@ -210,10 +279,6 @@ void init () {
 			OS.g_signal_connect (mozillaHandle, OS.button_press_event, eventProc, STOP_PROPOGATE);
 		}
 	}
-}
-
-boolean needsSpinup () {
-	return true;
 }
 
 void onDispose (int /*long*/ embedHandle) {

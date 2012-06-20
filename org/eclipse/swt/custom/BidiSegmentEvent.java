@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,12 +26,11 @@ import org.eclipse.swt.events.*;
  * a segment relative to the start of the line. They must follow
  * the following rules:
  * <ul>
- * <li>first element must be 0
  * <li>elements must be in ascending order and must not have duplicates
  * <li>elements must not exceed the line length
  * </ul>
- * In addition, the last element may be set to the end of the line 
- * but this is not required.
+ * In addition, the first element may be set to zero and the last element may 
+ * be set to the end of the line but this is not required.
  *
  * The segments field may be left null if the entire line should 
  * be reordered as is.
@@ -60,7 +59,7 @@ import org.eclipse.swt.events.*;
  * </pre>
  * 
  * <p>
- * The segments and segementsChars fields can be used together to obtain different
+ * The segments and segmentsChars fields can be used together to obtain different
  * types of bidi reordering and text display. The application can use these two fields
  * to insert Unicode Control Characters in specific offsets in the line, the character
  * at segmentsChars[i] is inserted at the offset specified by segments[i]. When both fields 
@@ -73,35 +72,11 @@ import org.eclipse.swt.events.*;
  *
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
  */
-public class BidiSegmentEvent extends TypedEvent {
+public class BidiSegmentEvent extends SegmentEvent {
 	
-	/** 
-	 * line start offset 
-	 */
-	public int lineOffset;
-	
-	/** 
-	 * line text 
-	 */			
-	public String lineText;
-	
-	/** 
-	 * bidi segments, see above 
-	 */
-	public int[] segments;
-
-	/** 
-	 * characters to be used in the segment boundaries (optional)
-	 * 
-	 * @since 3.6
-	 */
-	public char[] segmentsChars;
-		
-	static final long serialVersionUID = 3257846571587547957L;
+	static final long serialVersionUID = -3712986188155944253L;
 
 BidiSegmentEvent(StyledTextEvent e) {
 	super(e);
-	lineOffset = e.detail;
-	lineText = e.text;
 }
 }

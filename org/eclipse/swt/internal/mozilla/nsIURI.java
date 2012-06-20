@@ -22,20 +22,26 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2012 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
 public class nsIURI extends nsISupports {
-
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 26;
+	
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRunner10 ? 32 : 26);
 
 	public static final String NS_IURI_IID_STR =
 		"07a22cc0-0ce5-11d3-9331-00104ba0fd40";
 
+	public static final String NS_IURI_10_IID_STR =
+		"395fe045-7d18-4adb-a3fd-af98c8a1af11";
+
 	public static final nsID NS_IURI_IID =
 		new nsID(NS_IURI_IID_STR);
+	
+	public static final nsID NS_IURI_10_IID =
+			new nsID(NS_IURI_10_IID_STR);
 
 	public nsIURI(int /*long*/ address) {
 		super(address);
@@ -143,5 +149,35 @@ public class nsIURI extends nsISupports {
 
 	public int GetOriginCharset(int /*long*/ aOriginCharset) {
 		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 26, getAddress(), aOriginCharset);
+	}
+	
+	public int GetRef(int /*long*/ aRef) {
+		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 27, getAddress(), aRef);
+	}
+
+	public int SetRef(int /*long*/ aRef) {
+		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 28, getAddress(), aRef);
+	}
+
+	public int EqualsExceptRef(int /*long*/ other, int[] _retval) {
+		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 29, getAddress(), other, _retval);
+	}
+
+	public int CloneIgnoringRef(int /*long*/[] _retval) {
+		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 30, getAddress(), _retval);
+	}
+
+	public int GetSpecIgnoringRef(int /*long*/ aSpecIgnoringRef) {
+		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 31, getAddress(), aSpecIgnoringRef);
+	}
+
+	public int GetHasRef(int[] aHasRef) {
+		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 32, getAddress(), aHasRef);
 	}
 }

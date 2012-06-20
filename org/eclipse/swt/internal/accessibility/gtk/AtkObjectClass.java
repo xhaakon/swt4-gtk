@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -16,9 +16,9 @@ package org.eclipse.swt.internal.accessibility.gtk;
 
 
 public class AtkObjectClass {
-	/** @field cast=(G_CONST_RETURN gchar *(*)()) */
+	/** @field cast=(const gchar *(*)()) */
 	public int /*long*/ get_name;
-	/** @field cast=(G_CONST_RETURN gchar *(*)()) */
+	/** @field cast=(const gchar *(*)()) */
 	public int /*long*/ get_description;
 	/** @field cast=(AtkObject *(*)()) */
 	public int /*long*/ get_parent;

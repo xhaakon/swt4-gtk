@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+* Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
 * The contents of this file are made available under the terms
 * of the GNU Lesser General Public License (LGPL) Version 2.1 that
 * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -27,6 +27,8 @@
 #include <libgnomevfs/gnome-vfs-mime.h>
 #include <libgnomevfs/gnome-vfs-mime-handlers.h>
 #include <libgnomevfs/gnome-vfs-mime-info.h>
+
+#define GNOME_LOAD_FUNCTION LOAD_FUNCTION
 
 #ifdef AIX
 #define LIB_VFS "libgnomevfs-2.a(libgnomevfs-2.so.0)"

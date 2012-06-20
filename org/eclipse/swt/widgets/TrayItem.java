@@ -43,6 +43,7 @@ public class TrayItem extends Item {
 	int /*long*/ imageHandle;
 	int /*long*/ tooltipsHandle;
 	ImageList imageList;
+	Image highlightImage;
 
 /**
  * Constructs a new instance of this class given its parent
@@ -173,7 +174,7 @@ void createHandle (int index) {
 		byte [] trayBuffer = Converter.wcsToMbcs (null, "_NET_SYSTEM_TRAY_S" + monitor, true);
 		int /*long*/ trayAtom = OS.gdk_atom_intern (trayBuffer, true);
 		int /*long*/ xTrayAtom = OS.gdk_x11_atom_to_xatom (trayAtom);
-		int /*long*/ xDisplay = OS.GDK_DISPLAY ();
+		int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
 		int /*long*/ trayWindow = OS.XGetSelectionOwner (xDisplay, xTrayAtom);
 		byte [] messageBuffer = Converter.wcsToMbcs (null, "_NET_SYSTEM_TRAY_OPCODE", true);
 		int /*long*/ messageAtom = OS.gdk_atom_intern (messageBuffer, true);
@@ -218,6 +219,24 @@ void destroyWidget () {
 public Tray getParent () {
 	checkWidget ();
 	return parent;
+}
+
+/**
+ * Returns the receiver's highlight image if it has one, or null
+ * if it does not.
+ *
+ * @return the receiver's highlight image
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.8
+ */
+public Image getHighlightImage () {
+	checkWidget ();
+	return highlightImage;
 }
 
 /**
@@ -302,7 +321,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 			int yoffset = (int) Math.floor (OS.GTK_WIDGET_Y (widget) + ((OS.GTK_WIDGET_HEIGHT (widget) - OS.GTK_WIDGET_REQUISITION_HEIGHT (widget)) * 0.5) + 0.5);
 			Rectangle b = image.getBounds();
 			int /*long*/ gdkImagePtr = OS.gdk_drawable_get_image (image.mask, 0, 0, b.width, b.height);
-			if (gdkImagePtr == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+			if (gdkImagePtr == 0) error(SWT.ERROR_NO_HANDLES);
 			GdkImage gdkImage = new GdkImage();
 			OS.memmove (gdkImage, gdkImagePtr);
 			byte[] maskData = new byte [gdkImage.bpl * gdkImage.height];
@@ -397,6 +416,7 @@ void releaseWidget () {
 	if (imageList != null) imageList.dispose ();
 	imageList = null;
 	toolTipText = null;
+	highlightImage = null;
 }
 
 /**
@@ -449,6 +469,27 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
 	eventTable.unhook (SWT.DefaultSelection, listener);
+}
+
+/**
+ * Sets the receiver's highlight image.
+ *
+ * @param image the new highlight image
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ * 
+ * @since 3.8
+ */
+public void setHighlightImage (Image image) {
+	checkWidget ();
+	if (image != null && image.isDisposed ()) error (SWT.ERROR_INVALID_ARGUMENT);
+	highlightImage = image;
 }
 
 /**

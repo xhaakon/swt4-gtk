@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -880,7 +880,7 @@ void setCursor (int /*long*/ cursor) {
 	int /*long*/ defaultCursor = 0;
 	if (cursor == 0) defaultCursor = OS.gdk_cursor_new (OS.GDK_XTERM);
 	super.setCursor (cursor != 0 ? cursor : defaultCursor);
-	if (cursor == 0) OS.gdk_cursor_destroy (defaultCursor);
+	if (cursor == 0) OS.gdk_cursor_unref (defaultCursor);
 }
 
 void setFontDescription (int /*long*/ font) {

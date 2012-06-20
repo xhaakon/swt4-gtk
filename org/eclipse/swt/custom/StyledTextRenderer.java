@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1068,6 +1068,8 @@ void setContent(StyledTextContent content) {
 	lineCount = content.getLineCount();
 	lineWidth = new int[lineCount];
 	lineHeight = new int[lineCount];
+	maxWidth = 0;
+	maxWidthLineIndex = -1;
 	reset(0, lineCount);
 }
 void setFont(Font font, int tabs) {

@@ -1,9 +1,9 @@
-RELEASE=$(strip $(shell dpkg-parsechangelog | grep Version: | cut -d: -f2 | cut -d- -f1))
+RELEASE=$(strip $(shell dpkg-parsechangelog | grep Version: | cut -d: -f2 | cut -d- -f1 | cut -d~ -f1))
 JAVA=swt-gtk-$(RELEASE).jar
 CLEANFILES=*.files *.jar *-stamp
 
 JAR=fastjar
-JAVAC=javac -classpath .
+JAVAC=javac -classpath . -source 1.5 -target 1.5
 RM=rm -f
 
 all: $(JAVA)
@@ -22,17 +22,8 @@ swt-gtk-$(RELEASE).files:
 
 %-stamp: %.files
 	mkdir -p $*
-	for i in `cat $<`; do \
-		if [ "$${i##*.}" = "properties" ]; then \
-			echo cp $$i $*/$$i; \
-			cp $$i $*/$$i; \
-		elif [ -e $*/$${i%java}class ]; then \
-			echo SKIPPING $$i; \
-		else \
-			echo $(JAVAC) -d $* $$i; \
-			$(JAVAC) -d $* $$i || exit $$?; \
-		fi \
-	done
+	grep \.java $< | xargs -r $(JAVAC) -d $*
+	grep \.properties $< | xargs -r cp --parents -t $*
 	touch $@
 
 %.jar: %-stamp

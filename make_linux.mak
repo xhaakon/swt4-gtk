@@ -1,5 +1,5 @@
 #*******************************************************************************
-# Copyright (c) 2000, 2011 IBM Corporation and others.
+# Copyright (c) 2000, 2012 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -91,8 +91,7 @@ MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
 	-DNO_nsDynamicFunctionLoad
 XULRUNNEREXCLUDES = -DNO__1NS_1InitXPCOM2
 
-WEBKITCFLAGS = `pkg-config --cflags webkit-1.0`
-WEBKITLIBS = `pkg-config --libs webkit-1.0`
+WEBKITCFLAGS = `pkg-config --cflags glib-2.0`
 
 SWT_OBJECTS = swt.o c.o c_stats.o callback.o
 CDE_OBJECTS = swt.o cde.o cde_structs.o cde_stats.o
@@ -123,7 +122,7 @@ ifndef NO_STRIP
 	LFLAGS := $(LFLAGS) -s
 endif
 
-all: make_swt make_atk make_glx
+all: make_swt make_atk make_glx make_webkit
 
 #
 # SWT libs
@@ -242,6 +241,7 @@ xpcom_stats.o: xpcom_stats.cpp
 make_xulrunner:$(XULRUNNER_LIB)
 
 $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
+	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | gcc --shared -xc - -o libswt-xulrunner-fix.so
 	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
 
 xpcomxul.o: xpcom.cpp
@@ -279,7 +279,7 @@ xpcominit_stats.o: xpcominit_stats.cpp
 make_webkit: $(WEBKIT_LIB)
 
 $(WEBKIT_LIB): $(WEBKIT_OBJECTS)
-	$(CC) $(LFLAGS) -o $(WEBKIT_LIB) $(WEBKIT_OBJECTS) $(WEBKITLIBS)
+	$(CC) $(LFLAGS) -o $(WEBKIT_LIB) $(WEBKIT_OBJECTS)
 
 webkit.o: webkitgtk.c 
 	$(CC) $(CFLAGS) $(WEBKITCFLAGS) -c webkitgtk.c -o webkit.o

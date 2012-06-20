@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -42,23 +42,14 @@ public class nsIWebProgress extends nsISupports {
 	}
 
 	public static final int NOTIFY_STATE_REQUEST = 1;
-
 	public static final int NOTIFY_STATE_DOCUMENT = 2;
-
 	public static final int NOTIFY_STATE_NETWORK = 4;
-
 	public static final int NOTIFY_STATE_WINDOW = 8;
-
 	public static final int NOTIFY_STATE_ALL = 15;
-
 	public static final int NOTIFY_PROGRESS = 16;
-
 	public static final int NOTIFY_STATUS = 32;
-
 	public static final int NOTIFY_SECURITY = 64;
-
 	public static final int NOTIFY_LOCATION = 128;
-
 	public static final int NOTIFY_ALL = 255;
 
 	public int AddProgressListener(int /*long*/ listener, int aNotifyMask) {

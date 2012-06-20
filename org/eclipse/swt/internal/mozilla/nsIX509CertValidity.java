@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2009 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -37,7 +37,7 @@ public class nsIX509CertValidity extends nsISupports {
 	public static final nsID NS_IX509CERTVALIDITY_IID =
 		new nsID(NS_IX509CERTVALIDITY_IID_STR);
 
-	public  nsIX509CertValidity(int /*long*/ address) {
+	public nsIX509CertValidity(int /*long*/ address) {
 		super(address);
 	}
 

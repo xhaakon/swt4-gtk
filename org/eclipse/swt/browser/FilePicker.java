@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2008 IBM Corporation and others.
+ * Copyright (c) 2003, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -101,6 +101,11 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
+	if (guid.Equals (nsIFilePicker_1_8.NS_IFILEPICKER_10_IID)) {
+		XPCOM.memmove(ppvObject, new int /*long*/[] {filePicker.getAddress ()}, C.PTR_SIZEOF);
+		AddRef ();
+		return XPCOM.NS_OK;
+	}
 
 	XPCOM.memmove (ppvObject, new int /*long*/[] {0}, C.PTR_SIZEOF);
 	return XPCOM.NS_ERROR_NO_INTERFACE;
@@ -114,8 +119,7 @@ int Release () {
 
 Browser getBrowser (int /*long*/ aDOMWindow) {
 	if (aDOMWindow == 0) return null;
-	nsIDOMWindow window = new nsIDOMWindow (aDOMWindow);
-	return Mozilla.findBrowser (window);
+	return Mozilla.getBrowser (aDOMWindow);
 }
 
 /*
@@ -211,14 +215,14 @@ int GetFile (int /*long*/ aFile) {
 int SetDisplayDirectory (int /*long*/ aDisplayDirectory) {
 	if (aDisplayDirectory == 0) return XPCOM.NS_OK;
 	nsILocalFile file = new nsILocalFile (aDisplayDirectory);
-	int /*long*/ pathname = XPCOM.nsEmbedCString_new ();
-	file.GetNativePath (pathname);
-	int length = XPCOM.nsEmbedCString_Length (pathname);
-	int /*long*/ buffer = XPCOM.nsEmbedCString_get (pathname);
-	byte[] bytes = new byte[length];
-	XPCOM.memmove (bytes, buffer, length);
-	XPCOM.nsEmbedCString_delete (pathname);
-	char[] chars = MozillaDelegate.mbcsToWcs (null, bytes);
+	int /*long*/ pathname = XPCOM.nsEmbedString_new ();
+	int rc = file.GetPath (pathname);
+	if (rc != XPCOM.NS_OK) Mozilla.error (rc);
+	int length = XPCOM.nsEmbedString_Length (pathname);
+	int /*long*/ buffer = XPCOM.nsEmbedString_get (pathname);
+	char[] chars = new char[length];
+	XPCOM.memmove (chars, buffer, length * 2);
+	XPCOM.nsEmbedString_delete (pathname);
 	directory = new String (chars);
 	return XPCOM.NS_OK;
 }

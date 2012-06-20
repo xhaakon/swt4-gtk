@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2005 IBM Corporation and others.
+ * Copyright (c) 2003, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,7 +45,7 @@ public interface OpenWindowListener extends SWTEventListener {
  * <ul>
  * <li>(in/out) required true if the platform requires the user to provide a
  * <code>Browser</code> to handle the new window or false otherwise.
- * <li>(out) browser the new <code>Browser</code> that will host the 
+ * <li>(out) browser the new (unique) <code>Browser</code> that will host the 
  * content of the new window.
  * <li>(in) widget the <code>Browser</code> that is requesting to open a 
  * new window

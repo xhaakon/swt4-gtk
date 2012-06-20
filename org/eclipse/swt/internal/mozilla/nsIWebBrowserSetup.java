@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -42,19 +42,12 @@ public class nsIWebBrowserSetup extends nsISupports {
 	}
 
 	public static final int SETUP_ALLOW_PLUGINS = 1;
-
 	public static final int SETUP_ALLOW_JAVASCRIPT = 2;
-
 	public static final int SETUP_ALLOW_META_REDIRECTS = 3;
-
 	public static final int SETUP_ALLOW_SUBFRAMES = 4;
-
 	public static final int SETUP_ALLOW_IMAGES = 5;
-
 	public static final int SETUP_FOCUS_DOC_BEFORE_CONTENT = 6;
-
 	public static final int SETUP_USE_GLOBAL_HISTORY = 256;
-
 	public static final int SETUP_IS_CHROME_WRAPPER = 7;
 
 	public int SetProperty(int aId, int aValue) {

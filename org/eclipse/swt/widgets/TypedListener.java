@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -185,6 +185,7 @@ public void handleEvent (Event e) {
 			e.x = event.x;
 			e.y = event.y;
 			e.doit = event.doit;
+			e.detail = event.detail;
 			break;
 		}
 		case SWT.MouseDown: {
@@ -232,6 +233,13 @@ public void handleEvent (Event e) {
 		}
 		case SWT.Resize: {
 			((ControlListener) eventListener).controlResized(new ControlEvent(e));
+			break;
+		}
+		case SWT.Segments: {
+			SegmentEvent event = new SegmentEvent(e);
+			((SegmentListener) eventListener).getSegments(event);
+			e.segments = event.segments;
+			e.segmentsChars = event.segmentsChars;
 			break;
 		}
 		case SWT.Selection: {

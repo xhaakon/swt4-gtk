@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -769,7 +769,7 @@ public void replaceTextRange(int start, int replaceLength, String newText){
 
 	// inform listeners
 	StyledTextEvent event = new StyledTextEvent(this);
-	event.type = StyledText.TextChanging;
+	event.type = ST.TextChanging;
 	event.start = start;
 	event.replaceLineCount = lineCount(start, replaceLength);
 	event.text = newText;
@@ -784,7 +784,7 @@ public void replaceTextRange(int start, int replaceLength, String newText){
 	insert(start, newText);
 	// inform listeners
 	event = new StyledTextEvent(this);
-	event.type = StyledText.TextChanged;
+	event.type = ST.TextChanged;
 	sendTextEvent(event);
 }
 /**
@@ -809,7 +809,7 @@ public void setText (String text){
 	expandExp = 1;
 	indexLines();
 	StyledTextEvent event = new StyledTextEvent(this);
-	event.type = StyledText.TextSet;
+	event.type = ST.TextSet;
 	event.text = "";
 	sendTextEvent(event);
 }

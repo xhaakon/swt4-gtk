@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2009 IBM Corporation and others.
+ * Copyright (c) 2003, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,8 +10,8 @@
  *******************************************************************************/
 package org.eclipse.swt.browser;
 
-import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * A <code>LocationEvent</code> is sent by a {@link Browser} to
@@ -26,7 +26,10 @@ import org.eclipse.swt.events.*;
  * @since 3.0
  */
 public class LocationEvent extends TypedEvent {
-	/** current location */
+	/**
+	 * The URL of this event, escaped and encoded for consumption by
+	 * {@link java.net.URI#URI(String)}.
+	 */
 	public String location;
 	
 	/**

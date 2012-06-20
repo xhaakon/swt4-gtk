@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -70,13 +70,9 @@ public class nsICookie extends nsISupports {
 	}
 
 	public static final int STATUS_UNKNOWN = 0;
-
 	public static final int STATUS_ACCEPTED = 1;
-
 	public static final int STATUS_DOWNGRADED = 2;
-
 	public static final int STATUS_FLAGGED = 3;
-
 	public static final int STATUS_REJECTED = 4;
 
 	public int GetStatus(int /*long*/ aStatus) {
@@ -84,15 +80,10 @@ public class nsICookie extends nsISupports {
 	}
 
 	public static final int POLICY_UNKNOWN = 0;
-
 	public static final int POLICY_NONE = 1;
-
 	public static final int POLICY_NO_CONSENT = 2;
-
 	public static final int POLICY_IMPLICIT_CONSENT = 3;
-
 	public static final int POLICY_EXPLICIT_CONSENT = 4;
-
 	public static final int POLICY_NO_II = 5;
 
 	public int GetPolicy(int /*long*/ aPolicy) {

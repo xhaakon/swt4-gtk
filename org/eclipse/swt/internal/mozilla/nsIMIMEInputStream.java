@@ -22,12 +22,12 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2009 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
-public class  nsIMIMEInputStream extends nsIInputStream {
+public class nsIMIMEInputStream extends nsIInputStream {
 
 	static final int LAST_METHOD_ID = nsIInputStream.LAST_METHOD_ID + 4;
 
@@ -37,7 +37,7 @@ public class  nsIMIMEInputStream extends nsIInputStream {
 	public static final nsID NS_IMIMEINPUTSTREAM_IID =
 		new nsID(NS_IMIMEINPUTSTREAM_IID_STR);
 
-	public  nsIMIMEInputStream(int /*long*/ address) {
+	public nsIMIMEInputStream(int /*long*/ address) {
 		super(address);
 	}
 

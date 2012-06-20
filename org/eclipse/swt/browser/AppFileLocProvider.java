@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2009 IBM Corporation and others.
+ * Copyright (c) 2003, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -20,7 +20,7 @@ class AppFileLocProvider {
 	XPCOMObject directoryServiceProvider;
 	XPCOMObject directoryServiceProvider2;	
 	int refCount = 0;
-	String mozillaPath, profilePath;
+	String mozillaPath, profilePath, cacheParentPath;
 	String[] pluginDirs;
 	boolean isXULRunner;
 
@@ -41,9 +41,10 @@ class AppFileLocProvider {
 		IsSparc = (osName.startsWith ("sunos") || osName.startsWith ("solaris")) && osArch.startsWith("sparc"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	}
 	
-AppFileLocProvider (String mozillaPath, String profilePath, boolean isXULRunner) {
+AppFileLocProvider (String mozillaPath, String profilePath, String cacheParentPath, boolean isXULRunner) {
 	this.mozillaPath = mozillaPath + SEPARATOR_OS;
 	this.profilePath = profilePath + SEPARATOR_OS;
+	this.cacheParentPath = cacheParentPath;
 	this.isXULRunner = isXULRunner;
 	if (!Compatibility.fileExists (profilePath, "")) { //$NON-NLS-1$
 		int /*long*/[] result = new int /*long*/[1];
@@ -271,7 +272,7 @@ int getFile(int /*long*/ prop, int /*long*/ persistent, int /*long*/ _retval) {
 	} else if (propertyName.equals (XPCOM.NS_APP_LOCALSTORE_50_FILE)) {
 		propertyValue = profilePath + LOCALSTORE_FILE;
 	} else if (propertyName.equals (XPCOM.NS_APP_CACHE_PARENT_DIR)) {
-		propertyValue = profilePath;
+		propertyValue = cacheParentPath;
 	} else if (propertyName.equals (XPCOM.NS_OS_HOME_DIR)) {
 		propertyValue = System.getProperty("user.home");	//$NON-NLS-1$
 	} else if (propertyName.equals (XPCOM.NS_OS_TEMP_DIR)) {
@@ -302,7 +303,7 @@ int getFile(int /*long*/ prop, int /*long*/ persistent, int /*long*/ _retval) {
 		if (isXULRunner) propertyValue = profilePath;
 	}
 
-	XPCOM.memmove (persistent, new int[] {1}, 4); /* PRBool */
+	XPCOM.memmove (persistent, new boolean[] {true});
 	XPCOM.memmove (_retval, new int /*long*/[] {0}, C.PTR_SIZEOF);
 	if (propertyValue != null && propertyValue.length () > 0) {
 		int /*long*/[] result = new int /*long*/[1];

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -144,6 +144,7 @@ void createHandle (int index) {
 
 void drawBand (int x, int y, int width, int height) {
 	if ((style & SWT.SMOOTH) != 0) return;
+	//TODO: Use Cairo
 	int /*long*/ window = OS.GTK_WIDGET_WINDOW (parent.paintHandle());
 	if (window == 0) return;
 	byte [] bits = {-86, 85, -86, 85, -86, 85, -86, 85};
@@ -400,7 +401,7 @@ void hookEvents () {
 
 void releaseWidget () {
 	super.releaseWidget ();
-	if (defaultCursor != 0) OS.gdk_cursor_destroy (defaultCursor);
+	if (defaultCursor != 0) OS.gdk_cursor_unref (defaultCursor);
 	defaultCursor = 0;
 }
 

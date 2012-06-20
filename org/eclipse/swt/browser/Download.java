@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2010 IBM Corporation and others.
+ * Copyright (c) 2003, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -187,7 +187,7 @@ int Init (int /*long*/ aSource, int /*long*/ aTarget, int /*long*/ aDisplayName,
 	String filename = null;
 	nsISupports supports = new nsISupports (aTarget);
 	int /*long*/[] result = new int /*long*/[1];
-	rc = supports.QueryInterface (nsIURI.NS_IURI_IID, result);
+	rc = supports.QueryInterface (!Mozilla.IsPre_4 ? nsIURI.NS_IURI_10_IID : nsIURI.NS_IURI_IID, result);
 	if (rc == XPCOM.NS_OK) {	/* >= 1.7 */
 		nsIURI target = new nsIURI (result[0]);
 		result[0] = 0;
@@ -205,15 +205,15 @@ int Init (int /*long*/ aSource, int /*long*/ aTarget, int /*long*/ aDisplayName,
 		target.Release ();
 	} else {	/* < 1.7 */
 		nsILocalFile target = new nsILocalFile (aTarget);
-		int /*long*/ aNativeTarget = XPCOM.nsEmbedCString_new ();
-		rc = target.GetNativeLeafName (aNativeTarget);
+		int /*long*/ aNativeTarget = XPCOM.nsEmbedString_new ();
+		rc = target.GetLeafName (aNativeTarget);
 		if (rc != XPCOM.NS_OK) Mozilla.error (rc);
-		length = XPCOM.nsEmbedCString_Length (aNativeTarget);
-		buffer = XPCOM.nsEmbedCString_get (aNativeTarget);
-		dest = new byte[length];
-		XPCOM.memmove (dest, buffer, length);
-		XPCOM.nsEmbedCString_delete (aNativeTarget);
-		filename = new String (dest);
+		length = XPCOM.nsEmbedString_Length (aNativeTarget);
+		buffer = XPCOM.nsEmbedString_get (aNativeTarget);
+		char[] chars = new char[length];
+		XPCOM.memmove (chars, buffer, length * 2);
+		XPCOM.nsEmbedString_delete (aNativeTarget);
+		filename = new String (chars);
 	}
 
 	Listener listener = new Listener () {

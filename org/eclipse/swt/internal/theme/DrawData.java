@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -85,7 +85,7 @@ void drawImage(Theme theme, Image image, GC gc, Rectangle bounds) {
 	if (state_type == OS.GTK_STATE_NORMAL) {
 		gc.drawImage(image, 0, 0, rect.width, rect.height, bounds.x, bounds.y, bounds.width, bounds.height);
 	} else {
-		int /*long*/ pixbuf = Theme.createPixbuf(image);
+		int /*long*/ pixbuf = ImageList.createPixbuf(image);
 		int /*long*/ source = OS.gtk_icon_source_new();
 		if (source != 0) {
 			OS.gtk_icon_source_set_pixbuf(source, pixbuf);

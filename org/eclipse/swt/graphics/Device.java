@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -85,7 +85,6 @@ public abstract class Device implements Drawable {
 	int /*long*/ emptyTab;
 
 	boolean useXRender;
-	boolean useCairo;
 	static boolean CAIRO_LOADED;
 
 	/*
@@ -580,7 +579,7 @@ public boolean getWarnings () {
 protected void init () {
 	this.dpi = getDPI();
 	
-	if (xDisplay != 0) {
+	if (xDisplay != 0 && !OS.USE_CAIRO) {
 		int[] event_basep = new int[1], error_basep = new int [1];
 		if (OS.XRenderQueryExtension (xDisplay, event_basep, error_basep)) {
 			int[] major_versionp = new int[1], minor_versionp = new int [1];
@@ -588,11 +587,7 @@ protected void init () {
 			useXRender = major_versionp[0] > 0 || (major_versionp[0] == 0 && minor_versionp[0] >= 8);
 		}
 	}
-	
-	if (OS.GTK_VERSION > OS.VERSION (2, 17, 0) && System.getProperty("org.eclipse.swt.internal.gtk.useCairo") != null) {
-		useCairo = true;
-	}
-	
+
 	//TODO: Remove; temporary code only
 	boolean fixAIX = OS.IsAIX && OS.PTR_SIZEOF == 8;
 	
@@ -699,7 +694,7 @@ public abstract int /*long*/ internal_new_GC (GCData data);
  * 
  * @noreference This method is not intended to be referenced by clients.
  */
-public abstract void internal_dispose_GC (int /*long*/ handle, GCData data);
+public abstract void internal_dispose_GC (int /*long*/ hDC, GCData data);
 
 /**
  * Returns <code>true</code> if the device has been disposed,

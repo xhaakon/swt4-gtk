@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,6 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.swt.widgets;
-
 
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
@@ -210,6 +209,7 @@ void _setVisible (boolean visible) {
 				}
 			}
 			int /*long*/ address = hasLocation ? display.menuPositionProc: 0;
+			hasLocation = false;
 			int /*long*/ data = 0;
 			if ((OS.GTK_VERSION >=  OS.VERSION (2, 10, 0))) {
 				/*
@@ -658,6 +658,13 @@ int /*long*/ gtk_hide (int /*long*/ widget) {
 		*/
 		postEvent (SWT.Hide);
 	}
+	if (OS.ubuntu_menu_proxy_get() != 0) {
+		MenuItem[] items = getItems();
+		for (int i=0; i<items.length; i++) {
+			MenuItem item = items [i];
+			if (item.updateAcceleratorText(false)) continue;
+		}
+	}
 	return 0;
 }
 
@@ -667,6 +674,13 @@ int /*long*/ gtk_show (int /*long*/ widget) {
 		return 0;
 	} 
 	sendEvent (SWT.Show);
+	if (OS.ubuntu_menu_proxy_get() != 0) {
+		MenuItem[] items = getItems();
+		for (int i=0; i<items.length; i++) {
+			MenuItem item = items [i];
+			if (item.updateAcceleratorText(true)) continue;
+		}
+	}
 	return 0;
 }
 

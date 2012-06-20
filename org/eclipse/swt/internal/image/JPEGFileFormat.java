@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2011 IBM Corporation and others.
  * All rights reserved.  This source file is made available under the terms contained in the README file
  * accompanying this program.  The README file should be located in the about_files directory of the
  * plug-in that contains this source file.
@@ -1768,6 +1768,7 @@ void unloadIntoByteStream(ImageLoader loader) {
 	}
 	quantizationTables = new int[4][];
 	JPEGQuantizationTable chromDQT = JPEGQuantizationTable.defaultChrominanceTable();
+	int encoderQFactor = loader.compression >= 1 && loader.compression <= 100 ? loader.compression : 75;
 	chromDQT.scaleBy(encoderQFactor);
 	int[] jpegDQTKeys = chromDQT.getQuantizationTablesKeys();
 	int[][] jpegDQTValues = chromDQT.getQuantizationTablesValues();

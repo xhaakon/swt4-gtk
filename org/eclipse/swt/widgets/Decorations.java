@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.swt.widgets;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.graphics.*;
 
@@ -175,7 +176,7 @@ void _setImages (Image [] images) {
 	if (images != null) {
 		for (int i = 0; i < images.length; i++) {
 			Image image = images [i];
-			int /*long*/ pixbuf = Display.createPixbuf (image);
+			int /*long*/ pixbuf = ImageList.createPixbuf (image);
 			pixbufs = OS.g_list_append (pixbufs, pixbuf);			
 		}
 	}
@@ -230,7 +231,7 @@ Control computeTabRoot () {
 void createAccelGroup () {
 	if (accelGroup != 0) return;
 	accelGroup = OS.gtk_accel_group_new ();
-	if (accelGroup == 0) SWT.error (SWT.ERROR_NO_HANDLES);
+	if (accelGroup == 0) error (SWT.ERROR_NO_HANDLES);
 	//FIXME - what should we do for Decorations
 	int /*long*/ shellHandle = topHandle ();
 	OS.gtk_window_add_accel_group (shellHandle, accelGroup);

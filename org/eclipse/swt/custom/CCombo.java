@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -162,6 +162,14 @@ public CCombo (Composite parent, int style) {
 	for (int i=0; i<arrowEvents.length; i++) arrow.addListener (arrowEvents [i], listener);
 	
 	createPopup(null, -1);
+	if ((style & SWT.SIMPLE) == 0) {
+		int itemHeight = list.getItemHeight ();
+		if (itemHeight != 0) {
+			int maxHeight = getMonitor().getClientArea().height / 3;
+			visibleItemCount = Math.max(visibleItemCount, maxHeight / itemHeight);
+		}
+	}
+
 	initAccessible();
 }
 static int checkStyle (int style) {
@@ -461,7 +469,7 @@ void createPopup(String[] items, int selectionIndex) {
 	// create shell and list
 	popup = new Shell (getShell (), SWT.NO_TRIM | SWT.ON_TOP);
 	int style = getStyle ();
-	int listStyle = SWT.SINGLE | SWT.V_SCROLL;
+	int listStyle = SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL;
 	if ((style & SWT.FLAT) != 0) listStyle |= SWT.FLAT;
 	if ((style & SWT.RIGHT_TO_LEFT) != 0) listStyle |= SWT.RIGHT_TO_LEFT;
 	if ((style & SWT.LEFT_TO_RIGHT) != 0) listStyle |= SWT.LEFT_TO_RIGHT;
@@ -558,25 +566,36 @@ void dropDown (boolean drop) {
 		createPopup (items, selectionIndex);
 	}
 	
-	Point size = getSize ();
+	Point comboSize = getSize ();
 	int itemCount = list.getItemCount ();
 	itemCount = (itemCount == 0) ? visibleItemCount : Math.min(visibleItemCount, itemCount);
 	int itemHeight = list.getItemHeight () * itemCount;
 	Point listSize = list.computeSize (SWT.DEFAULT, itemHeight, false);
-	list.setBounds (1, 1, Math.max (size.x - 2, listSize.x), listSize.y);
+	Rectangle displayRect = getMonitor ().getClientArea ();
+	list.setBounds (1, 1, Math.max (comboSize.x - 2, Math.min(listSize.x, displayRect.width - 2)), listSize.y);
 	
 	int index = list.getSelectionIndex ();
 	if (index != -1) list.setTopIndex (index);
 	Rectangle listRect = list.getBounds ();
 	Rectangle parentRect = display.map (getParent (), null, getBounds ());
-	Point comboSize = getSize ();
-	Rectangle displayRect = getMonitor ().getClientArea ();
-	int width = Math.max (comboSize.x, listRect.width + 2);
+	int width = listRect.width + 2;
 	int height = listRect.height + 2;
 	int x = parentRect.x;
+	if (x + width > displayRect.x + displayRect.width) {
+		x = displayRect.x + displayRect.width - width;
+	}
 	int y = parentRect.y + comboSize.y;
-	if (y + height > displayRect.y + displayRect.height) y = parentRect.y - height;
-	if (x + width > displayRect.x + displayRect.width) x = displayRect.x + displayRect.width - listRect.width;
+	if (y + height > displayRect.y + displayRect.height) {
+		int popUpwardsHeight = (parentRect.y - height < displayRect.y) ? parentRect.y - displayRect.y : height;
+		int popDownwardsHeight = displayRect.y + displayRect.height - y;
+		if (popUpwardsHeight > popDownwardsHeight) {
+			height = popUpwardsHeight;
+			y = parentRect.y - popUpwardsHeight;
+		} else {
+			height = popDownwardsHeight;
+		}
+		list.setSize (listRect.width, height - 2);
+	}
 	popup.setBounds (x, y, width, height);
 	popup.setVisible (true);
 	if (isFocusControl()) list.setFocus ();
@@ -1742,7 +1761,18 @@ void textEvent (Event event) {
 		case SWT.MenuDetect: {
 			Event e = new Event ();
 			e.time = event.time;
+			e.detail = event.detail;
+			e.x = event.x;
+			e.y = event.y;
+			if (event.detail == SWT.MENU_KEYBOARD) {
+				Point pt = getDisplay().map(text, null, text.getCaretLocation());
+				e.x = pt.x;
+				e.y = pt.y;
+			}
 			notifyListeners (SWT.MenuDetect, e);
+			event.doit = e.doit;
+			event.x = e.x;
+			event.y = e.y;
 			break;
 		}
 		case SWT.Modify: {

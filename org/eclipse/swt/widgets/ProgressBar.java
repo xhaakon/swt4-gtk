@@ -90,7 +90,7 @@ void createHandle (int index) {
 	int orientation = (style & SWT.VERTICAL) != 0 ? OS.GTK_PROGRESS_BOTTOM_TO_TOP : OS.GTK_PROGRESS_LEFT_TO_RIGHT;
 	OS.gtk_progress_bar_set_orientation (handle, orientation);
 	if ((style & SWT.INDETERMINATE) != 0) {
-		timerId = OS.gtk_timeout_add (DELAY, display.windowTimerProc, handle);
+		timerId = OS.g_timeout_add (DELAY, display.windowTimerProc, handle);
 	}
 }
 
@@ -176,7 +176,7 @@ int /*long*/ gtk_realize (int /*long*/ widget) {
 
 void releaseWidget () {
 	super.releaseWidget ();
-	if (timerId != 0) OS.gtk_timeout_remove (timerId);
+	if (timerId != 0) OS.g_source_remove (timerId);
 	timerId = 0;
 }
 
@@ -256,7 +256,11 @@ public void setSelection (int value) {
  * 	<li>{@link SWT#ERROR}</li>
  * 	<li>{@link SWT#PAUSED}</li>
  * </ul>
- *
+ * <p>
+ * Note: This operation is a hint and is not supported on
+ * platforms that do not have this concept.
+ * </p>
+ * 
  * @param state the new state
  *
  * @exception SWTException <ul>

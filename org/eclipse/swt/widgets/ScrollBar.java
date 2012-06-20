@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -450,9 +450,9 @@ public boolean getVisible () {
 	int [] hsp = new int [1], vsp = new int [1];
 	OS.gtk_scrolled_window_get_policy (scrolledHandle, hsp, vsp);
 	if ((style & SWT.HORIZONTAL) != 0) {
-		return hsp [0] != OS.GTK_POLICY_NEVER;
+		return hsp [0] != OS.GTK_POLICY_NEVER && OS.GTK_WIDGET_VISIBLE(handle);
 	} else {
-		return vsp [0] != OS.GTK_POLICY_NEVER;
+		return vsp [0] != OS.GTK_POLICY_NEVER && OS.GTK_WIDGET_VISIBLE(handle);
 	}
 }
 
@@ -762,11 +762,11 @@ public void setPageIncrement (int value) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
-public void setSelection (int value) {
+public void setSelection (int selection) {
 	checkWidget ();
-	value = Math.min (value, getMaximum() - getThumb());
+	selection = Math.min (selection, getMaximum() - getThumb());
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	OS.gtk_adjustment_set_value (adjustmentHandle, value);
+	OS.gtk_adjustment_set_value (adjustmentHandle, selection);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 

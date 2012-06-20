@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -29,6 +29,13 @@ public abstract class FileFormat {
 	LEDataOutputStream outputStream;
 	ImageLoader loader;
 	int compression;
+
+static FileFormat getFileFormat (LEDataInputStream stream, String format) throws Exception {
+	Class clazz = Class.forName(FORMAT_PACKAGE + '.' + format + FORMAT_SUFFIX);
+	FileFormat fileFormat = (FileFormat) clazz.newInstance();
+	if (fileFormat.isFileFormat(stream)) return fileFormat;
+	return null;
+}
 
 /**
  * Return whether or not the specified input stream
@@ -63,23 +70,18 @@ public ImageData[] loadFromStream(LEDataInputStream stream) {
 public static ImageData[] load(InputStream is, ImageLoader loader) {
 	FileFormat fileFormat = null;
 	LEDataInputStream stream = new LEDataInputStream(is);
-	boolean isSupported = false;	
 	for (int i = 1; i < FORMATS.length; i++) {
 		if (FORMATS[i] != null) {
 			try {
-				Class clazz = Class.forName(FORMAT_PACKAGE + '.' + FORMATS[i] + FORMAT_SUFFIX);
-				fileFormat = (FileFormat) clazz.newInstance();
-				if (fileFormat.isFileFormat(stream)) {
-					isSupported = true;
-					break;
-				}
+				fileFormat = getFileFormat (stream, FORMATS[i]);
+				if (fileFormat != null) break;
 			} catch (ClassNotFoundException e) {
 				FORMATS[i] = null;
 			} catch (Exception e) {
 			}
 		}
 	}
-	if (!isSupported) SWT.error(SWT.ERROR_UNSUPPORTED_FORMAT);
+	if (fileFormat == null) SWT.error(SWT.ERROR_UNSUPPORTED_FORMAT);
 	fileFormat.loader = loader;
 	return fileFormat.loadFromStream(stream);
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -203,7 +203,7 @@ public static Frame new_Frame (final Composite parent) {
 							int /*long*/ awtHandle = getAWTHandle(window);
 							if (awtHandle == 0) return;
 							int /*long*/ xWindow = OS.gdk_x11_drawable_get_xid(OS.GTK_WIDGET_WINDOW(OS.gtk_widget_get_toplevel(shell.handle)));
-							OS.XSetTransientForHint(OS.GDK_DISPLAY(), awtHandle, xWindow);
+							OS.XSetTransientForHint(OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default()), awtHandle, xWindow);
 						}
 					});
 				}

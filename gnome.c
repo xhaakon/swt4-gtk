@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -17,7 +17,9 @@
 #include "gnome_structs.h"
 #include "gnome_stats.h"
 
+#ifndef GNOME_NATIVE
 #define GNOME_NATIVE(func) Java_org_eclipse_swt_internal_gnome_GNOME_##func
+#endif
 
 #ifndef NO_GnomeVFSMimeApplication_1sizeof
 JNIEXPORT jint JNICALL GNOME_NATIVE(GnomeVFSMimeApplication_1sizeof)
@@ -221,7 +223,7 @@ JNIEXPORT jintLong JNICALL GNOME_NATIVE(_1gnome_1vfs_1make_1uri_1from_1input_1wi
 	rc = (jintLong)gnome_vfs_make_uri_from_input_with_dirs((const char *)lparg0, arg1);
 */
 	{
-		LOAD_FUNCTION(fp, gnome_vfs_make_uri_from_input_with_dirs)
+		GNOME_LOAD_FUNCTION(fp, gnome_vfs_make_uri_from_input_with_dirs)
 		if (fp) {
 			rc = (jintLong)((jintLong (CALLING_CONVENTION*)(const char *, jint))fp)((const char *)lparg0, arg1);
 		}
@@ -253,7 +255,7 @@ JNIEXPORT jint JNICALL GNOME_NATIVE(_1gnome_1vfs_1mime_1application_1launch)
 	rc = (jint)gnome_vfs_mime_application_launch((GnomeVFSMimeApplication *)arg0, (GList *)arg1);
 */
 	{
-		LOAD_FUNCTION(fp, gnome_vfs_mime_application_launch)
+		GNOME_LOAD_FUNCTION(fp, gnome_vfs_mime_application_launch)
 		if (fp) {
 			rc = (jint)((jint (CALLING_CONVENTION*)(GnomeVFSMimeApplication *, GList *))fp)((GnomeVFSMimeApplication *)arg0, (GList *)arg1);
 		}
@@ -353,7 +355,7 @@ JNIEXPORT jint JNICALL GNOME_NATIVE(_1gnome_1vfs_1url_1show)
 	rc = (jint)gnome_vfs_url_show((const char *)arg0);
 */
 	{
-		LOAD_FUNCTION(fp, gnome_vfs_url_show)
+		GNOME_LOAD_FUNCTION(fp, gnome_vfs_url_show)
 		if (fp) {
 			rc = (jint)((jint (CALLING_CONVENTION*)(const char *))fp)((const char *)arg0);
 		}

@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2012 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -36,6 +36,18 @@ public class nsIDocShell extends nsISupports {
 
 	public static final nsID NS_IDOCSHELL_IID =
 		new nsID(NS_IDOCSHELL_IID_STR);
+
+	public static final String NS_IDOCSHELL_1_8_IID_STR =
+		"9f0c7461-b9a4-47f6-b88c-421dce1bce66";
+
+	public static final nsID NS_IDOCSHELL_1_8_IID =
+		new nsID(NS_IDOCSHELL_1_8_IID_STR);
+
+	public static final String NS_IDOCSHELL_10_IID_STR =
+		"0666adf8-8738-4ca7-a917-0348f47d2f40";
+
+	public static final nsID NS_IDOCSHELL_10_IID =
+		new nsID(NS_IDOCSHELL_10_IID_STR);
 
 	public nsIDocShell(int /*long*/ address) {
 		super(address);
@@ -222,17 +234,11 @@ public class nsIDocShell extends nsISupports {
 	}
 
 	public static final int BUSY_FLAGS_NONE = 0;
-
 	public static final int BUSY_FLAGS_BUSY = 1;
-
 	public static final int BUSY_FLAGS_BEFORE_PAGE_LOAD = 2;
-
 	public static final int BUSY_FLAGS_PAGE_LOADING = 4;
-
 	public static final int LOAD_CMD_NORMAL = 1;
-
 	public static final int LOAD_CMD_RELOAD = 2;
-
 	public static final int LOAD_CMD_HISTORY = 4;
 
 	public int GetBusyFlags(int[] aBusyFlags) {

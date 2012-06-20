@@ -1,3 +1,42 @@
+swt-gtk (3.8.0~rc2-3) unstable; urgency=low
+
+  * Upload to unstable.
+  * Compile java code with source/target 1.5 to ensure java
+    classes are compatible with Java 1.5+.  Thanks to James
+    Page for the report and the patch.
+    (Closes: #677025, LP: #1011103)
+  * Add breaks on eclipse-rcp to ensure eclipse 3.7 is not
+    installed with swt-gtk 3.8.
+
+ -- Niels Thykier <niels@thykier.net>  Wed, 20 Jun 2012 12:38:50 +0200
+
+swt-gtk (3.8.0~rc2-2) experimental; urgency=low
+
+  * Prefer tight dependencies between the -JNI libraries
+    to breaks.
+  * Add breaks on the -JNI libraries built from 3.8.0~rc2-1
+    to ensure the tight dependency is used.
+  * Bump source format to 3.0 (quilt).
+
+ -- Niels Thykier <niels@thykier.net>  Mon, 18 Jun 2012 12:42:27 +0200
+
+swt-gtk (3.8.0~rc2-1) experimental; urgency=low
+
+  [ Niels Thykier ]
+  * Use breaks to ensure that the SWT JNI libraries are upgraded
+    together with the Java package.
+  * Add conflicts with older versions of SWT and its JNI libraries.
+    This avoid this issue new and old versions of SWT and its JNI
+    libraries being used (and crashing).  (Closes: #670756,
+    LP: #1000272)
+  * Remove alternatives for /usr/share/java/swt.jar.
+
+  [ Jakub Adam ]
+  * New upstream release.
+  * Updated arch64.diff patch for new upstream release.
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Tue, 29 May 2012 17:02:51 +0200
+
 swt-gtk (3.7.2-3) unstable; urgency=low
 
   [ Jakub Adam ]
@@ -15,6 +54,38 @@ swt-gtk (3.7.2-3) unstable; urgency=low
   * Add myself to uploaders.
 
  -- Niels Thykier <niels@thykier.net>  Thu, 24 May 2012 09:18:54 +0200
+
+swt-gtk (3.8.0~m7-2) experimental; urgency=low
+
+  * Fix build on 64-bit platforms.
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Thu, 10 May 2012 13:13:13 +0200
+
+swt-gtk (3.8.0~m7-1) experimental; urgency=low
+
+  [ Jakub Adam ]
+  * New upstream release.
+  * Updated arch64.diff patch for new upstream release.
+  * Updated 01-as-needed.diff patch for new upstream release.
+
+  [ Niels Thykier ]
+  * Merge make_linux.mak patches and pass LDFLAGS + CPPFLAGS
+    to the underlying build system.
+  * Refactored the d/rules files.
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Wed, 09 May 2012 17:00:58 +0200
+
+swt-gtk (3.8.0~m6-1) experimental; urgency=low
+
+  * New upstream release.
+  * debian/Makefile: Add missing SWTMessages*.properties files to
+    swt-gtk-$(RELEASE).jar
+  * Updated 01-as-needed.diff patch for new upstream release.
+  * Updated arch64.diff patch for new upstream release.
+  * Search for JNI libraries in Debian location /usr/lib/jni
+    (Closes: #663734 #665195 #668002)
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 29 Apr 2012 21:14:20 +0200
 
 swt-gtk (3.7.2-2) unstable; urgency=low
 

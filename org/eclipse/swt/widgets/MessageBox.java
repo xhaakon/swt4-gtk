@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -152,7 +152,7 @@ public int open () {
 	
 	byte [] buffer = Converter.wcsToMbcs (null, fixPercent (message), true);
 	handle = OS.gtk_message_dialog_new(parentHandle, dialogFlags, messageType, 0, buffer);
-	if (handle == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+	if (handle == 0) error(SWT.ERROR_NO_HANDLES);
 	if (parentHandle != 0) {
 		int /*long*/ pixbufs = OS.gtk_window_get_icon_list (parentHandle);
 		if (pixbufs != 0) {

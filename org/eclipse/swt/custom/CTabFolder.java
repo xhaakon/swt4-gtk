@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1034,12 +1034,12 @@ void initAccessible() {
 				if (text != null) {
 					char mnemonic = _findMnemonic(text);	
 					if (mnemonic != '\0') {
-						shortcut = "Alt+"+mnemonic; //$NON-NLS-1$
+						shortcut = SWT.getMessage ("SWT_Page_Mnemonic", new Object[] {new Character(mnemonic)}); //$NON-NLS-1$
 					}
 				}
 			}
 			if (childID == ACC.CHILDID_SELF) {
-				shortcut = "Ctrl+PageDown"; //$NON-NLS-1$
+				shortcut = SWT.getMessage ("SWT_SwitchPage_Shortcut"); //$NON-NLS-1$
 			}
 			e.result = shortcut;
 		}

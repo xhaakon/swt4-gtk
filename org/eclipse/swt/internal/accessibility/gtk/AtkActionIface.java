@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -21,11 +21,11 @@ public class AtkActionIface {
 	public int /*long*/ do_action;
 	/** @field cast=(gint (*)()) */
 	public int /*long*/ get_n_actions;
-	/** @field cast=(G_CONST_RETURN gchar *(*)()) */
+	/** @field cast=(const gchar *(*)()) */
 	public int /*long*/ get_description;
-	/** @field cast=(G_CONST_RETURN gchar *(*)()) */
+	/** @field cast=(const gchar *(*)()) */
 	public int /*long*/ get_name;
-	/** @field cast=(G_CONST_RETURN gchar *(*)()) */
+	/** @field cast=(const gchar *(*)()) */
 	public int /*long*/ get_keybinding;
 	/** @field cast=(gboolean (*)()) */
 	public int /*long*/ set_description;	

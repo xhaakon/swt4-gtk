@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -42,11 +42,8 @@ public class nsIAuthInformation extends nsISupports {
 	}
 
 	public static final int AUTH_HOST = 1;
-
 	public static final int AUTH_PROXY = 2;
-
 	public static final int NEED_DOMAIN = 4;
-
 	public static final int ONLY_PASSWORD = 8;
 
 	public int GetFlags(int[] aFlags) {

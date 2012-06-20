@@ -1,7 +1,11 @@
-diff -Nur -x '*.orig' -x '*~' swt-gtk/make_linux.mak swt-gtk.new/make_linux.mak
---- swt-gtk/make_linux.mak	2011-12-06 19:13:57.054148957 -0500
-+++ swt-gtk.new/make_linux.mak	2011-12-06 20:07:00.554197279 -0500
-@@ -66,6 +66,7 @@
+Description: Ensure the underlying build system gets the right
+ flags and settings.
+
+diff --git a/make_linux.mak b/make_linux.mak
+index c8cc080..998cfcd 100644
+--- a/make_linux.mak
++++ b/make_linux.mak
+@@ -66,6 +66,7 @@ GLXLIBS = -lGL -lGLU -lm
  # Uncomment for Native Stats tool
  #NATIVE_STATS = -DNATIVE_STATS
  
@@ -9,7 +13,7 @@ diff -Nur -x '*.orig' -x '*~' swt-gtk/make_linux.mak swt-gtk.new/make_linux.mak
  MOZILLACFLAGS = -O \
  	-DSWT_VERSION=$(SWT_VERSION) \
  	$(NATIVE_STATS) \
-@@ -78,8 +79,10 @@
+@@ -78,8 +79,10 @@ MOZILLACFLAGS = -O \
  	-I. \
  	-I$(JAVA_HOME)/include \
  	-I$(JAVA_HOME)/include/linux \
@@ -21,20 +25,113 @@ diff -Nur -x '*.orig' -x '*~' swt-gtk/make_linux.mak swt-gtk.new/make_linux.mak
  MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
  	-DNO__1XPCOMGlueStartup \
  	-DNO__1XPCOMGlueLoadXULFunctions \
-@@ -107,7 +110,7 @@
+@@ -106,7 +109,7 @@ XPCOMINIT_OBJECTS = swt.o xpcominit.o xpcominit_structs.o xpcominit_stats.o
  WEBKIT_OBJECTS = swt.o webkit.o webkit_structs.o webkit_stats.o
  GLX_OBJECTS = swt.o glx.o glx_structs.o glx_stats.o
  
 -CFLAGS = -O -Wall \
-+override CFLAGS += \
++override CFLAGS = \
  		-DSWT_VERSION=$(SWT_VERSION) \
  		$(NATIVE_STATS) \
  		-DLINUX -DGTK \
-@@ -117,6 +120,7 @@
+@@ -114,8 +117,9 @@ CFLAGS = -O -Wall \
+ 		-I$(JAVA_HOME)/include/linux \
+ 		-fPIC \
  		${SWT_PTR_CFLAGS}
- LFLAGS = -shared -fPIC ${SWT_LFLAGS}
+-LFLAGS = -shared -fPIC ${SWT_LFLAGS}
++LFLAGS += $(DEB_LDFLAGS) -shared -fPIC ${SWT_LFLAGS}
  
 +NO_STRIP=1
  ifndef NO_STRIP
  	AWT_LFLAGS := $(AWT_LFLAGS) -s
  	MOZILLALFLAGS := $(MOZILLALFLAGS) -s
+@@ -136,7 +140,7 @@ callback.o: callback.c callback.h
+ 	$(CC) $(CFLAGS) -DUSE_ASSEMBLER -c callback.c
+ 
+ $(SWTPI_LIB): $(SWTPI_OBJECTS)
+-	$(CC) $(LFLAGS) -o $(SWTPI_LIB) $(SWTPI_OBJECTS) $(GTKLIBS)
++	$(CC) $(LFLAGS) -o $(SWTPI_LIB) $(SWTPI_OBJECTS) -Wl,--as-needed $(GTKLIBS)
+ 
+ swt.o: swt.c swt.h
+ 	$(CC) $(CFLAGS) -c swt.c
+@@ -155,7 +159,7 @@ os_stats.o: os_stats.c os_structs.h os.h os_stats.h swt.h
+ make_cairo: $(CAIRO_LIB)
+ 
+ $(CAIRO_LIB): $(CAIRO_OBJECTS)
+-	$(CC) $(LFLAGS) -o $(CAIRO_LIB) $(CAIRO_OBJECTS) $(CAIROLIBS)
++	$(CC) $(LFLAGS) -o $(CAIRO_LIB) $(CAIRO_OBJECTS) -Wl,--as-needed $(CAIROLIBS)
+ 
+ cairo.o: cairo.c cairo.h swt.h
+ 	$(CC) $(CFLAGS) $(CAIROCFLAGS) -c cairo.c
+@@ -171,7 +175,7 @@ cairo_stats.o: cairo_stats.c cairo_structs.h cairo.h cairo_stats.h swt.h
+ make_cde: $(CDE_LIB)
+ 
+ $(CDE_LIB): $(CDE_OBJECTS)
+-	$(CC) $(LFLAGS) -o $(CDE_LIB) $(CDE_OBJECTS) $(CDE_LIBS)
++	$(CC) $(LFLAGS) -o $(CDE_LIB) $(CDE_OBJECTS) -Wl,--as-needed $(CDE_LIBS)
+ 
+ #
+ # AWT lib
+@@ -179,7 +183,7 @@ $(CDE_LIB): $(CDE_OBJECTS)
+ make_awt:$(AWT_LIB)
+ 
+ $(AWT_LIB): $(AWT_OBJECTS)
+-	$(CC) $(AWT_LFLAGS) -o $(AWT_LIB) $(AWT_OBJECTS) $(AWT_LIBS)
++	$(CC) $(AWT_LFLAGS) $(DEB_LDFLAGS) -o $(AWT_LIB) $(AWT_OBJECTS) -Wl,--as-needed $(AWT_LIBS)
+ 
+ #
+ # Atk lib
+@@ -187,7 +191,7 @@ $(AWT_LIB): $(AWT_OBJECTS)
+ make_atk: $(ATK_LIB)
+ 
+ $(ATK_LIB): $(ATK_OBJECTS)
+-	$(CC) $(LFLAGS) -o $(ATK_LIB) $(ATK_OBJECTS) $(ATKLIBS)
++	$(CC) $(LFLAGS) -o $(ATK_LIB) $(ATK_OBJECTS) -Wl,--as-needed $(ATKLIBS)
+ 
+ atk.o: atk.c atk.h
+ 	$(CC) $(CFLAGS) $(ATKCFLAGS) -c atk.c
+@@ -204,7 +208,7 @@ atk_stats.o: atk_stats.c atk_structs.h atk_stats.h atk.h
+ make_gnome: $(GNOME_LIB)
+ 
+ $(GNOME_LIB): $(GNOME_OBJECTS)
+-	$(CC) $(LFLAGS) -o $(GNOME_LIB) $(GNOME_OBJECTS) $(GNOMELIBS)
++	$(CC) $(LFLAGS) -o $(GNOME_LIB) $(GNOME_OBJECTS) -Wl,--as-needed $(GNOMELIBS)
+ 
+ gnome.o: gnome.c 
+ 	$(CC) $(CFLAGS) $(GNOMECFLAGS) -c gnome.c
+@@ -221,7 +225,7 @@ gnome_stats.o: gnome_stats.c gnome_stats.h
+ make_mozilla:$(MOZILLA_LIB)
+ 
+ $(MOZILLA_LIB): $(MOZILLA_OBJECTS)
+-	$(CXX) -o $(MOZILLA_LIB) $(MOZILLA_OBJECTS) $(MOZILLALFLAGS) ${MOZILLA_LIBS}
++	$(CXX) -o $(MOZILLA_LIB) $(MOZILLA_OBJECTS) $(MOZILLALFLAGS) -Wl,--as-needed ${MOZILLA_LIBS}
+ 
+ xpcom.o: xpcom.cpp
+ 	$(CXX) $(MOZILLACFLAGS) $(MOZILLAEXCLUDES) ${MOZILLA_INCLUDES} -c xpcom.cpp
+@@ -242,7 +246,7 @@ make_xulrunner:$(XULRUNNER_LIB)
+ 
+ $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
+ 	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | gcc --shared -xc - -o libswt-xulrunner-fix.so
+-	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
++	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) -Wl,--as-needed ${XULRUNNER_LIBS}
+ 
+ xpcomxul.o: xpcom.cpp
+ 	$(CXX) -o xpcomxul.o $(MOZILLACFLAGS) $(XULRUNNEREXCLUDES) ${XULRUNNER_INCLUDES} -c xpcom.cpp
+@@ -262,7 +266,7 @@ xpcomxul_stats.o: xpcom_stats.cpp
+ make_xpcominit:$(XPCOMINIT_LIB)
+ 
+ $(XPCOMINIT_LIB): $(XPCOMINIT_OBJECTS)
+-	$(CXX) -o $(XPCOMINIT_LIB) $(XPCOMINIT_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
++	$(CXX) -o $(XPCOMINIT_LIB) $(XPCOMINIT_OBJECTS) $(MOZILLALFLAGS) -Wl,--as-needed ${XULRUNNER_LIBS}
+ 
+ xpcominit.o: xpcominit.cpp
+ 	$(CXX) $(MOZILLACFLAGS) ${XULRUNNER_INCLUDES} -c xpcominit.cpp
+@@ -296,7 +300,7 @@ webkit_stats.o: webkitgtk_stats.c webkitgtk_stats.h
+ make_glx: $(GLX_LIB)
+ 
+ $(GLX_LIB): $(GLX_OBJECTS)
+-	$(CC) $(LFLAGS) -o $(GLX_LIB) $(GLX_OBJECTS) $(GLXLIBS)
++	$(CC) $(LFLAGS) -o $(GLX_LIB) $(GLX_OBJECTS) -Wl,--as-needed $(GLXLIBS)
+ 
+ glx.o: glx.c 
+ 	$(CC) $(CFLAGS) $(GLXCFLAGS) -c glx.c

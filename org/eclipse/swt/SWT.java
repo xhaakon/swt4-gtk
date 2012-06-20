@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -535,6 +535,11 @@ public class SWT {
 	 * @see org.eclipse.swt.widgets.Display#addFilter
 	 * @see org.eclipse.swt.widgets.Event
 	 * 
+	 * @see org.eclipse.swt.widgets.Control#addMenuDetectListener
+	 * @see org.eclipse.swt.widgets.TrayItem#addMenuDetectListener
+	 * @see org.eclipse.swt.events.MenuDetectListener#menuDetected
+	 * @see org.eclipse.swt.events.MenuDetectEvent
+	 * 
 	 * @since 3.0
 	 */
 	public static final int MenuDetect = 35;
@@ -747,6 +752,24 @@ public class SWT {
      * @since 3.7
 	 */
 	public static final int Gesture = 48;
+
+	/**
+	 * The segments event type (value is 49).
+	 * 
+	 * <p>
+	 * This event is sent when text content has been changed.
+	 * </p>
+	 *  
+	 * @see org.eclipse.swt.widgets.Widget#addListener
+	 * @see org.eclipse.swt.widgets.Display#addFilter
+	 * @see org.eclipse.swt.widgets.Event
+	 * 
+	 * @see org.eclipse.swt.widgets.Text#addSegmentListener
+	 * @see org.eclipse.swt.events.SegmentEvent
+     * 
+     * @since 3.8
+	 */
+	public static final int Segments = 49;
 
 	/* Event Details */
 	
@@ -1008,6 +1031,22 @@ public class SWT {
 	public static final int TOUCHSTATE_UP = 1 << 2;
 	
 	/**
+	 * MenuDetect event detail value indicating that a context menu
+	 * was requested by a mouse or other pointing device (value is 0).
+	 * 
+	 * @since 3.8
+	 */
+	public static final int MENU_MOUSE = 0;
+	
+	/**
+	 * MenuDetect event detail value indicating that a context menu
+	 * was requested by a keyboard or other focus-based device (value is 1).
+	 * 
+	 * @since 3.8
+	 */
+	public static final int MENU_KEYBOARD = 1;
+
+	/**
 	 * A constant indicating that widgets have changed.
 	 * (value is 1&lt;&lt;1).
 	 * 
@@ -1221,6 +1260,7 @@ public class SWT {
 	/**
 	 * Style constant for automatic line wrap behavior (value is 1&lt;&lt;6).
 	 * <p><b>Used By:</b><ul>
+	 * <li><code>Button</code></li>
 	 * <li><code>Label</code></li>
 	 * <li><code>Text</code></li>
 	 * <li><code>ToolBar</code></li>
@@ -4067,8 +4107,30 @@ public class SWT {
 	 * @since 3.6
 	 */
 	public static final String SKIN_ID = "org.eclipse.swt.skin.id";
-
 	
+	/**
+	 * The <code>Scrollable</code> constant to indicate that
+	 * the receiver is using overlay scrollbars. (value is 1)
+	 *
+	 * @since 3.8
+	 */
+	public static final int SCROLLBAR_OVERLAY = 1 << 1;
+	 	
+
+/**
+ * Returns a boolean indicating whether this SWT implementation can
+ * be loaded.  Examples of criteria that may be used to determine this
+ * include the OS and architecture of the JRE that is being used.
+ *
+ * @return <code>true</code> if this SWT implementation can be loaded
+ * and <code>false</code> otherwise
+ *
+ * @since 3.8
+ */
+public static boolean isLoadable () {
+	return Platform.isLoadable ();
+}
+
 /**
  * Answers a concise, human readable description of the error code.
  *
@@ -4138,7 +4200,24 @@ static String findErrorText (int code) {
 public static String getMessage(String key) {
 	return Compatibility.getMessage(key);
 }
-	
+
+/**
+ * Returns the NLS'ed message for the given arguments.
+ * 
+ * @param key the key to look up
+ * @param args the parameters to insert into the message
+ * @return the message for the given parameterized key
+ * 
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the key or args are null</li>
+ * </ul>
+ * 
+ * @since 3.8
+ */
+public static String getMessage(String key, Object[] args) {
+	return Compatibility.getMessage(key, args);
+}
+
 /**
  * Returns the SWT platform name.
  * Examples: "win32", "motif", "gtk", "photon", "carbon", "cocoa", "wpf"

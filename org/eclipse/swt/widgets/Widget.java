@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -176,7 +176,21 @@ public abstract class Widget {
 	static final int ICON_RELEASE = 67;
 	static final int SELECTION_DONE = 68;
 	static final int START_INTERACTIVE_SEARCH = 69;
-	static final int LAST_SIGNAL = 70;
+	static final int BACKSPACE = 70;
+	static final int BACKSPACE_INVERSE = 71;
+	static final int COPY_CLIPBOARD = 72;
+	static final int COPY_CLIPBOARD_INVERSE = 73;
+	static final int CUT_CLIPBOARD = 74;
+	static final int CUT_CLIPBOARD_INVERSE = 75;
+	static final int PASTE_CLIPBOARD = 76;
+	static final int PASTE_CLIPBOARD_INVERSE = 77;
+	static final int DELETE_FROM_CURSOR = 78;
+	static final int DELETE_FROM_CURSOR_INVERSE = 79;
+	static final int MOVE_CURSOR = 80;
+	static final int MOVE_CURSOR_INVERSE = 81;
+	static final int DIRECTION_CHANGED = 82;
+	static final int CREATE_MENU_PROXY = 83;
+	static final int LAST_SIGNAL = 84;
 	
 	static final String IS_ACTIVE = "org.eclipse.swt.internal.control.isactive"; //$NON-NLS-1$
 	static final String KEY_CHECK_SUBWINDOW = "org.eclipse.swt.internal.control.checksubwindow"; //$NON-NLS-1$
@@ -649,6 +663,10 @@ int /*long*/ gtk_commit (int /*long*/ imcontext, int /*long*/ text) {
 }
 
 int /*long*/ gtk_configure_event (int /*long*/ widget, int /*long*/ event) {
+	return 0;
+}
+
+int /*long*/ gtk_create_menu_proxy (int /*long*/ widget) {
 	return 0;
 }
 
@@ -1136,11 +1154,11 @@ void releaseWidget () {
  * @see #getListeners(int)
  * @see #notifyListeners
  */
-public void removeListener (int eventType, Listener handler) {
+public void removeListener (int eventType, Listener listener) {
 	checkWidget ();
-	if (handler == null) error (SWT.ERROR_NULL_ARGUMENT);
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
-	eventTable.unhook (eventType, handler);
+	eventTable.unhook (eventType, listener);
 }
 
 /**
@@ -1565,8 +1583,8 @@ boolean setKeyState (Event event, GdkEventKey keyEvent) {
 		case OS.GDK_ISO_Left_Tab: 	event.character = SWT.TAB; break;
 		default: {
 			if (event.keyCode == 0) {
-				int [] keyval = new int [1], effective_group= new int [1], level = new int [1], consumed_modifiers = new int [1];
-				if (OS.gdk_keymap_translate_keyboard_state(OS.gdk_keymap_get_default (), keyEvent.hardware_keycode, 0, keyEvent.group, keyval, effective_group, level, consumed_modifiers)) {
+				int [] keyval = new int [1], effective_group = new int [1], level = new int [1], consumed_modifiers = new int [1];
+				if (OS.gdk_keymap_translate_keyboard_state (OS.gdk_keymap_get_default (), keyEvent.hardware_keycode, 0, keyEvent.group, keyval, effective_group, level, consumed_modifiers)) {
 					event.keyCode = OS.gdk_keyval_to_unicode (keyval [0]);
 				}
 			}
@@ -1581,7 +1599,7 @@ boolean setKeyState (Event event, GdkEventKey keyEvent) {
 			}
 		}
 	}
-	setLocationState(event, keyEvent);
+	setLocationState (event, keyEvent);
 	if (event.keyCode == 0 && event.character == 0) {
 		if (!isNull) return false;
 	}
@@ -1679,10 +1697,6 @@ int /*long*/ timerProc (int /*long*/ widget) {
 	return 0;
 }
 
-int /*long*/ treeSelectionProc (int /*long*/ model, int /*long*/ path, int /*long*/ iter, int [] selection, int length) {
-	return 0;
-}
-
 boolean translateTraversal (int event) {
 	return false;
 }
@@ -1692,6 +1706,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ user_data) {
 		case ACTIVATE: return gtk_activate (handle);
 		case CHANGED: return gtk_changed (handle);
 		case CLICKED: return gtk_clicked (handle);
+		case CREATE_MENU_PROXY: return gtk_create_menu_proxy (handle);
 		case DAY_SELECTED: return gtk_day_selected (handle);
 		case DAY_SELECTED_DOUBLE_CLICK: return gtk_day_selected_double_click (handle);
 		case HIDE: return gtk_hide (handle);

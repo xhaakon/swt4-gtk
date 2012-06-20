@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -42,7 +42,6 @@ public class nsIFile extends nsISupports {
 	}
 
 	public static final int NORMAL_FILE_TYPE = 0;
-
 	public static final int DIRECTORY_TYPE = 1;
 
 	public int Append(int /*long*/ node) {

@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2009 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2011 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -37,7 +37,7 @@ public class nsIBadCertListener2 extends nsISupports {
 	public static final nsID NS_IBADCERTLISTENER2_IID =
 		new nsID(NS_IBADCERTLISTENER2_IID_STR);
 
-	public  nsIBadCertListener2(int /*long*/ address) {
+	public nsIBadCertListener2(int /*long*/ address) {
 		super(address);
 	}
 
