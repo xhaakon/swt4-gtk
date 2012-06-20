@@ -1,6 +1,7 @@
 swt-gtk (3.8.0~rc4-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * Ensure CFLAGS from d/rules are really used.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Wed, 20 Jun 2012 20:25:20 +0200
 
