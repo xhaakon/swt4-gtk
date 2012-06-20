@@ -30,7 +30,7 @@ index c8cc080..998cfcd 100644
  GLX_OBJECTS = swt.o glx.o glx_structs.o glx_stats.o
  
 -CFLAGS = -O -Wall \
-+override CFLAGS = \
++override CFLAGS += \
  		-DSWT_VERSION=$(SWT_VERSION) \
  		$(NATIVE_STATS) \
  		-DLINUX -DGTK \
