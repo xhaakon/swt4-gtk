@@ -1,4 +1,4 @@
-usr/share/java/swt-gtk-3.8.jar:
+usr/share/java/swt.jar:
  Bundle-ManifestVersion: 2
  Bundle-Name: Standard Widget Toolkit
  Bundle-SymbolicName: org.eclipse.swt; singleton:=true
