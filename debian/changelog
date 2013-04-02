@@ -1,3 +1,10 @@
+swt-gtk (3.8.0~rc4-2) UNRELEASED; urgency=low
+
+  * Add fix for compatibility with libwebkitgtk-1.0-0 1.11.91-1
+    (Closes: #704516).
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Tue, 02 Apr 2013 23:18:07 +0200
+
 swt-gtk (3.8.0~rc4-1) unstable; urgency=low
 
   * New upstream release.

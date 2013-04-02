@@ -1,0 +1,32 @@
+From d4cd04aaea5b4d7ddbf4edda1b812ef038faf2c7 Mon Sep 17 00:00:00 2001
+From: Jakub Adam <jakub.adam@ktknet.cz>
+Date: Tue, 2 Apr 2013 23:04:29 +0200
+Subject: [PATCH 1/2] fix-libwebkitgtk-1.11.91-compatibility
+
+---
+ org/eclipse/swt/browser/WebKit.java |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/org/eclipse/swt/browser/WebKit.java b/org/eclipse/swt/browser/WebKit.java
+index 0bae664..34852d5 100644
+--- a/org/eclipse/swt/browser/WebKit.java
++++ b/org/eclipse/swt/browser/WebKit.java
+@@ -597,9 +597,13 @@ public void create (Composite parent, int style) {
+ 	*/
+ 	int /*long*/ session = WebKitGTK.webkit_get_default_session ();
+ 	int /*long*/ originalAuth = WebKitGTK.soup_session_get_feature (session, WebKitGTK.webkit_soup_auth_dialog_get_type ());
+-	WebKitGTK.soup_session_feature_detach (originalAuth, session);
++	if (originalAuth != 0) {
++		WebKitGTK.soup_session_feature_detach (originalAuth, session);
++	}
+ 	OS.g_signal_connect (session, WebKitGTK.authenticate, Proc5.getAddress (), webView);
+-	WebKitGTK.soup_session_feature_attach (originalAuth, session);
++	if (originalAuth != 0) {
++		WebKitGTK.soup_session_feature_attach (originalAuth, session);
++	}
+ 
+ 	/*
+ 	* Check for proxy values set as documented java properties and update the
+-- 
+1.7.10.4
+

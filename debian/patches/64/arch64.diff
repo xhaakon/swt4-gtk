@@ -1,7 +1,7 @@
-From 42835bd001f645ebd07af41fc3b6fdecbdc35b24 Mon Sep 17 00:00:00 2001
+From 2db7f03b66da4805dfd4b737b3ea5e038b847bb0 Mon Sep 17 00:00:00 2001
 From: Jakub Adam <jakub.adam@ktknet.cz>
-Date: Sun, 27 May 2012 14:10:48 +0200
-Subject: [PATCH] arch64
+Date: Tue, 2 Apr 2013 22:59:01 +0200
+Subject: [PATCH 2/2] arch64
 
 ---
  org/eclipse/swt/accessibility/Accessible.java      |   10 +-
@@ -590,7 +590,7 @@ index 03e4031..585d12c 100644
  		if (AccessibleObject.DEBUG) AccessibleObject.print("-->Deregister=" + accessible.control + " " + widget); //$NON-NLS-1$
  	}
 diff --git a/org/eclipse/swt/accessibility/AccessibleObject.java b/org/eclipse/swt/accessibility/AccessibleObject.java
-index 29f6491..69156e7 100644
+index 92c38a3..edd3d8e 100644
 --- a/org/eclipse/swt/accessibility/AccessibleObject.java
 +++ b/org/eclipse/swt/accessibility/AccessibleObject.java
 @@ -21,7 +21,7 @@ import org.eclipse.swt.internal.accessibility.gtk.*;
@@ -2103,7 +2103,7 @@ index 29f6491..69156e7 100644
  	}
  	
 diff --git a/org/eclipse/swt/awt/SWT_AWT.java b/org/eclipse/swt/awt/SWT_AWT.java
-index 2718463..8c1844e 100644
+index 998cfa0..a27b3e5 100644
 --- a/org/eclipse/swt/awt/SWT_AWT.java
 +++ b/org/eclipse/swt/awt/SWT_AWT.java
 @@ -64,7 +64,7 @@ public class SWT_AWT {
@@ -2146,7 +2146,7 @@ index 2718463..8c1844e 100644
  		loadLibrary ();
  		handle = getAWTHandle (parent);
 diff --git a/org/eclipse/swt/browser/AppFileLocProvider.java b/org/eclipse/swt/browser/AppFileLocProvider.java
-index cb4b2d2..cf2ce11 100644
+index 2be80e9..4781d21 100644
 --- a/org/eclipse/swt/browser/AppFileLocProvider.java
 +++ b/org/eclipse/swt/browser/AppFileLocProvider.java
 @@ -47,7 +47,7 @@ AppFileLocProvider (String mozillaPath, String profilePath, String cacheParentPa
@@ -2304,7 +2304,7 @@ index cb4b2d2..cf2ce11 100644
  		return XPCOM.NS_OK;
  	}
 diff --git a/org/eclipse/swt/browser/Download.java b/org/eclipse/swt/browser/Download.java
-index 64f3592..16d8fab 100644
+index c97c08a..d4a05b6 100644
 --- a/org/eclipse/swt/browser/Download.java
 +++ b/org/eclipse/swt/browser/Download.java
 @@ -46,63 +46,63 @@ int AddRef () {
@@ -3163,7 +3163,7 @@ index 3ec20e7..2a2e150 100644
  }		
  }
 diff --git a/org/eclipse/swt/browser/External.java b/org/eclipse/swt/browser/External.java
-index 231d698..3507e30 100644
+index cd4201a..c4087df 100644
 --- a/org/eclipse/swt/browser/External.java
 +++ b/org/eclipse/swt/browser/External.java
 @@ -46,12 +46,12 @@ External () {
@@ -3765,7 +3765,7 @@ index 84462ec..f90ef3d 100644
  }
  
 diff --git a/org/eclipse/swt/browser/FilePicker.java b/org/eclipse/swt/browser/FilePicker.java
-index d519577..584a7d4 100644
+index 0203016..44b9e5f 100644
 --- a/org/eclipse/swt/browser/FilePicker.java
 +++ b/org/eclipse/swt/browser/FilePicker.java
 @@ -21,7 +21,7 @@ class FilePicker {
@@ -4002,7 +4002,7 @@ index d519577..584a7d4 100644
  	return XPCOM.NS_ERROR_NOT_IMPLEMENTED;
  }
 diff --git a/org/eclipse/swt/browser/FilePickerFactory.java b/org/eclipse/swt/browser/FilePickerFactory.java
-index 1a184f7..4e532eb 100644
+index 44fcbd6..fcf4a18 100644
 --- a/org/eclipse/swt/browser/FilePickerFactory.java
 +++ b/org/eclipse/swt/browser/FilePickerFactory.java
 @@ -30,17 +30,17 @@ int AddRef () {
@@ -4318,7 +4318,7 @@ index 706ec08..a8d9d5a 100644
  	if (rc == XPCOM.NS_OK) {
  		using_1_8 = true;
 diff --git a/org/eclipse/swt/browser/HelperAppLauncherDialogFactory.java b/org/eclipse/swt/browser/HelperAppLauncherDialogFactory.java
-index 66c1bcd..837e535 100644
+index 43f96bd..80ed72e 100644
 --- a/org/eclipse/swt/browser/HelperAppLauncherDialogFactory.java
 +++ b/org/eclipse/swt/browser/HelperAppLauncherDialogFactory.java
 @@ -30,17 +30,17 @@ int AddRef () {
@@ -4520,7 +4520,7 @@ index dd2e0cb..5599b9b 100644
  	path.dispose ();
  	if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 diff --git a/org/eclipse/swt/browser/InputStream.java b/org/eclipse/swt/browser/InputStream.java
-index 4dccd62..e051d80 100644
+index cc0f34d..1f4a55a 100644
 --- a/org/eclipse/swt/browser/InputStream.java
 +++ b/org/eclipse/swt/browser/InputStream.java
 @@ -34,14 +34,14 @@ int AddRef () {
@@ -4622,7 +4622,7 @@ index 4dccd62..e051d80 100644
  	XPCOM.memmove (_retval, new boolean[] {false});
  	return XPCOM.NS_OK;
 diff --git a/org/eclipse/swt/browser/Mozilla.java b/org/eclipse/swt/browser/Mozilla.java
-index c4ed39d..9c66042 100644
+index 2218d1b..3890e09 100644
 --- a/org/eclipse/swt/browser/Mozilla.java
 +++ b/org/eclipse/swt/browser/Mozilla.java
 @@ -23,7 +23,7 @@ import org.eclipse.swt.internal.mozilla.init.*;
@@ -6185,7 +6185,7 @@ index c4ed39d..9c66042 100644
  					navigate (badCertRequest);
  					XPCOM.nsEmbedCString_delete (hostString);
 diff --git a/org/eclipse/swt/browser/MozillaDelegate.java b/org/eclipse/swt/browser/MozillaDelegate.java
-index 956f0fc..6aa9e12 100644
+index 3a92ce3..b04f572 100644
 --- a/org/eclipse/swt/browser/MozillaDelegate.java
 +++ b/org/eclipse/swt/browser/MozillaDelegate.java
 @@ -22,11 +22,11 @@ import org.eclipse.swt.widgets.*;
@@ -6413,7 +6413,7 @@ index 40d9855..abef771 100644
  }
  }
 diff --git a/org/eclipse/swt/browser/PromptDialog.java b/org/eclipse/swt/browser/PromptDialog.java
-index ff01357..d6bccc0 100644
+index ad271eb..4a8c186 100644
 --- a/org/eclipse/swt/browser/PromptDialog.java
 +++ b/org/eclipse/swt/browser/PromptDialog.java
 @@ -141,7 +141,7 @@ class PromptDialog extends Dialog {
@@ -6514,7 +6514,7 @@ index 001bd1b..3f3da8e 100644
  		return XPCOM.NS_OK;
  	}
 diff --git a/org/eclipse/swt/browser/PromptService2.java b/org/eclipse/swt/browser/PromptService2.java
-index 660ff40..86c9296 100644
+index 16cbe4f..bb8f380 100644
 --- a/org/eclipse/swt/browser/PromptService2.java
 +++ b/org/eclipse/swt/browser/PromptService2.java
 @@ -33,41 +33,41 @@ int AddRef () {
@@ -6843,7 +6843,7 @@ index 660ff40..86c9296 100644
  }
  
 diff --git a/org/eclipse/swt/browser/PromptService2Factory.java b/org/eclipse/swt/browser/PromptService2Factory.java
-index fbdbfc3..6471532 100644
+index 3ec1c35..8c7c189 100644
 --- a/org/eclipse/swt/browser/PromptService2Factory.java
 +++ b/org/eclipse/swt/browser/PromptService2Factory.java
 @@ -30,17 +30,17 @@ int AddRef () {
@@ -7225,7 +7225,7 @@ index c8274d0..a7b9848 100644
  }
  
 diff --git a/org/eclipse/swt/browser/SimpleEnumerator.java b/org/eclipse/swt/browser/SimpleEnumerator.java
-index 75f58ad..7da18df 100644
+index 9b09794..d39b512 100644
 --- a/org/eclipse/swt/browser/SimpleEnumerator.java
 +++ b/org/eclipse/swt/browser/SimpleEnumerator.java
 @@ -36,17 +36,17 @@ int AddRef () {
@@ -7309,7 +7309,7 @@ index 75f58ad..7da18df 100644
  }		
  }
 diff --git a/org/eclipse/swt/browser/WebKit.java b/org/eclipse/swt/browser/WebKit.java
-index febdb0d..6548acc 100644
+index 34852d5..92640d7 100644
 --- a/org/eclipse/swt/browser/WebKit.java
 +++ b/org/eclipse/swt/browser/WebKit.java
 @@ -24,7 +24,7 @@ import org.eclipse.swt.layout.*;
@@ -7615,10 +7615,10 @@ index febdb0d..6548acc 100644
 -	int /*long*/ originalAuth = WebKitGTK.soup_session_get_feature (session, WebKitGTK.webkit_soup_auth_dialog_get_type ());
 +	long /*int*/ session = WebKitGTK.webkit_get_default_session ();
 +	long /*int*/ originalAuth = WebKitGTK.soup_session_get_feature (session, WebKitGTK.webkit_soup_auth_dialog_get_type ());
- 	WebKitGTK.soup_session_feature_detach (originalAuth, session);
- 	OS.g_signal_connect (session, WebKitGTK.authenticate, Proc5.getAddress (), webView);
- 	WebKitGTK.soup_session_feature_attach (originalAuth, session);
-@@ -622,7 +622,7 @@ public void create (Composite parent, int style) {
+ 	if (originalAuth != 0) {
+ 		WebKitGTK.soup_session_feature_detach (originalAuth, session);
+ 	}
+@@ -626,7 +626,7 @@ public void create (Composite parent, int style) {
  		}
  		proxyHost += ":" + port; //$NON-NLS-1$
  		bytes = Converter.wcsToMbcs (null, proxyHost, true);
@@ -7627,7 +7627,7 @@ index febdb0d..6548acc 100644
  		if (uri != 0) {
  			OS.g_object_set (session, WebKitGTK.SOUP_SESSION_PROXY_URI, uri, 0);
  			WebKitGTK.soup_uri_free (uri);
-@@ -646,7 +646,7 @@ public void create (Composite parent, int style) {
+@@ -650,7 +650,7 @@ public void create (Composite parent, int style) {
  	browser.setData (KEY_CHECK_SUBWINDOW, Boolean.FALSE);
  }
  
@@ -7636,7 +7636,7 @@ index febdb0d..6548acc 100644
  	/*
  	* If JS is disabled (causes DOM events to not be delivered) then do not add event
  	* listeners here, DOM events will be inferred from received GDK events instead. 
-@@ -654,7 +654,7 @@ void addEventHandlers (int /*long*/ web_view, boolean top) {
+@@ -658,7 +658,7 @@ void addEventHandlers (int /*long*/ web_view, boolean top) {
  	if (!jsEnabled) return;
  
  	if (top && IsWebKit14orNewer) {
@@ -7645,7 +7645,7 @@ index febdb0d..6548acc 100644
  		if (domDocument != 0) {
  			WindowMappings.put (new LONG (domDocument), new LONG (web_view));
  			WebKitGTK.webkit_dom_event_target_add_event_listener (domDocument, WebKitGTK.dragstart, JSDOMEventProc.getAddress (), 0, SWT.DragDetect);
-@@ -766,8 +766,8 @@ boolean close (boolean showPrompters) {
+@@ -770,8 +770,8 @@ boolean close (boolean showPrompters) {
  }
  
  public boolean execute (String script) {
@@ -7656,7 +7656,7 @@ index febdb0d..6548acc 100644
  
  	byte[] bytes = null;
  	try {
-@@ -775,16 +775,16 @@ public boolean execute (String script) {
+@@ -779,16 +779,16 @@ public boolean execute (String script) {
  	} catch (UnsupportedEncodingException e) {
  		bytes = Converter.wcsToMbcs (null, script, true);
  	}
@@ -7676,7 +7676,7 @@ index febdb0d..6548acc 100644
  	WebKitGTK.JSStringRelease (urlString);
  	WebKitGTK.JSStringRelease (scriptString);
  	return result != 0;
-@@ -801,13 +801,13 @@ public String getBrowserType () {
+@@ -805,13 +805,13 @@ public String getBrowserType () {
  }
  
  public String getText () {
@@ -7694,7 +7694,7 @@ index febdb0d..6548acc 100644
  	int length = OS.strlen (encoding);
  	byte[] bytes = new byte [length];
  	OS.memmove (bytes, encoding, length);
-@@ -815,7 +815,7 @@ public String getText () {
+@@ -819,7 +819,7 @@ public String getText () {
  
  	length = OS.GString_len (data);
  	bytes = new byte[length];
@@ -7703,7 +7703,7 @@ index febdb0d..6548acc 100644
  	C.memmove (bytes, string, length);
  
  	try {
-@@ -826,7 +826,7 @@ public String getText () {
+@@ -830,7 +830,7 @@ public String getText () {
  }
  
  public String getUrl () {
@@ -7712,7 +7712,7 @@ index febdb0d..6548acc 100644
  
  	/* WebKit auto-navigates to about:blank at startup */
  	if (uri == 0) return ABOUT_BLANK;
-@@ -851,7 +851,7 @@ public String getUrl () {
+@@ -855,7 +855,7 @@ public String getUrl () {
  	return url;
  }
  
@@ -7721,7 +7721,7 @@ index febdb0d..6548acc 100644
  	/*
  	* This method handles JS events that are received through the DOM
  	* listener API that was introduced in WebKitGTK 1.4.
-@@ -1206,7 +1206,7 @@ boolean handleMouseEvent (String type, int screenX, int screenY, int detail, int
+@@ -1210,7 +1210,7 @@ boolean handleMouseEvent (String type, int screenX, int screenY, int detail, int
  	return true;
  }
  
@@ -7730,7 +7730,7 @@ index febdb0d..6548acc 100644
  	int length = OS.strlen (uri);
  	byte[] bytes = new byte[length];
  	OS.memmove (bytes, uri, length);
-@@ -1244,7 +1244,7 @@ int /*long*/ handleLoadCommitted (int /*long*/ uri, boolean top) {
+@@ -1248,7 +1248,7 @@ int /*long*/ handleLoadCommitted (int /*long*/ uri, boolean top) {
  	return 0;
  }
  
@@ -7739,7 +7739,7 @@ index febdb0d..6548acc 100644
  	int length = OS.strlen (uri);
  	byte[] bytes = new byte[length];
  	OS.memmove (bytes, uri, length);
-@@ -1296,8 +1296,8 @@ int /*long*/ handleLoadFinished (int /*long*/ uri, boolean top) {
+@@ -1300,8 +1300,8 @@ int /*long*/ handleLoadFinished (int /*long*/ uri, boolean top) {
  		* the event here with the page's url as the title.
  		*/
  		if (top) {
@@ -7750,7 +7750,7 @@ index febdb0d..6548acc 100644
  			if (title == 0) {
  				TitleEvent newEvent = new TitleEvent (browser);
  				newEvent.display = browser.getDisplay ();
-@@ -1363,7 +1363,7 @@ void onResize (Event e) {
+@@ -1367,7 +1367,7 @@ void onResize (Event e) {
  	OS.gtk_widget_set_size_request (scrolledWindow, rect.width, rect.height);
  }
  
@@ -7759,7 +7759,7 @@ index febdb0d..6548acc 100644
  	final Shell shell = new Shell ();
  	String msg = Compatibility.getMessage ("SWT_FileDownload"); //$NON-NLS-1$
  	shell.setText (msg);
-@@ -1373,12 +1373,12 @@ void openDownloadWindow (final int /*long*/ webkitDownload) {
+@@ -1377,12 +1377,12 @@ void openDownloadWindow (final int /*long*/ webkitDownload) {
  	gridLayout.verticalSpacing = 20;
  	shell.setLayout (gridLayout);
  
@@ -7774,7 +7774,7 @@ index febdb0d..6548acc 100644
  	length = OS.strlen (url);
  	bytes = new byte[length];
  	OS.memmove (bytes, url, length);
-@@ -1510,7 +1510,7 @@ public boolean setUrl (String url, String postData, String[] headers) {
+@@ -1514,7 +1514,7 @@ public boolean setUrl (String url, String postData, String[] headers) {
  	* set the value on the WebView when initiating the load request and then
  	* remove it afterwards.
  	*/
@@ -7783,7 +7783,7 @@ index febdb0d..6548acc 100644
  	if (headers != null) {
  		for (int i = 0; i < headers.length; i++) {
  			String current = headers[i];
-@@ -1539,11 +1539,11 @@ public void stop () {
+@@ -1543,11 +1543,11 @@ public void stop () {
  	WebKitGTK.webkit_web_view_stop_loading (webView);
  }
  
@@ -7797,7 +7797,7 @@ index febdb0d..6548acc 100644
  			return handleLoadCommitted (uri, false);
  		}
  		case WebKitGTK.WEBKIT_LOAD_FINISHED: {
-@@ -1553,9 +1553,9 @@ int /*long*/ webframe_notify_load_status (int /*long*/ web_frame, int /*long*/ p
+@@ -1557,9 +1557,9 @@ int /*long*/ webframe_notify_load_status (int /*long*/ web_frame, int /*long*/ p
  			* response to navigating to a main document containing frames) then
  			* treat this as a completed load.
  			*/
@@ -7809,7 +7809,7 @@ index febdb0d..6548acc 100644
  				return handleLoadFinished (uri, false);
  			}
  		}
-@@ -1563,7 +1563,7 @@ int /*long*/ webframe_notify_load_status (int /*long*/ web_frame, int /*long*/ p
+@@ -1567,7 +1567,7 @@ int /*long*/ webframe_notify_load_status (int /*long*/ web_frame, int /*long*/ p
  	return 0;
  }
  
@@ -7818,7 +7818,7 @@ index febdb0d..6548acc 100644
  	WindowEvent newEvent = new WindowEvent (browser);
  	newEvent.display = browser.getDisplay ();
  	newEvent.widget = browser;
-@@ -1574,11 +1574,11 @@ int /*long*/ webkit_close_web_view (int /*long*/ web_view) {
+@@ -1578,11 +1578,11 @@ int /*long*/ webkit_close_web_view (int /*long*/ web_view) {
  	return 0;
  }
  
@@ -7832,7 +7832,7 @@ index febdb0d..6548acc 100644
  	WindowEvent newEvent = new WindowEvent (browser);
  	newEvent.display = browser.getDisplay ();
  	newEvent.widget = browser;
-@@ -1598,14 +1598,14 @@ int /*long*/ webkit_create_web_view (int /*long*/ web_view, int /*long*/ frame)
+@@ -1602,14 +1602,14 @@ int /*long*/ webkit_create_web_view (int /*long*/ web_view, int /*long*/ frame)
  	return 0;
  }
  
@@ -7850,7 +7850,7 @@ index febdb0d..6548acc 100644
  	OS.g_object_ref (request);
  
  	/*
-@@ -1622,7 +1622,7 @@ int /*long*/ webkit_download_requested (int /*long*/ web_view, int /*long*/ down
+@@ -1626,7 +1626,7 @@ int /*long*/ webkit_download_requested (int /*long*/ web_view, int /*long*/ down
  				String path = dialog.open ();
  				if (path != null) {
  					path = URI_FILEROOT + path;
@@ -7859,7 +7859,7 @@ index febdb0d..6548acc 100644
  					byte[] uriBytes = Converter.wcsToMbcs (null, path, true);
  					WebKitGTK.webkit_download_set_destination_uri (newDownload, uriBytes);
  					openDownloadWindow (newDownload);
-@@ -1637,7 +1637,7 @@ int /*long*/ webkit_download_requested (int /*long*/ web_view, int /*long*/ down
+@@ -1641,7 +1641,7 @@ int /*long*/ webkit_download_requested (int /*long*/ web_view, int /*long*/ down
  	return 1;
  }
  
@@ -7868,7 +7868,7 @@ index febdb0d..6548acc 100644
  	if (uri != 0) {
  		int length = OS.strlen (uri);
  		byte[] bytes = new byte[length];
-@@ -1654,7 +1654,7 @@ int /*long*/ webkit_hovering_over_link (int /*long*/ web_view, int /*long*/ titl
+@@ -1658,7 +1658,7 @@ int /*long*/ webkit_hovering_over_link (int /*long*/ web_view, int /*long*/ titl
  	return 0;
  }
  
@@ -7877,7 +7877,7 @@ index febdb0d..6548acc 100644
  	boolean canShow = WebKitGTK.webkit_web_view_can_show_mime_type (webView, mimetype) != 0;
  	if (!canShow) {
  		WebKitGTK.webkit_web_policy_decision_download (policy_decision);
-@@ -1663,7 +1663,7 @@ int /*long*/ webkit_mime_type_policy_decision_requested (int /*long*/ web_view,
+@@ -1667,7 +1667,7 @@ int /*long*/ webkit_mime_type_policy_decision_requested (int /*long*/ web_view,
  	return 0;
  }
  
@@ -7886,7 +7886,7 @@ index febdb0d..6548acc 100644
  	if (loadingText) {
  		/* 
  		 * WebKit is auto-navigating to about:blank in response to a
-@@ -1674,7 +1674,7 @@ int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view,
+@@ -1678,7 +1678,7 @@ int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view,
  		return 0;
  	}
  
@@ -7895,7 +7895,7 @@ index febdb0d..6548acc 100644
  	int length = OS.strlen (uri);
  	byte[] bytes = new byte[length];
  	OS.memmove (bytes, uri, length);
-@@ -1707,12 +1707,12 @@ int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view,
+@@ -1711,12 +1711,12 @@ int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view,
  		if (jsEnabled != jsEnabledOnNextPage) {
  			jsEnabled = jsEnabledOnNextPage;
  			DisabledJSCount += !jsEnabled ? 1 : -1;
@@ -7910,7 +7910,7 @@ index febdb0d..6548acc 100644
  		if (frame != mainFrame) {
  			int id = OS.g_signal_handler_find (frame, OS.G_SIGNAL_MATCH_FUNC | OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, Proc3.getAddress (), NOTIFY_LOAD_STATUS);
  			if (id == 0) {
-@@ -1735,22 +1735,22 @@ int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view,
+@@ -1739,22 +1739,22 @@ int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view,
  	return 0;
  }
  
@@ -7937,7 +7937,7 @@ index febdb0d..6548acc 100644
  	ProgressEvent event = new ProgressEvent (browser);
  	event.display = browser.getDisplay ();
  	event.widget = browser;
-@@ -1762,8 +1762,8 @@ int /*long*/ webkit_notify_progress (int /*long*/ web_view, int /*long*/ pspec)
+@@ -1766,8 +1766,8 @@ int /*long*/ webkit_notify_progress (int /*long*/ web_view, int /*long*/ pspec)
  	return 0;
  }
  
@@ -7948,7 +7948,7 @@ index febdb0d..6548acc 100644
  	String titleString;
  	if (title == 0) {
  		titleString = ""; //$NON-NLS-1$
-@@ -1783,7 +1783,7 @@ int /*long*/ webkit_notify_title (int /*long*/ web_view, int /*long*/ pspec) {
+@@ -1787,7 +1787,7 @@ int /*long*/ webkit_notify_title (int /*long*/ web_view, int /*long*/ pspec) {
  	return 0;
  }
  
@@ -7957,7 +7957,7 @@ index febdb0d..6548acc 100644
  	Point pt = browser.getDisplay ().getCursorLocation ();
  	Event event = new Event ();
  	event.x = pt.x;
-@@ -1791,10 +1791,10 @@ int /*long*/ webkit_populate_popup (int /*long*/ web_view, int /*long*/ webkit_m
+@@ -1795,10 +1795,10 @@ int /*long*/ webkit_populate_popup (int /*long*/ web_view, int /*long*/ webkit_m
  	browser.notifyListeners (SWT.MenuDetect, event);
  	if (!event.doit) {
  		/* clear the menu */
@@ -7971,7 +7971,7 @@ index febdb0d..6548acc 100644
  			OS.gtk_container_remove (webkit_menu, item);
  			current = OS.g_list_next (current);
  		}
-@@ -1808,10 +1808,10 @@ int /*long*/ webkit_populate_popup (int /*long*/ web_view, int /*long*/ webkit_m
+@@ -1812,10 +1812,10 @@ int /*long*/ webkit_populate_popup (int /*long*/ web_view, int /*long*/ webkit_m
  		}
  		menu.setVisible (true);
  		/* clear the menu */
@@ -7985,7 +7985,7 @@ index febdb0d..6548acc 100644
  			OS.gtk_container_remove (webkit_menu, item);
  			current = OS.g_list_next (current);
  		}
-@@ -1820,18 +1820,18 @@ int /*long*/ webkit_populate_popup (int /*long*/ web_view, int /*long*/ webkit_m
+@@ -1824,18 +1824,18 @@ int /*long*/ webkit_populate_popup (int /*long*/ web_view, int /*long*/ webkit_m
  	return 0;
  }
  
@@ -8008,7 +8008,7 @@ index febdb0d..6548acc 100644
  				C.memmove (data, bytes, bytes.length);
  				WebKitGTK.soup_message_body_append (body, WebKitGTK.SOUP_MEMORY_TAKE, data, bytes.length);
  				WebKitGTK.soup_message_body_flatten (body);
-@@ -1858,7 +1858,7 @@ int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long
+@@ -1862,7 +1862,7 @@ int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long
  			}
  
  			/* headers */
@@ -8017,7 +8017,7 @@ index febdb0d..6548acc 100644
  			for (int i = 0; i < headers.length; i++) {
  				String current = headers[i];
  				if (current != null) {
-@@ -1881,7 +1881,7 @@ int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long
+@@ -1885,7 +1885,7 @@ int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long
  	return 0;
  }
  
@@ -8026,7 +8026,7 @@ index febdb0d..6548acc 100644
  	int length = OS.strlen (text);
  	byte[] bytes = new byte[length];
  	OS.memmove (bytes, text, length);
-@@ -1895,12 +1895,12 @@ int /*long*/ webkit_status_bar_text_changed (int /*long*/ web_view, int /*long*/
+@@ -1899,12 +1899,12 @@ int /*long*/ webkit_status_bar_text_changed (int /*long*/ web_view, int /*long*/
  	return 0;
  }
  
@@ -8041,7 +8041,7 @@ index febdb0d..6548acc 100644
  	int[] result = new int[1];
  	OS.g_object_get (settings, WebKitGTK.locationbar_visible, result, 0);
  	newEvent.addressBar = result[0] != 0;
-@@ -1938,16 +1938,16 @@ int /*long*/ webkit_web_view_ready (int /*long*/ web_view) {
+@@ -1942,16 +1942,16 @@ int /*long*/ webkit_web_view_ready (int /*long*/ web_view) {
  	return 0;
  }
  
@@ -8062,7 +8062,7 @@ index febdb0d..6548acc 100644
  	WebKitGTK.JSObjectSetProperty (context, globalObject, name, externalObject, 0, null);
  	WebKitGTK.JSStringRelease (name);
  	Enumeration elements = functions.elements ();
-@@ -1955,16 +1955,16 @@ int /*long*/ webkit_window_object_cleared (int /*long*/ web_view, int /*long*/ f
+@@ -1959,16 +1959,16 @@ int /*long*/ webkit_window_object_cleared (int /*long*/ web_view, int /*long*/ f
  		BrowserFunction current = (BrowserFunction)elements.nextElement ();
  		execute (current.functionString);
  	}
@@ -8082,7 +8082,7 @@ index febdb0d..6548acc 100644
  		C.memmove (result, arguments, C.PTR_SIZEOF);
  		int type = WebKitGTK.JSValueGetType (ctx, result[0]);
  		if (type == WebKitGTK.kJSTypeNumber) {
-@@ -2004,7 +2004,7 @@ int /*long*/ callJava (int /*long*/ ctx, int /*long*/ func, int /*long*/ thisObj
+@@ -2008,7 +2008,7 @@ int /*long*/ callJava (int /*long*/ ctx, int /*long*/ func, int /*long*/ thisObj
  	return convertToJS (ctx, returnValue);
  }
  
@@ -8091,7 +8091,7 @@ index febdb0d..6548acc 100644
  	if (value == null) {
  		return WebKitGTK.JSValueMakeUndefined (ctx);
  	}
-@@ -2015,8 +2015,8 @@ int /*long*/ convertToJS (int /*long*/ ctx, Object value) {
+@@ -2019,8 +2019,8 @@ int /*long*/ convertToJS (int /*long*/ ctx, Object value) {
  		} catch (UnsupportedEncodingException e) {
  			bytes = Converter.wcsToMbcs (null, (String)value, true);
  		}
@@ -8102,7 +8102,7 @@ index febdb0d..6548acc 100644
  		WebKitGTK.JSStringRelease (stringRef);
  		return result;
  	}
-@@ -2029,10 +2029,10 @@ int /*long*/ convertToJS (int /*long*/ ctx, Object value) {
+@@ -2033,10 +2033,10 @@ int /*long*/ convertToJS (int /*long*/ ctx, Object value) {
  	if (value instanceof Object[]) {
  		Object[] arrayValue = (Object[]) value;
  		int length = arrayValue.length;
@@ -8115,7 +8115,7 @@ index febdb0d..6548acc 100644
  			arguments[i] = jsObject;
  		}
  		return WebKitGTK.JSObjectMakeArray (ctx, length, arguments, null);
-@@ -2041,7 +2041,7 @@ int /*long*/ convertToJS (int /*long*/ ctx, Object value) {
+@@ -2045,7 +2045,7 @@ int /*long*/ convertToJS (int /*long*/ ctx, Object value) {
  	return 0;
  }
  
@@ -8124,7 +8124,7 @@ index febdb0d..6548acc 100644
  	int type = WebKitGTK.JSValueGetType (ctx, value);
  	switch (type) {
  		case WebKitGTK.kJSTypeBoolean: {
-@@ -2053,9 +2053,9 @@ Object convertToJava (int /*long*/ ctx, int /*long*/ value) {
+@@ -2057,9 +2057,9 @@ Object convertToJava (int /*long*/ ctx, int /*long*/ value) {
  			return new Double(result);
  		}
  		case WebKitGTK.kJSTypeString: {
@@ -8136,7 +8136,7 @@ index febdb0d..6548acc 100644
  			byte[] bytes = new byte[(int)/*64*/length];
  			length = WebKitGTK.JSStringGetUTF8CString (string, bytes, length);
  			WebKitGTK.JSStringRelease (string);
-@@ -2076,15 +2076,15 @@ Object convertToJava (int /*long*/ ctx, int /*long*/ value) {
+@@ -2080,15 +2080,15 @@ Object convertToJava (int /*long*/ ctx, int /*long*/ value) {
  			} catch (UnsupportedEncodingException e) {
  				bytes = Converter.wcsToMbcs (null, PROPERTY_LENGTH, true);
  			}
@@ -8156,7 +8156,7 @@ index febdb0d..6548acc 100644
  						result[i] = convertToJava (ctx, current);
  					}
 diff --git a/org/eclipse/swt/browser/WindowCreator2.java b/org/eclipse/swt/browser/WindowCreator2.java
-index 06a7b5c..0f8f226 100644
+index 8882a4f..78c21ab 100644
 --- a/org/eclipse/swt/browser/WindowCreator2.java
 +++ b/org/eclipse/swt/browser/WindowCreator2.java
 @@ -35,24 +35,24 @@ int AddRef () {
@@ -8317,7 +8317,7 @@ index 6620e74..e8baa38 100644
  	OS.memmove(pValue, buffer, buffer.length);
  	transferData.length = buffer.length;
 diff --git a/org/eclipse/swt/dnd/Clipboard.java b/org/eclipse/swt/dnd/Clipboard.java
-index de49fd6..3c86092 100644
+index 541830f..7b3f563 100644
 --- a/org/eclipse/swt/dnd/Clipboard.java
 +++ b/org/eclipse/swt/dnd/Clipboard.java
 @@ -32,14 +32,14 @@ public class Clipboard {
@@ -8470,7 +8470,7 @@ index c03768f..b68c23e 100644
  				return false;
  			}
 diff --git a/org/eclipse/swt/dnd/DragSource.java b/org/eclipse/swt/dnd/DragSource.java
-index b9d52f6..8c248ae 100644
+index 87113a3..f2c713e 100644
 --- a/org/eclipse/swt/dnd/DragSource.java
 +++ b/org/eclipse/swt/dnd/DragSource.java
 @@ -106,7 +106,7 @@ public class DragSource extends Widget {
@@ -8774,7 +8774,7 @@ index 8b0338f..f02ac24 100644
  		length = (int)/*64*/items_written[0];
  		char[] buffer = new char[length];
 diff --git a/org/eclipse/swt/dnd/HTMLTransfer.java b/org/eclipse/swt/dnd/HTMLTransfer.java
-index 52fd526..f76a65f 100644
+index d91873d..70846a1 100644
 --- a/org/eclipse/swt/dnd/HTMLTransfer.java
 +++ b/org/eclipse/swt/dnd/HTMLTransfer.java
 @@ -65,7 +65,7 @@ public void javaToNative (Object object, TransferData transferData){
@@ -8787,7 +8787,7 @@ index 52fd526..f76a65f 100644
  	OS.memmove(pValue, chars, byteCount);
  	transferData.length = byteCount;
 diff --git a/org/eclipse/swt/dnd/ImageTransfer.java b/org/eclipse/swt/dnd/ImageTransfer.java
-index fb8d700..8c2108e 100644
+index ffc92bb..ffa0b07 100644
 --- a/org/eclipse/swt/dnd/ImageTransfer.java
 +++ b/org/eclipse/swt/dnd/ImageTransfer.java
 @@ -89,7 +89,7 @@ public void javaToNative(Object object, TransferData transferData) {
@@ -8838,7 +8838,7 @@ index 74aae33..98284e6 100644
  	OS.memmove(pValue, buffer, buffer.length);
  	transferData.length = buffer.length - 1;
 diff --git a/org/eclipse/swt/dnd/TableDragSourceEffect.java b/org/eclipse/swt/dnd/TableDragSourceEffect.java
-index 2be0bf6..53ee65f 100644
+index fdb6313..0a4b93b 100644
 --- a/org/eclipse/swt/dnd/TableDragSourceEffect.java
 +++ b/org/eclipse/swt/dnd/TableDragSourceEffect.java
 @@ -88,27 +88,27 @@ public class TableDragSourceEffect extends DragSourceEffect {
@@ -8925,7 +8925,7 @@ index dc81136..58710ce 100644
  				int[] temp = new int[1];
  				OS.memmove (temp, indices, 4);
 diff --git a/org/eclipse/swt/dnd/TextTransfer.java b/org/eclipse/swt/dnd/TextTransfer.java
-index 87f1c96..a84f3b7 100644
+index f6de5c5..79a25fe 100644
 --- a/org/eclipse/swt/dnd/TextTransfer.java
 +++ b/org/eclipse/swt/dnd/TextTransfer.java
 @@ -72,9 +72,9 @@ public void javaToNative (Object object, TransferData transferData) {
@@ -8994,7 +8994,7 @@ index dc8fcfb..efd2f55 100644
  	/**
  	 * The result field contains the result of converting a
 diff --git a/org/eclipse/swt/dnd/TreeDragSourceEffect.java b/org/eclipse/swt/dnd/TreeDragSourceEffect.java
-index a62d74e..4c4983a 100644
+index 78e4cd1..09e8fbc 100644
 --- a/org/eclipse/swt/dnd/TreeDragSourceEffect.java
 +++ b/org/eclipse/swt/dnd/TreeDragSourceEffect.java
 @@ -87,27 +87,27 @@ public class TreeDragSourceEffect extends DragSourceEffect {
@@ -9049,7 +9049,7 @@ index a62d74e..4c4983a 100644
  			color.pixel = 0;
  			OS.gdk_gc_set_foreground(gcMask, color);
 diff --git a/org/eclipse/swt/dnd/TreeDropTargetEffect.java b/org/eclipse/swt/dnd/TreeDropTargetEffect.java
-index 77e2a7c..9747c5c 100644
+index c7c5fd0..b48787f 100644
 --- a/org/eclipse/swt/dnd/TreeDropTargetEffect.java
 +++ b/org/eclipse/swt/dnd/TreeDropTargetEffect.java
 @@ -111,7 +111,7 @@ public class TreeDropTargetEffect extends DropTargetEffect {
@@ -9093,7 +9093,7 @@ index 63226b1..7e872fb 100644
  	OS.memmove(pValue, chars, byteCount);
  	transferData.length = byteCount;
 diff --git a/org/eclipse/swt/graphics/Color.java b/org/eclipse/swt/graphics/Color.java
-index d2efb77..3fecb04 100644
+index c544508..c516c86 100644
 --- a/org/eclipse/swt/graphics/Color.java
 +++ b/org/eclipse/swt/graphics/Color.java
 @@ -117,7 +117,7 @@ void destroy() {
@@ -9115,7 +9115,7 @@ index d2efb77..3fecb04 100644
  		/* Allocate black. */
  		gdkColor = new GdkColor();
 diff --git a/org/eclipse/swt/graphics/Cursor.java b/org/eclipse/swt/graphics/Cursor.java
-index 8c4dae4..9ccbf0a 100644
+index f66a8de..6ac6cb7 100644
 --- a/org/eclipse/swt/graphics/Cursor.java
 +++ b/org/eclipse/swt/graphics/Cursor.java
 @@ -54,7 +54,7 @@ public final class Cursor extends Resource {
@@ -9171,7 +9171,7 @@ index 8c4dae4..9ccbf0a 100644
  	cursor.handle = handle;
  	return cursor;
 diff --git a/org/eclipse/swt/graphics/Device.java b/org/eclipse/swt/graphics/Device.java
-index 867cce8..876025f 100644
+index fd2a4ac..403eef4 100644
 --- a/org/eclipse/swt/graphics/Device.java
 +++ b/org/eclipse/swt/graphics/Device.java
 @@ -36,8 +36,8 @@ public abstract class Device implements Drawable {
@@ -9383,7 +9383,7 @@ index 70a7b7d..62a2cba 100644
  	font.handle = handle;
  	return font;
 diff --git a/org/eclipse/swt/graphics/GC.java b/org/eclipse/swt/graphics/GC.java
-index 94c88d6..e7fe020 100644
+index 6c45c0f..497d1dc 100644
 --- a/org/eclipse/swt/graphics/GC.java
 +++ b/org/eclipse/swt/graphics/GC.java
 @@ -69,7 +69,7 @@ public final class GC extends Resource {
@@ -10350,7 +10350,7 @@ index 94c88d6..e7fe020 100644
  		if (OS.GTK_VERSION < OS.VERSION(2, 8, 0)) {
  			//TODO - honor flags
 diff --git a/org/eclipse/swt/graphics/GCData.java b/org/eclipse/swt/graphics/GCData.java
-index b42a96d..bd08eb7 100644
+index 2259ddc..c956db3 100644
 --- a/org/eclipse/swt/graphics/GCData.java
 +++ b/org/eclipse/swt/graphics/GCData.java
 @@ -34,7 +34,7 @@ public final class GCData {
@@ -10381,7 +10381,7 @@ index b42a96d..bd08eb7 100644
  	public boolean disposeCairo;
  	public double[] identity, clippingTransform;
 diff --git a/org/eclipse/swt/graphics/Image.java b/org/eclipse/swt/graphics/Image.java
-index 68d1376..d8051c9 100644
+index 9f7fda7..786cd1c 100644
 --- a/org/eclipse/swt/graphics/Image.java
 +++ b/org/eclipse/swt/graphics/Image.java
 @@ -96,7 +96,7 @@ public final class Image extends Resource implements Drawable {
@@ -10978,7 +10978,7 @@ index a2b8995..2c4cae5 100644
  	OS.gdk_region_destroy(rectRgn);
  }
 diff --git a/org/eclipse/swt/graphics/TextLayout.java b/org/eclipse/swt/graphics/TextLayout.java
-index 5bd4f81..7293ecf 100644
+index c0f4ff3..90f892a 100644
 --- a/org/eclipse/swt/graphics/TextLayout.java
 +++ b/org/eclipse/swt/graphics/TextLayout.java
 @@ -54,7 +54,7 @@ public final class TextLayout extends Resource {
@@ -11576,7 +11576,7 @@ index 779baed..717965f 100644
  	int written = (int)/*64*/items_written [0];
  	byte [] bytes = new byte [written + (terminate ? 1 : 0)];
 diff --git a/org/eclipse/swt/internal/ImageList.java b/org/eclipse/swt/internal/ImageList.java
-index c678e49..3e33fd9 100644
+index 0bb0f4d..644889a 100644
 --- a/org/eclipse/swt/internal/ImageList.java
 +++ b/org/eclipse/swt/internal/ImageList.java
 @@ -17,24 +17,24 @@ import org.eclipse.swt.internal.gtk.*;
@@ -11753,7 +11753,7 @@ index 91f0a09..60a6882 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/Library.java b/org/eclipse/swt/internal/Library.java
-index c7e308c..91d0c70 100644
+index d2c5523..b2b17d6 100644
 --- a/org/eclipse/swt/internal/Library.java
 +++ b/org/eclipse/swt/internal/Library.java
 @@ -42,7 +42,7 @@ public class Library {
@@ -12235,7 +12235,7 @@ index d643afc..c6c4f29 100644
 +public static final native void memmove (AtkAttribute dest, long /*int*/ src, int size);
  }
 diff --git a/org/eclipse/swt/internal/accessibility/gtk/AtkActionIface.java b/org/eclipse/swt/internal/accessibility/gtk/AtkActionIface.java
-index c40efa1..8c99383 100644
+index 58ba164..7c554a3 100644
 --- a/org/eclipse/swt/internal/accessibility/gtk/AtkActionIface.java
 +++ b/org/eclipse/swt/internal/accessibility/gtk/AtkActionIface.java
 @@ -18,17 +18,17 @@ package org.eclipse.swt.internal.accessibility.gtk;
@@ -12372,7 +12372,7 @@ index 44e2331..4366595 100644
 +	public long /*int*/ get_link_index;
  }
 diff --git a/org/eclipse/swt/internal/accessibility/gtk/AtkObjectClass.java b/org/eclipse/swt/internal/accessibility/gtk/AtkObjectClass.java
-index 934e5b2..9aec794 100644
+index 1858a8c..dface51 100644
 --- a/org/eclipse/swt/internal/accessibility/gtk/AtkObjectClass.java
 +++ b/org/eclipse/swt/internal/accessibility/gtk/AtkObjectClass.java
 @@ -17,51 +17,51 @@ package org.eclipse.swt.internal.accessibility.gtk;
@@ -12501,7 +12501,7 @@ index 71052af..08f37eb 100644
 +	public long /*int*/ selection_changed;
  }
 diff --git a/org/eclipse/swt/internal/accessibility/gtk/AtkTableIface.java b/org/eclipse/swt/internal/accessibility/gtk/AtkTableIface.java
-index 2c1d3c8..c9aecf4 100644
+index f03d926..ced58e4 100644
 --- a/org/eclipse/swt/internal/accessibility/gtk/AtkTableIface.java
 +++ b/org/eclipse/swt/internal/accessibility/gtk/AtkTableIface.java
 @@ -17,75 +17,75 @@ package org.eclipse.swt.internal.accessibility.gtk;
@@ -12735,7 +12735,7 @@ index 6b1013b..68ead1b 100644
 +	public long /*int*/ widget;
  }
 diff --git a/org/eclipse/swt/internal/cairo/Cairo.java b/org/eclipse/swt/internal/cairo/Cairo.java
-index 1314128..d11b3e7 100644
+index 8f342be..79a3c48 100644
 --- a/org/eclipse/swt/internal/cairo/Cairo.java
 +++ b/org/eclipse/swt/internal/cairo/Cairo.java
 @@ -101,8 +101,8 @@ public static final native int CAIRO_VERSION_ENCODE(int major, int minor, int mi
@@ -15409,7 +15409,7 @@ index 691a60f..4de85dc 100644
 +	public long /*int*/ screen_changed;
  }
 diff --git a/org/eclipse/swt/internal/gtk/OS.java b/org/eclipse/swt/internal/gtk/OS.java
-index 8827bda..7988d8c 100644
+index ea39bc8..d687398 100644
 --- a/org/eclipse/swt/internal/gtk/OS.java
 +++ b/org/eclipse/swt/internal/gtk/OS.java
 @@ -37,7 +37,7 @@ public class OS extends C {
@@ -29224,7 +29224,7 @@ index b748c34..df24fb9 100644
  	public static final int sizeof = OS.XWindowChanges_sizeof();
  }
 diff --git a/org/eclipse/swt/internal/mozilla/XPCOM.java b/org/eclipse/swt/internal/mozilla/XPCOM.java
-index fd0259f..30f3da8 100644
+index 0a1e970..1b29b85 100644
 --- a/org/eclipse/swt/internal/mozilla/XPCOM.java
 +++ b/org/eclipse/swt/internal/mozilla/XPCOM.java
 @@ -160,7 +160,7 @@ public class XPCOM extends C {
@@ -33405,7 +33405,7 @@ index 9ce7481..c67dd14 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIAuthInformation.java b/org/eclipse/swt/internal/mozilla/nsIAuthInformation.java
-index 74440ef..5941046 100644
+index 41cb4e2..050ac5f 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIAuthInformation.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIAuthInformation.java
 @@ -37,7 +37,7 @@ public class nsIAuthInformation extends nsISupports {
@@ -33489,7 +33489,7 @@ index a1b88d8..f13efea 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIBadCertListener2.java b/org/eclipse/swt/internal/mozilla/nsIBadCertListener2.java
-index cc6b530..0f5f7bc 100644
+index 39c0009..5832140 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIBadCertListener2.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIBadCertListener2.java
 @@ -37,11 +37,11 @@ public class nsIBadCertListener2 extends nsISupports {
@@ -33507,7 +33507,7 @@ index cc6b530..0f5f7bc 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIBaseWindow.java b/org/eclipse/swt/internal/mozilla/nsIBaseWindow.java
-index d589bcc..67404dc 100644
+index 4d62dde..d67711f 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIBaseWindow.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIBaseWindow.java
 @@ -43,11 +43,11 @@ public class nsIBaseWindow extends nsISupports {
@@ -33617,7 +33617,7 @@ index 8417352..5189b63 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsICertOverrideService.java b/org/eclipse/swt/internal/mozilla/nsICertOverrideService.java
-index 29cba45..13ddd2b 100644
+index 6da76cf..fbd2c66 100644
 --- a/org/eclipse/swt/internal/mozilla/nsICertOverrideService.java
 +++ b/org/eclipse/swt/internal/mozilla/nsICertOverrideService.java
 @@ -37,7 +37,7 @@ public class nsICertOverrideService extends nsISupports {
@@ -33664,7 +33664,7 @@ index 29cba45..13ddd2b 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsICertificateDialogs.java b/org/eclipse/swt/internal/mozilla/nsICertificateDialogs.java
-index 6faa4b8..8126264 100644
+index 9838c2d..a6968ce 100644
 --- a/org/eclipse/swt/internal/mozilla/nsICertificateDialogs.java
 +++ b/org/eclipse/swt/internal/mozilla/nsICertificateDialogs.java
 @@ -37,31 +37,31 @@ public class nsICertificateDialogs extends nsISupports {
@@ -33707,7 +33707,7 @@ index 6faa4b8..8126264 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIChannel.java b/org/eclipse/swt/internal/mozilla/nsIChannel.java
-index eff730a..5be03ff 100644
+index 51559cc..9a6517d 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIChannel.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIChannel.java
 @@ -43,55 +43,55 @@ public class nsIChannel extends nsIRequest {
@@ -33809,7 +33809,7 @@ index eff730a..5be03ff 100644
  		return XPCOM.VtblCall(nsIRequest.LAST_METHOD_ID + 19, getAddress(), aContentDispositionHeader);
  	}
 diff --git a/org/eclipse/swt/internal/mozilla/nsIClassInfo.java b/org/eclipse/swt/internal/mozilla/nsIClassInfo.java
-index 0d5515a..94f7dc8 100644
+index 92f9c35..58d68a4 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIClassInfo.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIClassInfo.java
 @@ -37,27 +37,27 @@ public class nsIClassInfo extends nsISupports {
@@ -33856,7 +33856,7 @@ index 0d5515a..94f7dc8 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIComponentManager.java b/org/eclipse/swt/internal/mozilla/nsIComponentManager.java
-index 30c56a1..7182e0d 100644
+index 9da2f35..7140219 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIComponentManager.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIComponentManager.java
 @@ -37,23 +37,23 @@ public class nsIComponentManager extends nsISupports {
@@ -33956,7 +33956,7 @@ index 6ff0cff..ce33351 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIContextMenuListener.java b/org/eclipse/swt/internal/mozilla/nsIContextMenuListener.java
-index 1475e79..35d81cb 100644
+index 8cbac68..3e4d4b9 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIContextMenuListener.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIContextMenuListener.java
 @@ -37,7 +37,7 @@ public class nsIContextMenuListener extends nsISupports {
@@ -33978,7 +33978,7 @@ index 1475e79..35d81cb 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsICookie.java b/org/eclipse/swt/internal/mozilla/nsICookie.java
-index bc86c7d..b3e346d 100644
+index 76a1d64..4469929 100644
 --- a/org/eclipse/swt/internal/mozilla/nsICookie.java
 +++ b/org/eclipse/swt/internal/mozilla/nsICookie.java
 @@ -37,15 +37,15 @@ public class nsICookie extends nsISupports {
@@ -34093,7 +34093,7 @@ index eebe8ab..86407ec 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsICookieService_1_9.java b/org/eclipse/swt/internal/mozilla/nsICookieService_1_9.java
-index 5a5dcb5..bdb96c3 100644
+index afff59f..cc203de 100644
 --- a/org/eclipse/swt/internal/mozilla/nsICookieService_1_9.java
 +++ b/org/eclipse/swt/internal/mozilla/nsICookieService_1_9.java
 @@ -37,23 +37,23 @@ public class nsICookieService_1_9 extends nsISupports {
@@ -34142,7 +34142,7 @@ index 9e2a28b..71987ad 100644
  	boolean result = XPCOM.nsID_Equals (ptr, otherPtr) != 0;
  	XPCOM.nsID_delete (ptr);
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMDocument.java b/org/eclipse/swt/internal/mozilla/nsIDOMDocument.java
-index 6bda020..216b387 100644
+index 36134ce..2ff7477 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMDocument.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMDocument.java
 @@ -43,166 +43,166 @@ public class nsIDOMDocument extends nsIDOMNode {
@@ -34490,7 +34490,7 @@ index 6bda020..216b387 100644
  		return XPCOM.VtblCall(nsIDOMNode.LAST_METHOD_ID + 61, getAddress(), aMozVisibilityState);
  	}
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMElement.java b/org/eclipse/swt/internal/mozilla/nsIDOMElement.java
-index 5748b9d..b1a11fb 100644
+index caaee0b..0d30cbd 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMElement.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMElement.java
 @@ -43,90 +43,90 @@ public class nsIDOMElement extends nsIDOMNode {
@@ -34606,7 +34606,7 @@ index 5748b9d..b1a11fb 100644
  		return XPCOM.VtblCall(nsIDOMNode.LAST_METHOD_ID + 20, getAddress(), cx, aOnmouseleave);
  	}
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMEvent.java b/org/eclipse/swt/internal/mozilla/nsIDOMEvent.java
-index 57c28a7..f161696 100644
+index c38dc7f..a031d61 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMEvent.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMEvent.java
 @@ -43,7 +43,7 @@ public class nsIDOMEvent extends nsISupports {
@@ -34656,7 +34656,7 @@ index 57c28a7..f161696 100644
  	}
  	
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMEventTarget.java b/org/eclipse/swt/internal/mozilla/nsIDOMEventTarget.java
-index 20b2096..ab2c3ec 100644
+index 46543bc..891bfe9 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMEventTarget.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMEventTarget.java
 @@ -43,25 +43,25 @@ public class nsIDOMEventTarget extends nsISupports {
@@ -34691,7 +34691,7 @@ index 20b2096..ab2c3ec 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMKeyEvent.java b/org/eclipse/swt/internal/mozilla/nsIDOMKeyEvent.java
-index 70ee341..771909f 100644
+index 5af9744..dd1cbb4 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMKeyEvent.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMKeyEvent.java
 @@ -43,7 +43,7 @@ public class nsIDOMKeyEvent extends nsIDOMUIEvent {
@@ -34713,7 +34713,7 @@ index 70ee341..771909f 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMMouseEvent.java b/org/eclipse/swt/internal/mozilla/nsIDOMMouseEvent.java
-index 0083edc..f862555 100644
+index e6f100c..e4e99ee 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMMouseEvent.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMMouseEvent.java
 @@ -43,7 +43,7 @@ public class nsIDOMMouseEvent extends nsIDOMUIEvent {
@@ -34749,7 +34749,7 @@ index 0083edc..f862555 100644
  		return XPCOM.VtblCall(nsIDOMUIEvent.LAST_METHOD_ID + 14, getAddress(), typeArg, canBubbleArg, cancelableArg, viewArg, detailArg, screenXArg, screenYArg, clientXArg, clientYArg, ctrlKeyArg, altKeyArg, shiftKeyArg, metaKeyArg, buttonArg, relatedTargetArg, pressure, inputSourceArg);
  	}
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMNode.java b/org/eclipse/swt/internal/mozilla/nsIDOMNode.java
-index 088908b..c67b5bc 100644
+index 9ce83a5..2437ff2 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMNode.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMNode.java
 @@ -43,7 +43,7 @@ public class nsIDOMNode extends nsISupports {
@@ -35008,7 +35008,7 @@ index 3a8ec8b..39b41ed 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMUIEvent.java b/org/eclipse/swt/internal/mozilla/nsIDOMUIEvent.java
-index 403ddf4..825b87f 100644
+index e8b4ca5..2dbb51a 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMUIEvent.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMUIEvent.java
 @@ -43,11 +43,11 @@ public class nsIDOMUIEvent extends nsIDOMEvent {
@@ -35044,7 +35044,7 @@ index 403ddf4..825b87f 100644
  		return XPCOM.VtblCall(nsIDOMEvent.LAST_METHOD_ID + 9, getAddress(), aRangeParent);
  	}
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDOMWindow.java b/org/eclipse/swt/internal/mozilla/nsIDOMWindow.java
-index 10b579a..efa0466 100644
+index 6dd6bf6..e2d80f6 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDOMWindow.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDOMWindow.java
 @@ -43,69 +43,69 @@ public class nsIDOMWindow extends nsISupports {
@@ -35604,7 +35604,7 @@ index 663688a..e250093 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDataType.java b/org/eclipse/swt/internal/mozilla/nsIDataType.java
-index 9093e78..809ea55 100644
+index 1b60b12..518878a 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDataType.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDataType.java
 @@ -37,7 +37,7 @@ public class nsIDataType extends nsISupports {
@@ -35662,7 +35662,7 @@ index 8998396..435d97d 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDirectoryServiceProvider2.java b/org/eclipse/swt/internal/mozilla/nsIDirectoryServiceProvider2.java
-index ad3c5d1..7474263 100644
+index b67059a..a3b68f2 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDirectoryServiceProvider2.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDirectoryServiceProvider2.java
 @@ -37,11 +37,11 @@ public class nsIDirectoryServiceProvider2 extends nsIDirectoryServiceProvider {
@@ -35680,7 +35680,7 @@ index ad3c5d1..7474263 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDocShell.java b/org/eclipse/swt/internal/mozilla/nsIDocShell.java
-index a67056b..ea92362 100644
+index 160bfe3..4c8d7b7 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDocShell.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDocShell.java
 @@ -49,23 +49,23 @@ public class nsIDocShell extends nsISupports {
@@ -35799,7 +35799,7 @@ index a67056b..ea92362 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIDownload.java b/org/eclipse/swt/internal/mozilla/nsIDownload.java
-index 18d308d..9b4856c 100644
+index ba9aaa4..c808c0b 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIDownload.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIDownload.java
 @@ -37,23 +37,23 @@ public class nsIDownload extends nsISupports {
@@ -35931,7 +35931,7 @@ index aeeb024..8105fd7 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIEmbeddingSiteWindow.java b/org/eclipse/swt/internal/mozilla/nsIEmbeddingSiteWindow.java
-index 2a720da..8fcbbd5 100644
+index aaa10c3..a584ac2 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIEmbeddingSiteWindow.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIEmbeddingSiteWindow.java
 @@ -37,7 +37,7 @@ public class nsIEmbeddingSiteWindow extends nsISupports {
@@ -35980,7 +35980,7 @@ index cd83018..3429f56 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIFile.java b/org/eclipse/swt/internal/mozilla/nsIFile.java
-index d8b4cb9..f4f1eca 100644
+index 073380f..455f59b 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIFile.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIFile.java
 @@ -37,18 +37,18 @@ public class nsIFile extends nsISupports {
@@ -36187,7 +36187,7 @@ index 916f834..f74a83c 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIFilePicker_1_8.java b/org/eclipse/swt/internal/mozilla/nsIFilePicker_1_8.java
-index b841fad..2d26548 100644
+index 60bd674..e0cdd2e 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIFilePicker_1_8.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIFilePicker_1_8.java
 @@ -43,7 +43,7 @@ public class nsIFilePicker_1_8 extends nsISupports {
@@ -36272,7 +36272,7 @@ index b841fad..2d26548 100644
  	}
  	
 diff --git a/org/eclipse/swt/internal/mozilla/nsIFocusManager.java b/org/eclipse/swt/internal/mozilla/nsIFocusManager.java
-index ae74cec..c909ca9 100644
+index ac4d73b..c795bd7 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIFocusManager.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIFocusManager.java
 @@ -43,51 +43,51 @@ public class nsIFocusManager extends nsISupports {
@@ -36435,7 +36435,7 @@ index c003eb6..d1f6a36 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog.java b/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog.java
-index b9cd22e..7cc71c7 100644
+index 3162274..cca3b46 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog.java
 @@ -37,19 +37,19 @@ public class nsIHelperAppLauncherDialog extends nsISupports {
@@ -36463,7 +36463,7 @@ index b9cd22e..7cc71c7 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog_1_9.java b/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog_1_9.java
-index 0bd69ea..5669eba 100644
+index aaa8ecd..332abfc 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog_1_9.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIHelperAppLauncherDialog_1_9.java
 @@ -37,7 +37,7 @@ public class nsIHelperAppLauncherDialog_1_9 extends nsISupports {
@@ -36841,7 +36841,7 @@ index 62959ad..15026fe 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIInterfaceRequestor.java b/org/eclipse/swt/internal/mozilla/nsIInterfaceRequestor.java
-index adb2e8d..2f0c02d 100644
+index 5d62a6b..854a782 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIInterfaceRequestor.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIInterfaceRequestor.java
 @@ -37,11 +37,11 @@ public class nsIInterfaceRequestor extends nsISupports {
@@ -36976,7 +36976,7 @@ index 772bec8..b3c75d9 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIMIMEInputStream.java b/org/eclipse/swt/internal/mozilla/nsIMIMEInputStream.java
-index 3c1fd18..ad8344b 100644
+index e4bfd34..a1ce966 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIMIMEInputStream.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIMIMEInputStream.java
 @@ -37,7 +37,7 @@ public class nsIMIMEInputStream extends nsIInputStream {
@@ -37059,7 +37059,7 @@ index 5b3775d..79c03e8 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIPrefBranch.java b/org/eclipse/swt/internal/mozilla/nsIPrefBranch.java
-index eb5f5a6..bd5e576 100644
+index 55f9d83..3761261 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIPrefBranch.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIPrefBranch.java
 @@ -43,7 +43,7 @@ public class nsIPrefBranch extends nsISupports {
@@ -37177,7 +37177,7 @@ index b3fc9fb..76459a0 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIPrincipal.java b/org/eclipse/swt/internal/mozilla/nsIPrincipal.java
-index 2095996..a3f9887 100644
+index 808682b..b3f5760 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIPrincipal.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIPrincipal.java
 @@ -43,7 +43,7 @@ public class nsIPrincipal extends nsISerializable {
@@ -37427,7 +37427,7 @@ index 4ee0129..1a467a0 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIPromptService.java b/org/eclipse/swt/internal/mozilla/nsIPromptService.java
-index 92b3a87..3140a9b 100644
+index 1ce5e55..9cfb774 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIPromptService.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIPromptService.java
 @@ -37,23 +37,23 @@ public class nsIPromptService extends nsISupports {
@@ -37544,7 +37544,7 @@ index 6311098..bd27675 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIRequest.java b/org/eclipse/swt/internal/mozilla/nsIRequest.java
-index 65b548e..f07db88 100644
+index a0689a7..d931f3f 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIRequest.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIRequest.java
 @@ -37,11 +37,11 @@ public class nsIRequest extends nsISupports {
@@ -37590,7 +37590,7 @@ index 65b548e..f07db88 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsISSLStatus.java b/org/eclipse/swt/internal/mozilla/nsISSLStatus.java
-index e10d26f..e577242 100644
+index f366b1c..0a8b3c3 100644
 --- a/org/eclipse/swt/internal/mozilla/nsISSLStatus.java
 +++ b/org/eclipse/swt/internal/mozilla/nsISSLStatus.java
 @@ -43,15 +43,15 @@ public class nsISSLStatus extends nsISupports {
@@ -37768,7 +37768,7 @@ index 74ddd6e..af8d253 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsISerializable.java b/org/eclipse/swt/internal/mozilla/nsISerializable.java
-index 2a7b4c6..69f6aa0 100644
+index 9537c36..25d86c9 100644
 --- a/org/eclipse/swt/internal/mozilla/nsISerializable.java
 +++ b/org/eclipse/swt/internal/mozilla/nsISerializable.java
 @@ -37,15 +37,15 @@ public class nsISerializable extends nsISupports {
@@ -37836,7 +37836,7 @@ index 9f29e75..3a65d38 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsISupports.java b/org/eclipse/swt/internal/mozilla/nsISupports.java
-index 4aaaf81..d7dcedb 100644
+index 2cd9f39..885542a 100644
 --- a/org/eclipse/swt/internal/mozilla/nsISupports.java
 +++ b/org/eclipse/swt/internal/mozilla/nsISupports.java
 @@ -46,17 +46,17 @@ public class nsISupports {
@@ -37862,7 +37862,7 @@ index 4aaaf81..d7dcedb 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsISupportsWeakReference.java b/org/eclipse/swt/internal/mozilla/nsISupportsWeakReference.java
-index 6d17424..80a478d 100644
+index be23ec2..92f390a 100644
 --- a/org/eclipse/swt/internal/mozilla/nsISupportsWeakReference.java
 +++ b/org/eclipse/swt/internal/mozilla/nsISupportsWeakReference.java
 @@ -37,11 +37,11 @@ public class nsISupportsWeakReference extends nsISupports {
@@ -37880,7 +37880,7 @@ index 6d17424..80a478d 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsITooltipListener.java b/org/eclipse/swt/internal/mozilla/nsITooltipListener.java
-index 85a419d..ed8f238 100644
+index 50126a6..c362e6b 100644
 --- a/org/eclipse/swt/internal/mozilla/nsITooltipListener.java
 +++ b/org/eclipse/swt/internal/mozilla/nsITooltipListener.java
 @@ -37,7 +37,7 @@ public class nsITooltipListener extends nsISupports {
@@ -37911,7 +37911,7 @@ index c9f0ba6..454b81f 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIURI.java b/org/eclipse/swt/internal/mozilla/nsIURI.java
-index 98710ab..d1c59b4 100644
+index f6b6a7c..28adbdb 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIURI.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIURI.java
 @@ -43,67 +43,67 @@ public class nsIURI extends nsISupports {
@@ -38152,7 +38152,7 @@ index 9a8dc98..582f637 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIVariant.java b/org/eclipse/swt/internal/mozilla/nsIVariant.java
-index 1d8df8e..e8b219a 100644
+index 29f9bad..07b3525 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIVariant.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIVariant.java
 @@ -43,7 +43,7 @@ public class nsIVariant extends nsISupports {
@@ -38276,7 +38276,7 @@ index 1d8df8e..e8b219a 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWeakReference.java b/org/eclipse/swt/internal/mozilla/nsIWeakReference.java
-index 8a2c302..5241769 100644
+index 8cccddc..7a37dbd 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWeakReference.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWeakReference.java
 @@ -37,11 +37,11 @@ public class nsIWeakReference extends nsISupports {
@@ -38294,7 +38294,7 @@ index 8a2c302..5241769 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebBrowser.java b/org/eclipse/swt/internal/mozilla/nsIWebBrowser.java
-index 41da750..fb2d408 100644
+index ba6c3a5..02c79c1 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebBrowser.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebBrowser.java
 @@ -43,35 +43,35 @@ public class nsIWebBrowser extends nsISupports {
@@ -38342,7 +38342,7 @@ index 41da750..fb2d408 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebBrowserChrome.java b/org/eclipse/swt/internal/mozilla/nsIWebBrowserChrome.java
-index 12c690e..4373f56 100644
+index e97440b..e0e0a14 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebBrowserChrome.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebBrowserChrome.java
 @@ -37,7 +37,7 @@ public class nsIWebBrowserChrome extends nsISupports {
@@ -38369,7 +38369,7 @@ index 12c690e..4373f56 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebBrowserChromeFocus.java b/org/eclipse/swt/internal/mozilla/nsIWebBrowserChromeFocus.java
-index f2c0984..3fd48f5 100644
+index 68136bd..4f85413 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebBrowserChromeFocus.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebBrowserChromeFocus.java
 @@ -37,7 +37,7 @@ public class nsIWebBrowserChromeFocus extends nsISupports {
@@ -38382,7 +38382,7 @@ index f2c0984..3fd48f5 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebBrowserFocus.java b/org/eclipse/swt/internal/mozilla/nsIWebBrowserFocus.java
-index 509c974..1cb160b 100644
+index d128470..ece56a6 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebBrowserFocus.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebBrowserFocus.java
 @@ -37,7 +37,7 @@ public class nsIWebBrowserFocus extends nsISupports {
@@ -38419,7 +38419,7 @@ index 509c974..1cb160b 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebBrowserSetup.java b/org/eclipse/swt/internal/mozilla/nsIWebBrowserSetup.java
-index 1885fac..a144fd7 100644
+index 7ea0bdd..a5cc363 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebBrowserSetup.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebBrowserSetup.java
 @@ -37,7 +37,7 @@ public class nsIWebBrowserSetup extends nsISupports {
@@ -38432,7 +38432,7 @@ index 1885fac..a144fd7 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebBrowserStream.java b/org/eclipse/swt/internal/mozilla/nsIWebBrowserStream.java
-index 4b69ae8..7959c62 100644
+index a6d7c26..87a26e8 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebBrowserStream.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebBrowserStream.java
 @@ -37,15 +37,15 @@ public class nsIWebBrowserStream extends nsISupports {
@@ -38455,7 +38455,7 @@ index 4b69ae8..7959c62 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebNavigation.java b/org/eclipse/swt/internal/mozilla/nsIWebNavigation.java
-index a4540b7..28af5dc 100644
+index 5dc9dda..1ca0612 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebNavigation.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebNavigation.java
 @@ -37,7 +37,7 @@ public class nsIWebNavigation extends nsISupports {
@@ -38506,7 +38506,7 @@ index a4540b7..28af5dc 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebNavigationInfo.java b/org/eclipse/swt/internal/mozilla/nsIWebNavigationInfo.java
-index bf7dc9e..c68fbd8 100644
+index 8b329f5..f1f3efa 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebNavigationInfo.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebNavigationInfo.java
 @@ -37,7 +37,7 @@ public class nsIWebNavigationInfo extends nsISupports {
@@ -38528,7 +38528,7 @@ index bf7dc9e..c68fbd8 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebProgress.java b/org/eclipse/swt/internal/mozilla/nsIWebProgress.java
-index 143ce4f..fecc042 100644
+index ba4addd..8f9c97e 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebProgress.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebProgress.java
 @@ -37,7 +37,7 @@ public class nsIWebProgress extends nsISupports {
@@ -38560,7 +38560,7 @@ index 143ce4f..fecc042 100644
  	}
  
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWebProgressListener.java b/org/eclipse/swt/internal/mozilla/nsIWebProgressListener.java
-index 33fc8ad..d711c2b 100644
+index 7ce497e..902ef3a 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWebProgressListener.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWebProgressListener.java
 @@ -37,7 +37,7 @@ public class nsIWebProgressListener extends nsISupports {
@@ -38620,7 +38620,7 @@ index d27f486..c1fa07e 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWindowCreator.java b/org/eclipse/swt/internal/mozilla/nsIWindowCreator.java
-index ef0896d..945f7e9 100644
+index 01646f5..0db573e 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWindowCreator.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWindowCreator.java
 @@ -37,11 +37,11 @@ public class nsIWindowCreator extends nsISupports {
@@ -38658,7 +38658,7 @@ index 4bfec46..7596227 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIWindowWatcher.java b/org/eclipse/swt/internal/mozilla/nsIWindowWatcher.java
-index 90b46f9..7988074 100644
+index bfb7471..b9a1781 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIWindowWatcher.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIWindowWatcher.java
 @@ -37,51 +37,51 @@ public class nsIWindowWatcher extends nsISupports {
@@ -38796,7 +38796,7 @@ index 76566dd..2ccd628 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIX509Cert.java b/org/eclipse/swt/internal/mozilla/nsIX509Cert.java
-index d49bd56..52bc933 100644
+index 23705a0..430bff1 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIX509Cert.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIX509Cert.java
 @@ -37,87 +37,87 @@ public class nsIX509Cert extends nsISupports {
@@ -38947,7 +38947,7 @@ index d49bd56..52bc933 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIX509CertValidity.java b/org/eclipse/swt/internal/mozilla/nsIX509CertValidity.java
-index 23f5750..e3b4576 100644
+index c14d593..ac5ebd3 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIX509CertValidity.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIX509CertValidity.java
 @@ -37,39 +37,39 @@ public class nsIX509CertValidity extends nsISupports {
@@ -39000,7 +39000,7 @@ index 23f5750..e3b4576 100644
  	}
  }
 diff --git a/org/eclipse/swt/internal/mozilla/nsIXPCSecurityManager.java b/org/eclipse/swt/internal/mozilla/nsIXPCSecurityManager.java
-index 55eab38..b859636 100644
+index c1366d7..b33d74f 100644
 --- a/org/eclipse/swt/internal/mozilla/nsIXPCSecurityManager.java
 +++ b/org/eclipse/swt/internal/mozilla/nsIXPCSecurityManager.java
 @@ -37,7 +37,7 @@ public class nsIXPCSecurityManager extends nsISupports {
@@ -39373,7 +39373,7 @@ index dbf3b0d..7669e9f 100644
  	int focus_line_width = theme.getWidgetProperty(buttonHandle, "focus-line-width");
  	int focus_padding = theme.getWidgetProperty(buttonHandle, "focus-padding");
 diff --git a/org/eclipse/swt/internal/theme/DrawData.java b/org/eclipse/swt/internal/theme/DrawData.java
-index 9f52da3..c9df811 100644
+index 9785073..f51bdc1 100644
 --- a/org/eclipse/swt/internal/theme/DrawData.java
 +++ b/org/eclipse/swt/internal/theme/DrawData.java
 @@ -79,21 +79,21 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
@@ -39548,7 +39548,7 @@ index 00b05e2..b0d7454 100644
  	int x = bounds.x, y = bounds.y, width = bounds.width, height = bounds.height;
  	if ((state[DrawData.WIDGET_WHOLE] & DrawData.SELECTED) == 0) {
 diff --git a/org/eclipse/swt/internal/theme/Theme.java b/org/eclipse/swt/internal/theme/Theme.java
-index 7cca3a9..5adcb0c 100644
+index 1357fb9..22bfcfa 100644
 --- a/org/eclipse/swt/internal/theme/Theme.java
 +++ b/org/eclipse/swt/internal/theme/Theme.java
 @@ -18,7 +18,7 @@ import org.eclipse.swt.internal.gtk.*;
@@ -39684,7 +39684,7 @@ index 67cc405..40754df 100644
  		int interior_focus = theme.getWidgetProperty(buttonHandle, "interior-focus");
  		int focus_line_width = theme.getWidgetProperty(buttonHandle, "focus-line-width");
 diff --git a/org/eclipse/swt/internal/webkit/JSClassDefinition.java b/org/eclipse/swt/internal/webkit/JSClassDefinition.java
-index 1c81599..8b89a82 100644
+index 8c75e69..8158045 100644
 --- a/org/eclipse/swt/internal/webkit/JSClassDefinition.java
 +++ b/org/eclipse/swt/internal/webkit/JSClassDefinition.java
 @@ -19,35 +19,35 @@ public class JSClassDefinition {
@@ -39739,7 +39739,7 @@ index 1c81599..8b89a82 100644
      public static final int sizeof = WebKitGTK.JSClassDefinition_sizeof();
  }
 diff --git a/org/eclipse/swt/internal/webkit/WebKitGTK.java b/org/eclipse/swt/internal/webkit/WebKitGTK.java
-index c648f6d..6767170 100644
+index f40c98d..029041b 100644
 --- a/org/eclipse/swt/internal/webkit/WebKitGTK.java
 +++ b/org/eclipse/swt/internal/webkit/WebKitGTK.java
 @@ -90,8 +90,8 @@ protected static byte [] ascii (String name) {
@@ -41148,7 +41148,7 @@ index a317822..a6f2acd 100644
  	byte [] valueBuffer = new byte [length];
  	OS.memmove (valueBuffer, value, length);
 diff --git a/org/eclipse/swt/printing/Printer.java b/org/eclipse/swt/printing/Printer.java
-index 90c2fef..0b4c432 100644
+index d1b17cf..ed98be0 100644
 --- a/org/eclipse/swt/printing/Printer.java
 +++ b/org/eclipse/swt/printing/Printer.java
 @@ -44,16 +44,16 @@ import org.eclipse.swt.printing.PrinterData;
@@ -41334,7 +41334,7 @@ index 90c2fef..0b4c432 100644
  	if (OS.USE_CAIRO) return;
  	OS.g_object_unref (gc);
 diff --git a/org/eclipse/swt/program/Program.java b/org/eclipse/swt/program/Program.java
-index 3b734dd..da042aa 100644
+index 82f46fd..d42cbe4 100644
 --- a/org/eclipse/swt/program/Program.java
 +++ b/org/eclipse/swt/program/Program.java
 @@ -42,10 +42,10 @@ public final class Program {
@@ -41746,7 +41746,7 @@ index 3b734dd..da042aa 100644
  		result = OS.g_app_info_launch (application, list, 0, 0);
  		if (list != 0) {
 diff --git a/org/eclipse/swt/widgets/Button.java b/org/eclipse/swt/widgets/Button.java
-index 33681fb..54a1daf 100644
+index 77d5d6b..da0b003 100644
 --- a/org/eclipse/swt/widgets/Button.java
 +++ b/org/eclipse/swt/widgets/Button.java
 @@ -45,7 +45,7 @@ import org.eclipse.swt.events.*;
@@ -41876,7 +41876,7 @@ index 33681fb..54a1daf 100644
  		if (text.length () == 0) OS.gtk_widget_hide (labelHandle);
  		OS.gtk_widget_show (imageHandle);
 diff --git a/org/eclipse/swt/widgets/Canvas.java b/org/eclipse/swt/widgets/Canvas.java
-index 1799563..1109f1b 100644
+index 9ebbe8e..f45d843 100644
 --- a/org/eclipse/swt/widgets/Canvas.java
 +++ b/org/eclipse/swt/widgets/Canvas.java
 @@ -144,46 +144,46 @@ public IME getIME () {
@@ -41978,7 +41978,7 @@ index 1799563..1109f1b 100644
  	GdkRectangle rect = new GdkRectangle ();
  	rect.x = caret.x;
 diff --git a/org/eclipse/swt/widgets/Caret.java b/org/eclipse/swt/widgets/Caret.java
-index d78ce6f..29ac4e6 100644
+index 800ef44..2297748 100644
 --- a/org/eclipse/swt/widgets/Caret.java
 +++ b/org/eclipse/swt/widgets/Caret.java
 @@ -97,14 +97,14 @@ void createWidget (int index) {
@@ -42015,7 +42015,7 @@ index d78ce6f..29ac4e6 100644
  	OS.gdk_gc_set_foreground (gc, color);
  	OS.gdk_gc_set_function (gc, OS.GDK_XOR);
 diff --git a/org/eclipse/swt/widgets/ColorDialog.java b/org/eclipse/swt/widgets/ColorDialog.java
-index e602bc9..baca3ab 100644
+index aab3285..dea297d 100644
 --- a/org/eclipse/swt/widgets/ColorDialog.java
 +++ b/org/eclipse/swt/widgets/ColorDialog.java
 @@ -126,19 +126,19 @@ public RGB[] getRGBs() {
@@ -42090,7 +42090,7 @@ index e602bc9..baca3ab 100644
  		if (ptr [0] != 0) {
  			int length = OS.strlen (ptr [0]);
 diff --git a/org/eclipse/swt/widgets/Combo.java b/org/eclipse/swt/widgets/Combo.java
-index e9ee34b..9efcdfc 100644
+index 5adc42c..2058c78 100644
 --- a/org/eclipse/swt/widgets/Combo.java
 +++ b/org/eclipse/swt/widgets/Combo.java
 @@ -57,9 +57,9 @@ import org.eclipse.swt.events.*;
@@ -42285,7 +42285,7 @@ index e9ee34b..9efcdfc 100644
  	return paintWindow ();
  }
  
-@@ -724,7 +724,7 @@ public Point getCaretLocation () {
+@@ -737,7 +737,7 @@ public Point getCaretLocation () {
  	}
  	int [] offset_x = new int [1], offset_y = new int [1];
  	OS.gtk_entry_get_layout_offsets (entryHandle, offset_x, offset_y);
@@ -42294,7 +42294,7 @@ index e9ee34b..9efcdfc 100644
  	PangoRectangle pos = new PangoRectangle ();
  	OS.pango_layout_index_to_pos (layout, index, pos);
  	int x = offset_x [0] + OS.PANGO_PIXELS (pos.x) - getBorderWidth ();
-@@ -737,7 +737,7 @@ public int getCaretPosition () {
+@@ -765,7 +765,7 @@ public int getCaretPosition () {
  	if ((style & SWT.READ_ONLY) != 0) {
  		return 0;
  	}
@@ -42303,7 +42303,7 @@ index e9ee34b..9efcdfc 100644
  	return (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, OS.gtk_editable_get_position (entryHandle));
  }
  
-@@ -898,7 +898,7 @@ public Point getSelection () {
+@@ -926,7 +926,7 @@ public Point getSelection () {
  	int [] end = new int [1];
  	if (entryHandle != 0) {
  		OS.gtk_editable_get_selection_bounds (entryHandle, start, end);
@@ -42312,7 +42312,7 @@ index e9ee34b..9efcdfc 100644
  		start[0] = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start[0]);
  		end[0] = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end[0]);
  	}
-@@ -936,7 +936,7 @@ public int getSelectionIndex () {
+@@ -964,7 +964,7 @@ public int getSelectionIndex () {
  public String getText () {
  	checkWidget();
  	if (entryHandle != 0) {
@@ -42321,7 +42321,7 @@ index e9ee34b..9efcdfc 100644
  		if (str == 0) return "";
  		int length = OS.strlen (str);
  		byte [] buffer = new byte [length];
-@@ -1017,12 +1017,12 @@ public int getVisibleItemCount () {
+@@ -1045,12 +1045,12 @@ public int getVisibleItemCount () {
  	return visibleCount;
  }
  
@@ -42336,7 +42336,7 @@ index e9ee34b..9efcdfc 100644
  	/*
  	* Feature in GTK. Depending on where the user clicks, GTK prevents 
  	* the left mouse button event from being propagated. The fix is to
-@@ -1036,7 +1036,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
+@@ -1064,7 +1064,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
  	return super.gtk_button_press_event (widget, event);
  }
  
@@ -42345,7 +42345,7 @@ index e9ee34b..9efcdfc 100644
  	if (widget == handle) {
  		if (entryHandle == 0) {
  			sendEvent(SWT.Modify);
-@@ -1066,7 +1066,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
+@@ -1094,7 +1094,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
  	* is to post the modify event when the user is typing.
  	*/
  	boolean keyPress = false;
@@ -42354,7 +42354,7 @@ index e9ee34b..9efcdfc 100644
  	if (eventPtr != 0) {
  		GdkEventKey gdkEvent = new GdkEventKey ();
  		OS.memmove (gdkEvent, eventPtr, GdkEventKey.sizeof);
-@@ -1085,7 +1085,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
+@@ -1113,7 +1113,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
  	return 0;
  }
  
@@ -42363,7 +42363,7 @@ index e9ee34b..9efcdfc 100644
  	if (text == 0) return 0;
  	if (!OS.gtk_editable_get_editable (entryHandle)) return 0;
  	int length = OS.strlen (text);
-@@ -1123,9 +1123,9 @@ int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
+@@ -1151,9 +1151,9 @@ int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
  	return 0;
  }
  
@@ -42375,7 +42375,7 @@ index e9ee34b..9efcdfc 100644
  	if (end_pos == -1) end_pos = OS.g_utf8_strlen (ptr, -1);
  	int start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start_pos);
  	int end = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end_pos);
-@@ -1148,7 +1148,7 @@ int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /
+@@ -1176,7 +1176,7 @@ int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /
  	return 0;
  }
  
@@ -42384,7 +42384,7 @@ index e9ee34b..9efcdfc 100644
  	/*
  	* Feature in GTK. Depending on where the user clicks, GTK prevents 
  	* the left mouse button event from being propagated. The fix is to
-@@ -1167,7 +1167,7 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent)  {
+@@ -1195,7 +1195,7 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent)  {
  	switch (event.type) {
  		case OS.GDK_BUTTON_PRESS: {
  			if (OS.GTK_VERSION < OS.VERSION (2, 8, 0) && !selectionAdded) {
@@ -42393,7 +42393,7 @@ index e9ee34b..9efcdfc 100644
  				if (grabHandle != 0) {
  					if (OS.G_OBJECT_TYPE (grabHandle) == OS.GTK_TYPE_MENU ()) {
  						menuHandle = grabHandle;
-@@ -1211,12 +1211,12 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent)  {
+@@ -1239,12 +1239,12 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent)  {
  	return super.gtk_event_after(widget, gdkEvent);
  }
  
@@ -42408,7 +42408,7 @@ index e9ee34b..9efcdfc 100644
  	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;	
  	if (new_text == 0 || new_text_length == 0) return 0;
  	byte [] buffer = new byte [(int)/*64*/new_text_length];
-@@ -1224,7 +1224,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
+@@ -1252,7 +1252,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
  	String oldText = new String (Converter.mbcsToWcs (null, buffer));
  	int [] pos = new int [1];
  	OS.memmove (pos, position, 4);
@@ -42417,7 +42417,7 @@ index e9ee34b..9efcdfc 100644
  	if (pos [0] == -1) pos [0] = (int)/*64*/OS.g_utf8_strlen (ptr, -1);
  	int start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, pos [0]);
  	String newText = verifyText (oldText, start, start);
-@@ -1256,8 +1256,8 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
+@@ -1284,8 +1284,8 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
  	return 0;
  }
  
@@ -42428,7 +42428,7 @@ index e9ee34b..9efcdfc 100644
  	if (result != 0) {
  	    gdkEventKey = 0;
  	    fixIM ();
-@@ -1307,7 +1307,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
+@@ -1335,7 +1335,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
  	return result;
  }
  
@@ -42437,7 +42437,7 @@ index e9ee34b..9efcdfc 100644
  	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
  		OS.gtk_widget_set_direction (menu, OS.GTK_TEXT_DIR_RTL);
  		OS.gtk_container_forall (menu, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);
-@@ -1315,7 +1315,7 @@ int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
+@@ -1343,7 +1343,7 @@ int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
  	return 0;
  }
  
@@ -42446,7 +42446,7 @@ index e9ee34b..9efcdfc 100644
  	int index = OS.gtk_combo_box_get_active (handle);
  	if (indexSelected == -1){
  		indexSelected = index;
-@@ -1382,12 +1382,12 @@ boolean isFocusHandle(int widget) {
+@@ -1410,12 +1410,12 @@ boolean isFocusHandle(int widget) {
  	return super.isFocusHandle (widget);
  }
  
@@ -42463,7 +42463,7 @@ index e9ee34b..9efcdfc 100644
  	if (children != 0) window = OS.g_list_data (children);
  	OS.g_list_free (children);
  	return window;
-@@ -1412,7 +1412,7 @@ public void paste () {
+@@ -1440,7 +1440,7 @@ public void paste () {
  	if (entryHandle != 0) OS.gtk_editable_paste_clipboard (entryHandle);
  }
  
@@ -42472,7 +42472,7 @@ index e9ee34b..9efcdfc 100644
  	return fixedHandle;
  }
  
-@@ -1422,7 +1422,7 @@ void register () {
+@@ -1450,7 +1450,7 @@ void register () {
  	if (entryHandle != 0) display.addWidget (entryHandle, this);
  	if (popupHandle != 0) display.addWidget (popupHandle, this);
  	if (menuHandle != 0) display.addWidget (menuHandle, this);
@@ -42481,7 +42481,7 @@ index e9ee34b..9efcdfc 100644
  	if (imContext != 0) display.addWidget (imContext, this);
  }
  
-@@ -1659,7 +1659,7 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
+@@ -1687,7 +1687,7 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
  	return super.setBounds (x, y, width, newHeight, move, resize);
  }
  
@@ -42490,7 +42490,7 @@ index e9ee34b..9efcdfc 100644
  	super.setFontDescription (font);
  	if (entryHandle != 0) OS.gtk_widget_modify_font (entryHandle, font);
  	OS.g_object_set (textRenderer, OS.font_desc, font, 0);
-@@ -1829,7 +1829,7 @@ public void setSelection (Point selection) {
+@@ -1857,7 +1857,7 @@ public void setSelection (Point selection) {
  	if (selection == null) error (SWT.ERROR_NULL_ARGUMENT);
  	if ((style & SWT.READ_ONLY) != 0) return;
  	if (entryHandle != 0) {
@@ -42499,7 +42499,7 @@ index e9ee34b..9efcdfc 100644
  		int start = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, selection.x);
  		int end = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, selection.y);
  		OS.gtk_editable_set_position (entryHandle, start);
-@@ -1877,7 +1877,7 @@ public void setText (String string) {
+@@ -1905,7 +1905,7 @@ public void setText (String string) {
  	* fix is to block the firing of these events and fire them ourselves in a consistent manner. 
  	*/
  	if (hooks (SWT.Verify) || filters (SWT.Verify)) {
@@ -42508,7 +42508,7 @@ index e9ee34b..9efcdfc 100644
  		string = verifyText (string, 0, (int)/*64*/OS.g_utf16_strlen (ptr, -1));
  		if (string == null) return;
  	}
-@@ -1957,9 +1957,9 @@ boolean translateTraversal (GdkEventKey keyEvent) {
+@@ -1985,9 +1985,9 @@ boolean translateTraversal (GdkEventKey keyEvent) {
  	switch (key) {
  		case OS.GDK_KP_Enter:
  		case OS.GDK_Return: {
@@ -42520,7 +42520,7 @@ index e9ee34b..9efcdfc 100644
  				OS.gtk_im_context_get_preedit_string (imContext, preeditString, null, null);
  				if (preeditString [0] != 0) {
  					int length = OS.strlen (preeditString [0]);
-@@ -1978,7 +1978,7 @@ String verifyText (String string, int start, int end) {
+@@ -2006,7 +2006,7 @@ String verifyText (String string, int start, int end) {
  	event.text = string;
  	event.start = start;
  	event.end = end;
@@ -42530,7 +42530,7 @@ index e9ee34b..9efcdfc 100644
  		GdkEventKey gdkEvent = new GdkEventKey ();
  		OS.memmove (gdkEvent, eventPtr, GdkEventKey.sizeof);
 diff --git a/org/eclipse/swt/widgets/Composite.java b/org/eclipse/swt/widgets/Composite.java
-index 561dfa3..5cf6cb5 100644
+index 81445e9..54a9246 100644
 --- a/org/eclipse/swt/widgets/Composite.java
 +++ b/org/eclipse/swt/widgets/Composite.java
 @@ -47,8 +47,8 @@ import org.eclipse.swt.graphics.*;
@@ -42888,7 +42888,7 @@ index 561dfa3..5cf6cb5 100644
  	Region newClip = new Region (gc.getDevice ());
  	gc.getClipping (oldClip);
 diff --git a/org/eclipse/swt/widgets/Control.java b/org/eclipse/swt/widgets/Control.java
-index 2d8e940..4db9360 100644
+index 7404d61..a387015 100644
 --- a/org/eclipse/swt/widgets/Control.java
 +++ b/org/eclipse/swt/widgets/Control.java
 @@ -44,8 +44,8 @@ import org.eclipse.swt.internal.gtk.*;
@@ -44121,7 +44121,7 @@ index 2d8e940..4db9360 100644
  					int[] dest_x = new int[1], dest_y = new int[1];
  					OS.gtk_widget_translate_coordinates (paintHandle (), control.paintHandle (), 0, 0, dest_x, dest_y);
 diff --git a/org/eclipse/swt/widgets/DateTime.java b/org/eclipse/swt/widgets/DateTime.java
-index 020e8a9..9bce9ee 100644
+index b83a946..d85825c 100644
 --- a/org/eclipse/swt/widgets/DateTime.java
 +++ b/org/eclipse/swt/widgets/DateTime.java
 @@ -435,7 +435,7 @@ void dropDownCalendar(boolean drop) {
@@ -44155,7 +44155,7 @@ index 020e8a9..9bce9ee 100644
  	* Feature in GTK. "month-changed" signal is emitted when the
  	* calendar is displayed though the day/month is not changed.
 diff --git a/org/eclipse/swt/widgets/Decorations.java b/org/eclipse/swt/widgets/Decorations.java
-index 1b13bef..e576f99 100644
+index 70e1d66..aea02d3 100644
 --- a/org/eclipse/swt/widgets/Decorations.java
 +++ b/org/eclipse/swt/widgets/Decorations.java
 @@ -103,7 +103,7 @@ public class Decorations extends Canvas {
@@ -44304,7 +44304,7 @@ index b6979e1..ef9c201 100644
  				if (utf16Ptr != 0) {
  					int clength = (int)/*64*/items_written [0];
 diff --git a/org/eclipse/swt/widgets/Display.java b/org/eclipse/swt/widgets/Display.java
-index 4db8812..936df98 100644
+index 4631d4d..b750020 100644
 --- a/org/eclipse/swt/widgets/Display.java
 +++ b/org/eclipse/swt/widgets/Display.java
 @@ -99,30 +99,30 @@ public class Display extends Device {
@@ -45317,7 +45317,7 @@ index 4db8812..936df98 100644
  	if (widget == null) return 0;
  	return widget.timerProc (handle);
 diff --git a/org/eclipse/swt/widgets/ExpandBar.java b/org/eclipse/swt/widgets/ExpandBar.java
-index ef8661e..cb1d5d2 100644
+index cd9e405..8a99483 100644
 --- a/org/eclipse/swt/widgets/ExpandBar.java
 +++ b/org/eclipse/swt/widgets/ExpandBar.java
 @@ -138,7 +138,7 @@ void createHandle (int index) {
@@ -45400,7 +45400,7 @@ index ef8661e..cb1d5d2 100644
  		OS.gtk_widget_size_request (vHandle, requisition);
  		width -= requisition.width;
 diff --git a/org/eclipse/swt/widgets/ExpandItem.java b/org/eclipse/swt/widgets/ExpandItem.java
-index f1c27e4..4c25e20 100644
+index 5bd8366..5497665 100644
 --- a/org/eclipse/swt/widgets/ExpandItem.java
 +++ b/org/eclipse/swt/widgets/ExpandItem.java
 @@ -39,7 +39,7 @@ public class ExpandItem extends Item {
@@ -45623,10 +45623,10 @@ index 0a0c755..6fc2e15 100644
  				byte [] name = Converter.wcsToMbcs (null, filterNames [i], true);
  				OS.gtk_file_filter_set_name (filter, name);
 diff --git a/org/eclipse/swt/widgets/FontDialog.java b/org/eclipse/swt/widgets/FontDialog.java
-index 3a60997..e0d689b 100644
+index 81e2e1d..905110d 100644
 --- a/org/eclipse/swt/widgets/FontDialog.java
 +++ b/org/eclipse/swt/widgets/FontDialog.java
-@@ -149,28 +149,28 @@ public RGB getRGB () {
+@@ -151,28 +151,28 @@ public RGB getRGB () {
   * </ul>
   */
  public FontData open () {
@@ -45660,7 +45660,7 @@ index 3a60997..e0d689b 100644
  		int length = OS.strlen (fontName);
  		byte [] buffer = new byte [length + 1];
  		OS.memmove (buffer, fontName, length);
-@@ -185,7 +185,7 @@ public FontData open () {
+@@ -187,7 +187,7 @@ public FontData open () {
  		display.setModalDialog (this);
  	}
  	int signalId = 0;
@@ -45669,7 +45669,7 @@ index 3a60997..e0d689b 100644
  	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
  		signalId = OS.g_signal_lookup (OS.map, OS.GTK_TYPE_WIDGET());
  		hookId = OS.g_signal_add_emission_hook (signalId, 0, display.emissionProc, handle, 0);
-@@ -206,12 +206,12 @@ public FontData open () {
+@@ -208,12 +208,12 @@ public FontData open () {
  	}
  	boolean success = response == OS.GTK_RESPONSE_OK; 
  	if (success) {
@@ -45802,7 +45802,7 @@ index 4a4e2c0..11e85a9 100644
  }
  
 diff --git a/org/eclipse/swt/widgets/Label.java b/org/eclipse/swt/widgets/Label.java
-index 9323ae3..eba16a0 100644
+index 3bceccd..ce3c51d 100644
 --- a/org/eclipse/swt/widgets/Label.java
 +++ b/org/eclipse/swt/widgets/Label.java
 @@ -50,7 +50,7 @@ import org.eclipse.swt.graphics.*;
@@ -45877,7 +45877,7 @@ index 9323ae3..eba16a0 100644
  		OS.gtk_widget_hide (labelHandle);
  		OS.gtk_widget_show (imageHandle);
 diff --git a/org/eclipse/swt/widgets/Link.java b/org/eclipse/swt/widgets/Link.java
-index 9d8a7f2..39b470f 100644
+index 8fee01a..87947c3 100644
 --- a/org/eclipse/swt/widgets/Link.java
 +++ b/org/eclipse/swt/widgets/Link.java
 @@ -281,8 +281,8 @@ public String getText () {
@@ -45954,7 +45954,7 @@ index 9d8a7f2..39b470f 100644
  	layout.setFont (Font.gtk_new (display, font));
  }
 diff --git a/org/eclipse/swt/widgets/List.java b/org/eclipse/swt/widgets/List.java
-index a4bc31f..e42d117 100644
+index 9ee8e08..e718b41 100644
 --- a/org/eclipse/swt/widgets/List.java
 +++ b/org/eclipse/swt/widgets/List.java
 @@ -40,7 +40,7 @@ import org.eclipse.swt.events.*;
@@ -46458,7 +46458,7 @@ index a4bc31f..e42d117 100644
  	* This code intentionally commented.
  	* Bug in GTK.  According to the documentation, gtk_tree_view_scroll_to_cell
 diff --git a/org/eclipse/swt/widgets/Menu.java b/org/eclipse/swt/widgets/Menu.java
-index 0f072e2..e3da104 100644
+index 8bd1039..e80c7b6 100644
 --- a/org/eclipse/swt/widgets/Menu.java
 +++ b/org/eclipse/swt/widgets/Menu.java
 @@ -43,7 +43,7 @@ public class Menu extends Widget {
@@ -46628,7 +46628,7 @@ index 0f072e2..e3da104 100644
  		if (selectedItem.hooks (SWT.Help)) {
  			selectedItem.postEvent (SWT.Help);
 diff --git a/org/eclipse/swt/widgets/MenuItem.java b/org/eclipse/swt/widgets/MenuItem.java
-index dae7f61..4bb679f 100644
+index 69f6ae0..51aac2b 100644
 --- a/org/eclipse/swt/widgets/MenuItem.java
 +++ b/org/eclipse/swt/widgets/MenuItem.java
 @@ -38,7 +38,7 @@ import org.eclipse.swt.events.*;
@@ -46807,7 +46807,7 @@ index dae7f61..4bb679f 100644
  			OS.gtk_widget_add_accelerator (handle, OS.activate, accelGroup, keysym, mask, OS.GTK_ACCEL_VISIBLE);
  		} else {
 diff --git a/org/eclipse/swt/widgets/MessageBox.java b/org/eclipse/swt/widgets/MessageBox.java
-index e201230..264c60f 100644
+index fbb0e8f..3d3aeee 100644
 --- a/org/eclipse/swt/widgets/MessageBox.java
 +++ b/org/eclipse/swt/widgets/MessageBox.java
 @@ -41,7 +41,7 @@ import org.eclipse.swt.internal.gtk.*;
@@ -46869,7 +46869,7 @@ index f22948a..1ea2c09 100644
  	int clientX, clientY, clientWidth, clientHeight;
  	
 diff --git a/org/eclipse/swt/widgets/ProgressBar.java b/org/eclipse/swt/widgets/ProgressBar.java
-index 811cecd..4a59edf 100644
+index ad416a4..d550a17 100644
 --- a/org/eclipse/swt/widgets/ProgressBar.java
 +++ b/org/eclipse/swt/widgets/ProgressBar.java
 @@ -161,8 +161,8 @@ public int getState () {
@@ -46883,7 +46883,7 @@ index 811cecd..4a59edf 100644
  	if (result != 0) return result;
  	/*
  	* Bug in GTK.  When a progress bar has been unrealized after being
-@@ -271,7 +271,7 @@ public void setState (int state) {
+@@ -275,7 +275,7 @@ public void setState (int state) {
  	//NOT IMPLEMENTED
  }
  
@@ -46892,7 +46892,7 @@ index 811cecd..4a59edf 100644
  	if (isVisible ()) OS.gtk_progress_bar_pulse (handle);
  	return 1;
  }
-@@ -294,7 +294,7 @@ void updateBar (int selection, int minimum, int maximum) {
+@@ -298,7 +298,7 @@ void updateBar (int selection, int minimum, int maximum) {
  	* but unexpected.  The fix is to force all
  	* outstanding redraws to be delivered.
  	*/
@@ -46902,7 +46902,7 @@ index 811cecd..4a59edf 100644
  	OS.gdk_flush ();
  }
 diff --git a/org/eclipse/swt/widgets/Sash.java b/org/eclipse/swt/widgets/Sash.java
-index 693b041..ac9d100 100644
+index 34f8213..25a22a4 100644
 --- a/org/eclipse/swt/widgets/Sash.java
 +++ b/org/eclipse/swt/widgets/Sash.java
 @@ -40,7 +40,7 @@ import org.eclipse.swt.events.*;
@@ -47026,7 +47026,7 @@ index 693b041..ac9d100 100644
  }
  
 diff --git a/org/eclipse/swt/widgets/Scale.java b/org/eclipse/swt/widgets/Scale.java
-index c29f7c5..3a499d4 100644
+index 55e9f89..bca61a0 100644
 --- a/org/eclipse/swt/widgets/Scale.java
 +++ b/org/eclipse/swt/widgets/Scale.java
 @@ -126,7 +126,7 @@ void createHandle (int index) {
@@ -47091,7 +47091,7 @@ index c29f7c5..3a499d4 100644
  	return 0;
  }
 diff --git a/org/eclipse/swt/widgets/ScrollBar.java b/org/eclipse/swt/widgets/ScrollBar.java
-index 1e65c1b..5692246 100644
+index 77cc837..65f44da 100644
 --- a/org/eclipse/swt/widgets/ScrollBar.java
 +++ b/org/eclipse/swt/widgets/ScrollBar.java
 @@ -84,7 +84,7 @@ import org.eclipse.swt.events.*;
@@ -47165,7 +47165,7 @@ index 1e65c1b..5692246 100644
  	OS.memmove (gtkEvent, gdkEvent, GdkEvent.sizeof);
  	switch (gtkEvent.type) {
 diff --git a/org/eclipse/swt/widgets/Scrollable.java b/org/eclipse/swt/widgets/Scrollable.java
-index 5eaf82f..7db8f17 100644
+index 6d20f58..b984889 100644
 --- a/org/eclipse/swt/widgets/Scrollable.java
 +++ b/org/eclipse/swt/widgets/Scrollable.java
 @@ -33,7 +33,7 @@ import org.eclipse.swt.graphics.*;
@@ -47255,7 +47255,7 @@ index 5eaf82f..7db8f17 100644
  	GtkRequisition requisition = new GtkRequisition();
  	OS.gtk_widget_size_request (vBarHandle, requisition);
 diff --git a/org/eclipse/swt/widgets/Shell.java b/org/eclipse/swt/widgets/Shell.java
-index a5dc684..ceb09be 100644
+index deed81c..6da1e86 100644
 --- a/org/eclipse/swt/widgets/Shell.java
 +++ b/org/eclipse/swt/widgets/Shell.java
 @@ -118,7 +118,7 @@ import org.eclipse.swt.events.*;
@@ -47892,7 +47892,7 @@ index 8b20f25..5b3b4f0 100644
  	OS.memmove (adjustment, hAdjustment);
  	adjustment.value = Math.min (Math.max (selection, minimum), maximum - thumb);
 diff --git a/org/eclipse/swt/widgets/Spinner.java b/org/eclipse/swt/widgets/Spinner.java
-index 87b57f3..11b0a14 100644
+index 2fecb00..44b3d86 100644
 --- a/org/eclipse/swt/widgets/Spinner.java
 +++ b/org/eclipse/swt/widgets/Spinner.java
 @@ -45,7 +45,7 @@ import org.eclipse.swt.events.*;
@@ -48312,7 +48312,7 @@ index 87b57f3..11b0a14 100644
  		OS.memmove (adjustment, hAdjustment);
  		if (adjustment.lower < 0 && string.charAt (0) == '-') index++;
 diff --git a/org/eclipse/swt/widgets/TabFolder.java b/org/eclipse/swt/widgets/TabFolder.java
-index 7302454..1071f4c 100644
+index 3dc637f..cfad258 100644
 --- a/org/eclipse/swt/widgets/TabFolder.java
 +++ b/org/eclipse/swt/widgets/TabFolder.java
 @@ -101,8 +101,8 @@ protected void checkSubclass () {
@@ -48524,7 +48524,7 @@ index 59aea1b..07d7570 100644
  		OS.gtk_widget_show (imageHandle);
  	} else {
 diff --git a/org/eclipse/swt/widgets/Table.java b/org/eclipse/swt/widgets/Table.java
-index 465fbec..e551b94 100644
+index 158e3c1..156388c 100644
 --- a/org/eclipse/swt/widgets/Table.java
 +++ b/org/eclipse/swt/widgets/Table.java
 @@ -68,9 +68,9 @@ import org.eclipse.swt.events.*;
@@ -49738,7 +49738,7 @@ index e1a78e1..85afb19 100644
  						if (userData[0] == buttonHandle) {
  							OS.gdk_window_lower (child);
 diff --git a/org/eclipse/swt/widgets/TableItem.java b/org/eclipse/swt/widgets/TableItem.java
-index 4217302..adee290 100644
+index 9042ad2..4aa572a 100644
 --- a/org/eclipse/swt/widgets/TableItem.java
 +++ b/org/eclipse/swt/widgets/TableItem.java
 @@ -127,7 +127,7 @@ static Table checkNull (Table control) {
@@ -50028,7 +50028,7 @@ index 4217302..adee290 100644
  			}
  		} 
 diff --git a/org/eclipse/swt/widgets/Text.java b/org/eclipse/swt/widgets/Text.java
-index 75646e9..8f43e11 100644
+index 2e018ab..bee7690 100644
 --- a/org/eclipse/swt/widgets/Text.java
 +++ b/org/eclipse/swt/widgets/Text.java
 @@ -57,9 +57,9 @@ import org.eclipse.swt.events.*;
@@ -50043,7 +50043,7 @@ index 75646e9..8f43e11 100644
  	int fixStart = -1, fixEnd = -1;
  	boolean doubleClick;
  	String message = "";
-@@ -358,7 +358,7 @@ public void append (String string) {
+@@ -392,7 +392,7 @@ public void append (String string) {
  		OS.gtk_text_buffer_get_end_iter (bufferHandle, position);
  		OS.gtk_text_buffer_insert (bufferHandle, position, buffer, buffer.length);
  		OS.gtk_text_buffer_place_cursor (bufferHandle, position);
@@ -50052,7 +50052,7 @@ index 75646e9..8f43e11 100644
  		OS.gtk_text_view_scroll_mark_onscreen (handle, mark);
  	}
  	applySegments ();
-@@ -395,7 +395,7 @@ void applySegments () {
+@@ -429,7 +429,7 @@ void applySegments () {
  				separator [0] = segmentsChars [i];
  			}
  			byte [] buffer = Converter.wcsToMbcs (null, separator, false);
@@ -50061,7 +50061,7 @@ index 75646e9..8f43e11 100644
  			pos [0] = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, pos [0]);
  			OS.gtk_editable_insert_text (handle, buffer, buffer.length, pos);
  		}
-@@ -409,7 +409,7 @@ void applySegments () {
+@@ -443,7 +443,7 @@ void applySegments () {
  		byte [] endIter =  new byte [ITER_SIZEOF];
  		for (int i = 0; i < nSegments; i++) {
  			OS.gtk_text_buffer_get_bounds (bufferHandle, startIter, endIter);
@@ -50070,7 +50070,7 @@ index 75646e9..8f43e11 100644
  			OS.gtk_text_buffer_get_iter_at_offset (bufferHandle, pos, (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, segments[i] + i));
  			OS.g_free (ptr);
  			if (segmentsChars != null && segmentsChars.length > i) {
-@@ -432,7 +432,7 @@ void clearSegments (boolean applyText) {
+@@ -466,7 +466,7 @@ void clearSegments (boolean applyText) {
  		OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, CHANGED);
  		if (applyText) {
  			OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, DELETE_TEXT);
@@ -50079,7 +50079,7 @@ index 75646e9..8f43e11 100644
  			int start, end;
  			for (int i = 0; i < nSegments; i++) {
  				start = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, segments[i]);
-@@ -451,7 +451,7 @@ void clearSegments (boolean applyText) {
+@@ -485,7 +485,7 @@ void clearSegments (boolean applyText) {
  		byte [] startIter =  new byte [ITER_SIZEOF], endIter =  new byte [ITER_SIZEOF];
  		for (int i = 0; i < nSegments; i++) {
  			OS.gtk_text_buffer_get_bounds (bufferHandle, startIter, endIter);
@@ -50088,7 +50088,7 @@ index 75646e9..8f43e11 100644
  			OS.gtk_text_buffer_get_iter_at_offset (bufferHandle, start, (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, segments[i]));
  			OS.gtk_text_buffer_get_iter_at_offset (bufferHandle, end, (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, segments[i] + 1));
  			OS.gtk_text_buffer_delete (bufferHandle, start, end);
-@@ -478,8 +478,8 @@ public void clearSelection () {
+@@ -512,8 +512,8 @@ public void clearSelection () {
  		OS.gtk_editable_select_region (handle, position, position);
  	} else {
  		byte [] position = new byte [ITER_SIZEOF];
@@ -50099,7 +50099,7 @@ index 75646e9..8f43e11 100644
  		OS.gtk_text_buffer_get_iter_at_mark (bufferHandle, position, insertMark);
  		OS.gtk_text_buffer_move_mark (bufferHandle, selectionMark, position);
  		OS.gtk_text_buffer_move_mark (bufferHandle, insertMark, position);
-@@ -493,13 +493,13 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
+@@ -527,13 +527,13 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
  	int[] w = new int [1], h = new int [1];
  	if ((style & SWT.SINGLE) != 0) {
  		OS.gtk_widget_realize (handle);
@@ -50116,7 +50116,7 @@ index 75646e9..8f43e11 100644
  		OS.g_free (text);
  		OS.pango_layout_set_width (layout, wHint * OS.PANGO_SCALE);
  		OS.pango_layout_get_size (layout, w, h);
-@@ -509,7 +509,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
+@@ -543,7 +543,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
  	int height = OS.PANGO_PIXELS (h [0]);
  	if ((style & SWT.SINGLE) != 0 && message.length () > 0) {
  		byte [] buffer = Converter.wcsToMbcs (null, message, true);
@@ -50125,7 +50125,7 @@ index 75646e9..8f43e11 100644
  		OS.pango_layout_get_size (layout, w, h);
  		OS.g_object_unref (layout);
  		width = Math.max (width, OS.PANGO_PIXELS (w [0]));
-@@ -528,7 +528,7 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
+@@ -562,7 +562,7 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
  	int xborder = 0, yborder = 0;
  	if ((style & SWT.SINGLE) != 0) {
  		if ((style & SWT.BORDER) != 0) {
@@ -50134,7 +50134,7 @@ index 75646e9..8f43e11 100644
  			xborder += OS.gtk_style_get_xthickness (style);
  			yborder += OS.gtk_style_get_ythickness (style);
  		}
-@@ -573,7 +573,7 @@ public void copy () {
+@@ -607,7 +607,7 @@ public void copy () {
  	if ((style & SWT.SINGLE) != 0) {
  		OS.gtk_editable_copy_clipboard (handle);
  	} else {
@@ -50143,7 +50143,7 @@ index 75646e9..8f43e11 100644
  		clearSegments (true);
  		OS.gtk_text_buffer_copy_clipboard (bufferHandle, clipboard);
  		applySegments ();
-@@ -597,7 +597,7 @@ public void cut () {
+@@ -631,7 +631,7 @@ public void cut () {
  	if ((style & SWT.SINGLE) != 0) {
  		OS.gtk_editable_cut_clipboard (handle);
  	} else {
@@ -50152,7 +50152,7 @@ index 75646e9..8f43e11 100644
  		clearSegments (true);
  		OS.gtk_text_buffer_cut_clipboard (bufferHandle, clipboard, OS.gtk_text_view_get_editable (handle));
  		applySegments ();
-@@ -636,7 +636,7 @@ char [] deprocessText (char [] text, int start, int end) {
+@@ -670,7 +670,7 @@ char [] deprocessText (char [] text, int start, int end) {
  void deregister () {
  	super.deregister ();
  	if (bufferHandle != 0) display.removeWidget (bufferHandle);
@@ -50161,7 +50161,7 @@ index 75646e9..8f43e11 100644
  	if (imContext != 0) display.removeWidget (imContext);
  }
  
-@@ -664,9 +664,9 @@ boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean
+@@ -698,9 +698,9 @@ boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean
  			if ((style & SWT.SINGLE) != 0) {
  				int [] index = new int [1];
  				int [] trailing = new int [1];
@@ -50173,7 +50173,7 @@ index 75646e9..8f43e11 100644
  				position = (int)/*64*/OS.g_utf8_pointer_to_offset (ptr, ptr + index[0]) + trailing[0];
  			} else {
  				byte [] p = new byte [ITER_SIZEOF];
-@@ -685,15 +685,15 @@ boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean
+@@ -719,15 +719,15 @@ boolean dragDetect (int x, int y, boolean filter, boolean dragOnTimeout, boolean
  	return super.dragDetect (x, y, filter, dragOnTimeout, consume);
  }
  
@@ -50192,7 +50192,7 @@ index 75646e9..8f43e11 100644
  		if (imContext != 0) {
  			return OS.gtk_im_context_filter_keypress (imContext, event);
  		}
-@@ -712,7 +712,7 @@ void fixIM () {
+@@ -746,7 +746,7 @@ void fixIM () {
  	*  filter has to be called by SWT.
  	*/
  	if (gdkEventKey != 0 && gdkEventKey != -1) {
@@ -50201,7 +50201,7 @@ index 75646e9..8f43e11 100644
  		if (imContext != 0) {
  			OS.gtk_im_context_filter_keypress (imContext, gdkEventKey);
  			gdkEventKey = -1;
-@@ -729,7 +729,7 @@ GdkColor getBackgroundColor () {
+@@ -763,7 +763,7 @@ GdkColor getBackgroundColor () {
  public int getBorderWidth () {
  	checkWidget();
  	if ((style & SWT.MULTI) != 0) return super.getBorderWidth ();
@@ -50210,7 +50210,7 @@ index 75646e9..8f43e11 100644
  	if ((this.style & SWT.BORDER) != 0) {
  		 return OS.gtk_style_get_xthickness (style);
  	}
-@@ -753,7 +753,7 @@ public int getCaretLineNumber () {
+@@ -787,7 +787,7 @@ public int getCaretLineNumber () {
  	checkWidget ();
  	if ((style & SWT.SINGLE) != 0) return 0;
  	byte [] position = new byte [ITER_SIZEOF];
@@ -50219,7 +50219,7 @@ index 75646e9..8f43e11 100644
  	OS.gtk_text_buffer_get_iter_at_mark (bufferHandle, position, mark);
  	return OS.gtk_text_iter_get_line (position);
  }
-@@ -781,7 +781,7 @@ public Point getCaretLocation () {
+@@ -812,7 +812,7 @@ public Point getCaretLocation () {
  		}
  		int [] offset_x = new int [1], offset_y = new int [1];
  		OS.gtk_entry_get_layout_offsets (handle, offset_x, offset_y);
@@ -50228,7 +50228,7 @@ index 75646e9..8f43e11 100644
  		PangoRectangle pos = new PangoRectangle ();
  		OS.pango_layout_index_to_pos (layout, index, pos);
  		int x = offset_x [0] + OS.PANGO_PIXELS (pos.x) - getBorderWidth ();
-@@ -789,7 +789,7 @@ public Point getCaretLocation () {
+@@ -820,7 +820,7 @@ public Point getCaretLocation () {
  		return new Point (x, y);
  	}
  	byte [] position = new byte [ITER_SIZEOF];
@@ -50237,7 +50237,7 @@ index 75646e9..8f43e11 100644
  	OS.gtk_text_buffer_get_iter_at_mark (bufferHandle, position, mark);
  	GdkRectangle rect = new GdkRectangle ();
  	OS.gtk_text_view_get_iter_location (handle, position, rect);
-@@ -816,15 +816,15 @@ public int getCaretPosition () {
+@@ -847,15 +847,15 @@ public int getCaretPosition () {
  	checkWidget ();
  	int result;
  	if ((style & SWT.SINGLE) != 0)  {
@@ -50256,7 +50256,7 @@ index 75646e9..8f43e11 100644
  		result = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, OS.gtk_text_iter_get_offset (position));
  		OS.g_free (ptr);
  	}
-@@ -845,13 +845,13 @@ public int getCharCount () {
+@@ -876,13 +876,13 @@ public int getCharCount () {
  	checkWidget ();
  	int result;
  	if ((style & SWT.SINGLE) != 0) {
@@ -50272,7 +50272,7 @@ index 75646e9..8f43e11 100644
  		result = (int)/*64*/OS.g_utf16_strlen(ptr, -1);
  		OS.g_free (ptr);
  	}
-@@ -1020,16 +1020,16 @@ public int getOrientation () {
+@@ -1051,16 +1051,16 @@ public int getOrientation () {
  	if ((style & SWT.SINGLE) != 0) {
  		int [] index = new int [1];
  		int [] trailing = new int [1];
@@ -50292,7 +50292,7 @@ index 75646e9..8f43e11 100644
  		position = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, OS.gtk_text_iter_get_offset (p));
  		OS.g_free (ptr);
  	}
-@@ -1061,7 +1061,7 @@ public Point getSelection () {
+@@ -1092,7 +1092,7 @@ public Point getSelection () {
  		int [] start = new int [1];
  		int [] end = new int [1];
  		OS.gtk_editable_get_selection_bounds (handle, start, end);
@@ -50301,7 +50301,7 @@ index 75646e9..8f43e11 100644
  		start[0] = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start[0]);
  		end[0] = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end[0]);
  		selection = new Point (start [0], end [0]);
-@@ -1071,7 +1071,7 @@ public Point getSelection () {
+@@ -1102,7 +1102,7 @@ public Point getSelection () {
  		OS.gtk_text_buffer_get_selection_bounds (bufferHandle, startIter, endIter);
  		byte [] zero = new byte [ITER_SIZEOF];
  		OS.gtk_text_buffer_get_iter_at_offset(bufferHandle, zero, 0);
@@ -50310,7 +50310,7 @@ index 75646e9..8f43e11 100644
  		int start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, OS.gtk_text_iter_get_offset (startIter));
  		int end = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, OS.gtk_text_iter_get_offset (endIter));
  		OS.g_free (ptr);
-@@ -1136,7 +1136,7 @@ public int getTabs () {
+@@ -1167,7 +1167,7 @@ public int getTabs () {
  
  int getTabWidth (int tabs) {
  	byte[] buffer = Converter.wcsToMbcs(null, " ", true);
@@ -50319,7 +50319,7 @@ index 75646e9..8f43e11 100644
  	int [] width = new int [1];
  	int [] height = new int [1];
  	OS.pango_layout_get_size (layout, width, height);
-@@ -1216,7 +1216,7 @@ public String getText (int start, int end) {
+@@ -1247,7 +1247,7 @@ public String getText (int start, int end) {
   */
  public char [] getTextChars () {
  	checkWidget ();
@@ -50328,7 +50328,7 @@ index 75646e9..8f43e11 100644
  	if ((style & SWT.SINGLE) != 0) {
  		address = OS.gtk_entry_get_text (handle);
  	} else {
-@@ -1314,13 +1314,13 @@ public int getTopPixel () {
+@@ -1345,13 +1345,13 @@ public int getTopPixel () {
  	return lineTop [0];
  }
  
@@ -50345,7 +50345,7 @@ index 75646e9..8f43e11 100644
  	if (result != 0) return result;
  	GdkEventButton gdkEvent = new GdkEventButton ();
  	OS.memmove (gdkEvent, event, GdkEventButton.sizeof);
-@@ -1335,7 +1335,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
+@@ -1366,7 +1366,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
  }
  
  
@@ -50354,7 +50354,7 @@ index 75646e9..8f43e11 100644
  	/*
  	* Feature in GTK.  When the user types, GTK positions
  	* the caret after sending the changed signal.  This
-@@ -1344,7 +1344,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
+@@ -1375,7 +1375,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
  	* is to post the modify event when the user is typing.
  	*/
  	boolean keyPress = false;
@@ -50363,7 +50363,7 @@ index 75646e9..8f43e11 100644
  	if (eventPtr != 0) {
  		GdkEventKey gdkEvent = new GdkEventKey ();
  		OS.memmove (gdkEvent, eventPtr, GdkEventKey.sizeof);
-@@ -1362,14 +1362,14 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
+@@ -1393,14 +1393,14 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
  	}
  	if ((style & SWT.SEARCH) != 0) {
  		if ((style & SWT.ICON_CANCEL) != 0) {
@@ -50380,7 +50380,7 @@ index 75646e9..8f43e11 100644
  	if (text == 0) return 0;
  	if ((style & SWT.SINGLE) != 0) {
  		if (!OS.gtk_editable_get_editable (handle)) return 0;
-@@ -1411,7 +1411,7 @@ int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
+@@ -1442,7 +1442,7 @@ int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
  	return 0;
  }
  
@@ -50389,7 +50389,7 @@ index 75646e9..8f43e11 100644
  	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
  	byte [] startIter = new byte [ITER_SIZEOF];
  	byte [] endIter = new byte [ITER_SIZEOF];
-@@ -1421,7 +1421,7 @@ int /*long*/ gtk_delete_range (int /*long*/ widget, int /*long*/ iter1, int /*lo
+@@ -1452,7 +1452,7 @@ int /*long*/ gtk_delete_range (int /*long*/ widget, int /*long*/ iter1, int /*lo
  	int end = OS.gtk_text_iter_get_offset (endIter);
  	byte [] zero = new byte [ITER_SIZEOF];
  	OS.gtk_text_buffer_get_iter_at_offset(bufferHandle, zero, 0);
@@ -50398,7 +50398,7 @@ index 75646e9..8f43e11 100644
  	start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start);
  	end = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end);
  	OS.g_free (ptr);
-@@ -1453,9 +1453,9 @@ int /*long*/ gtk_delete_range (int /*long*/ widget, int /*long*/ iter1, int /*lo
+@@ -1484,9 +1484,9 @@ int /*long*/ gtk_delete_range (int /*long*/ widget, int /*long*/ iter1, int /*lo
  	return 0;
  }
  
@@ -50410,7 +50410,7 @@ index 75646e9..8f43e11 100644
  	if (end_pos == -1) end_pos = OS.g_utf8_strlen (ptr, -1);
  	int start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start_pos);
  	int end = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end_pos);
-@@ -1485,7 +1485,7 @@ int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /
+@@ -1516,7 +1516,7 @@ int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /
  	return 0;
  }
  
@@ -50419,7 +50419,7 @@ index 75646e9..8f43e11 100644
  	if (cursor != null) setCursor (cursor.handle);
  	/*
  	* Feature in GTK.  The gtk-entry-select-on-focus property is a global
-@@ -1501,7 +1501,7 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
+@@ -1532,7 +1532,7 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
  				GdkEventFocus gdkEventFocus = new GdkEventFocus ();
  				OS.memmove (gdkEventFocus, gdkEvent, GdkEventFocus.sizeof);
  				if (gdkEventFocus.in == 0) {
@@ -50428,7 +50428,7 @@ index 75646e9..8f43e11 100644
  					OS.g_object_set (settings, OS.gtk_entry_select_on_focus, true, 0);
  				}
  				break;
-@@ -1510,29 +1510,29 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
+@@ -1541,29 +1541,29 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
  	return super.gtk_event_after (widget, gdkEvent);
  }
  
@@ -50467,7 +50467,7 @@ index 75646e9..8f43e11 100644
  			PangoRectangle rect = new PangoRectangle ();
  			OS.pango_layout_line_get_extents (line, null, rect);
  			rect.y = OS.PANGO_PIXELS (rect.y);
-@@ -1555,19 +1555,19 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
+@@ -1586,19 +1586,19 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
  				case SWT.CENTER: x = (width - rect.width) / 2; break;
  				case SWT.RIGHT: x = rtl ? innerBorder.left : width - rect.width; break;
  			}
@@ -50490,7 +50490,7 @@ index 75646e9..8f43e11 100644
  				OS.gdk_draw_layout_with_colors (window, gc, x, y, layout, textColor, baseColor);
  				OS.g_object_unref (gc);
  			}
-@@ -1577,13 +1577,13 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
+@@ -1608,13 +1608,13 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
  	return result;
  }
  
@@ -50507,7 +50507,7 @@ index 75646e9..8f43e11 100644
  	/*
  	* Feature in GTK.  GtkEntry widgets select their text on focus in,
  	* clearing the previous selection.  This behavior is controlled by
-@@ -1592,13 +1592,13 @@ int /*long*/ gtk_grab_focus (int /*long*/ widget) {
+@@ -1623,13 +1623,13 @@ int /*long*/ gtk_grab_focus (int /*long*/ widget) {
  	* the entry has done focus in processing.
  	*/
  	if ((style & SWT.SINGLE) != 0 && display.entrySelectOnFocus) {
@@ -50523,7 +50523,7 @@ index 75646e9..8f43e11 100644
  	Event e = new Event();
  	if (icon_pos == OS.GTK_ENTRY_ICON_PRIMARY) {
  		e.detail = SWT.ICON_SEARCH;
-@@ -1610,7 +1610,7 @@ int /*long*/ gtk_icon_release (int /*long*/ widget, int /*long*/ icon_pos, int /
+@@ -1641,7 +1641,7 @@ int /*long*/ gtk_icon_release (int /*long*/ widget, int /*long*/ icon_pos, int /
  	return 0;
  }
  
@@ -50532,7 +50532,7 @@ index 75646e9..8f43e11 100644
  	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
  	if (new_text == 0 || new_text_length == 0) return 0;
  	byte [] buffer = new byte [(int)/*64*/new_text_length];
-@@ -1618,7 +1618,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
+@@ -1649,7 +1649,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
  	String oldText = new String (Converter.mbcsToWcs (null, buffer));
  	int [] pos = new int [1];
  	OS.memmove (pos, position, 4);
@@ -50541,7 +50541,7 @@ index 75646e9..8f43e11 100644
  	if (pos [0] == -1) pos [0] = (int)/*64*/OS.g_utf8_strlen (ptr, -1);
  	/* Use the selection when the text was deleted */
  	int start = pos [0], end = pos [0];
-@@ -1658,7 +1658,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
+@@ -1689,7 +1689,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
  	return 0;
  }
  
@@ -50550,7 +50550,7 @@ index 75646e9..8f43e11 100644
  	boolean handleSegments = false, segmentsCleared = false;
  	if (hooks (SWT.Segments) || filters (SWT.Segments)) {
  		GdkEventKey gdkEvent = new GdkEventKey ();
-@@ -1671,7 +1671,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
+@@ -1702,7 +1702,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
  			}
  		}
  	}
@@ -50559,7 +50559,7 @@ index 75646e9..8f43e11 100644
  	if (result != 0) fixIM ();
  	if (gdkEventKey == -1) result = 1;
  	gdkEventKey = 0;
-@@ -1681,7 +1681,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
+@@ -1712,7 +1712,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
  	return result;
  }
  
@@ -50568,7 +50568,7 @@ index 75646e9..8f43e11 100644
  	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
  		OS.gtk_widget_set_direction (menu, OS.GTK_TEXT_DIR_RTL);
  		OS.gtk_container_forall (menu, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);
-@@ -1689,7 +1689,7 @@ int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
+@@ -1720,7 +1720,7 @@ int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
  	return 0;
  }
  
@@ -50577,7 +50577,7 @@ index 75646e9..8f43e11 100644
  	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
  	byte [] position = new byte [ITER_SIZEOF];
  	OS.memmove (position, iter, position.length);
-@@ -1702,7 +1702,7 @@ int /*long*/ gtk_text_buffer_insert_text (int /*long*/ widget, int /*long*/ iter
+@@ -1733,7 +1733,7 @@ int /*long*/ gtk_text_buffer_insert_text (int /*long*/ widget, int /*long*/ iter
  	}
  	byte [] zero = new byte [ITER_SIZEOF];
  	OS.gtk_text_buffer_get_iter_at_offset(bufferHandle, zero, 0);
@@ -50586,7 +50586,7 @@ index 75646e9..8f43e11 100644
  	start = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, start);
  	end = (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, end);
  	OS.g_free(ptr);
-@@ -1742,7 +1742,7 @@ void hookEvents () {
+@@ -1773,7 +1773,7 @@ void hookEvents () {
  		OS.g_signal_connect_closure (bufferHandle, OS.delete_range, display.closures [DELETE_RANGE], false);
  		OS.g_signal_connect_closure (handle, OS.populate_popup, display.closures [POPULATE_POPUP], false);
  	}
@@ -50595,7 +50595,7 @@ index 75646e9..8f43e11 100644
  	if (imContext != 0) {
  		OS.g_signal_connect_closure (imContext, OS.commit, display.closures [COMMIT], false);
  		int id = OS.g_signal_lookup (OS.commit, OS.gtk_im_context_get_type ());
-@@ -1764,7 +1764,7 @@ void hookEvents () {
+@@ -1795,7 +1795,7 @@ void hookEvents () {
  	OS.g_signal_connect_closure (handle, OS.direction_changed, display.closures [DIRECTION_CHANGED], true);
  }
  
@@ -50604,7 +50604,7 @@ index 75646e9..8f43e11 100644
  	if ((style & SWT.SINGLE) != 0) {
  		return OS.gtk_editable_get_editable (handle) ? OS.GTK_ENTRY_IM_CONTEXT (handle) : 0;
  	} 
-@@ -1806,16 +1806,16 @@ public void insert (String string) {
+@@ -1837,16 +1837,16 @@ public void insert (String string) {
  		}
  		OS.gtk_text_buffer_insert (bufferHandle, start, buffer, buffer.length);
  		OS.gtk_text_buffer_place_cursor (bufferHandle, start);
@@ -50625,7 +50625,7 @@ index 75646e9..8f43e11 100644
  		if (children != 0) {
  			/*
  			* When search or cancel icons are added to Text, those
-@@ -1851,7 +1851,7 @@ public void paste () {
+@@ -1882,7 +1882,7 @@ public void paste () {
  	if ((style & SWT.SINGLE) != 0) {
  		OS.gtk_editable_paste_clipboard (handle);
  	} else {
@@ -50634,7 +50634,7 @@ index 75646e9..8f43e11 100644
  		clearSegments (true);
  		OS.gtk_text_buffer_paste_clipboard (bufferHandle, clipboard, null, OS.gtk_text_view_get_editable (handle));
  		applySegments ();
-@@ -1861,7 +1861,7 @@ public void paste () {
+@@ -1892,7 +1892,7 @@ public void paste () {
  void register () {
  	super.register ();
  	if (bufferHandle != 0) display.addWidget (bufferHandle, this);
@@ -50643,7 +50643,7 @@ index 75646e9..8f43e11 100644
  	if (imContext != 0) display.addWidget (imContext, this);
  }
  
-@@ -1876,7 +1876,7 @@ void releaseWidget () {
+@@ -1907,7 +1907,7 @@ void releaseWidget () {
  		* it around until ownership of the clipboard is lost.
  		*/
  		if ((style & SWT.MULTI) != 0) {
@@ -50652,7 +50652,7 @@ index 75646e9..8f43e11 100644
  			OS.gtk_text_buffer_paste_clipboard (bufferHandle, clipboard, null, OS.gtk_text_view_get_editable (handle));
  		}
  	}
-@@ -1979,8 +1979,8 @@ public void selectAll () {
+@@ -2034,8 +2034,8 @@ public void selectAll () {
  		byte [] end =  new byte [ITER_SIZEOF];
  		OS.gtk_text_buffer_get_iter_at_offset (bufferHandle, start, 0);
  		OS.gtk_text_buffer_get_end_iter (bufferHandle, end);
@@ -50663,7 +50663,7 @@ index 75646e9..8f43e11 100644
  		OS.gtk_text_buffer_move_mark (bufferHandle, selectionMark, start);
  		OS.gtk_text_buffer_move_mark (bufferHandle, insertMark, end);
  	}
-@@ -1991,8 +1991,8 @@ void setBackgroundColor (GdkColor color) {
+@@ -2046,8 +2046,8 @@ void setBackgroundColor (GdkColor color) {
  	OS.gtk_widget_modify_base (handle, 0, color);
  }
  
@@ -50674,7 +50674,7 @@ index 75646e9..8f43e11 100644
  	if (cursor == 0) defaultCursor = OS.gdk_cursor_new (OS.GDK_XTERM);
  	super.setCursor (cursor != 0 ? cursor : defaultCursor);
  	if (cursor == 0) OS.gdk_cursor_unref (defaultCursor);
-@@ -2071,7 +2071,7 @@ public void setEditable (boolean editable) {
+@@ -2126,7 +2126,7 @@ public void setEditable (boolean editable) {
  	}
  }
  
@@ -50683,7 +50683,7 @@ index 75646e9..8f43e11 100644
  	super.setFontDescription (font);
  	setTabStops (tabs);
  }
-@@ -2150,19 +2150,19 @@ public void setSelection (int start) {
+@@ -2205,19 +2205,19 @@ public void setSelection (int start) {
  	checkWidget ();
  	start = translateOffset (start);
  	if ((style & SWT.SINGLE) != 0) {
@@ -50706,7 +50706,7 @@ index 75646e9..8f43e11 100644
  		OS.gtk_text_view_scroll_mark_onscreen (handle, mark);
  	}
  }
-@@ -2197,7 +2197,7 @@ public void setSelection (int start, int end) {
+@@ -2252,7 +2252,7 @@ public void setSelection (int start, int end) {
  	start = translateOffset (start);
  	end = translateOffset (end);
  	if ((style & SWT.SINGLE) != 0) {
@@ -50715,7 +50715,7 @@ index 75646e9..8f43e11 100644
  		start = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, start);
  		end = (int)/*64*/OS.g_utf16_offset_to_utf8_offset (ptr, end);
  		OS.gtk_editable_set_position (handle, start);
-@@ -2206,14 +2206,14 @@ public void setSelection (int start, int end) {
+@@ -2261,14 +2261,14 @@ public void setSelection (int start, int end) {
  		byte [] startIter =  new byte [ITER_SIZEOF];
  		byte [] endIter =  new byte [ITER_SIZEOF];
  		OS.gtk_text_buffer_get_bounds (bufferHandle, startIter, endIter);
@@ -50733,7 +50733,7 @@ index 75646e9..8f43e11 100644
  		OS.gtk_text_buffer_move_mark (bufferHandle, selectionMark, startIter);
  		OS.gtk_text_buffer_move_mark (bufferHandle, insertMark, endIter);
  	}
-@@ -2279,7 +2279,7 @@ public void setTabs (int tabs) {
+@@ -2334,7 +2334,7 @@ public void setTabs (int tabs) {
  void setTabStops (int tabs) {
  	if ((style & SWT.SINGLE) != 0) return;
  	int tabWidth = getTabWidth (tabs);
@@ -50742,7 +50742,7 @@ index 75646e9..8f43e11 100644
  	OS.pango_tab_array_set_tab (tabArray, 0, OS.PANGO_TAB_LEFT, tabWidth);
  	OS.gtk_text_view_set_tabs (handle, tabArray);
  	OS.pango_tab_array_free (tabArray);
-@@ -2376,7 +2376,7 @@ void setText (char [] text) {
+@@ -2431,7 +2431,7 @@ void setText (char [] text) {
  		OS.g_signal_handlers_unblock_matched (bufferHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, TEXT_BUFFER_INSERT_TEXT);
  		OS.gtk_text_buffer_get_iter_at_offset (bufferHandle, position, 0);
  		OS.gtk_text_buffer_place_cursor (bufferHandle, position);
@@ -50751,7 +50751,7 @@ index 75646e9..8f43e11 100644
  		OS.gtk_text_view_scroll_mark_onscreen (handle, mark);
  	}
  	sendEvent (SWT.Modify);
-@@ -2456,7 +2456,7 @@ public void setTopIndex (int index) {
+@@ -2511,7 +2511,7 @@ public void setTopIndex (int index) {
  public void showSelection () {
  	checkWidget ();
  	if ((style & SWT.SINGLE) != 0) return;
@@ -50760,7 +50760,7 @@ index 75646e9..8f43e11 100644
  	OS.gtk_text_view_scroll_mark_onscreen (handle, mark);
  	mark = OS.gtk_text_buffer_get_insert (bufferHandle);
  	OS.gtk_text_view_scroll_mark_onscreen (handle, mark);
-@@ -2475,9 +2475,9 @@ boolean translateTraversal (GdkEventKey keyEvent) {
+@@ -2530,9 +2530,9 @@ boolean translateTraversal (GdkEventKey keyEvent) {
  	switch (key) {
  		case OS.GDK_KP_Enter:
  		case OS.GDK_Return: {
@@ -50772,7 +50772,7 @@ index 75646e9..8f43e11 100644
  				OS.gtk_im_context_get_preedit_string (imContext, preeditString, null, null);
  				if (preeditString [0] != 0) {
  					int length = OS.strlen (preeditString [0]);
-@@ -2519,7 +2519,7 @@ String verifyText (String string, int start, int end) {
+@@ -2574,7 +2574,7 @@ String verifyText (String string, int start, int end) {
  	event.text = string;
  	event.start = start;
  	event.end = end;
@@ -50781,7 +50781,7 @@ index 75646e9..8f43e11 100644
  	if (eventPtr != 0) {
  		GdkEventKey gdkEvent = new GdkEventKey ();
  		OS.memmove (gdkEvent, eventPtr, GdkEventKey.sizeof);
-@@ -2541,7 +2541,7 @@ String verifyText (String string, int start, int end) {
+@@ -2596,7 +2596,7 @@ String verifyText (String string, int start, int end) {
  	return event.text;
  }
  
@@ -50790,7 +50790,7 @@ index 75646e9..8f43e11 100644
  	if (hooks (SWT.Segments) || filters (SWT.Segments) || segments != null) {
  		switch ((int)/*64*/user_data) {
  			case BACKSPACE:
-@@ -2563,7 +2563,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ user_data) {
+@@ -2618,7 +2618,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ user_data) {
  	return super.windowProc (handle, user_data);
  }
  
@@ -50799,7 +50799,7 @@ index 75646e9..8f43e11 100644
  	if (hooks (SWT.Segments) || filters (SWT.Segments) || segments != null) {
  		switch ((int)/*64*/user_data) {
  			case DIRECTION_CHANGED: {
-@@ -2576,7 +2576,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ us
+@@ -2631,7 +2631,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ us
  	return super.windowProc (handle, arg0, user_data);
  }
  
@@ -50808,7 +50808,7 @@ index 75646e9..8f43e11 100644
  	if (hooks (SWT.Segments) || filters (SWT.Segments) || segments != null) {
  		switch ((int)/*64*/user_data) {
  			case DELETE_FROM_CURSOR: {
-@@ -2592,7 +2592,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ ar
+@@ -2647,7 +2647,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ ar
  	return super.windowProc (handle, arg0, arg1, user_data);
  }
  
@@ -50818,7 +50818,7 @@ index 75646e9..8f43e11 100644
  		switch ((int)/*64*/user_data) {
  			case MOVE_CURSOR: {
 diff --git a/org/eclipse/swt/widgets/ToolBar.java b/org/eclipse/swt/widgets/ToolBar.java
-index e470cd5..f16ac9a 100644
+index a4d939d..076edd0 100644
 --- a/org/eclipse/swt/widgets/ToolBar.java
 +++ b/org/eclipse/swt/widgets/ToolBar.java
 @@ -197,11 +197,11 @@ Widget [] computeTabList () {
@@ -50949,7 +50949,7 @@ index e470cd5..f16ac9a 100644
  	ToolItem [] items = getItems ();
  	for (int i = 0; i < items.length; i++) {
 diff --git a/org/eclipse/swt/widgets/ToolItem.java b/org/eclipse/swt/widgets/ToolItem.java
-index bc01024..ed98002 100644
+index 8be8ddb..9c1af26 100644
 --- a/org/eclipse/swt/widgets/ToolItem.java
 +++ b/org/eclipse/swt/widgets/ToolItem.java
 @@ -38,8 +38,8 @@ import org.eclipse.swt.events.*;
@@ -51204,7 +51204,7 @@ index bc01024..ed98002 100644
  	} else {
  		OS.gtk_image_set_from_pixbuf(imageHandle, 0);
 diff --git a/org/eclipse/swt/widgets/ToolTip.java b/org/eclipse/swt/widgets/ToolTip.java
-index 725ba5a..7153dbb 100644
+index 94dbc00..818053e 100644
 --- a/org/eclipse/swt/widgets/ToolTip.java
 +++ b/org/eclipse/swt/widgets/ToolTip.java
 @@ -46,7 +46,7 @@ public class ToolTip extends Widget {
@@ -51430,7 +51430,7 @@ index 7caf92a..101ba27 100644
  	this.direct = direct;
  	this.bounds = bounds;
 diff --git a/org/eclipse/swt/widgets/Tracker.java b/org/eclipse/swt/widgets/Tracker.java
-index f24b0b0..b12c59f 100644
+index 812ce78..4660c21 100644
 --- a/org/eclipse/swt/widgets/Tracker.java
 +++ b/org/eclipse/swt/widgets/Tracker.java
 @@ -42,7 +42,7 @@ import org.eclipse.swt.events.*;
@@ -51522,7 +51522,7 @@ index f24b0b0..b12c59f 100644
  			case OS.GDK_MOTION_NOTIFY: gtk_motion_notify_event (widget, eventPtr); break;
  			case OS.GDK_BUTTON_RELEASE: gtk_button_release_event (widget, eventPtr); break;
 diff --git a/org/eclipse/swt/widgets/TrayItem.java b/org/eclipse/swt/widgets/TrayItem.java
-index ae1774b..e16ca7e 100644
+index 2a82fb8..8bce2a2 100644
 --- a/org/eclipse/swt/widgets/TrayItem.java
 +++ b/org/eclipse/swt/widgets/TrayItem.java
 @@ -40,8 +40,8 @@ public class TrayItem extends Item {
@@ -51574,7 +51574,7 @@ index ae1774b..e16ca7e 100644
  		OS.memmove (clientEvent, event, XClientMessageEvent.sizeof);
  		OS.XSendEvent (xDisplay, trayWindow, false, OS.NoEventMask, clientEvent);
  		OS.g_free (clientEvent);
-@@ -260,7 +260,7 @@ public String getToolTipText () {
+@@ -273,7 +273,7 @@ public String getToolTipText () {
  	return toolTipText;
  }
  
@@ -51583,7 +51583,7 @@ index ae1774b..e16ca7e 100644
  	sendSelectionEvent (SWT.Selection);
  	/*
  	* Feature in GTK. GTK will generate a single-click event before sending 
-@@ -268,10 +268,10 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
+@@ -281,10 +281,10 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
  	* the single-click as the current event and for the double-click in the
  	* event queue.
  	*/
@@ -51596,7 +51596,7 @@ index ae1774b..e16ca7e 100644
  		int currEventType = 0;
  		if (currEvent != 0) {
  			currEventType = OS.GDK_EVENT_TYPE (currEvent);
-@@ -285,7 +285,7 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
+@@ -298,7 +298,7 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
  	return 0;
  }
  
@@ -51605,7 +51605,7 @@ index ae1774b..e16ca7e 100644
  	GdkEventButton gdkEvent = new GdkEventButton ();
  	OS.memmove (gdkEvent, eventPtr, GdkEventButton.sizeof);
  	if (gdkEvent.type == OS.GDK_3BUTTON_PRESS) return 0;
-@@ -301,13 +301,13 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
+@@ -314,13 +314,13 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
  	return 0;
  }
  
@@ -51621,7 +51621,7 @@ index ae1774b..e16ca7e 100644
  			if (gdkImagePtr == 0) error(SWT.ERROR_NO_HANDLES);
  			GdkImage gdkImage = new GdkImage();
  			OS.memmove (gdkImage, gdkImagePtr);
-@@ -326,7 +326,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
+@@ -339,7 +339,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
  				}
  			}
  			OS.gtk_widget_realize (handle);
@@ -51630,7 +51630,7 @@ index ae1774b..e16ca7e 100644
  			OS.gdk_window_shape_combine_region (window, region.handle, 0, 0);
  			region.dispose ();
  		}
-@@ -334,7 +334,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
+@@ -347,7 +347,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
  	return 0;
  }
  
@@ -51639,7 +51639,7 @@ index ae1774b..e16ca7e 100644
  	/*
  	* GTK provides a MenuPositionFunc for GtkStatusIcon in order
  	* to set the popup-menu aligned to the tray.
-@@ -489,7 +489,7 @@ public void setImage (Image image) {
+@@ -517,7 +517,7 @@ public void setImage (Image image) {
  		} else {
  			imageList.put (imageIndex, image);
  		}
@@ -51649,7 +51649,7 @@ index ae1774b..e16ca7e 100644
  			OS.gtk_status_icon_set_from_pixbuf (handle, pixbuf);
  			OS.gtk_status_icon_set_visible (handle, true);
 diff --git a/org/eclipse/swt/widgets/Tree.java b/org/eclipse/swt/widgets/Tree.java
-index 6c9eeff..d36ef43 100644
+index 467fe70..be2122d 100644
 --- a/org/eclipse/swt/widgets/Tree.java
 +++ b/org/eclipse/swt/widgets/Tree.java
 @@ -75,9 +75,9 @@ import org.eclipse.swt.events.*;
@@ -52949,7 +52949,7 @@ index 8e835e8..e2b2a22 100644
  						if (userData[0] == buttonHandle) {
  							OS.gdk_window_lower (child);
 diff --git a/org/eclipse/swt/widgets/TreeItem.java b/org/eclipse/swt/widgets/TreeItem.java
-index f495ce1..8979727 100644
+index 43277b1..3317162 100644
 --- a/org/eclipse/swt/widgets/TreeItem.java
 +++ b/org/eclipse/swt/widgets/TreeItem.java
 @@ -181,7 +181,7 @@ public TreeItem (TreeItem parentItem, int style, int index) {
@@ -53324,7 +53324,7 @@ index f495ce1..8979727 100644
  			}
  		} 
 diff --git a/org/eclipse/swt/widgets/Widget.java b/org/eclipse/swt/widgets/Widget.java
-index 6d1b2cb..d7cabed 100644
+index eb3bbcd..693e4dc 100644
 --- a/org/eclipse/swt/widgets/Widget.java
 +++ b/org/eclipse/swt/widgets/Widget.java
 @@ -56,7 +56,7 @@ public abstract class Widget {
@@ -53890,5 +53890,5 @@ index 6d1b2cb..d7cabed 100644
  		case CHANGE_VALUE: return gtk_change_value (handle, arg0, arg1, arg2);
  		case EXPAND_COLLAPSE_CURSOR_ROW: return gtk_expand_collapse_cursor_row (handle, arg0, arg1, arg2);
 -- 
-1.7.10
+1.7.10.4
 
