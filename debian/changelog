@@ -8,6 +8,7 @@ swt-gtk (3.8.2-1) UNRELEASED; urgency=low
   * Bump Standards-Version to 3.9.4.
   * Use xz compression for orig tarball.
   * Override hardening-no-fortify-functions false positives.
+  * Removed obsolete d/NEWS.Debian file.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Thu, 04 Apr 2013 17:40:20 +0200
 
