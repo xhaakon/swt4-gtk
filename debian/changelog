@@ -5,6 +5,7 @@ swt-gtk (3.8.2-1) UNRELEASED; urgency=low
     (Closes: #704516).
   * Updated arch64.diff patch for new upstream release.
   * Reconsidered package description (Closes: #681417).
+  * Bump Standards-Version to 3.9.4.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Thu, 04 Apr 2013 17:40:20 +0200
 
