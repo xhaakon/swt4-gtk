@@ -6,7 +6,6 @@ Uploaders: Adrian Perez <blackxored@debian.org>,
            أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>,
            Jakub Adam <jakub.adam@ktknet.cz>,
            Niels Thykier <niels@thykier.net>
-DM-Upload-Allowed: yes
 Build-Depends: default-jdk, gcj-native-helper, libgnomeui-dev, libxtst-dev,
  libxcb-render-util0-dev, libxt-dev,
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev,
