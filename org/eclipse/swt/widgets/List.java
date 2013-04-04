@@ -1314,6 +1314,10 @@ public void setItems (String [] items) {
 	OS.g_free (iter);
 }
 
+void setForegroundColor (GdkColor color) {
+	setForegroundColor (handle, color, false);
+}
+
 /**
  * Selects the item at the given zero-relative index in the receiver. 
  * If the item at the index was already selected, it remains selected.
@@ -1533,7 +1537,7 @@ public void showSelection () {
 	OS.gtk_tree_view_get_cell_area (handle, path, 0, cellRect);
 	int[] tx = new int[1], ty = new int[1];
 	if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
-		OS.gtk_tree_view_convert_widget_to_bin_window_coords(handle, cellRect.x, cellRect.y, tx, ty);
+		OS.gtk_tree_view_convert_bin_window_to_tree_coords(handle, cellRect.x, cellRect.y, tx, ty);
 	} else {
 		OS.gtk_tree_view_widget_to_tree_coords(handle, cellRect.x, cellRect.y, tx, ty);
 	}

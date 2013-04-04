@@ -832,12 +832,29 @@ void resizeControl () {
 		*/
 		Rectangle itemRect = getBounds ();
 		control.setSize (itemRect.width, itemRect.height);
-		OS.gtk_widget_set_size_request (handle, itemRect.width, itemRect.height);
+		resizeHandle(itemRect.width, itemRect.height);
 		Rectangle rect = control.getBounds ();
 		rect.x = itemRect.x + (itemRect.width - rect.width) / 2;
 		rect.y = itemRect.y + (itemRect.height - rect.height) / 2;
 		control.setLocation (rect.x, rect.y);
 	}
+}
+
+void resizeHandle(int width, int height) {
+	OS.gtk_widget_set_size_request (handle, width, height);
+	/*
+	* Cause a size allocation this widget's topHandle.  Note that
+	* all calls to gtk_widget_size_allocate() must be preceded by
+	* a call to gtk_widget_size_request().
+	*/
+	GtkRequisition requisition = new GtkRequisition ();
+	parent.gtk_widget_size_request (handle, requisition);
+	GtkAllocation allocation = new GtkAllocation ();
+	allocation.x = OS.GTK_WIDGET_X(handle);
+	allocation.y = OS.GTK_WIDGET_Y(handle);
+	allocation.width = width;
+	allocation.height = height;
+	OS.gtk_widget_size_allocate (handle, allocation);
 }
 
 void selectRadio () {
@@ -1145,6 +1162,7 @@ public void setText (String string) {
  */
 public void setToolTipText (String string) {
 	checkWidget();
+	if (toolTipText == string || (toolTipText != null && toolTipText.equals(string))) return;
 	if (parent.toolTipText == null) {
 		Shell shell = parent._getShell ();
 		setToolTipText (shell, string);
@@ -1165,7 +1183,15 @@ public void setToolTipText (String string) {
 }
 
 void setToolTipText (Shell shell, String newString) {
-	shell.setToolTipText (handle, newString);
+	int /*long*/ child = OS.gtk_bin_get_child (handle);
+	if ((style & SWT.DROP_DOWN) != 0) {
+		if (OS.GTK_VERSION >= OS.VERSION (2, 6, 0)) {
+			int /*long*/ list = OS.gtk_container_get_children (child);
+			child = OS.g_list_nth_data (list, 0);
+		}
+		if (arrowHandle != 0) shell.setToolTipText (arrowHandle, newString);
+	}
+	shell.setToolTipText (child != 0 ? child : handle, newString);
 }
 
 /**
@@ -1189,8 +1215,7 @@ public void setWidth (int width) {
 	checkWidget();
 	if ((style & SWT.SEPARATOR) == 0) return;
 	if (width < 0) return;
-	boolean isVertical = (parent.style & SWT.VERTICAL) != 0;
-	OS.gtk_widget_set_size_request (handle, width, isVertical ? 6 : 15);
+	resizeHandle(width, (parent.style & SWT.VERTICAL) != 0 ? 6 : 15);
 	parent.relayout ();
 }
 

@@ -810,6 +810,16 @@ public static final int /*long*/ call (int /*long*/ function, int /*long*/ arg0,
 	}
 }
 /** @method flags=no_gen */
+public static final native void _call_get_size (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3, int /*long*/ arg4, int /*long*/ arg5, int /*long*/ arg6);
+public static final void call_get_size (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3, int /*long*/ arg4, int /*long*/ arg5, int /*long*/ arg6) {
+	lock.lock();
+	try {
+		 _call_get_size(function, arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
 public static final native boolean GDK_WINDOWING_X11();
 /** @param pixmap cast=(GdkPixmap *) */
 public static final native int /*long*/ _GDK_PIXMAP_XID(int /*long*/ pixmap);
@@ -2401,6 +2411,18 @@ public static final int /*long*/ g_filename_to_utf8(int /*long*/ opsysstring, in
 	lock.lock();
 	try {
 		return _g_filename_to_utf8(opsysstring, len, bytes_read, bytes_written, error);
+	} finally {
+		lock.unlock();
+	}
+}
+/**
+ * @method flags=dynamic
+ */
+public static final native int /*long*/ _g_filename_display_name(int /*long*/ filename);
+public static final int /*long*/ g_filename_display_name(int /*long*/ filename) {
+	lock.lock();
+	try {
+		return _g_filename_display_name(filename);
 	} finally {
 		lock.unlock();
 	}
@@ -11391,6 +11413,17 @@ public static final void gtk_toolbar_set_style(int /*long*/ toolbar, int style) 
 		lock.unlock();
 	}
 }
+/** @param toolbar cast=(GtkToolbar *) 
+ */
+public static final native void _gtk_toolbar_set_icon_size(int /*long*/ toolbar, int size);
+public static final void gtk_toolbar_set_icon_size(int /*long*/ toolbar, int size) {
+	lock.lock();
+	try {
+		_gtk_toolbar_set_icon_size(toolbar, size);
+	} finally {
+		lock.unlock();
+	}
+}
 /** @method flags=dynamic */
 public static final native int /*long*/ _gtk_tooltips_data_get(int /*long*/ widget);
 public static final int /*long*/ gtk_tooltips_data_get(int /*long*/ widget) {
@@ -12764,11 +12797,11 @@ public static final void gtk_tree_view_widget_to_tree_coords(int /*long*/ tree_v
  * @method flags=dynamic
  * @param tree_view cast=(GtkTreeView *) 
  */
-public static final native void _gtk_tree_view_convert_widget_to_bin_window_coords(int /*long*/ tree_view, int wx, int wy, int[] tx, int[] ty);
-public static final void gtk_tree_view_convert_widget_to_bin_window_coords(int /*long*/ tree_view, int wx, int wy, int[] tx, int[] ty) {
+public static final native void _gtk_tree_view_convert_bin_window_to_tree_coords(int /*long*/ tree_view, int bx, int by, int[] tx, int[] ty);
+public static final void gtk_tree_view_convert_bin_window_to_tree_coords(int /*long*/ tree_view, int bx, int by, int[] tx, int[] ty) {
 	lock.lock();
 	try {
-		_gtk_tree_view_convert_widget_to_bin_window_coords(tree_view, wx, wy, tx, ty);
+		_gtk_tree_view_convert_bin_window_to_tree_coords(tree_view, bx, by, tx, ty);
 	} finally {
 		lock.unlock();
 	}

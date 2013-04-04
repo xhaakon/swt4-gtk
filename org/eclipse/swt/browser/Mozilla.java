@@ -48,7 +48,7 @@ class Mozilla extends WebBrowser {
 	int refCount, lastKeyCode, lastCharCode, authCount;
 	int /*long*/ request, badCertRequest;
 	Point location, size;
-	boolean visible, isChild, ignoreDispose, isRetrievingBadCert, isViewingErrorPage, ignoreAllMessages, untrustedText;
+	boolean visible, isActive, isChild, ignoreDispose, isRetrievingBadCert, isViewingErrorPage, ignoreAllMessages, untrustedText;
 	boolean updateLastNavigateUrl;
 	Shell tip = null;
 	Listener listener;
@@ -706,6 +706,9 @@ public void create (Composite parent, int style) {
 			LocationProvider = new AppFileLocProvider (MozillaPath, profilePath, cacheParentPath, IsXULRunner);
 			LocationProvider.AddRef ();
 
+			/* write external.xpt to the file system if needed */
+			initExternal (LocationProvider.profilePath);
+
 			/* invoke appropriate Init function (based on mozilla version) */
 			initXPCOM (MozillaPath, IsXULRunner);
 		}
@@ -904,9 +907,6 @@ public void create (Composite parent, int style) {
 		result[0] = 0;
 		interfaceRequestor.Release ();
 		componentRegistrar.Release ();
-
-		/* write external.xpt to the file system if needed */
-		initExternal (LocationProvider.profilePath);
 
 		if (!factoriesRegistered) {
 			HelperAppLauncherDialogFactory dialogFactory = new HelperAppLauncherDialogFactory ();
@@ -1289,6 +1289,7 @@ public boolean execute (String script) {
 		if (rc != XPCOM.NS_OK) error (rc);
 		if (result[0] == 0) error (XPCOM.NS_NOINTERFACE);
 
+		boolean isXULRunner190x = false;
 		nsIServiceManager serviceManager = new nsIServiceManager (result[0]);
 		result[0] = 0;
 		byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_SCRIPTSECURITYMANAGER_CONTRACTID, true);
@@ -1299,6 +1300,9 @@ public boolean execute (String script) {
 			if (!(rc == XPCOM.NS_OK && result[0] != 0)) {
 				result[0] = 0;
 				rc = serviceManager.GetServiceByContractID (aContractID, nsIScriptSecurityManager.NS_ISCRIPTSECURITYMANAGER_IID, result);
+				if (rc == XPCOM.NS_OK && result[0] != 0) {
+					isXULRunner190x = true;
+				}
 			}
 		}
 
@@ -1384,7 +1388,7 @@ public boolean execute (String script) {
 												if (rc != XPCOM.NS_OK) {
 													stack.Release ();
 												} else {
-													boolean success = XPCOM.JS_EvaluateUCScriptForPrincipals (jsLibPath, nativeContext, globalJSObject, principals, scriptChars, length, urlbytes, 0, result) != 0;
+													boolean success = XPCOM.JS_EvaluateUCScriptForPrincipals (jsLibPath, nativeContext, globalJSObject, principals, scriptChars, length, urlbytes, 0, isXULRunner190x ? result : null) != 0;
 													result[0] = 0;
 													rc = stack.Pop (result);
 													stack.Release ();
@@ -1757,13 +1761,6 @@ static String InitDiscoverXULRunner () {
 }
 
 void initExternal (String profilePath) {
-	/*
-	 * external.xpt does not need to be written to the file system if the
-	 * XULRunner version is >= 4 since External.java handles this case
-	 * differently than for earlier XULRunner releases.
-	 */
-	if (!IsPre_4) return;
-
 	File componentsDir = new File (profilePath, AppFileLocProvider.COMPONENTS_DIR);
 	java.io.InputStream is = Library.class.getResourceAsStream ("/external.xpt"); //$NON-NLS-1$
 	if (is != null) {
@@ -2716,6 +2713,7 @@ void onDispose (Display display) {
 }
 
 void Activate () {
+	isActive = true;
 	int /*long*/[] result = new int /*long*/[1];
 	int rc = webBrowser.QueryInterface (nsIWebBrowserFocus.NS_IWEBBROWSERFOCUS_IID, result);
 	if (rc != XPCOM.NS_OK) error (rc);
@@ -2728,6 +2726,7 @@ void Activate () {
 }
 
 void Deactivate () {
+	isActive = false;
 	int /*long*/[] result = new int /*long*/[1];
 	int rc = webBrowser.QueryInterface (nsIWebBrowserFocus.NS_IWEBBROWSERFOCUS_IID, result);
 	if (rc != XPCOM.NS_OK) error (rc);
