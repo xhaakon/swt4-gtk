@@ -3,6 +3,7 @@ swt-gtk (3.8.2-1) UNRELEASED; urgency=low
   * New upstream release.
   * Add fix for compatibility with libwebkitgtk-1.0-0 1.11.91-1
     (Closes: #704516).
+  * Updated arch64.diff patch for new upstream release.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Thu, 04 Apr 2013 17:40:20 +0200
 
