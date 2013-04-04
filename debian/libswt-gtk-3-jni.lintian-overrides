@@ -1,0 +1,2 @@
+libswt-gtk-3-jni: hardening-no-fortify-functions usr/lib/jni/libswt-atk-gtk-*.so
+libswt-gtk-3-jni: hardening-no-fortify-functions usr/lib/jni/libswt-gtk-*.so
