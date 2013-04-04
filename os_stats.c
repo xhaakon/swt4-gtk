@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2013 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -18,8 +18,8 @@
 
 #ifdef NATIVE_STATS
 
-int OS_nativeFunctionCount = 1402;
-int OS_nativeFunctionCallCount[1402];
+int OS_nativeFunctionCount = 1405;
+int OS_nativeFunctionCallCount[1405];
 char * OS_nativeFunctionNames[] = {
 #ifndef JNI64
 	"Call__IIII",
@@ -218,6 +218,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1atk_1object_1add_1relationship",
 	"_1atk_1object_1remove_1relationship",
 	"_1call",
+	"_1call_1get_1size",
 	"_1dlclose",
 	"_1dlopen",
 	"_1dlsym",
@@ -253,6 +254,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1g_1file_1query_1info",
 	"_1g_1file_1read",
 	"_1g_1file_1test",
+	"_1g_1filename_1display_1name",
 	"_1g_1filename_1from_1uri",
 	"_1g_1filename_1from_1utf8",
 	"_1g_1filename_1to_1uri",
@@ -1123,6 +1125,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1toolbar_1insert",
 	"_1gtk_1toolbar_1insert_1widget",
 	"_1gtk_1toolbar_1new",
+	"_1gtk_1toolbar_1set_1icon_1size",
 	"_1gtk_1toolbar_1set_1orientation",
 	"_1gtk_1toolbar_1set_1show_1arrow",
 	"_1gtk_1toolbar_1set_1style",
@@ -1240,7 +1243,7 @@ char * OS_nativeFunctionNames[] = {
 	"_1gtk_1tree_1view_1column_1set_1title",
 	"_1gtk_1tree_1view_1column_1set_1visible",
 	"_1gtk_1tree_1view_1column_1set_1widget",
-	"_1gtk_1tree_1view_1convert_1widget_1to_1bin_1window_1coords",
+	"_1gtk_1tree_1view_1convert_1bin_1window_1to_1tree_1coords",
 	"_1gtk_1tree_1view_1create_1row_1drag_1icon",
 	"_1gtk_1tree_1view_1expand_1row",
 	"_1gtk_1tree_1view_1get_1background_1area",

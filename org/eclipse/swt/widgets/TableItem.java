@@ -150,7 +150,7 @@ Color _getBackground (int index) {
 }
 
 boolean _getChecked () {
-	int /*long*/ [] ptr = new int /*long*/ [1];
+	int [] ptr = new int [1];
 	OS.gtk_tree_model_get (parent.modelHandle, handle, Table.CHECKED_COLUMN, ptr, -1);
 	return ptr [0] != 0;
 }
@@ -214,8 +214,12 @@ void clear () {
 	if (parent.currentItem == this) return;
 	if (cached || (parent.style & SWT.VIRTUAL) == 0) {
 		int columnCount = OS.gtk_tree_model_get_n_columns (parent.modelHandle);
-		for (int i=0; i<columnCount; i++) {
+		/* the columns before FOREGROUND_COLUMN contain int values, subsequent columns contain pointers */
+		for (int i=Table.CHECKED_COLUMN; i<Table.FOREGROUND_COLUMN; i++) {
 			OS.gtk_list_store_set (parent.modelHandle, handle, i, 0, -1);
+		}
+		for (int i=Table.FOREGROUND_COLUMN; i<columnCount; i++) {
+			OS.gtk_list_store_set (parent.modelHandle, handle, i, (int /*long*/)0, -1);
 		}
 		/*
 		* Bug in GTK.  When using fixed-height-mode,
@@ -1097,7 +1101,7 @@ public void setGrayed (boolean grayed) {
 	* GTK+'s "inconsistent" state does not match SWT's concept of grayed.
 	* Render checked+grayed as "inconsistent", unchecked+grayed as blank.
 	*/
-	int /*long*/ [] ptr = new int /*long*/ [1];
+	int [] ptr = new int [1];
 	OS.gtk_tree_model_get (parent.modelHandle, handle, Table.CHECKED_COLUMN, ptr, -1);
 	OS.gtk_list_store_set (parent.modelHandle, handle, Table.GRAYED_COLUMN, ptr [0] == 0 ? false : grayed, -1);
 	cached = true;

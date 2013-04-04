@@ -29,6 +29,7 @@
 #define LIB_XRENDER "libXrender.a(libXrender.so)"
 #define LIB_GTK "libgtk-x11-2.0.a(libgtk-x11-2.0.so.0)"
 #define LIB_GDK "libgdk-x11-2.0.a(libgdk-x11-2.0.so.0)"
+#define LIB_GLIB "libglib-2.0.a(libglib-2.0.so.0)"
 #define LIB_ATK "libatk-1.0.a(libatk-1.0.so.0)"
 #define LIB_PANGO "libpango-1.0.a(libpango-1.0.so.0)"
 #define LIB_PANGOCAIRO "libpangocairo-1.0.a(libpangocairo-1.0.so.0)"
@@ -38,6 +39,7 @@
 #define LIB_XRENDER "libXrender.so"
 #define LIB_GTK "libgtk-x11-2.0.so"
 #define LIB_GDK "libgdk-x11-2.0.so"
+#define LIB_GLIB "libglib-2.0.so"
 #define LIB_ATK "libatk-1.0.so"
 #define LIB_PANGO "libpango-1.0.so"
 #define LIB_PANGOCAIRO "libpangocairo-1.0.so"
@@ -47,6 +49,7 @@
 #define LIB_XRENDER "libXrender.so"
 #define LIB_GTK "libgtk-x11-2.0.so.0"
 #define LIB_GDK "libgdk-x11-2.0.so.0"
+#define LIB_GLIB "libglib-2.0.so.0"
 #define LIB_ATK "libatk-1.0.so.0"
 #define LIB_PANGO "libpango-1.0.so.0"
 #define LIB_PANGOCAIRO "libpangocairo-1.0.so.0"
@@ -64,6 +67,7 @@
 #define XRenderFreePicture_LIB LIB_XRENDER
 #define XRenderSetPictureClipRectangles_LIB LIB_XRENDER
 #define XRenderSetPictureTransform_LIB LIB_XRENDER
+#define g_filename_display_name_LIB LIB_GLIB
 #define gtk_calendar_display_options_LIB LIB_GTK
 #define gtk_calendar_get_date_LIB LIB_GTK
 #define gtk_calendar_new_LIB LIB_GTK
@@ -139,7 +143,7 @@
 #define gtk_tree_selection_get_selected_rows_LIB LIB_GTK
 #define gtk_tree_view_column_get_cell_renderers_LIB LIB_GTK
 #define gtk_tree_view_column_cell_get_position_LIB LIB_GTK
-#define gtk_tree_view_convert_widget_to_bin_window_coords_LIB LIB_GTK
+#define gtk_tree_view_convert_bin_window_to_tree_coords_LIB LIB_GTK
 #define gtk_tree_view_set_grid_lines_LIB LIB_GTK
 #define gtk_tree_view_widget_to_tree_coords_LIB LIB_GTK
 #define gtk_entry_set_alignment_LIB LIB_GTK
