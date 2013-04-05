@@ -1,4 +1,4 @@
-swt-gtk (3.8.2-1) UNRELEASED; urgency=low
+swt-gtk (3.8.2-1) experimental; urgency=low
 
   * New upstream release.
   * Add fix for compatibility with libwebkitgtk-1.0-0 1.11.91-1
