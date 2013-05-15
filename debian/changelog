@@ -1,3 +1,10 @@
+swt-gtk (3.8.2-2) unstable; urgency=low
+
+  * Team upload.
+  * Upload to unstable.
+
+ -- tony mancill <tmancill@debian.org>  Tue, 14 May 2013 22:07:29 -0700
+
 swt-gtk (3.8.2-1) experimental; urgency=low
 
   * New upstream release.
