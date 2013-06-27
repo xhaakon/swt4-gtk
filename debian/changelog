@@ -1,3 +1,9 @@
+swt-gtk (3.8.2-3) UNRELEASED; urgency=low
+
+  * Fix FTBFS with glib 2.35 (Closes: #710649).
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Wed, 26 Jun 2013 14:49:25 +0200
+
 swt-gtk (3.8.2-2) unstable; urgency=low
 
   * Team upload.
