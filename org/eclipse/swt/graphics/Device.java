@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -58,7 +58,7 @@ public abstract class Device implements Drawable {
 	int /*long*/ logProc;
 	Callback logCallback;
 	//NOT DONE - get list of valid names
-	String [] log_domains = {"GLib-GObject", "GLib", "GObject", "Pango", "ATK", "GdkPixbuf", "Gdk", "Gtk", "GnomeVFS", "GIO"};
+	String [] log_domains = {"", "GLib-GObject", "GLib", "GObject", "Pango", "ATK", "GdkPixbuf", "Gdk", "Gtk", "GnomeVFS", "GIO"};
 	int [] handler_ids = new int [log_domains.length];
 	int warningLevel;
 	
@@ -659,7 +659,21 @@ protected void init () {
 	OS.gtk_widget_realize(shellHandle);
 
 	/* Initialize the system font slot */
-	systemFont = getSystemFont ();
+	int /*long*/ defaultFont;
+	if (OS.GTK3) {
+		int /*long*/ context = OS.gtk_widget_get_style_context (shellHandle);	
+		defaultFont = OS.gtk_style_context_get_font (context, OS.GTK_STATE_FLAG_NORMAL);
+	} else {
+		int /*long*/ style = OS.gtk_widget_get_style (shellHandle);	
+		defaultFont = OS.gtk_style_get_font_desc (style);
+	}	
+	defaultFont = OS.pango_font_description_copy (defaultFont);
+	Point dpi = getDPI(), screenDPI = getScreenDPI();
+	if (dpi.y != screenDPI.y) {
+		int size = OS.pango_font_description_get_size(defaultFont);
+		OS.pango_font_description_set_size(defaultFont, size * dpi.y / screenDPI.y);
+	}
+	systemFont = Font.gtk_new (this, defaultFont);
 }
 
 /**	 
@@ -736,6 +750,9 @@ public boolean loadFont (String path) {
 }
 
 int /*long*/ logProc (int /*long*/ log_domain, int /*long*/ log_level, int /*long*/ message, int /*long*/ user_data) {
+	if (DEBUG) {
+		new Error ().printStackTrace ();
+	}
 	if (warningLevel == 0) {
 		if (DEBUG || debug) {
 			new Error ().printStackTrace ();
@@ -804,15 +821,21 @@ static synchronized void register (Device device) {
 protected void release () {
 	if (shellHandle != 0) OS.gtk_widget_destroy(shellHandle);
 	shellHandle = 0;
+	
+	/* Dispose the default font */
+	if (systemFont != null) systemFont.dispose ();
+	systemFont = null;
 
 	if (gdkColors != null) {
-		int /*long*/ colormap = OS.gdk_colormap_get_system();
-		for (int i = 0; i < gdkColors.length; i++) {
-			GdkColor color = gdkColors [i];
-			if (color != null) {
-				while (colorRefCount [i] > 0) {
-					OS.gdk_colormap_free_colors(colormap, color, 1);
-					--colorRefCount [i];
+		if (!OS.GTK3) {
+			int /*long*/ colormap = OS.gdk_colormap_get_system();
+			for (int i = 0; i < gdkColors.length; i++) {
+				GdkColor color = gdkColors [i];
+				if (color != null) {
+					while (colorRefCount [i] > 0) {
+						OS.gdk_colormap_free_colors(colormap, color, 1);
+						--colorRefCount [i];
+					}
 				}
 			}
 		}

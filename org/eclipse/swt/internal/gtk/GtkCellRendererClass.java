@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -18,6 +18,8 @@ package org.eclipse.swt.internal.gtk;
 public class GtkCellRendererClass {
 	/** @field cast=(void(*)()) */
 	public int /*long*/ render;
-	/** @field cast=(void(*)()) */
+	/** @field cast=(void(*)()),exclude=#ifndef GTK3 */
 	public int /*long*/ get_size;
+	/** @field cast=(void(*)()),exclude=#ifdef GTK3 */
+	public int /*long*/ get_preferred_width;
 }

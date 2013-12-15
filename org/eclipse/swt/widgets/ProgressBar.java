@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -83,15 +83,19 @@ void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
+	gtk_widget_set_has_window (fixedHandle, true);
 	handle = OS.gtk_progress_bar_new ();
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
 	int orientation = (style & SWT.VERTICAL) != 0 ? OS.GTK_PROGRESS_BOTTOM_TO_TOP : OS.GTK_PROGRESS_LEFT_TO_RIGHT;
-	OS.gtk_progress_bar_set_orientation (handle, orientation);
+	gtk_orientable_set_orientation (handle, orientation);
 	if ((style & SWT.INDETERMINATE) != 0) {
 		timerId = OS.g_timeout_add (DELAY, display.windowTimerProc, handle);
 	}
+}
+
+int /*long*/ eventHandle () {
+	return OS.GTK3 ? fixedHandle : super.eventHandle ();
 }
 
 /**
@@ -287,7 +291,7 @@ void updateBar (int selection, int minimum, int maximum) {
 	* fix is to update the progress bar state only when realized and restore
 	* the state when the progress bar becomes realized.
 	*/
-	if ((OS.GTK_WIDGET_FLAGS (handle) & OS.GTK_REALIZED) == 0) return;
+	if (!gtk_widget_get_realized (handle)) return;
 
 	double fraction = minimum == maximum ? 1 : (double)(selection - minimum) / (maximum - minimum);
 	OS.gtk_progress_bar_set_fraction (handle, fraction);
@@ -301,5 +305,22 @@ void updateBar (int selection, int minimum, int maximum) {
 	int /*long*/ window = paintWindow ();
 	OS.gdk_window_process_updates (window, false);
 	OS.gdk_flush ();
+}
+
+void gtk_orientable_set_orientation (int /*long*/ pbar, int orientation) {
+	if (OS.GTK3) {
+		switch (orientation) {
+			case OS.GTK_PROGRESS_BOTTOM_TO_TOP:
+				OS.gtk_orientable_set_orientation(pbar, OS.GTK_ORIENTATION_VERTICAL);
+				OS.gtk_progress_bar_set_inverted(pbar, true);
+				break;
+			case OS.GTK_PROGRESS_LEFT_TO_RIGHT:
+				OS.gtk_orientable_set_orientation(pbar, OS.GTK_ORIENTATION_HORIZONTAL);
+				OS.gtk_progress_bar_set_inverted(pbar, false);
+				break;
+		}
+	} else {
+		OS.gtk_progress_bar_set_orientation(pbar, orientation);
+	}
 }
 }

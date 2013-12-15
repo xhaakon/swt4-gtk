@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -37,7 +37,11 @@ public Theme(Device device) {
 	progressHandle = OS.gtk_progress_bar_new();
 	toolbarHandle = OS.gtk_toolbar_new();
 	treeHandle = OS.gtk_tree_view_new_with_model(0);
-	separatorHandle = OS.gtk_vseparator_new();
+	if (OS.GTK3) {
+		separatorHandle = OS.gtk_separator_new (OS.GTK_ORIENTATION_VERTICAL);
+	} else {
+		separatorHandle = OS.gtk_vseparator_new();
+	}
 	labelHandle = OS.gtk_label_new(null);
 	OS.gtk_container_add (fixedHandle, labelHandle);
 	OS.gtk_container_add (fixedHandle, frameHandle);
@@ -184,35 +188,38 @@ void transferClipping(GC gc, int /*long*/ style) {
 	if (damageRgn != 0) {
 		if (clipping != 0) {
 			clipping = OS.gdk_region_new();
-			OS.gdk_region_union(clipping, clipRgn);
-			OS.gdk_region_intersect(clipping, damageRgn);
+			OS.gdk_region_union (clipping, clipRgn);
+			OS.gdk_region_intersect (clipping, damageRgn);
 		} else {
 			clipping = damageRgn;
 		}
 	}
-	int /*long*/ [] curGC = new int /*long*/ [1];
-	for (int i = 0; i < 5; i++) {
-		OS.gtk_style_get_fg_gc (style, i, curGC);
+	//TODO implement for GTK3
+	if (!OS.GTK3) {
+		int /*long*/ [] curGC = new int /*long*/ [1];
+		for (int i = 0; i < 5; i++) {
+			OS.gtk_style_get_fg_gc (style, i, curGC);
+			if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
+			OS.gtk_style_get_bg_gc (style, i, curGC);
+			if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
+			OS.gtk_style_get_light_gc (style, i, curGC);
+			if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
+			OS.gtk_style_get_dark_gc (style, i, curGC);
+			if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
+			OS.gtk_style_get_mid_gc (style, i, curGC);
+			if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
+			OS.gtk_style_get_text_gc (style, i, curGC);
+			if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
+			OS.gtk_style_get_text_aa_gc (style, i, curGC);
+			if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
+		}
+		OS.gtk_style_get_black_gc (style, curGC);
 		if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
-		OS.gtk_style_get_bg_gc (style, i, curGC);
-		if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
-		OS.gtk_style_get_light_gc (style, i, curGC);
-		if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
-		OS.gtk_style_get_dark_gc (style, i, curGC);
-		if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
-		OS.gtk_style_get_mid_gc (style, i, curGC);
-		if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
-		OS.gtk_style_get_text_gc (style, i, curGC);
-		if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
-		OS.gtk_style_get_text_aa_gc (style, i, curGC);
+		OS.gtk_style_get_white_gc (style, curGC);
 		if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
 	}
-	OS.gtk_style_get_black_gc (style, curGC);
-	if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
-	OS.gtk_style_get_white_gc (style, curGC);
-	if (curGC[0] != 0) OS.gdk_gc_set_clip_region (curGC[0], clipping);
 	if (clipping != clipRgn && clipping != damageRgn) {
-		OS.gdk_region_destroy(clipping);
+			OS.gdk_region_destroy (clipping);
 	}
 }
 }

@@ -22,14 +22,14 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2012 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2013 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
 public class nsISSLStatus extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRunner10 ? 8 : 7);
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + ((IsXULRunner10 || IsXULRunner17) ? 8 : 7);
 
 	public static final String NS_ISSLSTATUS_IID_STR =
 		"cfede939-def1-49be-81ed-d401b3a07d1c";
@@ -76,7 +76,7 @@ public class nsISSLStatus extends nsISupports {
 	}
 	
 	public int GetIsExtendedValidation(int[] aIsExtendedValidation) {
-		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		if (!(IsXULRunner10 || IsXULRunner17)) return XPCOM.NS_COMFALSE;
 		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aIsExtendedValidation);
 	}
 }

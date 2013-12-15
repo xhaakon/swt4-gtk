@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package org.eclipse.swt.internal.theme;
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
+import org.eclipse.swt.internal.cairo.Cairo;
 import org.eclipse.swt.internal.gtk.*;
 
 public class ExpanderDrawData extends DrawData {
@@ -33,7 +34,14 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 	int expander_size = theme.getWidgetProperty(treeHandle, "expander-size");
 	int x = bounds.x + expander_size / 2;
 	int y = bounds.y + expander_size / 2;
-	OS.gtk_paint_expander(gtkStyle, drawable, state_type, null, treeHandle, detail, x, y, expander_style);
+	if (OS.GTK3) {
+		int /*long*/ cairo = OS.gdk_cairo_create (drawable);
+		int /*long*/ context = OS.gtk_widget_get_style_context (gtkStyle);
+		OS.gtk_render_expander (context, cairo, bounds.x, bounds.y, expander_size, expander_size);
+		Cairo.cairo_destroy (cairo);
+	} else {
+		OS.gtk_paint_expander(gtkStyle, drawable, state_type, null, treeHandle, detail, x, y, expander_style);	
+	}
 }
 
 int hit(Theme theme, Point position, Rectangle bounds) {

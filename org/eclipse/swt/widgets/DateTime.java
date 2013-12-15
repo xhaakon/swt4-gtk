@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -163,10 +163,10 @@ void createText(boolean dropDown) {
 		createPopupShell(-1, -1, -1);
 	} else {
 		up = new Button(this, SWT.ARROW | SWT.UP);
-		OS.GTK_WIDGET_UNSET_FLAGS(up.handle, OS.GTK_CAN_FOCUS);
+		gtk_widget_set_can_focus (up.handle, false);
 		//up.setToolTipText(SWT.getMessage ("SWT_Up")); //$NON-NLS-1$
 		down = new Button(this, SWT.ARROW | SWT.DOWN);
-		OS.GTK_WIDGET_UNSET_FLAGS(down.handle, OS.GTK_CAN_FOCUS);
+		gtk_widget_set_can_focus (down.handle, false);
 		//down.setToolTipText(SWT.getMessage ("SWT_Down")); //$NON-NLS-1$
 		up.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -185,7 +185,7 @@ void createText(boolean dropDown) {
 
 void createDropDownButton() {
 	down = new Button(this, SWT.ARROW  | SWT.DOWN);
-	OS.GTK_WIDGET_UNSET_FLAGS(down.handle, OS.GTK_CAN_FOCUS);
+	gtk_widget_set_can_focus (down.handle, false);
 	down.addListener(SWT.Selection, new Listener() {
 		public void handleEvent(Event event) {
 			boolean dropped = isDropped();
@@ -339,7 +339,7 @@ void createHandle (int index) {
 		state |= HANDLE;
 		fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 		if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-		OS.gtk_fixed_set_has_window (fixedHandle, true);
+		gtk_widget_set_has_window (fixedHandle, true);
 		handle = OS.gtk_calendar_new ();
 		if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 		OS.gtk_container_add (fixedHandle, handle);
@@ -1065,8 +1065,10 @@ void sendSelectionEvent () {
 
 public void setBackground(Color color) {
 	super.setBackground(color);
-	if (((style & SWT.CALENDAR) != 0) && color == null) {
-		OS.gtk_widget_modify_base(handle, 0, null);
+	if (!OS.GTK3) {
+		if (((style & SWT.CALENDAR) != 0) && color == null) {
+			OS.gtk_widget_modify_base(handle, 0, null);
+		}
 	}
 	bg = color;
 	if (text != null) text.setBackground(color);
@@ -1074,7 +1076,7 @@ public void setBackground(Color color) {
 }
 
 void setBackgroundColor (GdkColor color) {
-	if ((style & SWT.CALENDAR) != 0) {
+	if ((style & SWT.CALENDAR) != 0 && !OS.GTK3) {
 		OS.gtk_widget_modify_base(handle, 0, color);
 	} else {
 		super.setBackgroundColor (color);
@@ -1096,6 +1098,10 @@ public void setFont(Font font) {
 	if (text != null) text.setFont(font);
 	if (popupCalendar != null) popupCalendar.setFont(font);
 	redraw();
+}
+
+void setForegroundColor (GdkColor color) {
+	setForegroundColor (handle, color, false);
 }
 
 public void setForeground(Color color) {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -125,6 +125,7 @@ public abstract class Widget {
 	static final int EVENT_AFTER = 16;
 	static final int EXPAND_COLLAPSE_CURSOR_ROW = 17;
 	static final int EXPOSE_EVENT = 18;
+	static final int DRAW = EXPOSE_EVENT;
 	static final int EXPOSE_EVENT_INVERSE = 19;
 	static final int FOCUS = 20;
 	static final int FOCUS_IN_EVENT = 21;
@@ -638,6 +639,82 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
 	return 0;
 }
 
+void gtk_adjustment_get (int /*long*/ hAdjustment, GtkAdjustment adjustment) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		adjustment.lower = OS.gtk_adjustment_get_lower (hAdjustment);
+		adjustment.upper = OS.gtk_adjustment_get_upper (hAdjustment);
+		adjustment.page_increment = OS.gtk_adjustment_get_page_increment (hAdjustment);
+		adjustment.step_increment = OS.gtk_adjustment_get_step_increment (hAdjustment);
+		adjustment.page_size = OS.gtk_adjustment_get_page_size (hAdjustment);
+		adjustment.value = OS.gtk_adjustment_get_value (hAdjustment);
+	} else {
+		OS.memmove(adjustment, hAdjustment);
+	}
+}
+
+double gtk_adjustment_get_step_increment (int /*long*/ hAdjustment) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		return (int) OS.gtk_adjustment_get_step_increment (hAdjustment);
+	}
+	GtkAdjustment adjustment = new GtkAdjustment ();
+	OS.memmove (adjustment, hAdjustment);
+	return (int) adjustment.step_increment;
+}
+
+double gtk_adjustment_get_page_increment (int /*long*/ hAdjustment) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		return (int) OS.gtk_adjustment_get_page_increment (hAdjustment);
+	}
+	GtkAdjustment adjustment = new GtkAdjustment ();
+	OS.memmove (adjustment, hAdjustment);
+	return (int) adjustment.page_increment;
+}
+
+double gtk_adjustment_get_lower (int /*long*/ hAdjustment) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		return (int) OS.gtk_adjustment_get_lower (hAdjustment);
+	}
+	GtkAdjustment adjustment = new GtkAdjustment ();
+	OS.memmove (adjustment, hAdjustment);
+	return (int) adjustment.lower;
+}
+
+double gtk_adjustment_get_upper (int /*long*/ hAdjustment) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		return (int) OS.gtk_adjustment_get_upper (hAdjustment);
+	}
+	GtkAdjustment adjustment = new GtkAdjustment ();
+	OS.memmove (adjustment, hAdjustment);
+	return (int) adjustment.upper;
+}
+
+double gtk_adjustment_get_page_size (int /*long*/ hAdjustment) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		return (int) OS.gtk_adjustment_get_page_size (hAdjustment);
+	}
+	GtkAdjustment adjustment = new GtkAdjustment ();
+	OS.memmove (adjustment, hAdjustment);
+	return (int) adjustment.page_size;
+}
+
+double gtk_adjustment_get_value (int /*long*/ hAdjustment) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		return (int) OS.gtk_adjustment_get_value (hAdjustment);
+	}
+	GtkAdjustment adjustment = new GtkAdjustment ();
+	OS.memmove (adjustment, hAdjustment);
+	return (int) adjustment.value;
+}
+
+void gtk_adjustment_configure (int /*long*/ hAdjustment, GtkAdjustment a) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		OS.gtk_adjustment_configure(hAdjustment, a.value, a.lower, a.upper, a.step_increment, a.page_increment, a.page_size);
+	} else {
+		OS.memmove (hAdjustment, a);
+		OS.gtk_adjustment_changed (hAdjustment);
+	}
+}
+
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	return 0;
 }
@@ -703,6 +780,10 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ event) {
 }
 
 int /*long*/ gtk_expand_collapse_cursor_row (int /*long*/ widget, int /*long*/ logical, int /*long*/ expand, int /*long*/ open_all) {
+	return 0;
+}
+
+int /*long*/ gtk_draw (int /*long*/ widget, int /*long*/ cairo) {
 	return 0;
 }
 
@@ -896,6 +977,33 @@ int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 
 int /*long*/ gtk_visibility_notify_event (int /*long*/ widget, int /*long*/ event) {
 	return 0;
+}
+
+void gtk_widget_get_allocation (int /*long*/ widget, GtkAllocation allocation) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		OS.gtk_widget_get_allocation (widget, allocation);
+	} else {
+		allocation.x = OS.GTK_WIDGET_X (widget);
+		allocation.y = OS.GTK_WIDGET_Y (widget);
+		allocation.width = OS.GTK_WIDGET_WIDTH (widget);
+		allocation.height = OS.GTK_WIDGET_HEIGHT (widget);
+	}
+}
+
+boolean gtk_widget_get_mapped (int /*long*/ widget) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 20, 0)) {
+		return OS.gtk_widget_get_mapped (widget);
+	} else {
+		return OS.GTK_WIDGET_MAPPED (widget);
+	}
+}
+
+boolean gtk_widget_has_focus (int /*long*/ widget) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		return OS.gtk_widget_has_focus (widget);
+	} else {
+		return OS.GTK_WIDGET_HAS_FOCUS (widget);
+	}
 }
 
 int /*long*/ gtk_window_state_event (int /*long*/ widget, int /*long*/ event) {
@@ -1194,7 +1302,15 @@ protected void removeListener (int eventType, SWTEventListener handler) {
 	eventTable.unhook (eventType, handler);
 }
 
+int /*long*/ rendererGetPreferredWidthProc (int /*long*/ cell, int /*long*/ handle, int /*long*/ minimun_size, int /*long*/ natural_size) {
+	return 0;
+}
+
 int /*long*/ rendererGetSizeProc (int /*long*/ cell, int /*long*/ handle, int /*long*/ cell_area, int /*long*/ x_offset, int /*long*/ y_offset, int /*long*/ width, int /*long*/ height) {
+	return 0;
+}
+
+int /*long*/ rendererRenderProc (int /*long*/ cell, int /*long*/ cr, int /*long*/ handle, int /*long*/ background_area, int /*long*/ cell_area, int /*long*/ flags) {
 	return 0;
 }
 
@@ -1527,23 +1643,61 @@ public void setData (String key, Object value) {
 	if (key.equals(SWT.SKIN_CLASS) || key.equals(SWT.SKIN_ID)) this.reskin(SWT.ALL);
 }
 
+void setFontDescription (int /*long*/ widget, int /*long*/ font) {
+	if (OS.GTK3) {
+		OS.gtk_widget_override_font (widget, font);
+		int /*long*/ context = OS.gtk_widget_get_style_context (handle);
+		OS.gtk_style_context_invalidate (context);
+	} else {
+		OS.gtk_widget_modify_font (widget, font);
+	}
+}
+
 void setForegroundColor (int /*long*/ handle, GdkColor color) {
+	setForegroundColor (handle, color, true);
+}
+
+void setForegroundColor (int /*long*/ handle, GdkColor color, boolean setStateActive) {
+	if (OS.GTK3) {
+		GdkRGBA rgba = null;
+		if (color != null) {
+			rgba = new GdkRGBA();
+			rgba.alpha = 1;
+			rgba.red = (color.red & 0xFFFF) / (float)0xFFFF;
+			rgba.green = (color.green & 0xFFFF) / (float)0xFFFF;
+			rgba.blue = (color.blue & 0xFFFF) / (float)0xFFFF;
+		}
+		OS.gtk_widget_override_color (handle, OS.GTK_STATE_FLAG_NORMAL, rgba);
+		int /*long*/ context = OS.gtk_widget_get_style_context (handle);
+		OS.gtk_style_context_invalidate (context);
+		return;
+	}
+	
+	/*
+	 * Feature in GTK. When the widget doesn't have focus, then
+	 * gtk_default_draw_flat_box () changes the background color state_type
+	 * to GTK_STATE_ACTIVE. Widgets whose background is drawn using
+	 * gtk_paint_flat_box or gtk_default_draw_flat_box have to pass false for
+	 * setStateActive.
+	 */
 	int /*long*/ style = OS.gtk_widget_get_modifier_style (handle);
 	OS.gtk_rc_style_set_fg (style, OS.GTK_STATE_NORMAL, color);
-	OS.gtk_rc_style_set_fg (style, OS.GTK_STATE_ACTIVE, color);
+	if (setStateActive) OS.gtk_rc_style_set_fg (style, OS.GTK_STATE_ACTIVE, color);
 	OS.gtk_rc_style_set_fg (style, OS.GTK_STATE_PRELIGHT, color);
 	int flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_NORMAL);
 	flags = (color == null) ? flags & ~OS.GTK_RC_FG: flags | OS.GTK_RC_FG;
 	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_NORMAL, flags);
-	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_ACTIVE);
-	flags = (color == null) ? flags & ~OS.GTK_RC_FG: flags | OS.GTK_RC_FG;
-	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_ACTIVE, flags);
+	if (setStateActive) {
+		flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_ACTIVE);
+		flags = (color == null) ? flags & ~OS.GTK_RC_FG: flags | OS.GTK_RC_FG;
+		OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_ACTIVE, flags);
+	}
 	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_PRELIGHT);
 	flags = (color == null) ? flags & ~OS.GTK_RC_FG: flags | OS.GTK_RC_FG;
 	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_PRELIGHT, flags);
 
 	OS.gtk_rc_style_set_text (style, OS.GTK_STATE_NORMAL, color);
-	OS.gtk_rc_style_set_text (style, OS.GTK_STATE_ACTIVE, color);
+	if (setStateActive) OS.gtk_rc_style_set_text (style, OS.GTK_STATE_ACTIVE, color);
 	OS.gtk_rc_style_set_text (style, OS.GTK_STATE_PRELIGHT, color);
 	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_NORMAL);
 	flags = (color == null) ? flags & ~OS.GTK_RC_TEXT: flags | OS.GTK_RC_TEXT;
@@ -1551,9 +1705,11 @@ void setForegroundColor (int /*long*/ handle, GdkColor color) {
 	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_PRELIGHT);	
 	flags = (color == null) ? flags & ~OS.GTK_RC_TEXT: flags | OS.GTK_RC_TEXT;
 	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_PRELIGHT, flags);	
-	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_ACTIVE);
-	flags = (color == null) ? flags & ~OS.GTK_RC_TEXT: flags | OS.GTK_RC_TEXT;
-	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_ACTIVE, flags);
+	if (setStateActive) {
+		flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_ACTIVE);
+		flags = (color == null) ? flags & ~OS.GTK_RC_TEXT: flags | OS.GTK_RC_TEXT;
+		OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_ACTIVE, flags);
+	}
 	modifyStyle (handle, style);	
 }
 
@@ -1673,6 +1829,182 @@ int /*long*/ sizeAllocateProc (int /*long*/ handle, int /*long*/ arg0, int /*lon
 int /*long*/ sizeRequestProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	return 0;
 }
+int /*long*/ g_object_ref_sink (int /*long*/ object) {
+	if (OS.GLIB_VERSION >= OS.VERSION (2, 10, 0)) { 
+		return OS.g_object_ref_sink (object);
+	} else {
+		OS.gtk_object_sink (object);
+	}
+	return 0;
+}
+
+boolean gtk_widget_get_sensitive (int /*long*/ widget) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		return OS.gtk_widget_get_sensitive (widget);
+	} else {
+		return OS.GTK_WIDGET_SENSITIVE (widget);
+	}
+}
+
+boolean gtk_widget_get_visible (int /*long*/ widget) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		return OS.gtk_widget_get_visible (widget);
+	} else {
+		return (OS.GTK_WIDGET_FLAGS (widget) & OS.GTK_VISIBLE) != 0;
+	}
+}
+
+boolean gtk_widget_get_realized (int /*long*/ widget) {
+	 if (OS.GTK_VERSION >= OS.VERSION (2, 20, 0)) {
+		 return OS.gtk_widget_get_realized (widget);
+	 } else {
+		 return (OS.GTK_WIDGET_FLAGS (widget) & OS.GTK_REALIZED) != 0;
+	 }
+}
+
+boolean gtk_widget_get_can_default (int /*long*/ widget){
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		return OS.gtk_widget_get_can_default (widget);
+	} else {
+		return (OS.GTK_WIDGET_FLAGS (widget) & OS.GTK_CAN_DEFAULT) != 0;
+	}
+}
+
+boolean gtk_widget_get_has_window (int /*long*/ widget) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		return OS.gtk_widget_get_has_window (widget);
+	} else {
+		return (OS.GTK_WIDGET_FLAGS (widget) & OS.GTK_NO_WINDOW) == 0;
+	}
+}
+
+int /*long*/ gtk_widget_get_window (int /*long*/ widget){
+	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
+		return OS.gtk_widget_get_window (widget);
+	} else {
+		return OS.GTK_WIDGET_WINDOW (widget);
+	}
+}
+
+void gtk_widget_set_can_default (int /*long*/ widget, boolean can_default) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		OS.gtk_widget_set_can_default (widget, can_default);
+	} else {
+		if (can_default) {
+			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_CAN_DEFAULT);
+		} else {
+			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_CAN_DEFAULT);
+		}
+	}
+}
+
+void gtk_widget_set_can_focus (int /*long*/ widget, boolean can_focus) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		OS.gtk_widget_set_can_focus (widget, can_focus);
+	} else {
+		if (can_focus) {
+			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_CAN_FOCUS);
+		} else {
+			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_CAN_FOCUS);
+		}
+	}
+}
+
+void gtk_widget_set_mapped (int /*long*/ widget, boolean mapped) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 20, 0)) {
+		OS.gtk_widget_set_mapped (widget, mapped);
+	} else {
+		if (mapped) {
+			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_MAPPED);
+		} else {
+			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_MAPPED);
+		}
+	}
+}
+
+void gtk_widget_set_visible (int /*long*/ widget, boolean visible) {
+	if (OS.GTK3) {
+		OS.gtk_widget_set_visible (widget,visible);
+	} else {
+		if (visible) {
+			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_VISIBLE);
+		} else {
+			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_VISIBLE);
+		}
+	}
+}
+
+void gtk_widget_set_receives_default (int /*long*/ widget, boolean receives_default) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
+		OS.gtk_widget_set_receives_default (widget, receives_default);	
+	} else {
+		if (receives_default) {
+			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_RECEIVES_DEFAULT);
+		} else {
+			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_RECEIVES_DEFAULT);
+		}
+	}
+}
+
+void gdk_pixmap_get_size (int /*long*/ pixmap, int[] width, int[] height) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 24, 0)) {
+		OS.gdk_pixmap_get_size (pixmap, width, height);
+	} else {
+		OS.gdk_drawable_get_size (pixmap, width, height);
+	}
+}
+
+void gdk_window_get_size (int /*long*/ drawable, int[] width, int[] height) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 24, 0)) {
+		width[0] = OS.gdk_window_get_width (drawable);
+		height[0] = OS.gdk_window_get_height (drawable);
+	} else {
+		OS.gdk_drawable_get_size (drawable, width, height);
+	}
+}
+
+int /*long*/ gtk_box_new (int orientation, boolean homogeneous, int spacing) {
+	int /*long*/ box = 0;
+	if (OS.GTK3) {
+		box = OS.gtk_box_new (orientation, spacing);
+		OS.gtk_box_set_homogeneous (box, homogeneous);
+	} else {
+		if (orientation == OS.GTK_ORIENTATION_HORIZONTAL) {
+			box = OS.gtk_hbox_new (homogeneous, spacing);
+		} else {
+			box = OS.gtk_vbox_new (homogeneous, spacing);
+		}
+	}
+	return box;
+}
+
+int gdk_pointer_grab (int /*long*/ window, int grab_ownership, boolean owner_events, int event_mask, int /*long*/ confine_to, int /*long*/ cursor, int time_) {
+	if (OS.GTK3) {
+		int /*long*/ display = 0;
+		if( window != 0) {
+			display = OS.gdk_window_get_display (window);
+		} else {
+			window = OS.gdk_get_default_root_window ();
+			display = OS.gdk_window_get_display (window);
+		}
+		int /*long*/ device_manager = OS.gdk_display_get_device_manager (display);
+		int /*long*/ pointer = OS.gdk_device_manager_get_client_pointer (device_manager);
+		return OS.gdk_device_grab (pointer, window, grab_ownership, owner_events, event_mask, cursor, time_);
+	} else {
+		return OS.gdk_pointer_grab (window, owner_events, event_mask, confine_to, cursor, time_);
+	}
+}
+
+void gdk_pointer_ungrab (int /*long*/ window, int time_) {
+	if (OS.GTK3) {
+		int /*long*/ display = OS.gdk_window_get_display (window);
+		int /*long*/ device_manager = OS.gdk_display_get_device_manager (display);
+		int /*long*/ pointer = OS.gdk_device_manager_get_client_pointer (device_manager);
+		OS.gdk_device_ungrab (pointer, time_);
+	} else {
+		OS.gdk_pointer_ungrab (time_);
+	}
+}
 
 /**
  * Returns a string containing a concise, human-readable
@@ -1751,7 +2083,13 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ us
 		case ENTER_NOTIFY_EVENT: return gtk_enter_notify_event (handle, arg0);
 		case EVENT: return gtk_event (handle, arg0);
 		case EVENT_AFTER: return gtk_event_after (handle, arg0);
-		case EXPOSE_EVENT: return gtk_expose_event (handle, arg0);
+		case EXPOSE_EVENT: {
+			if (OS.GTK3) {
+				return gtk_draw (handle, arg0);
+			} else {
+				return gtk_expose_event (handle, arg0);
+			}
+		}
 		case FOCUS: return gtk_focus (handle, arg0);
 		case FOCUS_IN_EVENT: return gtk_focus_in_event (handle, arg0);
 		case FOCUS_OUT_EVENT: return gtk_focus_out_event (handle, arg0);
@@ -1800,6 +2138,58 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ ar
 		case INSERT_TEXT: return gtk_insert_text (handle, arg0, arg1, arg2);
 		case TEXT_BUFFER_INSERT_TEXT: return gtk_text_buffer_insert_text (handle, arg0, arg1, arg2);
 		default: return 0;
+	}
+}
+
+void gdk_cursor_unref (int /*long*/ cursor) {
+	if (OS.GTK3) {
+		OS.g_object_unref (cursor);
+	} else {
+		OS.gdk_cursor_unref(cursor);
+	}
+}
+
+int /*long*/ gdk_window_get_device_position (int /*long*/ window, int[] x, int[] y, int[] mask) {
+	if (OS.GTK3) {
+		int /*long*/ display = 0;
+		if( window != 0) {
+			display = OS.gdk_window_get_display (window);
+		} else {
+			window = OS.gdk_get_default_root_window ();
+			display = OS.gdk_window_get_display (window);
+		}
+		int /*long*/ device_manager = OS.gdk_display_get_device_manager (display);
+		int /*long*/ pointer = OS.gdk_device_manager_get_client_pointer (device_manager);
+		return OS.gdk_window_get_device_position(window, pointer, x, y, mask);
+	} else {
+		return OS.gdk_window_get_pointer (window, x, y, mask);
+	}
+}
+
+void gtk_cell_renderer_get_preferred_size (int /*long*/ cell, int /*long*/ widget,  int[] width, int[] height) {
+	if (OS.GTK3) {
+		GtkRequisition minimum_size = new GtkRequisition ();
+		OS.gtk_cell_renderer_get_preferred_size (cell, widget, minimum_size, null);
+		if (width != null) width [0] = minimum_size.width;
+		if (height != null) height[0] = minimum_size.height;
+	} else {
+		OS.gtk_cell_renderer_get_size (cell, widget, null, null, null, width, height);
+	}
+}
+
+void gtk_widget_get_preferred_size (int /*long*/ widget, GtkRequisition requisition){
+	if (OS.GTK3) {
+		OS.gtk_widget_get_preferred_size (widget, requisition, null);
+	} else {
+		OS.gtk_widget_size_request (widget, requisition);
+	}
+}
+
+void gtk_image_set_from_pixbuf (int /*long*/ imageHandle, int /*long*/ pixbuf){
+	if (OS.GTK3) {
+		OS.gtk_image_set_from_gicon(imageHandle, pixbuf, OS.GTK_ICON_SIZE_SMALL_TOOLBAR);
+	} else {
+		OS.gtk_image_set_from_pixbuf(imageHandle, pixbuf);
 	}
 }
 

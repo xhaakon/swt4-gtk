@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -48,7 +48,6 @@ public class Link extends Control {
 	int [] mnemonics;
 	int focusIndex;
 	
-	static final RGB LINK_FOREGROUND = new RGB (0, 51, 153);
 	static final RGB LINK_DISABLED_FOREGROUND = new RGB (172, 168, 153);
 	
 /**
@@ -145,10 +144,10 @@ void createHandle(int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	handle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (handle, true);
-	OS.GTK_WIDGET_SET_FLAGS (handle, OS.GTK_CAN_FOCUS);
+	gtk_widget_set_has_window (handle, true);
+	gtk_widget_set_can_focus (handle, true);
 	layout = new TextLayout (display);
-	linkColor = new Color (display, LINK_FOREGROUND);
+	linkColor = display.getSystemColor(SWT.COLOR_LINK_FOREGROUND);
 	disabledColor = new Color (display, LINK_DISABLED_FOREGROUND);
 	offsets = new Point [0];
 	ids = new String [0];
@@ -162,6 +161,26 @@ void createWidget (int index) {
 	layout.setFont (getFont ());
 	text = "";
 	initAccessible ();
+}
+
+void drawWidget(GC gc) {
+	int selStart = selection.x;
+	int selEnd = selection.y;
+	if (selStart > selEnd) {
+		selStart = selection.y;
+		selEnd = selection.x;
+	}
+	// temporary code to disable text selection
+	selStart = selEnd = -1;
+	if ((state & DISABLED) != 0) gc.setForeground (disabledColor);
+	layout.draw (gc, 0, 0, selStart, selEnd, null, null);
+	if (hasFocus () && focusIndex != -1) {
+		Rectangle [] rects = getRectangles (focusIndex);
+		for (int i = 0; i < rects.length; i++) {
+			Rectangle rect = rects [i];
+			gc.drawFocus (rect.x, rect.y, rect.width, rect.height);					
+		}
+	}
 }
 
 void enableWidget (boolean enabled) {
@@ -262,7 +281,10 @@ Rectangle [] getRectangles (int linkIndex) {
 }
 
 int getClientWidth () {
-	return (state & ZERO_WIDTH) != 0 ? 0 : OS.GTK_WIDGET_WIDTH (handle);
+	if ((state & ZERO_WIDTH) != 0) return 0;
+	GtkAllocation allocation = new GtkAllocation();
+	gtk_widget_get_allocation (handle, allocation);
+	return allocation.width;
 }
 
 /**
@@ -356,46 +378,6 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	return result;
 }
 
-int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
-	if ((state & OBSCURED) != 0) return 0;
-	GdkEventExpose gdkEvent = new GdkEventExpose ();
-	OS.memmove (gdkEvent, eventPtr, GdkEventExpose.sizeof);
-	GCData data = new GCData ();
-	data.damageRgn = gdkEvent.region;
-	GC gc = GC.gtk_new (this, data);
-	int selStart = selection.x;
-	int selEnd = selection.y;
-	if (selStart > selEnd) {
-		selStart = selection.y;
-		selEnd = selection.x;
-	}
-	// temporary code to disable text selection
-	selStart = selEnd = -1;
-	if ((state & DISABLED) != 0) gc.setForeground (disabledColor);
-	layout.draw (gc, 0, 0, selStart, selEnd, null, null);
-	if (hasFocus () && focusIndex != -1) {
-		Rectangle [] rects = getRectangles (focusIndex);
-		for (int i = 0; i < rects.length; i++) {
-			Rectangle rect = rects [i];
-			gc.drawFocus (rect.x, rect.y, rect.width, rect.height);					
-		}
-	}
-	if (hooks (SWT.Paint) || filters (SWT.Paint)) {
-		Event event = new Event ();
-		event.count = gdkEvent.count;
-		event.x = gdkEvent.area_x;
-		event.y = gdkEvent.area_y;
-		event.width = gdkEvent.area_width;
-		event.height = gdkEvent.area_height;
-		if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth () - event.width - event.x;
-		event.gc = gc;
-		sendEvent (SWT.Paint, event);
-		event.gc = null;
-	}
-	gc.dispose ();
-	return 0;
-}
-
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_key_press_event (widget, eventPtr);
 	if (result != 0) return result;
@@ -463,6 +445,10 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+boolean hooksPaint () {
+	return true;
+}
+
 boolean mnemonicHit (char key) {
 	char uckey = Character.toUpperCase (key);
 	String parsedText = layout.getText();
@@ -499,7 +485,6 @@ void releaseWidget () {
 	super.releaseWidget ();
 	if (layout != null)	layout.dispose ();
 	layout = null;
-	if (linkColor != null)	linkColor.dispose ();
 	linkColor = null;
 	if (disabledColor != null) disabledColor.dispose ();
 	disabledColor = null;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2012 IBM Corporation and others.
+ * Copyright (c) 2003, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -75,8 +75,8 @@ static String getCacheParentPath () {
 	return getProfilePath ();
 }
 
-static String getJSLibraryName () {
-	return "libxul.so"; //$NON-NLS-1$
+static String[] getJSLibraryNames () {
+	return new String[] {"libxul.so"}; //$NON-NLS-1$
 }
 
 static String getJSLibraryName_Pre4() {
@@ -122,25 +122,26 @@ static void loadAdditionalLibraries (String mozillaPath) {
 	String libName = "libswt-xulrunner-fix.so"; //$NON-NLS-1$
 	File libsDir = new File (getProfilePath () + "/libs/" + Mozilla.OS() + '/' + Mozilla.Arch ()); //$NON-NLS-1$
 	File file = new File (libsDir, libName);
-	java.io.InputStream is = Library.class.getResourceAsStream ('/' + libName);
-	if (is != null) {
-		if (!libsDir.exists ()) {
-			libsDir.mkdirs ();
-		}
-		int read;
-		byte [] buffer = new byte [4096];
-		try {
-			FileOutputStream os = new FileOutputStream (file);
-			while ((read = is.read (buffer)) != -1) {
-				os.write(buffer, 0, read);
+	if (!file.exists()) {
+		java.io.InputStream is = Library.class.getResourceAsStream ('/' + libName);
+		if (is != null) {
+			if (!libsDir.exists ()) {
+				libsDir.mkdirs ();
 			}
-			os.close ();
-			is.close ();
-		} catch (FileNotFoundException e) {
-		} catch (IOException e) {
+			int read;
+			byte [] buffer = new byte [4096];
+			try {
+				FileOutputStream os = new FileOutputStream (file);
+				while ((read = is.read (buffer)) != -1) {
+					os.write(buffer, 0, read);
+				}
+				os.close ();
+				is.close ();
+			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
+			}
 		}
 	}
-
 	if (file.exists ()) {
 		byte[] bytes = Converter.wcsToMbcs (null, file.getAbsolutePath (), true);
 		OS.dlopen (bytes, OS.RTLD_NOW | OS.RTLD_GLOBAL);
@@ -153,6 +154,10 @@ static char[] mbcsToWcs (String codePage, byte [] buffer) {
 
 static boolean needsSpinup () {
 	return true;
+}
+
+static boolean supportsXULRunner17 () {
+	return false;
 }
 
 static byte[] wcsToMbcs (String codePage, String string, boolean terminate) {
@@ -177,7 +182,12 @@ int /*long*/ getHandle () {
 	* causing the child of the GtkFixed handle to be resized to 1.
 	* The workaround is to embed Mozilla into a GtkHBox handle.
 	*/
-	embedHandle = OS.gtk_hbox_new (false, 0);
+	if (OS.GTK3) {
+		embedHandle = OS.gtk_box_new (OS.GTK_ORIENTATION_HORIZONTAL, 0);
+		OS.gtk_box_set_homogeneous (embedHandle, false);
+	} else {
+		embedHandle = OS.gtk_hbox_new (false, 0);
+	}
 	OS.gtk_container_add (browser.handle, embedHandle);
 	OS.gtk_widget_show (embedHandle);
 	return embedHandle;

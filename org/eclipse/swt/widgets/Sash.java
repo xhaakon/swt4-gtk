@@ -113,6 +113,9 @@ public void addSelectionListener (SelectionListener listener) {
 }
 
 static int checkStyle (int style) {
+	if (OS.USE_CAIRO) {
+		style |= SWT.SMOOTH;
+	}
 	return checkBits (style, SWT.HORIZONTAL, SWT.VERTICAL, 0, 0, 0, 0);
 }
 
@@ -136,16 +139,15 @@ void createHandle (int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	handle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (handle, true);
-	OS.GTK_WIDGET_SET_FLAGS (handle, OS.GTK_CAN_FOCUS);
+	gtk_widget_set_has_window (handle, true);
+	gtk_widget_set_can_focus (handle, true);
 	int type = (style & SWT.VERTICAL) != 0 ? OS.GDK_SB_H_DOUBLE_ARROW : OS.GDK_SB_V_DOUBLE_ARROW;
 	defaultCursor = OS.gdk_cursor_new (type);
 }
 
 void drawBand (int x, int y, int width, int height) {
 	if ((style & SWT.SMOOTH) != 0) return;
-	//TODO: Use Cairo
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (parent.paintHandle());
+	int /*long*/ window = gtk_widget_get_window (parent.paintHandle());
 	if (window == 0) return;
 	byte [] bits = {-86, 85, -86, 85, -86, 85, -86, 85};
 	int /*long*/ stipplePixmap = OS.gdk_bitmap_create_from_data (window, bits, 8, 8);
@@ -172,15 +174,17 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
 	if (button != 1) return 0;
 	if (gdkEvent.type == OS.GDK_2BUTTON_PRESS) return 0;
 	if (gdkEvent.type == OS.GDK_3BUTTON_PRESS) return 0;
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (widget);
+	int /*long*/ window = gtk_widget_get_window (widget);
 	int [] origin_x = new int [1], origin_y = new int [1];
 	OS.gdk_window_get_origin (window, origin_x, origin_y);
 	startX = (int) (gdkEvent.x_root - origin_x [0]);
 	startY = (int) (gdkEvent.y_root - origin_y [0]);
-	int x = OS.GTK_WIDGET_X (handle);
-	int y = OS.GTK_WIDGET_Y (handle);
-	int width = OS.GTK_WIDGET_WIDTH (handle);
-	int height = OS.GTK_WIDGET_HEIGHT (handle);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation(handle, allocation);
+	int x = allocation.x;
+	int y = allocation.y;
+	int width = allocation.width;
+	int height = allocation.height;
 	lastX = x; 
 	lastY = y;
 	Event event = new Event ();
@@ -219,8 +223,10 @@ int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ eventPt
 	if (button != 1) return 0;
 	if (!dragging) return 0;
 	dragging = false;
-	int width = OS.GTK_WIDGET_WIDTH (handle);
-	int height = OS.GTK_WIDGET_HEIGHT (handle);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
+	int width = allocation.width;
+	int height = allocation.height;
 	Event event = new Event ();
 	event.time = gdkEvent.time;
 	event.x = lastX;
@@ -245,8 +251,10 @@ int /*long*/ gtk_focus_in_event (int /*long*/ widget, int /*long*/ event) {
 	if (result != 0) return result;
 	// widget could be disposed at this point
 	if (handle != 0) {
-			lastX = OS.GTK_WIDGET_X (handle);
-			lastY = OS.GTK_WIDGET_Y (handle);
+		GtkAllocation allocation = new GtkAllocation ();
+		gtk_widget_get_allocation (handle, allocation);
+		lastX = allocation.x;
+		lastY = allocation.y;	
 	}
 	return 0;
 }
@@ -272,12 +280,14 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 				if (keyval == OS.GDK_Left ||keyval == OS.GDK_Right) break;
 				yChange = keyval == OS.GDK_Up ? -stepSize : stepSize;
 			}
-			
-			int width = OS.GTK_WIDGET_WIDTH (handle);
-			int height = OS.GTK_WIDGET_HEIGHT (handle);
 			int parentBorder = 0;
-			int parentWidth = OS.GTK_WIDGET_WIDTH (parent.handle);
-			int parentHeight = OS.GTK_WIDGET_HEIGHT (parent.handle);
+			GtkAllocation allocation = new GtkAllocation ();
+			gtk_widget_get_allocation (handle, allocation);
+			int width = allocation.width;
+			int height = allocation.height;
+			gtk_widget_get_allocation (parent.handle, allocation);
+			int parentWidth = allocation.width;
+			int parentHeight = allocation.height;
 			int newX = lastX, newY = lastY;
 			if ((style & SWT.VERTICAL) != 0) {
 				newX = Math.min (Math.max (0, lastX + xChange - parentBorder - startX), parentWidth - width);
@@ -287,10 +297,10 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			if (newX == lastX && newY == lastY) return result;
 			
 			/* Ensure that the pointer image does not change */
-			int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
+			int /*long*/ window = gtk_widget_get_window (handle);
 			int grabMask = OS.GDK_POINTER_MOTION_MASK | OS.GDK_BUTTON_RELEASE_MASK;
 			int /*long*/ gdkCursor = cursor != null ? cursor.handle : defaultCursor;
-			int ptrGrabResult = OS.gdk_pointer_grab (window, false, grabMask, window, gdkCursor, OS.GDK_CURRENT_TIME);
+			int ptrGrabResult = gdk_pointer_grab (window, OS.GDK_OWNERSHIP_NONE, false, grabMask, window, gdkCursor, OS.GDK_CURRENT_TIME);
 
 			/* The event must be sent because its doit flag is used. */
 			Event event = new Event ();
@@ -301,7 +311,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			event.height = height;
 			if ((parent.style & SWT.MIRRORED) != 0) event.x = parent.getClientWidth () - width  - event.x;
 			sendSelectionEvent (SWT.Selection, event, true);
-			if (ptrGrabResult == OS.GDK_GRAB_SUCCESS) OS.gdk_pointer_ungrab (OS.GDK_CURRENT_TIME);
+			if (ptrGrabResult == OS.GDK_GRAB_SUCCESS) gdk_pointer_ungrab (window, OS.GDK_CURRENT_TIME);
 			if (isDisposed ()) break;
 			
 			if (event.doit) {
@@ -335,7 +345,7 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ eventPtr
 	int eventX, eventY, eventState;
 	if (gdkEvent.is_hint != 0) {
 		int [] pointer_x = new int [1], pointer_y = new int [1], mask = new int [1];
-		OS.gdk_window_get_pointer (gdkEvent.window, pointer_x, pointer_y, mask);
+		gdk_window_get_device_position (gdkEvent.window, pointer_x, pointer_y, mask);
 		eventX = pointer_x [0];
 		eventY = pointer_y [0];
 		eventState = mask [0];
@@ -347,13 +357,16 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ eventPtr
 		eventState = gdkEvent.state;
 	}
 	if ((eventState & OS.GDK_BUTTON1_MASK) == 0) return 0;
-	int x = OS.GTK_WIDGET_X (handle);
-	int y = OS.GTK_WIDGET_Y (handle);
-	int width = OS.GTK_WIDGET_WIDTH (handle);
-	int height = OS.GTK_WIDGET_HEIGHT (handle);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
+	int x = allocation.x;
+	int y = allocation.y;
+	int width = allocation.width;
+	int height = allocation.height;
 	int parentBorder = 0;
-	int parentWidth = OS.GTK_WIDGET_WIDTH (parent.handle);
-	int parentHeight = OS.GTK_WIDGET_HEIGHT (parent.handle);
+	gtk_widget_get_allocation (parent.handle, allocation);
+	int parentWidth = allocation.width;
+	int parentHeight = allocation.height;
 	int newX = lastX, newY = lastY;
 	if ((style & SWT.VERTICAL) != 0) {
 		newX = Math.min (Math.max (0, eventX + x - startX - parentBorder), parentWidth - width);
@@ -401,7 +414,7 @@ void hookEvents () {
 
 void releaseWidget () {
 	super.releaseWidget ();
-	if (defaultCursor != 0) OS.gdk_cursor_unref (defaultCursor);
+	if (defaultCursor != 0) gdk_cursor_unref (defaultCursor);
 	defaultCursor = 0;
 }
 

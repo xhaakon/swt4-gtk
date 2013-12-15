@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2008 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2013 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -36,7 +36,7 @@ public class nsIAppShell extends nsISupports {
 
 	public static final nsID NS_IAPPSHELL_IID =
 		new nsID(NS_IAPPSHELL_IID_STR);
-
+	
 	public nsIAppShell(int /*long*/ address) {
 		super(address);
 	}

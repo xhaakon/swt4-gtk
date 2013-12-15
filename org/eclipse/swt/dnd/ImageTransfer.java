@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -84,8 +84,6 @@ public void javaToNative(Object object, TransferData transferData) {
 	if (!checkImage(object) || !isSupportedType(transferData)) {
 		DND.error(DND.ERROR_INVALID_DATA);
 	}
-	if (OS.GTK_VERSION < OS.VERSION (2, 4, 0)) return;
-	
 	ImageData imgData = (ImageData)object;
 	if (imgData == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	Image image = new Image(Display.getCurrent(), imgData);	

@@ -127,7 +127,7 @@ void createHandle (int index) {
 	clientHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (clientHandle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (handle, clientHandle);	
-	boxHandle = OS.gtk_hbox_new (false, 4);
+	boxHandle = gtk_box_new (OS.GTK_ORIENTATION_HORIZONTAL, false, 4);
 	if (boxHandle == 0) error (SWT.ERROR_NO_HANDLES);
 	labelHandle = OS.gtk_label_new (null);
 	if (labelHandle == 0) error (SWT.ERROR_NO_HANDLES);
@@ -136,7 +136,7 @@ void createHandle (int index) {
 	OS.gtk_container_add (boxHandle, imageHandle);
 	OS.gtk_container_add (boxHandle, labelHandle);
 	OS.gtk_expander_set_label_widget (handle, boxHandle);
-	OS.GTK_WIDGET_SET_FLAGS (handle, OS.GTK_CAN_FOCUS);
+	gtk_widget_set_can_focus (handle, true);
 }
 
 void createWidget (int index) {
@@ -265,7 +265,9 @@ public boolean getExpanded () {
  */
 public int getHeaderHeight () {
 	checkWidget ();
-	return OS.GTK_WIDGET_HEIGHT (handle) - (expanded ? height : 0);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
+	return allocation.height - (expanded ? height : 0);
 }
 
 /**
@@ -323,7 +325,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 }
 
 int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
-	OS.GTK_WIDGET_UNSET_FLAGS (handle, OS.GTK_CAN_FOCUS);
+	gtk_widget_set_can_focus (handle, false);
 	parent.lastFocus = this;
 	return 0;
 }
@@ -339,7 +341,7 @@ int /*long*/ gtk_enter_notify_event (int /*long*/ widget, int /*long*/ event) {
 }
 
 boolean hasFocus () {
-	return OS.GTK_WIDGET_HAS_FOCUS (handle);
+	return gtk_widget_has_focus (handle);
 }
 
 void hookEvents () {
@@ -381,11 +383,13 @@ void resizeControl (int yScroll) {
 	if (control != null && !control.isDisposed ()) {
 		boolean visible = OS.gtk_expander_get_expanded (handle);
 		if (visible) {
-			int x = OS.GTK_WIDGET_X (clientHandle);
-			int y = OS.GTK_WIDGET_Y (clientHandle);
+			GtkAllocation allocation = new GtkAllocation ();
+			gtk_widget_get_allocation (clientHandle, allocation);
+			int x = allocation.x;
+			int y = allocation.y;
 			if (x != -1 && y != -1) {
-				int width = OS.GTK_WIDGET_WIDTH (clientHandle);
-				int height = OS.GTK_WIDGET_HEIGHT (clientHandle);
+				int width = allocation.width;
+				int height = allocation.height;	
 				int [] property = new int [1];
 				OS.gtk_widget_style_get (handle, OS.focus_line_width, property, 0);				
 				y += property [0] * 2;
@@ -401,8 +405,9 @@ void resizeControl (int yScroll) {
 				*/
 				ScrollBar vBar = parent.verticalBar;
 				if (vBar != null) {
-					if (OS.GTK_WIDGET_VISIBLE (vBar.handle)) {
-						width = OS.GTK_WIDGET_WIDTH (parent.scrolledHandle) - parent.vScrollBarWidth () - 2 * parent.spacing;
+					if (gtk_widget_get_visible (vBar.handle)) {
+						gtk_widget_get_allocation (parent.scrolledHandle, allocation);
+						width = allocation.width - parent.vScrollBarWidth () - 2 * parent.spacing;	
 					}
 				}
 				control.setBounds (x, y - yScroll, width, Math.max (0, height), true, true);
@@ -481,19 +486,19 @@ public void setExpanded (boolean expanded) {
 
 boolean setFocus () {
 	if (!OS.gtk_widget_get_child_visible (handle)) return false;
-	OS.GTK_WIDGET_SET_FLAGS (handle, OS.GTK_CAN_FOCUS);
+	gtk_widget_set_can_focus (handle, true);
 	OS.gtk_widget_grab_focus (handle);
 	// widget could be disposed at this point
 	if (isDisposed ()) return false;
 	boolean result = OS.gtk_widget_is_focus (handle);
-	if (!result) OS.GTK_WIDGET_UNSET_FLAGS (handle, OS.GTK_CAN_FOCUS);
+	if (!result) gtk_widget_set_can_focus (handle, false);
 	return result;
 }
 
 void setFontDescription (int /*long*/ font) {
-	OS.gtk_widget_modify_font (handle, font);
-	if (labelHandle != 0) OS.gtk_widget_modify_font (labelHandle, font);
-	if (imageHandle != 0) OS.gtk_widget_modify_font (imageHandle, font);
+	setFontDescription (handle, font);
+	if (labelHandle != 0) setFontDescription (labelHandle, font);
+	if (imageHandle != 0) setFontDescription (imageHandle, font);
 }
 
 void setForegroundColor (GdkColor color) {
@@ -530,11 +535,11 @@ public void setImage (Image image) {
 		imageList = new ImageList ();
 		int imageIndex = imageList.add (image);
 		int /*long*/ pixbuf = imageList.getPixbuf (imageIndex);
-		OS.gtk_image_set_from_pixbuf (imageHandle, pixbuf);
+		gtk_image_set_from_pixbuf (imageHandle, pixbuf);
 		if (text.length () == 0) OS.gtk_widget_hide (labelHandle);
 		OS.gtk_widget_show (imageHandle);
 	} else {
-		OS.gtk_image_set_from_pixbuf (imageHandle, 0);
+		gtk_image_set_from_pixbuf (imageHandle, 0);
 		OS.gtk_widget_show (labelHandle);
 		OS.gtk_widget_hide (imageHandle);
 	}

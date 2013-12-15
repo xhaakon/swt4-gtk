@@ -235,7 +235,7 @@ Color _getBackground (int index) {
 }
 
 boolean _getChecked () {
-	int /*long*/ [] ptr = new int /*long*/ [1];
+	int [] ptr = new int [1];
 	OS.gtk_tree_model_get (parent.modelHandle, handle, Tree.CHECKED_COLUMN, ptr, -1);
 	return ptr [0] != 0;
 }
@@ -295,8 +295,12 @@ void clear () {
 	if (parent.currentItem == this) return;
 	if (cached || (parent.style & SWT.VIRTUAL) == 0) {
 		int columnCount = OS.gtk_tree_model_get_n_columns (parent.modelHandle);
-		for (int i=Tree.CHECKED_COLUMN; i<columnCount; i++) {
+		/* the columns before FOREGROUND_COLUMN contain int values, subsequent columns contain pointers */
+		for (int i=Tree.CHECKED_COLUMN; i<Tree.FOREGROUND_COLUMN; i++) {
 			OS.gtk_tree_store_set (parent.modelHandle, handle, i, 0, -1);
+		}
+		for (int i=Tree.FOREGROUND_COLUMN; i<columnCount; i++) {
+			OS.gtk_tree_store_set (parent.modelHandle, handle, i, (int /*long*/)0, -1);
 		}
 		/*
 		* Bug in GTK.  When using fixed-height-mode,
@@ -511,7 +515,7 @@ public Rectangle getBounds () {
 
 	int [] x = new int [1], w = new int [1];
 	parent.ignoreSize = true;
-	OS.gtk_cell_renderer_get_size (textRenderer, parentHandle, null, null, null, w, null);
+	gtk_cell_renderer_get_preferred_size (textRenderer, parentHandle, w, null);
 	parent.ignoreSize = false;
 	rect.width = w [0];
 	int [] buffer = new int [1];
@@ -968,7 +972,7 @@ public Rectangle getTextBounds (int index) {
 
 	int [] x = new int [1], w = new int [1];
 	parent.ignoreSize = true;
-	OS.gtk_cell_renderer_get_size (textRenderer, parentHandle, null, null, null, w, null);
+	gtk_cell_renderer_get_preferred_size (textRenderer, parentHandle, w, null);
 	parent.ignoreSize = false;
 	int [] buffer = new int [1];
 	if (OS.GTK_VERSION < OS.VERSION (2, 8, 18) && OS.gtk_tree_view_get_expander_column (parentHandle) == column) {
@@ -1052,7 +1056,7 @@ public int indexOf (TreeItem item) {
 
 void redraw () {
 	int /*long*/ parentHandle = parent.handle;
-	if ((OS.GTK_WIDGET_FLAGS (parentHandle) & OS.GTK_REALIZED) != 0) {
+	if (gtk_widget_get_realized (parentHandle)) {
 		int /*long*/ path = OS.gtk_tree_model_get_path (parent.modelHandle, handle);
 		GdkRectangle rect = new GdkRectangle ();
 		OS.gtk_tree_view_get_cell_area (parentHandle, path, 0, rect);
@@ -1060,7 +1064,7 @@ void redraw () {
 		int /*long*/ window = OS.gtk_tree_view_get_bin_window (parentHandle);
 		rect.x = 0;
 		int [] w = new int [1], h = new int [1];
-		OS.gdk_drawable_get_size (window, w, h);
+		gdk_window_get_size (window, w, h);
 		rect.width = w [0];
 		OS.gdk_window_invalidate_rect (window, rect, false);
 	}
@@ -1532,7 +1536,7 @@ public void setGrayed (boolean grayed) {
 	* GTK+'s "inconsistent" state does not match SWT's concept of grayed.
 	* Render checked+grayed as "inconsistent", unchecked+grayed as blank.
 	*/
-	int /*long*/ [] ptr = new int /*long*/ [1];
+	int [] ptr = new int [1];
 	OS.gtk_tree_model_get (parent.modelHandle, handle, Tree.CHECKED_COLUMN, ptr, -1);
 	OS.gtk_tree_store_set (parent.modelHandle, handle, Tree.GRAYED_COLUMN, ptr [0] == 0 ? false : grayed, -1);
 	cached = true;
@@ -1604,8 +1608,10 @@ public void setImage (int index, Image image) {
 				 * are relying on the fact that it is done as part of modifying
 				 * the style.
 				 */
-				int /*long*/ style = OS.gtk_widget_get_modifier_style (parentHandle);
-				parent.modifyStyle (parentHandle, style);
+				if (!OS.GTK3) {
+					int /*long*/ style = OS.gtk_widget_get_modifier_style (parentHandle);
+					parent.modifyStyle (parentHandle, style);
+				}
 			}
 		} 
 	}

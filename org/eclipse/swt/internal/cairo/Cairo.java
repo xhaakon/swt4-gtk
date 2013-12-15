@@ -1697,6 +1697,26 @@ public static final int cairo_xlib_surface_get_width(int /*long*/ surface) {
 		lock.unlock();
 	}
 }
+/** @method flags=dynamic */
+public static final native int _cairo_region_num_rectangles(int /*long*/ region);
+public static final int cairo_region_num_rectangles(int /*long*/ region) {
+	lock.lock();
+	try {
+		return _cairo_region_num_rectangles(region);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=dynamic */
+public static final native void _cairo_region_get_rectangle(int /*long*/ region, int nth, int /*long*/ rectangle);
+public static final void cairo_region_get_rectangle(int /*long*/ region, int nth, int /*long*/ rectangle) {
+	lock.lock();
+	try {
+		 _cairo_region_get_rectangle(region,nth,rectangle);
+	} finally {
+		lock.unlock();
+	}
+}
 /**
  * @param dest cast=(void *)
  * @param src cast=(const void *)

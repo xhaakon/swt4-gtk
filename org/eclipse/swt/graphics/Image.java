@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -363,7 +363,11 @@ public Image(Device device, Image srcImage, int flag) {
 
 	/* Get source image size */
 	int[] w = new int[1], h = new int[1];
- 	OS.gdk_drawable_get_size(srcImage.pixmap, w, h);
+	if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+		OS.gdk_pixmap_get_size(srcImage.pixmap, w, h);
+	} else {
+		OS.gdk_drawable_get_size(srcImage.pixmap, w, h);
+	}
  	int width = w[0];
  	int height = h[0];
  	
@@ -866,11 +870,19 @@ int /*long*/ createMask(ImageData image, boolean copy) {
 
 void createSurface() {
 	if (surface != 0) return;
+	/* There is no pixmaps in GTK 3. */
+	if (OS.GTK3) return;
 	/* Generate the mask if necessary. */
 	if (transparentPixel != -1) createMask();
 	int[] w = new int[1], h = new int[1];
-	OS.gdk_drawable_get_size(pixmap, w, h);
+	if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+		OS.gdk_pixmap_get_size(pixmap, w, h);
+	} else {
+		OS.gdk_drawable_get_size(pixmap, w, h);
+	}
 	int width = w[0], height = h[0];
+	this.width = width;
+	this.height = height;
 	if (mask != 0 || alpha != -1 || alphaData != null) {
 	 	int /*long*/ pixbuf = OS.gdk_pixbuf_new(OS.GDK_COLORSPACE_RGB, true, 8, width, height);
 		if (pixbuf == 0) SWT.error(SWT.ERROR_NO_HANDLES);
@@ -1069,7 +1081,11 @@ public Rectangle getBounds() {
 		return new Rectangle(0, 0, width, height);
 	}
 	int[] w = new int[1]; int[] h = new int[1];
-	OS.gdk_drawable_get_size(pixmap, w, h);
+	if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+		OS.gdk_pixmap_get_size(pixmap, w, h);
+	} else {
+		OS.gdk_drawable_get_size(pixmap, w, h);
+	}
 	return new Rectangle(0, 0, width = w[0], height = h[0]);
 }
 
@@ -1142,7 +1158,11 @@ public ImageData getImageData() {
 		return data;
 	}
 	int[] w = new int[1], h = new int[1];
- 	OS.gdk_drawable_get_size(pixmap, w, h);
+	if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+		OS.gdk_pixmap_get_size(pixmap, w, h);
+	} else {
+		OS.gdk_drawable_get_size(pixmap, w, h);
+	}
  	int width = w[0], height = h[0]; 	
  	int /*long*/ pixbuf = OS.gdk_pixbuf_new(OS.GDK_COLORSPACE_RGB, false, 8, width, height);
 	if (pixbuf == 0) SWT.error(SWT.ERROR_NO_HANDLES);
@@ -1207,17 +1227,21 @@ public ImageData getImageData() {
  *
  * @param device the device on which to allocate the color
  * @param type the type of the image (<code>SWT.BITMAP</code> or <code>SWT.ICON</code>)
- * @param pixmap the OS handle for the image
+ * @param imageHandle the OS handle for the image
  * @param mask the OS handle for the image mask
  *
  * @noreference This method is not intended to be referenced by clients.
  */
-public static Image gtk_new(Device device, int type, int /*long*/ pixmap, int /*long*/ mask) {
+public static Image gtk_new(Device device, int type, int /*long*/ imageHandle, int /*long*/ mask) {
 	Image image = new Image(device);
 	image.type = type;
-	image.pixmap = pixmap;
+	if (OS.GTK3) {
+		image.surface = imageHandle;
+	} else {
+		image.pixmap = imageHandle;
+		if (OS.USE_CAIRO) image.createSurface();
+	}
 	image.mask = mask;
-	if (OS.USE_CAIRO) image.createSurface();
 	return image;
 }
 

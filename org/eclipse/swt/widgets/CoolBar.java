@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -711,7 +711,7 @@ void onPaint(Event event) {
 			/* Draw gripper. */
 			if (!isLocked) {
 				rect = fixRectangle(bounds.x, bounds.y, CoolItem.MINIMUM_WIDTH, bounds.height);
-				if (!flat) 	nativeGripper = drawGripper(rect.x, rect.y, rect.width, rect.height, vertical);
+				if (!flat) 	nativeGripper = drawGripper(gc, rect.x, rect.y, rect.width, rect.height, vertical);
 				if (!nativeGripper) {
 					int grabberTrim = 2; 
 					int grabberHeight = bounds.height - (2 * grabberTrim) - 1;

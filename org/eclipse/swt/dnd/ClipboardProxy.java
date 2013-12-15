@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -89,18 +89,10 @@ int /*long*/ clearFunc(int /*long*/ clipboard,int /*long*/ user_data_or_owner){
 void dispose () {
 	if (display == null) return;
 	if (activeClipboard != null) {
-		if (OS.GTK_VERSION >= OS.VERSION(2, 6, 0)) {
-			OS.gtk_clipboard_store(Clipboard.GTKCLIPBOARD);
-		} else {
-			OS.gtk_clipboard_clear(Clipboard.GTKCLIPBOARD);
-		}
+		OS.gtk_clipboard_store(Clipboard.GTKCLIPBOARD);
 	}
 	if (activePrimaryClipboard != null) {
-		if (OS.GTK_VERSION >= OS.VERSION(2, 6, 0)) {
-			OS.gtk_clipboard_store(Clipboard.GTKPRIMARYCLIPBOARD);
-		} else {
-			OS.gtk_clipboard_clear(Clipboard.GTKPRIMARYCLIPBOARD);
-		}
+		OS.gtk_clipboard_store(Clipboard.GTKPRIMARYCLIPBOARD);
 	}
 	display = null;
 	if (getFunc != null ) getFunc.dispose();
@@ -121,10 +113,16 @@ void dispose () {
  */
 int /*long*/ getFunc(int /*long*/ clipboard, int /*long*/ selection_data, int /*long*/ info, int /*long*/ user_data_or_owner){
 	if (selection_data == 0) return 0;
-	GtkSelectionData selectionData = new GtkSelectionData();
-	OS.memmove(selectionData, selection_data, GtkSelectionData.sizeof);
+	int /*long*/ target;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)) {
+		target = OS.gtk_selection_data_get_target(selection_data);
+	} else {
+		GtkSelectionData selectionData = new GtkSelectionData();
+		OS.memmove(selectionData, selection_data, GtkSelectionData.sizeof);
+		target = selectionData.target;
+	}
 	TransferData tdata = new TransferData();
-	tdata.type = selectionData.target;
+	tdata.type = target;
 	Transfer[] types = (clipboard == Clipboard.GTKCLIPBOARD) ? clipboardDataTypes : primaryClipboardDataTypes;
 	int index = -1;
 	for (int i = 0; i < types.length; i++) {
@@ -190,9 +188,7 @@ boolean setData(Clipboard owner, Object[] data, Transfer[] dataTypes, int clipbo
 			if (!OS.gtk_clipboard_set_with_owner (Clipboard.GTKCLIPBOARD, pTargetsList, entries.length, getFuncProc, clearFuncProc, clipboardOwner)) {
 				return false;
 			}
-			if (OS.GTK_VERSION >= OS.VERSION(2, 6, 0)) {
-				OS.gtk_clipboard_set_can_store(Clipboard.GTKCLIPBOARD, 0, 0);
-			}
+			OS.gtk_clipboard_set_can_store(Clipboard.GTKCLIPBOARD, 0, 0);
 			activeClipboard = owner;
 		}
 		if ((clipboards & DND.SELECTION_CLIPBOARD) != 0) {
@@ -203,9 +199,7 @@ boolean setData(Clipboard owner, Object[] data, Transfer[] dataTypes, int clipbo
 			if (!OS.gtk_clipboard_set_with_owner (Clipboard.GTKPRIMARYCLIPBOARD, pTargetsList, entries.length, getFuncProc, clearFuncProc, clipboardOwner)) {
 				return false;
 			}
-			if (OS.GTK_VERSION >= OS.VERSION(2, 6, 0)) {
-				OS.gtk_clipboard_set_can_store(Clipboard.GTKPRIMARYCLIPBOARD, 0, 0);
-			}
+			OS.gtk_clipboard_set_can_store(Clipboard.GTKPRIMARYCLIPBOARD, 0, 0);
 			activePrimaryClipboard = owner;
 		}
 		return true;

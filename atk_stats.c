@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -18,8 +18,6 @@
 
 #ifdef NATIVE_STATS
 
-int ATK_nativeFunctionCount = 78;
-int ATK_nativeFunctionCallCount[78];
 char * ATK_nativeFunctionNames[] = {
 	"ATK_1IS_1NO_1OP_1OBJECT_1FACTORY",
 	"ATK_1TYPE_1ACTION",
@@ -36,7 +34,6 @@ char * ATK_nativeFunctionNames[] = {
 	"AtkObjectFactory_1sizeof",
 	"AtkTextRange_1sizeof",
 	"AtkTextRectangle_1sizeof",
-	"GTK_1TYPE_1ACCESSIBLE",
 	"_1ATK_1ACTION_1GET_1IFACE",
 	"_1ATK_1COMPONENT_1GET_1IFACE",
 	"_1ATK_1EDITABLE_1TEXT_1GET_1IFACE",
@@ -46,7 +43,6 @@ char * ATK_nativeFunctionNames[] = {
 	"_1ATK_1TABLE_1GET_1IFACE",
 	"_1ATK_1TEXT_1GET_1IFACE",
 	"_1ATK_1VALUE_1GET_1IFACE",
-	"_1GTK_1ACCESSIBLE",
 	"_1atk_1focus_1tracker_1notify",
 	"_1atk_1get_1default_1registry",
 	"_1atk_1object_1factory_1create_1accessible",
@@ -81,19 +77,9 @@ char * ATK_nativeFunctionNames[] = {
 	"_1call__JJJJ",
 #endif
 #ifndef JNI64
-	"_1call__IIIII",
-#else
-	"_1call__JJJJJ",
-#endif
-#ifndef JNI64
 	"_1call__IIIIII",
 #else
 	"_1call__JJJJJJ",
-#endif
-#ifndef JNI64
-	"_1call__IIIIIII",
-#else
-	"_1call__JJJJJJJ",
 #endif
 	"g_1strdup",
 #ifndef JNI64
@@ -232,6 +218,9 @@ char * ATK_nativeFunctionNames[] = {
 	"memmove__Lorg_eclipse_swt_internal_accessibility_gtk_GtkAccessible_2J",
 #endif
 };
+#define NATIVE_FUNCTION_COUNT sizeof(ATK_nativeFunctionNames) / sizeof(char*)
+int ATK_nativeFunctionCount = NATIVE_FUNCTION_COUNT;
+int ATK_nativeFunctionCallCount[NATIVE_FUNCTION_COUNT];
 
 #define STATS_NATIVE(func) Java_org_eclipse_swt_tools_internal_NativeStats_##func
 

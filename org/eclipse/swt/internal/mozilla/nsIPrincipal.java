@@ -22,14 +22,14 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2012 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2013 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
 public class nsIPrincipal extends nsISerializable {
 
-	static final int LAST_METHOD_ID = nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 26 : 23);
+	static final int LAST_METHOD_ID = nsISerializable.LAST_METHOD_ID + (IsXULRunner17 ? 27 : (IsXULRunner10 ? 26 : 23));
 
 	public static final String NS_IPRINCIPAL_IID_STR =
 		"b8268b9a-2403-44ed-81e3-614075c92034";
@@ -42,6 +42,12 @@ public class nsIPrincipal extends nsISerializable {
 
 	public static final nsID NS_IPRINCIPAL_10_IID =
 		new nsID(NS_IPRINCIPAL_10_IID_STR);
+	
+	public static final String NS_IPRINCIPAL_17_IID_STR =
+		"825ffce8-962d-11e1-aef3-8f2b6188709b";
+
+	public static final nsID NS_IPRINCIPAL_17_IID =
+		new nsID(NS_IPRINCIPAL_17_IID_STR);
 
 	public nsIPrincipal(int /*long*/ address) {
 		super(address);
@@ -52,110 +58,8 @@ public class nsIPrincipal extends nsISerializable {
 	public static final int ENABLE_WITH_USER_PERMISSION = 3;
 	public static final int ENABLE_GRANTED = 4;
 
-	public int GetPreferences(int /*long*/[] prefBranch, int /*long*/[] id, int /*long*/[] subjectName, int /*long*/[] grantedList, int /*long*/[] deniedList, int[] isTrusted) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + 1, getAddress(), prefBranch, id, subjectName, grantedList, deniedList, isTrusted);
-	}
-
-	public int Equals(int /*long*/ other, int[] _retval) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + 2, getAddress(), other, _retval);
-	}
-
-	public int EqualsIgnoringDomain(int /*long*/ other, int[] _retval) {
-		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + 3, getAddress(), other, _retval);
-	}
-
-	public int GetHashValue(int[] aHashValue) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 4 : 3), getAddress(), aHashValue);
-	}
-
 	public int GetJSPrincipals(int /*long*/ cx, int /*long*/[] _retval) {
+		if (IsXULRunner17) return XPCOM.NS_COMFALSE;
 		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 5 : 4), getAddress(), cx, _retval);
-	}
-
-	public int GetSecurityPolicy(int /*long*/[] aSecurityPolicy) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 6 : 5), getAddress(), aSecurityPolicy);
-	}
-
-	public int SetSecurityPolicy(int /*long*/ aSecurityPolicy) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 7 : 6), getAddress(), aSecurityPolicy);
-	}
-
-	public int CanEnableCapability(byte[] capability, int /*long*/ _retval) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 8 : 7), getAddress(), capability, _retval);
-	}
-
-	public int SetCanEnableCapability(byte[] capability, short canEnable) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 9 : 8), getAddress(), capability, canEnable);
-	}
-
-	public int IsCapabilityEnabled(byte[] capability, int /*long*/ annotation, int[] _retval) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 10 : 9), getAddress(), capability, annotation, _retval);
-	}
-
-	public int EnableCapability(byte[] capability, int /*long*/[] annotation) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 11 : 10), getAddress(), capability, annotation);
-	}
-
-	public int RevertCapability(byte[] capability, int /*long*/[] annotation) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 12 : 11), getAddress(), capability, annotation);
-	}
-
-	public int DisableCapability(byte[] capability, int /*long*/[] annotation) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 13 : 12), getAddress(), capability, annotation);
-	}
-
-	public int GetURI(int /*long*/[] aURI) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 14 : 13), getAddress(), aURI);
-	}
-
-	public int GetDomain(int /*long*/[] aDomain) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 15 : 14), getAddress(), aDomain);
-	}
-
-	public int SetDomain(int /*long*/ aDomain) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 16 : 15), getAddress(), aDomain);
-	}
-
-	public int GetOrigin(int /*long*/[] aOrigin) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 17 : 16), getAddress(), aOrigin);
-	}
-
-	public int GetHasCertificate(int[] aHasCertificate) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 18 : 17), getAddress(), aHasCertificate);
-	}
-
-	public int GetFingerprint(int /*long*/ aFingerprint) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 19 : 18), getAddress(), aFingerprint);
-	}
-
-	public int GetPrettyName(int /*long*/ aPrettyName) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 20 : 19), getAddress(), aPrettyName);
-	}
-
-	public int Subsumes(int /*long*/ other, int[] _retval) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 21 : 20), getAddress(), other, _retval);
-	}
-
-	public int CheckMayLoad(int /*long*/ uri, int report) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 22 : 21), getAddress(), uri, report);
-	}
-
-	public int GetSubjectName(int /*long*/ aSubjectName) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 23 : 22), getAddress(), aSubjectName);
-	}
-
-	public int GetCertificate(int /*long*/[] aCertificate) {
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 24 : 23), getAddress(), aCertificate);
-	}
-	
-	public int GetCsp(int /*long*/[] aCsp) {
-		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + 25, getAddress(), aCsp);
-	}
-
-	public int SetCsp(int /*long*/ aCsp) {
-		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + 26, getAddress(), aCsp);
 	}
 }

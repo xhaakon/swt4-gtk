@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@ package org.eclipse.swt.internal.theme;
 
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
+import org.eclipse.swt.internal.cairo.Cairo;
 import org.eclipse.swt.internal.gtk.*;
 
 public class ComboDrawData extends DrawData {
@@ -58,18 +59,18 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 	int arrow_y = y + (height - arrow_height) / 2 + 1;
 	if (relief != OS.GTK_RELIEF_NONE || ((state[DrawData.COMBO_ARROW] & (DrawData.PRESSED | DrawData.HOT)) != 0)) {
 		byte[] detail = Converter.wcsToMbcs(null, "button", true);
-		OS.gtk_paint_box(gtkStyle, drawable, state_type, shadow_type, null, buttonHandle, detail, arrow_button_x, y, arrow_button_width, height);
+		gtk_render_box (gtkStyle, drawable, state_type, shadow_type, null, buttonHandle, detail, arrow_button_x, y, arrow_button_width, height);
 	}		
 	byte[] arrow_detail = Converter.wcsToMbcs(null, "arrow", true);
 	int /*long*/ arrowHandle = theme.arrowHandle;
-	OS.gtk_paint_arrow(gtkStyle, drawable, state_type, OS.GTK_SHADOW_OUT, null, arrowHandle, arrow_detail, OS.GTK_ARROW_DOWN, true, arrow_x, arrow_y, arrow_width, arrow_height);
+	gtk_render_arrow (gtkStyle, drawable, state_type, OS.GTK_SHADOW_OUT, null, arrowHandle, arrow_detail, OS.GTK_ARROW_DOWN, true, arrow_x, arrow_y, arrow_width, arrow_height);
 	
 	int /*long*/ entryHandle = theme.entryHandle;
 	gtkStyle = OS.gtk_widget_get_style(entryHandle);
 	theme.transferClipping(gc, gtkStyle);
 	state_type = getStateType(DrawData.WIDGET_WHOLE);
 	byte[] detail = Converter.wcsToMbcs(null, "entry", true);
-	OS.gtk_paint_shadow(gtkStyle, drawable, OS.GTK_STATE_NORMAL, OS.GTK_SHADOW_IN, null, entryHandle, detail, x, y, width - arrow_button_width, height);
+	gtk_render_shadow (gtkStyle, drawable, OS.GTK_STATE_NORMAL, OS.GTK_SHADOW_IN, null, entryHandle, detail, x, y, width - arrow_button_width, height);
 	xthickness = OS.gtk_style_get_xthickness(gtkStyle);
 	ythickness = OS.gtk_style_get_xthickness(gtkStyle);
 	x += xthickness;
@@ -77,7 +78,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 	width -= 2 * xthickness;
 	height -= 2 * ythickness;
 	detail = Converter.wcsToMbcs(null, "entry_bg", true);
-	OS.gtk_paint_flat_box(gtkStyle, drawable, state_type, OS.GTK_SHADOW_NONE, null, entryHandle, detail, x, y, width - arrow_button_width, height);
+	gtk_render_frame (gtkStyle, drawable, state_type, OS.GTK_SHADOW_NONE, null, entryHandle, detail, x, y, width - arrow_button_width, height);
 		
 	if (clientArea != null) {
 		clientArea.x = x;
@@ -122,4 +123,16 @@ int hit(Theme theme, Point position, Rectangle bounds) {
 	return DrawData.WIDGET_WHOLE;
 }
 
+void gtk_render_shadow(int /*long*/ style, int /*long*/ window, int state_type, int shadow_type, GdkRectangle area, int /*long*/ widget, byte[] detail, int x , int y, int width, int height) {
+	if (OS.GTK3) {
+		int /*long*/ cairo = OS.gdk_cairo_create (window);
+		int /*long*/ context = OS.gtk_widget_get_style_context (style);
+		OS.gtk_style_context_save(context);
+		OS.gtk_style_context_set_state (style, state_type);
+		OS.gtk_render_frame (context, cairo, x, y, width, height);
+		Cairo.cairo_destroy (cairo);
+	} else {
+		OS.gtk_paint_shadow(style, window, state_type, shadow_type, area, widget, detail, x, y, width, height);
+	}
+}
 }

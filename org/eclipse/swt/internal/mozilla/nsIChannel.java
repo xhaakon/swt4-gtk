@@ -22,14 +22,14 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2012 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2013 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
 public class nsIChannel extends nsIRequest {
 
-	static final int LAST_METHOD_ID = nsIRequest.LAST_METHOD_ID + (IsXULRunner10 ? 19 : 16);
+	static final int LAST_METHOD_ID = nsIRequest.LAST_METHOD_ID + ((IsXULRunner10 || IsXULRunner17) ? 19 : 16);
 
 	public static final String NS_ICHANNEL_IID_STR =
 		"c63a055a-a676-4e71-bf3c-6cfa11082018";
@@ -112,17 +112,17 @@ public class nsIChannel extends nsIRequest {
 	}
 
 	public int GetContentDisposition(int[] aContentDisposition) {
-		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		if (!(IsXULRunner10 || IsXULRunner17)) return XPCOM.NS_COMFALSE;
 		return XPCOM.VtblCall(nsIRequest.LAST_METHOD_ID + 17, getAddress(), aContentDisposition);
 	}
 
 	public int GetContentDispositionFilename(int /*long*/ aContentDispositionFilename) {
-		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		if (!(IsXULRunner10 || IsXULRunner17)) return XPCOM.NS_COMFALSE;
 		return XPCOM.VtblCall(nsIRequest.LAST_METHOD_ID + 18, getAddress(), aContentDispositionFilename);
 	}
 
 	public int GetContentDispositionHeader(int /*long*/ aContentDispositionHeader) {
-		if (!IsXULRunner10) return XPCOM.NS_COMFALSE;
+		if (!(IsXULRunner10 || IsXULRunner17)) return XPCOM.NS_COMFALSE;
 		return XPCOM.VtblCall(nsIRequest.LAST_METHOD_ID + 19, getAddress(), aContentDispositionHeader);
 	}
 

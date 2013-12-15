@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -189,7 +189,7 @@ void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
+	gtk_widget_set_has_window (fixedHandle, true);
 	scrolledHandle = OS.gtk_scrolled_window_new (0, 0);
 	if (scrolledHandle == 0) error (SWT.ERROR_NO_HANDLES);
 	/*
@@ -491,7 +491,13 @@ public int getItemHeight () {
 	if (itemCount == 0) {
 		int [] w = new int [1], h = new int [1];
 		OS.gtk_tree_view_column_cell_get_size (column, null, null, null, w, h);
-		return h [0];
+		int height = h [0];
+		if (OS.GTK3) {
+			int /*long*/ textRenderer = getTextRenderer (column);
+			OS.gtk_cell_renderer_get_preferred_height_for_width (textRenderer, handle, 0, h, null);
+			height += h [0];
+		}
+		return height;
 	} else {
 		int /*long*/ iter = OS.g_malloc (OS.GtkTreeIter_sizeof ());
 		OS.gtk_tree_model_get_iter_first (modelHandle, iter);
@@ -662,6 +668,29 @@ public int [] getSelectionIndices () {
 	return new int [0];
 }
 
+int /*long*/ getTextRenderer (int /*long*/ column) {
+	int /*long*/ list = 0;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
+		list = OS.gtk_cell_layout_get_cells(column);
+	} else {
+		list = OS.gtk_tree_view_column_get_cell_renderers (column);
+	}
+	if (list == 0) return 0;
+	int count = OS.g_list_length (list);
+	int /*long*/ textRenderer = 0;
+	int i = 0;
+	while (i < count) {
+		int /*long*/ renderer = OS.g_list_nth_data (list, i);
+		 if (OS.GTK_IS_CELL_RENDERER_TEXT (renderer)) {
+			textRenderer = renderer;
+			break;
+		}
+		i++;
+	}
+	OS.g_list_free (list);
+	return textRenderer;
+}
+
 /**
  * Returns the zero-relative index of the item which is currently
  * at the top of the receiver. This index can change when items are
@@ -761,7 +790,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	* it finishes processing a button press.  The fix is to give
 	* focus to the widget before it starts processing the event.
 	*/
-	if (!OS.GTK_WIDGET_HAS_FOCUS (handle)) {
+	if (!gtk_widget_has_focus (handle)) {
 		OS.gtk_widget_grab_focus (handle);
 	}
 	return result;
@@ -1225,7 +1254,9 @@ void selectFocusIndex (int index) {
 
 void setBackgroundColor (GdkColor color) {
 	super.setBackgroundColor (color);
-	OS.gtk_widget_modify_base (handle, 0, color);
+	if (!OS.GTK3) {
+		OS.gtk_widget_modify_base (handle, 0, color);
+	}
 }
 
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
@@ -1239,14 +1270,6 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	* after it has been resized.
 	*/
 	OS.gtk_widget_realize (handle);
-	/*
-	* Bug in GTK.  An empty GtkTreeView fails to repaint the focus rectangle
-	* correctly when resized on versions before 2.6.0.  The fix is to force
-	* the widget to redraw.
-	*/
-	if (OS.GTK_VERSION < OS.VERSION (2, 6, 0) && OS.gtk_tree_model_iter_n_children (modelHandle, 0) == 0) {
-		redraw (false);
-	}
 	return result;
 }
 
@@ -1314,10 +1337,15 @@ public void setItems (String [] items) {
 	OS.g_free (iter);
 }
 
+void setForegroundColor (GdkColor color) {
+	setForegroundColor (handle, color, false);
+}
+
 /**
  * Selects the item at the given zero-relative index in the receiver. 
  * If the item at the index was already selected, it remains selected.
- * The current selection is first cleared, then the new item is selected.
+ * The current selection is first cleared, then the new item is selected,
+ * and if necessary the receiver is scrolled to make the new selection visible.
  * Indices that are out of range are ignored.
  *
  * @param index the index of the item to select
@@ -1339,7 +1367,8 @@ public void setSelection (int index) {
 /**
  * Selects the items in the range specified by the given zero-relative
  * indices in the receiver. The range of indices is inclusive.
- * The current selection is cleared before the new items are selected.
+ * The current selection is cleared before the new items are selected,
+ * and if necessary the receiver is scrolled to make the new selection visible.
  * <p>
  * Indices that are out of range are ignored and no items will be selected
  * if start is greater than end.
@@ -1374,7 +1403,8 @@ public void setSelection (int start, int end) {
 
 /**
  * Selects the items at the given zero-relative indices in the receiver.
- * The current selection is cleared before the new items are selected.
+ * The current selection is cleared before the new items are selected,
+ * and if necessary the receiver is scrolled to make the new selection visible.
  * <p>
  * Indices that are out of range and duplicate indices are ignored.
  * If the receiver is single-select and multiple indices are specified,
@@ -1408,7 +1438,8 @@ public void setSelection(int[] indices) {
 
 /**
  * Sets the receiver's selection to be the given array of items.
- * The current selection is cleared before the new items are selected.
+ * The current selection is cleared before the new items are selected,
+ * and if necessary the receiver is scrolled to make the new selection visible.
  * <p>
  * Items that are not in the receiver are ignored.
  * If the receiver is single-select and multiple items are specified,
@@ -1533,7 +1564,7 @@ public void showSelection () {
 	OS.gtk_tree_view_get_cell_area (handle, path, 0, cellRect);
 	int[] tx = new int[1], ty = new int[1];
 	if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
-		OS.gtk_tree_view_convert_widget_to_bin_window_coords(handle, cellRect.x, cellRect.y, tx, ty);
+		OS.gtk_tree_view_convert_bin_window_to_tree_coords(handle, cellRect.x, cellRect.y, tx, ty);
 	} else {
 		OS.gtk_tree_view_widget_to_tree_coords(handle, cellRect.x, cellRect.y, tx, ty);
 	}

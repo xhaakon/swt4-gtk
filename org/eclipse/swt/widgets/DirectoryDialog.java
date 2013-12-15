@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -159,7 +159,13 @@ String openChooserDialog () {
 	}
 	if (message.length () > 0) {
 		byte [] buffer = Converter.wcsToMbcs (null, message, true);
-		int /*long*/ box = OS.gtk_hbox_new (false, 0);
+		int /*long*/ box = 0;
+		if (OS.GTK3) {
+			box = OS.gtk_box_new (OS.GTK_ORIENTATION_HORIZONTAL, 0);
+			OS.gtk_box_set_homogeneous (box, false);
+		} else {
+			box = OS.gtk_hbox_new (false, 0);
+		}
 		if (box == 0) error (SWT.ERROR_NO_HANDLES);
 		int /*long*/ label = OS.gtk_label_new (buffer);
 		if (label == 0) error (SWT.ERROR_NO_HANDLES);
@@ -200,7 +206,8 @@ String openChooserDialog () {
 		int /*long*/ path = OS.gtk_file_chooser_get_filename (handle);
 		if (path != 0) {
 			int /*long*/ utf8Ptr = OS.g_filename_to_utf8 (path, -1, null, null, null);
-			OS.g_free (path);
+			if (utf8Ptr == 0) utf8Ptr = OS.g_filename_display_name (path);
+			if (path != utf8Ptr) OS.g_free (path);
 			if (utf8Ptr != 0) {
 				int /*long*/ [] items_written = new int /*long*/ [1];
 				int /*long*/ utf16Ptr = OS.g_utf8_to_utf16 (utf8Ptr, -1, null, items_written, null);

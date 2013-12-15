@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -332,9 +332,9 @@ protected void checkSubclass () {
 	}
 }
 
-void drag_data_received ( int /*long*/ widget, int /*long*/ context, int x, int y, int /*long*/ data, int info, int time){
+void drag_data_received ( int /*long*/ widget, int /*long*/ context, int x, int y, int /*long*/ selection_data, int info, int time){
 	DNDEvent event = new DNDEvent();
-	if (data == 0 || !setEventData(context, x, y, time, event)) {
+	if (selection_data == 0 || !setEventData(context, x, y, time, event)) {
 		keyOperation = -1;
 		return;
 	}
@@ -345,13 +345,28 @@ void drag_data_received ( int /*long*/ widget, int /*long*/ context, int x, int 
 	// Get data in a Java format	
 	Object object = null;
 	TransferData transferData = new TransferData();
-	GtkSelectionData selectionData = new GtkSelectionData(); 
-	OS.memmove(selectionData, data, GtkSelectionData.sizeof);
-	if (selectionData.data != 0) {
-		transferData.type = selectionData.type;
-		transferData.length = selectionData.length;
-		transferData.pValue = selectionData.data;
-		transferData.format = selectionData.format;
+	int length;
+	int format;
+	int /*long*/ data;
+	int /*long*/ type;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)) {
+		length = OS.gtk_selection_data_get_length(selection_data);
+		format = OS.gtk_selection_data_get_format(selection_data);
+		data = OS.gtk_selection_data_get_data(selection_data);
+		type = OS.gtk_selection_data_get_data_type(selection_data);
+	} else {
+		GtkSelectionData gtkSelectionData = new GtkSelectionData();
+		OS.memmove(gtkSelectionData, selection_data, GtkSelectionData.sizeof);
+		length = gtkSelectionData.length;
+		format = gtkSelectionData.format;
+		data = gtkSelectionData.data;
+		type = gtkSelectionData.type;
+	}
+	if (data != 0) {
+		transferData.type = type;
+		transferData.length = length;
+		transferData.pValue = data;
+		transferData.format = format;
 		for (int i = 0; i < transferAgents.length; i++) {
 			Transfer transfer = transferAgents[i];
 			if (transfer != null && transfer.isSupportedType(transferData)) {
@@ -569,7 +584,14 @@ public DropTargetEffect getDropTargetEffect() {
 
 int getOperationFromKeyState() {
 	int[] state = new int[1];
-	OS.gdk_window_get_pointer(0, null, null, state);
+	if (OS.GTK3) {
+		int /*long*/ root = OS.gdk_get_default_root_window ();
+		int /*long*/ device_manager = OS.gdk_display_get_device_manager (OS.gdk_window_get_display (root));
+		int /*long*/ pointer = OS.gdk_device_manager_get_client_pointer (device_manager);
+		OS.gdk_window_get_device_position(root, pointer, null, null, state);
+	} else {
+		OS.gdk_window_get_pointer(0, null, null, state);
+	}
 	boolean ctrl = (state[0] & OS.GDK_CONTROL_MASK) != 0;
 	boolean shift = (state[0] & OS.GDK_SHIFT_MASK) != 0;
 	if (ctrl && shift) return DND.DROP_LINK;
@@ -730,13 +752,22 @@ public void setDropTargetEffect(DropTargetEffect effect) {
 
 boolean setEventData(int /*long*/ context, int x, int y, int time, DNDEvent event) {
 	if (context == 0) return false;
-	GdkDragContext dragContext = new GdkDragContext();
-	OS.memmove(dragContext, context, GdkDragContext.sizeof);
-	if (dragContext.targets == 0) return false;
+	int /*long*/ targets = 0;
+	int actions = 0;
+	if (OS.GTK3) {
+		targets = OS.gdk_drag_context_list_targets(context);
+		actions = OS.gdk_drag_context_get_actions(context);
+	} else {
+		GdkDragContext dragContext = new GdkDragContext();
+		OS.memmove(dragContext, context, GdkDragContext.sizeof);
+		targets = dragContext.targets;
+		actions = dragContext.actions;
+	}
+	if (targets == 0) return false;
 	
 	// get allowed operations
 	int style = getStyle();
-	int operations = osOpToOp(dragContext.actions) & style;
+	int operations = osOpToOp(actions) & style;
 	if (operations == DND.DROP_NONE) return false;
 	
 	// get current operation
@@ -751,14 +782,12 @@ boolean setEventData(int /*long*/ context, int x, int y, int time, DNDEvent even
 	}
 
 	// Get allowed transfer types
-	int length = OS.g_list_length(dragContext.targets);
+	int length = OS.g_list_length(targets);
 	TransferData[] dataTypes = new TransferData[0];
 	for (int i = 0; i < length; i++) {
-		int /*long*/ pData = OS.g_list_nth(dragContext.targets, i);
-		GtkTargetPair gtkTargetPair = new GtkTargetPair();
-		OS.memmove(gtkTargetPair, pData, GtkTargetPair.sizeof);
+		int /*long*/ pData = OS.g_list_nth_data(targets, i);
 		TransferData data = new TransferData();
-		data.type = gtkTargetPair.target;
+		data.type = pData;
 		for (int j = 0; j < transferAgents.length; j++) {
 			Transfer transfer = transferAgents[j];
 			if (transfer != null && transfer.isSupportedType(data)) {
@@ -771,8 +800,12 @@ boolean setEventData(int /*long*/ context, int x, int y, int time, DNDEvent even
 		}
 	}
 	if (dataTypes.length == 0) return false;
-
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW(control.handle);
+	int /*long*/ window;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
+		window = OS.gtk_widget_get_window (control.handle);
+	} else {
+		window = OS.GTK_WIDGET_WINDOW(control.handle);
+	}
 	int [] origin_x = new int[1], origin_y = new int[1];
 	OS.gdk_window_get_origin(window, origin_x, origin_y);
 	Point coordinates = new Point(origin_x[0] + x, origin_y[0] + y);

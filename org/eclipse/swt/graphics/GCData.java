@@ -24,17 +24,18 @@ import org.eclipse.swt.*;
  * platforms, and should never be called from application code.
  * </p>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
- * @noinstantiate This class is not intended to be instantiated by clients.
+ * @noreference This class is not intended to be referenced by clients
  */
 public final class GCData {
 	public Device device;
 	public int style, state = -1;
+
 	public GdkColor foreground;
+
 	public GdkColor background;
 	public Font font;
 	public Pattern foregroundPattern;
 	public Pattern backgroundPattern;
-	public int /*long*/ clipRgn;
 	public float lineWidth;
 	public int lineStyle = SWT.LINE_SOLID;
 	public float[] lineDashes;
@@ -45,13 +46,9 @@ public final class GCData {
 	public boolean xorMode;
 	public int alpha = 0xFF;
 	public int interpolation = SWT.DEFAULT;
-
-	public int /*long*/ context;
-	public int /*long*/ layout;
-	public int /*long*/ damageRgn;
 	public Image image;
-	public int /*long*/ drawable;	
-	public int /*long*/ cairo;
+
+	public int /*long*/ clipRgn, context, layout, damageRgn, drawable, cairo;
 	public double cairoXoffset, cairoYoffset;
 	public boolean disposeCairo;
 	public double[] identity, clippingTransform;

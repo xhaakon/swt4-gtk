@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2012 IBM Corporation and others.
+ * Copyright (c) 2008, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -251,9 +251,16 @@ static Object convertToJava (nsIVariant variant, short type) {
 					case nsIDataType.VTYPE_BOOL:
 						arrayReturn = new Object[count[0]];
 						for (int i = 0; i < count[0]; i++) {
-							int[] boolValue = new int[1]; /* PRUInt32 */
-							C.memmove (boolValue, ptr[0] + i * 4, 4);
-							arrayReturn[i] = new Boolean (boolValue[0] != 0);
+							/* mozilla's representation of boolean changed from 4 bytes to 1 byte as of XULRunner 4.x */
+							if (nsISupports.IsXULRunner10 || nsISupports.IsXULRunner17) {
+								byte[] byteValue = new byte[1];
+								C.memmove (byteValue, ptr[0] + i, 1);
+								arrayReturn[i] = new Boolean (byteValue[0] != 0);
+							} else {
+								int[] boolValue = new int[1]; /* PRUInt32 */
+								C.memmove (boolValue, ptr[0] + i * 4, 4);
+								arrayReturn[i] = new Boolean (boolValue[0] != 0);
+							}
 						}
 						break;
 					case nsIDataType.VTYPE_INT32:

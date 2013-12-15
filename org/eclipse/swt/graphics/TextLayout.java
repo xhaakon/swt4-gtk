@@ -79,12 +79,6 @@ public TextLayout (Device device) {
 	if (context == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	OS.pango_context_set_language(context, OS.gtk_get_default_language());
 	OS.pango_context_set_base_dir(context, OS.PANGO_DIRECTION_LTR);
-	/*
-	 * Colormap is automatically set for GTK 2.6.0 and newer.
-	 */
-	if (OS.GTK_VERSION < OS.VERSION(2, 6, 0)) {
-	    OS.gdk_pango_context_set_colormap(context, OS.gdk_colormap_get_system());	
-	}
 	layout = OS.pango_layout_new(context);
 	if (layout == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	OS.pango_layout_set_font_description(layout, device.systemFont.handle);
@@ -240,12 +234,14 @@ void computeRuns () {
 			if (style.underlineColor != null) {
 				GdkColor fg = style.underlineColor.handle;
 				attr = OS.pango_attr_underline_color_new(fg.red, fg.green, fg.blue);
-				OS.memmove(attribute, attr, PangoAttribute.sizeof);
-				attribute.start_index = byteStart;
-				attribute.end_index = byteEnd;
-				OS.memmove(attr, attribute, PangoAttribute.sizeof);
-				OS.pango_attr_list_insert(attrList, attr);
-				OS.pango_attr_list_insert(selAttrList, OS.pango_attribute_copy(attr));
+				if (attr != 0) {
+					OS.memmove(attribute, attr, PangoAttribute.sizeof);
+					attribute.start_index = byteStart;
+					attribute.end_index = byteEnd;
+					OS.memmove(attr, attribute, PangoAttribute.sizeof);
+					OS.pango_attr_list_insert(attrList, attr);
+					OS.pango_attr_list_insert(selAttrList, OS.pango_attribute_copy(attr));
+				}
 			}
 		}
 		if (style.strikeout) {
@@ -259,12 +255,14 @@ void computeRuns () {
 			if (style.strikeoutColor != null) {
 				GdkColor fg = style.strikeoutColor.handle;
 				attr = OS.pango_attr_strikethrough_color_new(fg.red, fg.green, fg.blue);
-				OS.memmove(attribute, attr, PangoAttribute.sizeof);
-				attribute.start_index = byteStart;
-				attribute.end_index = byteEnd;
-				OS.memmove(attr, attribute, PangoAttribute.sizeof);
-				OS.pango_attr_list_insert(attrList, attr);
-				OS.pango_attr_list_insert(selAttrList, OS.pango_attribute_copy(attr));
+				if (attr != 0) {
+					OS.memmove(attribute, attr, PangoAttribute.sizeof);
+					attribute.start_index = byteStart;
+					attribute.end_index = byteEnd;
+					OS.memmove(attr, attribute, PangoAttribute.sizeof);
+					OS.pango_attr_list_insert(attrList, attr);
+					OS.pango_attr_list_insert(selAttrList, OS.pango_attribute_copy(attr));
+				}
 			}
 		}
 		Color foreground = style.foreground;
@@ -636,7 +634,7 @@ void drawBorder(GC gc, int x, int y, GdkColor selectionColor) {
 			if (rgn != 0) {
 				int[] nRects = new int[1];
 				int /*long*/[] rects = new int /*long*/[1];
-				OS.gdk_region_get_rectangles(rgn, rects, nRects);
+				Region.gdk_region_get_rectangles(rgn, rects, nRects);
 				GdkRectangle rect = new GdkRectangle();
 				GdkColor color = null;
 				if (color == null && style.borderColor != null) color = style.borderColor.handle;
@@ -2215,8 +2213,8 @@ int width () {
 	int wrapWidth = OS.pango_layout_get_width(layout);
 	if (wrapWidth != -1) return OS.PANGO_PIXELS(wrapWidth); 
 	int[] w = new int[1], h = new int[1];
-	OS.pango_layout_get_size(layout, w, h);
-	return OS.PANGO_PIXELS(w[0]);
+	OS.pango_layout_get_pixel_size(layout, w, h);
+	return w[0];
 }
 
 } 

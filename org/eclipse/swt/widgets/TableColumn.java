@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -350,16 +350,6 @@ int /*long*/ gtk_clicked (int /*long*/ widget) {
 				lastButton = eventButton;
 				break;
 			}
-			case OS.GDK_MOTION_NOTIFY: {
-				/*
-				* Bug in GTK.  Dragging a column in a GtkTreeView causes a clicked 
-				* signal to be emitted even though the mouse button was never released.
-				* The fix to ignore the signal if the current GDK event is a motion notify.
-				* The GTK bug was fixed in version 2.6
-				*/
-				if (OS.GTK_VERSION < OS.VERSION (2, 6, 0)) postEvent = false;
-				break;
-			}
 		}
 	}
 	if (postEvent) sendSelectionEvent (doubleClick ? SWT.DefaultSelection : SWT.Selection);
@@ -388,8 +378,10 @@ int /*long*/ gtk_mnemonic_activate (int /*long*/ widget, int /*long*/ arg1) {
 
 int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	useFixedWidth = false;
-	int x = OS.GTK_WIDGET_X (widget);
-	int width = OS.GTK_WIDGET_WIDTH (widget);
+	GtkAllocation widgetAllocation = new GtkAllocation ();
+	gtk_widget_get_allocation (widget, widgetAllocation);
+	int x = widgetAllocation.x;
+	int width = widgetAllocation.width;
 	if (x != lastX) {
 		lastX = x;
 		sendEvent (SWT.Move);
@@ -427,7 +419,7 @@ public void pack () {
 	int width = 0;
 	if (buttonHandle != 0) {
 		GtkRequisition requisition = new GtkRequisition ();
-		OS.gtk_widget_size_request (buttonHandle, requisition);
+		gtk_widget_get_preferred_size (buttonHandle, requisition);
 		width = requisition.width;
 	}
 	if ((parent.style & SWT.VIRTUAL) != 0) {
@@ -546,8 +538,8 @@ public void setAlignment (int alignment) {
 }
 
 void setFontDescription (int /*long*/ font) {
-	OS.gtk_widget_modify_font (labelHandle, font);
-	OS.gtk_widget_modify_font (imageHandle, font);
+	setFontDescription (labelHandle, font);
+	setFontDescription (imageHandle, font);
 }
 
 public void setImage (Image image) {
@@ -561,10 +553,10 @@ public void setImage (Image image) {
 		int imageIndex = headerImageList.indexOf (image);
 		if (imageIndex == -1) imageIndex = headerImageList.add (image);
 		int /*long*/ pixbuf = headerImageList.getPixbuf (imageIndex);
-		OS.gtk_image_set_from_pixbuf (imageHandle, pixbuf);
+		gtk_image_set_from_pixbuf (imageHandle, pixbuf);
 		OS.gtk_widget_show (imageHandle);
 	} else {
-		OS.gtk_image_set_from_pixbuf (imageHandle, 0);
+		gtk_image_set_from_pixbuf (imageHandle, 0);
 		OS.gtk_widget_hide (imageHandle);
 	}
 }

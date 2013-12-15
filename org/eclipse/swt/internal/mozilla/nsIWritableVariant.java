@@ -22,7 +22,7 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2009 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2013 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -90,6 +90,10 @@ public class nsIWritableVariant extends nsIVariant {
 	}
 
 	public int SetAsBool(int aValue) {
+		/* mozilla's representation of boolean changed from 4 bytes to 1 byte as of XULRunner 4.x */
+		if (IsXULRunner10 || IsXULRunner17) {
+			return XPCOM.VtblCall(nsIVariant.LAST_METHOD_ID + 13, getAddress(), (byte)aValue);
+		}
 		return XPCOM.VtblCall(nsIVariant.LAST_METHOD_ID + 13, getAddress(), aValue);
 	}
 

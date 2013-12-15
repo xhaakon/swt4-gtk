@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -59,7 +59,6 @@ public final class Printer extends Device {
 	 * whether or not a GC was created for this printer
 	 */
 	boolean isGCCreated = false;
-	Font systemFont;
 
 	static byte [] settingsData;
 	static int start, end;
@@ -70,8 +69,10 @@ public final class Printer extends Device {
 	static boolean disablePrinting = System.getProperty("org.eclipse.swt.internal.gtk.disablePrinting") != null; //$NON-NLS-1$
 	
 static void gtk_init() {
-	if (!OS.g_thread_supported ()) {
-		OS.g_thread_init (0);
+	if (OS.GLIB_VERSION < OS.VERSION(2, 32, 0)) {
+		if (!OS.g_thread_supported()) {
+			OS.g_thread_init(0);
+		}
 	}
 	if (OS.GTK_VERSION < OS.VERSION(2, 24, 0)) {
 	    OS.gtk_set_locale();
@@ -386,38 +387,6 @@ static byte [] restoreBytes(String key, boolean nullTerminate) {
 	return valueBuffer;
 }
 
-/**
- * Returns a reasonable font for applications to use.
- * On some platforms, this will match the "default font"
- * or "system font" if such can be found.  This font
- * should not be free'd because it was allocated by the
- * system, not the application.
- * <p>
- * Typically, applications which want the default look
- * should simply not set the font on the widgets they
- * create. Widgets are always created with the correct
- * default font for the class of user-interface component
- * they represent.
- * </p>
- *
- * @return a font
- *
- * @exception SWTException <ul>
- *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
- *    <li>ERROR_DEVICE_DISPOSED - if the receiver has been disposed</li>
- * </ul>
- */
-public Font getSystemFont () {
-	checkDevice ();
-	if (systemFont != null) return systemFont;
-	int /*long*/ style = OS.gtk_widget_get_default_style();	
-	int /*long*/ defaultFont = OS.pango_font_description_copy (OS.gtk_style_get_font_desc (style));
-	int size = OS.pango_font_description_get_size(defaultFont);
-	Point dpi = getDPI(), screenDPI = super.getDPI();
-	OS.pango_font_description_set_size(defaultFont, size * dpi.y / screenDPI.y);
-	return systemFont = Font.gtk_new (this, defaultFont);
-}
-
 /**	 
  * Invokes platform specific functionality to allocate a new GC handle.
  * <p>
@@ -506,10 +475,6 @@ public void internal_dispose_GC(int /*long*/ hDC, GCData data) {
  */
 protected void release () {
 	super.release();
-	
-	/* Dispose the default font */
-	if (systemFont != null) systemFont.dispose ();
-	systemFont = null;
 }
 
 /**

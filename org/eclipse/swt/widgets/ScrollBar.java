@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -176,7 +176,7 @@ void destroyWidget () {
  */
 public boolean getEnabled () {
 	checkWidget ();
-	if (handle != 0) return OS.GTK_WIDGET_SENSITIVE (handle);
+	if (handle != 0) return gtk_widget_get_sensitive (handle);
 	return true;
 }
 
@@ -194,9 +194,7 @@ public boolean getEnabled () {
  */
 public int getIncrement () {
 	checkWidget ();
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	return (int) adjustment.step_increment;
+	return (int) gtk_adjustment_get_step_increment (adjustmentHandle);
 }
 
 /**
@@ -211,9 +209,7 @@ public int getIncrement () {
  */
 public int getMaximum () {
 	checkWidget ();
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	return (int) adjustment.upper;
+	return (int) gtk_adjustment_get_upper (adjustmentHandle);
 }
 
 /**
@@ -228,9 +224,7 @@ public int getMaximum () {
  */
 public int getMinimum () {
 	checkWidget ();
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	return (int) adjustment.lower;
+	return (int) gtk_adjustment_get_lower (adjustmentHandle);
 }
 
 /**
@@ -247,9 +241,7 @@ public int getMinimum () {
  */
 public int getPageIncrement () {
 	checkWidget ();
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	return (int) adjustment.page_increment;
+	return (int) gtk_adjustment_get_page_increment (adjustmentHandle);
 }
 
 /**
@@ -279,9 +271,7 @@ public Scrollable getParent () {
  */
 public int getSelection () {
 	checkWidget ();
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	return (int) adjustment.value;
+	return (int) gtk_adjustment_get_value (adjustmentHandle);
 }
 
 /**
@@ -301,7 +291,7 @@ public Point getSize () {
 	checkWidget ();
 	if (handle == 0) return new Point (0,0);
 	GtkRequisition requisition = new GtkRequisition ();
-	OS.gtk_widget_size_request (handle, requisition);
+	gtk_widget_get_preferred_size (handle, requisition);
 	return new Point (requisition.width, requisition.height);
 }
 
@@ -319,9 +309,7 @@ public Point getSize () {
  */
 public int getThumb () {
 	checkWidget ();
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	return (int) adjustment.page_size;
+	return (int) gtk_adjustment_get_page_size (adjustmentHandle);
 }
 
 /**
@@ -339,27 +327,29 @@ public int getThumb () {
  */
 public Rectangle getThumbBounds () {
 	checkWidget();
-	int slider_start = OS.GTK_RANGE_SLIDER_START (handle);
-	int slider_end = OS.GTK_RANGE_SLIDER_END (handle);
+	int [] slider_start = new int [1], slider_end = new int [1];
+	gtk_range_get_slider_range (handle, slider_start, slider_end);
 	int x, y, width, height;
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
 	if ((style & SWT.VERTICAL) != 0) {
-		x = OS.GTK_WIDGET_X (handle);
-		y = slider_start;
-		width = OS.GTK_WIDGET_WIDTH (handle);
-		height = slider_end - slider_start;
+		x = allocation.x;
+		y = slider_start [0];
+		width = allocation.width;
+		height = slider_end [0] - slider_start [0];
 	} else {
-		x = slider_start;
-		y = OS.GTK_WIDGET_Y (handle);
-		width = slider_end - slider_start;
-		height = OS.GTK_WIDGET_HEIGHT (handle);
+		x = slider_start [0];
+		y = allocation.y;
+		width = slider_end [0] - slider_start [0];
+		height = allocation.height;
 	}
 	Rectangle rect = new Rectangle(x, y, width, height);
 	int [] origin_x = new int [1], origin_y = new int [1];
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (parent.scrolledHandle);
+	int /*long*/ window = gtk_widget_get_window (parent.scrolledHandle);
 	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
 	rect.x += origin_x [0];
 	rect.y += origin_y [0];
-	window = OS.GTK_WIDGET_WINDOW (parent.handle);
+	window = gtk_widget_get_window (parent.handle);
 	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
 	rect.x -= origin_x [0];
 	rect.y -= origin_y [0];
@@ -383,44 +373,55 @@ public Rectangle getThumbBounds () {
 public Rectangle getThumbTrackBounds () {
 	checkWidget();
 	int x = 0, y = 0, width, height;
-	boolean hasA = OS.GTK_RANGE_HAS_STEPPER_A (handle);
-	boolean hasB = OS.GTK_RANGE_HAS_STEPPER_B (handle);
-	boolean hasC = OS.GTK_RANGE_HAS_STEPPER_C (handle);
-	boolean hasD = OS.GTK_RANGE_HAS_STEPPER_D (handle);
+	int[] has_stepper = new int[1];
+	OS.gtk_widget_style_get (handle, OS.has_backward_stepper, has_stepper, 0);
+	boolean hasA = has_stepper[0] != 0;
+	OS.gtk_widget_style_get (handle, OS.has_secondary_backward_stepper, has_stepper, 0);
+	boolean hasB = has_stepper[0] != 0;
+	OS.gtk_widget_style_get (handle, OS.has_forward_stepper, has_stepper, 0);
+	boolean hasC = has_stepper[0] != 0;
+	OS.gtk_widget_style_get (handle, OS.has_secondary_forward_stepper, has_stepper, 0);
+	boolean hasD = has_stepper[0] != 0;
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
 	if ((style & SWT.VERTICAL) != 0) {
-		int stepperSize = OS.GTK_WIDGET_WIDTH (handle);
-		x = OS.GTK_WIDGET_X (handle);
+		int stepperSize = allocation.width;
+		x = allocation.x;
 		if (hasA) y += stepperSize;
 		if (hasB) y += stepperSize;
-		width = OS.GTK_WIDGET_WIDTH (handle);
-		height = OS.GTK_WIDGET_HEIGHT (handle) - y;
+		width = allocation.width;
+		height = allocation.height - y;	
 		if (hasC) height -= stepperSize;
 		if (hasD) height -= stepperSize;
 		if (height < 0) {
-			y = OS.GTK_RANGE_SLIDER_START (handle);
+			int [] slider_start = new int [1], slider_end = new int [1];
+			gtk_range_get_slider_range (handle, slider_start, slider_end);
+			y = slider_start [0];
 			height = 0;
 		}
 	} else {
-		int stepperSize = OS.GTK_WIDGET_HEIGHT (handle);
+		int stepperSize = allocation.height;
 		if (hasA) x += stepperSize;
 		if (hasB) x += stepperSize;
-		y = OS.GTK_WIDGET_Y (handle);
-		width = OS.GTK_WIDGET_WIDTH (handle) - x;
+		y = allocation.y;
+		width = allocation.width -x;
 		if (hasC) width -= stepperSize;
 		if (hasD) width -= stepperSize;
-		height = OS.GTK_WIDGET_HEIGHT (handle);
+		height = allocation.height;
 		if (width < 0) {
-			x = OS.GTK_RANGE_SLIDER_START (handle);
+			int [] slider_start = new int [1], slider_end = new int [1];
+			gtk_range_get_slider_range (handle, slider_start, slider_end);
+			x = slider_start [0];
 			width = 0;
 		}
 	}
 	Rectangle rect = new Rectangle(x, y, width, height);
 	int [] origin_x = new int [1], origin_y = new int [1];
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (parent.scrolledHandle);
+	int /*long*/ window = gtk_widget_get_window (parent.scrolledHandle);
 	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
 	rect.x += origin_x [0];
 	rect.y += origin_y [0];
-	window = OS.GTK_WIDGET_WINDOW (parent.handle);
+	window = gtk_widget_get_window (parent.handle);
 	if (window != 0) OS.gdk_window_get_origin (window, origin_x, origin_y);
 	rect.x -= origin_x [0];
 	rect.y -= origin_y [0];
@@ -450,9 +451,9 @@ public boolean getVisible () {
 	int [] hsp = new int [1], vsp = new int [1];
 	OS.gtk_scrolled_window_get_policy (scrolledHandle, hsp, vsp);
 	if ((style & SWT.HORIZONTAL) != 0) {
-		return hsp [0] != OS.GTK_POLICY_NEVER && OS.GTK_WIDGET_VISIBLE(handle);
+		return hsp [0] != OS.GTK_POLICY_NEVER && gtk_widget_get_visible (handle);
 	} else {
-		return vsp [0] != OS.GTK_POLICY_NEVER && OS.GTK_WIDGET_VISIBLE(handle);
+		return vsp [0] != OS.GTK_POLICY_NEVER && gtk_widget_get_visible (handle);
 	}
 }
 
@@ -467,6 +468,15 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
 int /*long*/ gtk_change_value (int /*long*/ widget, int /*long*/ scroll, int /*long*/ value1, int /*long*/ value2) {
 	detail = (int)/*64*/scroll;
 	return 0;
+}
+
+void gtk_range_get_slider_range (int /*long*/ widget, int [] slider_start, int [] slider_end) {
+	if (OS.GTK_VERSION >= OS.VERSION (2, 20, 0)) {
+		OS.gtk_range_get_slider_range (widget, slider_start, slider_end);
+	} else {
+		slider_start [0] = OS.GTK_RANGE_SLIDER_START (widget);
+		slider_end [0] = OS.GTK_RANGE_SLIDER_END (widget);
+	}
 }
 
 int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
@@ -521,9 +531,7 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 
 void hookEvents () {
 	super.hookEvents ();
-	if (OS.GTK_VERSION >= OS.VERSION (2, 6, 0)) {
-		OS.g_signal_connect_closure (handle, OS.change_value, display.closures [CHANGE_VALUE], false);
-	}
+	OS.g_signal_connect_closure (handle, OS.change_value, display.closures [CHANGE_VALUE], false);
 	OS.g_signal_connect_closure (adjustmentHandle, OS.value_changed, display.closures [VALUE_CHANGED], false);
 	OS.g_signal_connect_closure_by_id (handle, display.signalIds [EVENT_AFTER], 0, display.closures [EVENT_AFTER], false);
 	OS.g_signal_connect_closure_by_id (handle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.closures [BUTTON_PRESS_EVENT], false);	
@@ -648,12 +656,16 @@ public void setEnabled (boolean enabled) {
 public void setIncrement (int value) {
 	checkWidget ();
 	if (value < 1) return;
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	adjustment.step_increment = (float) value;
-	OS.memmove (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	OS.gtk_adjustment_changed (adjustmentHandle);
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		OS.gtk_adjustment_set_step_increment (adjustmentHandle, value);
+	} else {
+		GtkAdjustment adjustment = new GtkAdjustment ();
+		OS.memmove (adjustment, adjustmentHandle);
+		adjustment.step_increment = (float) value;
+		OS.memmove (adjustmentHandle, adjustment);
+		OS.gtk_adjustment_changed (adjustmentHandle);
+	}
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -673,15 +685,14 @@ public void setIncrement (int value) {
 public void setMaximum (int value) {
 	checkWidget ();
 	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
+	gtk_adjustment_get (adjustmentHandle, adjustment);
 	int minimum = (int) adjustment.lower;
 	if (value <= minimum) return;
 	adjustment.upper = value;
 	adjustment.page_size = Math.min ((int)adjustment.page_size, value - minimum);
 	adjustment.value = Math.min ((int)adjustment.value, (int)(value - adjustment.page_size));
-	OS.memmove (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	OS.gtk_adjustment_changed (adjustmentHandle);
+	gtk_adjustment_configure (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 	
@@ -702,15 +713,14 @@ public void setMinimum (int value) {
 	checkWidget ();
 	if (value < 0) return;
 	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
+	gtk_adjustment_get (adjustmentHandle, adjustment);
 	int maximum = (int) adjustment.upper;
 	if (value >= maximum) return;
 	adjustment.lower = value;
 	adjustment.page_size = Math.min ((int)adjustment.page_size, maximum - value);
 	adjustment.value = Math.max ((int)adjustment.value, value);
-	OS.memmove (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	OS.gtk_adjustment_changed (adjustmentHandle);
+	gtk_adjustment_configure (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -741,12 +751,16 @@ void setOrientation (boolean create) {
 public void setPageIncrement (int value) {
 	checkWidget ();
 	if (value < 1) return;
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
-	adjustment.page_increment = (float) value;
-	OS.memmove (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	OS.gtk_adjustment_changed (adjustmentHandle);
+	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
+		OS.gtk_adjustment_set_page_increment (adjustmentHandle, value);
+	} else {
+		GtkAdjustment adjustment = new GtkAdjustment ();
+		OS.memmove (adjustment, adjustmentHandle);
+		adjustment.page_increment = (float) value;
+		OS.memmove (adjustmentHandle, adjustment);
+		OS.gtk_adjustment_changed (adjustmentHandle);
+	}
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -791,13 +805,12 @@ public void setThumb (int value) {
 	checkWidget ();
 	if (value < 1) return;
 	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
+	gtk_adjustment_get (adjustmentHandle, adjustment);
 	value = (int) Math.min (value, (int)(adjustment.upper - adjustment.lower)); 
 	adjustment.page_size = (double) value;
 	adjustment.value = Math.min ((int)adjustment.value, (int)(adjustment.upper - value));
-	OS.memmove (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	OS.gtk_adjustment_changed (adjustmentHandle);
+	gtk_adjustment_configure (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -831,16 +844,14 @@ public void setValues (int selection, int minimum, int maximum, int thumb, int i
 	if (pageIncrement < 1) return;
 	thumb = Math.min (thumb, maximum - minimum);
 	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
 	adjustment.lower = minimum;
 	adjustment.upper = maximum;
 	adjustment.step_increment = increment;
 	adjustment.page_increment = pageIncrement;
 	adjustment.page_size = thumb;
 	adjustment.value = Math.min (Math.max (selection, minimum), maximum - thumb);
-	OS.memmove (adjustmentHandle, adjustment);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	OS.gtk_adjustment_changed (adjustmentHandle);
+	gtk_adjustment_configure (adjustmentHandle, adjustment);
 	OS.gtk_adjustment_value_changed (adjustmentHandle);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -198,8 +198,6 @@ public static final native int AtkTextRectangle_sizeof ();
 /** Natives */
 
 /** @method flags=const */
-public static final native int /*long*/ GTK_TYPE_ACCESSIBLE ();
-/** @method flags=const */
 public static final native int /*long*/ ATK_TYPE_ACTION ();
 /** @method flags=const */
 public static final native int /*long*/ ATK_TYPE_COMPONENT ();
@@ -287,15 +285,6 @@ public static final int /*long*/ ATK_VALUE_GET_IFACE (int /*long*/ handle) {
 	lock.lock();
 	try {
 		return _ATK_VALUE_GET_IFACE(handle);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _GTK_ACCESSIBLE (int /*long*/ handle);
-public static final int /*long*/ GTK_ACCESSIBLE (int /*long*/ handle) {
-	lock.lock();
-	try {
-		return _GTK_ACCESSIBLE(handle);
 	} finally {
 		lock.unlock();
 	}
@@ -526,29 +515,11 @@ public static final int /*long*/ call (int /*long*/ function, int /*long*/ arg0,
 		lock.unlock();
 	}
 }
-public static final native int /*long*/ _call (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3);
-public static final int /*long*/ call (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3) {
-	lock.lock();
-	try {
-		return _call(function, arg0, arg1, arg2, arg3);
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native int /*long*/ _call (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3, int /*long*/ arg4);
 public static final int /*long*/ call (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3, int /*long*/ arg4) {
 	lock.lock();
 	try {
 		return _call(function, arg0, arg1, arg2, arg3, arg4);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _call (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3, int /*long*/ arg4, int /*long*/ arg5);
-public static final int /*long*/ call (int /*long*/ function, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2, int /*long*/ arg3, int /*long*/ arg4, int /*long*/ arg5) {
-	lock.lock();
-	try {
-		return _call(function, arg0, arg1, arg2, arg3, arg4, arg5);
 	} finally {
 		lock.unlock();
 	}

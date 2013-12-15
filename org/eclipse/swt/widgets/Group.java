@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -109,8 +109,10 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget();
 	forceResize ();
-	int clientX = OS.GTK_WIDGET_X (clientHandle);
-	int clientY = OS.GTK_WIDGET_Y (clientHandle);
+	GtkAllocation allocation = new GtkAllocation();
+	gtk_widget_get_allocation (clientHandle, allocation);
+	int clientX = allocation.x;
+	int clientY = allocation.y;
 	x -= clientX;
 	y -= clientY;
 	width += clientX + clientX;
@@ -122,15 +124,21 @@ void createHandle(int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
+	gtk_widget_set_has_window (fixedHandle, true);
 	handle = OS.gtk_frame_new (null);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	labelHandle = OS.gtk_label_new (null);
 	if (labelHandle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.g_object_ref (labelHandle);
-	OS.gtk_object_sink (labelHandle);
+	g_object_ref_sink (labelHandle);
 	clientHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (clientHandle == 0) error (SWT.ERROR_NO_HANDLES);
+	if (OS.GTK3) {
+		OS.gtk_widget_override_background_color (clientHandle, OS.GTK_STATE_FLAG_NORMAL, new GdkRGBA ());
+		int /*long*/ region = OS.gdk_region_new ();
+		OS.gtk_widget_input_shape_combine_region (clientHandle, region);
+		OS.gdk_region_destroy (region);
+	}
 	OS.gtk_container_add (fixedHandle, handle);
 	OS.gtk_container_add (handle, clientHandle);
 	if ((style & SWT.SHADOW_IN) != 0) {
@@ -229,7 +237,7 @@ void setBackgroundColor (GdkColor color) {
 
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
-	OS.gtk_widget_modify_font (labelHandle, font);
+	setFontDescription (labelHandle, font);
 }
 
 void setForegroundColor (GdkColor color) {
