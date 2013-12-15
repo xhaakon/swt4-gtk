@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package org.eclipse.swt.graphics;
 
 
+import org.eclipse.swt.internal.cairo.*;
 import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.*;
 
@@ -84,6 +85,57 @@ Region(Device device, int /*long*/ handle) {
 	this.handle = handle;
 }
 
+static int /*long*/ gdk_region_polygon(int[] pointArray, int npoints, int fill_rule) {
+	if (!OS.GTK3) {
+		return OS.gdk_region_polygon(pointArray, npoints, fill_rule);
+	}
+	//TODO this does not perform well and could fail if the polygon is too big
+	int minX = pointArray[0], maxX = minX;
+	int minY = pointArray[1], maxY = minY;
+	int count = npoints * 2;
+	for (int i=2; i<count; i+=2) {
+		int x = pointArray[i], y = pointArray[i + 1];
+		if (x < minX) minX = x;
+		if (x > maxX) maxX = x;
+		if (y < minY) minY = y;
+		if (y > maxY) maxY = y;
+	}
+	int /*long*/ surface = Cairo.cairo_image_surface_create(Cairo.CAIRO_FORMAT_A1, maxX - minX, maxY - minY);
+	if (surface == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+	int /*long*/ cairo = Cairo.cairo_create(surface);
+	if (cairo == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+	Cairo.cairo_move_to(cairo, pointArray[0] - minX, pointArray[1] - minY);
+	for (int i=2; i<count; i+=2) {
+		Cairo.cairo_line_to(cairo, pointArray[i]- minX, pointArray[i+1] - minY);
+	}
+	Cairo.cairo_close_path(cairo);
+	Cairo.cairo_set_source_rgb(cairo, 1, 1, 1);
+	int cairo_rule = Cairo.CAIRO_FILL_RULE_WINDING;
+	if (fill_rule == OS.GDK_EVEN_ODD_RULE) {
+		cairo_rule = Cairo.CAIRO_FILL_RULE_EVEN_ODD;
+	}
+	Cairo.cairo_set_fill_rule(cairo, cairo_rule);
+	Cairo.cairo_fill(cairo);
+	Cairo.cairo_destroy(cairo);
+	int /*long*/ polyRgn = OS.gdk_cairo_region_create_from_surface(surface);
+	OS.gdk_region_offset (polyRgn, minX, minY);
+	Cairo.cairo_surface_destroy(surface);
+	return polyRgn;
+}
+
+static void gdk_region_get_rectangles(int /*long*/ region, int /*long*/[] rectangles, int[] n_rectangles) {
+	if (!OS.GTK3) {
+		OS.gdk_region_get_rectangles (region, rectangles, n_rectangles);
+		return;
+	}
+	int num = Cairo.cairo_region_num_rectangles (region);
+	if (n_rectangles != null) n_rectangles[0] = num;
+	rectangles[0] = OS.g_malloc(GdkRectangle.sizeof * num);
+	for (int n = 0; n < num; n++) {
+		Cairo.cairo_region_get_rectangle (region, n, rectangles[0] + (n * GdkRectangle.sizeof));
+	}
+}
+
 /**
  * Adds the given polygon to the collection of polygons
  * the receiver maintains to describe its area.
@@ -109,7 +161,7 @@ public void add (int[] pointArray) {
 	* with enough points for a polygon.
 	*/
 	if (pointArray.length < 6) return;
-	int /*long*/ polyRgn = OS.gdk_region_polygon(pointArray, pointArray.length / 2, OS.GDK_EVEN_ODD_RULE);
+	int /*long*/ polyRgn = gdk_region_polygon(pointArray, pointArray.length / 2, OS.GDK_EVEN_ODD_RULE);
 	OS.gdk_region_union(handle, polyRgn);
 	OS.gdk_region_destroy(polyRgn);
 }
@@ -265,6 +317,22 @@ public Rectangle getBounds() {
 	return new Rectangle(gdkRect.x, gdkRect.y, gdkRect.width, gdkRect.height);
 }
 
+/**	 
+ * Invokes platform specific functionality to allocate a new region.
+ * <p>
+ * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
+ * API for <code>Region</code>. It is marked public only so that it
+ * can be shared within the packages provided by SWT. It is not
+ * available on all platforms, and should never be called from
+ * application code.
+ * </p>
+ *
+ * @param device the device on which to allocate the region
+ * @param handle the handle for the region
+ * @return a new region object containing the specified device and handle
+ * 
+ * @noreference This method is not intended to be referenced by clients.
+ */
 public static Region gtk_new(Device device, int /*long*/ handle) {
 	return new Region(device, handle);
 }
@@ -462,7 +530,7 @@ public void subtract (int[] pointArray) {
 	* with enough points for a polygon.
 	*/
 	if (pointArray.length < 6) return;
-	int /*long*/ polyRgn = OS.gdk_region_polygon(pointArray, pointArray.length / 2, OS.GDK_EVEN_ODD_RULE);
+	int /*long*/ polyRgn = gdk_region_polygon(pointArray, pointArray.length / 2, OS.GDK_EVEN_ODD_RULE);
 	OS.gdk_region_subtract(handle, polyRgn);
 	OS.gdk_region_destroy(polyRgn);
 }

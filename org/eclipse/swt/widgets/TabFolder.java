@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -166,14 +166,17 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget();
 	forceResize ();
 	int /*long*/ clientHandle = clientHandle ();
-	int clientX = OS.GTK_WIDGET_X (clientHandle);
-	int clientY = OS.GTK_WIDGET_Y (clientHandle);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (clientHandle, allocation);
+	int clientX = allocation.x;
+	int clientY = allocation.y;
 	x -= clientX;
 	y -= clientY;
 	width +=  clientX + clientX;
 	if ((style & SWT.BOTTOM) != 0) {
-		int parentHeight = OS.GTK_WIDGET_HEIGHT (handle);
-		int clientHeight = OS.GTK_WIDGET_HEIGHT (clientHandle);
+		int clientHeight = allocation.height;
+		gtk_widget_get_allocation (handle, allocation);
+		int parentHeight = allocation.height;
 		height += parentHeight - clientHeight;
 	} else {
 		height +=  clientX + clientY;
@@ -185,7 +188,7 @@ void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
+	gtk_widget_set_has_window (fixedHandle, true);
 	handle = OS.gtk_notebook_new ();
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
@@ -214,7 +217,7 @@ void createItem (TabItem item, int index) {
 		System.arraycopy (items, 0, newItems, 0, items.length);
 		items = newItems;
 	}
-	int /*long*/ boxHandle = OS.gtk_hbox_new (false, 0);
+	int /*long*/ boxHandle = gtk_box_new (OS.GTK_ORIENTATION_HORIZONTAL, false, 0);
 	if (boxHandle == 0) error (SWT.ERROR_NO_HANDLES);
 	int /*long*/ labelHandle = OS.gtk_label_new_with_mnemonic (null);
 	if (labelHandle == 0) error (SWT.ERROR_NO_HANDLES);
@@ -224,6 +227,12 @@ void createItem (TabItem item, int index) {
 	OS.gtk_container_add (boxHandle, labelHandle);
 	int /*long*/ pageHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (pageHandle == 0) error (SWT.ERROR_NO_HANDLES);
+	if (OS.GTK3) {
+		OS.gtk_widget_override_background_color (pageHandle, OS.GTK_STATE_FLAG_NORMAL, new GdkRGBA ());
+		int /*long*/ region = OS.gdk_region_new ();
+		OS.gtk_widget_input_shape_combine_region (pageHandle, region);
+		OS.gdk_region_destroy (region);
+	}
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, SWITCH_PAGE);
 	OS.gtk_notebook_insert_page (handle, pageHandle, boxHandle, index);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, SWITCH_PAGE);

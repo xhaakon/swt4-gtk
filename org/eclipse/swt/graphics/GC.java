@@ -194,6 +194,23 @@ static int checkStyle (int style) {
 	return style & (SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT);
 }
 
+/**	 
+ * Invokes platform specific functionality to wrap a graphics context.
+ * <p>
+ * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
+ * API for <code>GC</code>. It is marked public only so that it
+ * can be shared within the packages provided by SWT. It is not
+ * available on all platforms, and should never be called from
+ * application code.
+ * </p>
+ *
+ * @param handle the handle to the OS device context
+ * @param data the data for the receiver.
+ *
+ * @return a new <code>GC</code>
+ * 
+ * @noreference This method is not intended to be referenced by clients.
+ */
 public static GC gtk_new(int /*long*/ handle, GCData data) {
 	GC gc = new GC();
 	gc.device = data.device;
@@ -201,6 +218,23 @@ public static GC gtk_new(int /*long*/ handle, GCData data) {
 	return gc;
 }
 
+/**	 
+ * Invokes platform specific functionality to allocate a new graphics context.
+ * <p>
+ * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
+ * API for <code>GC</code>. It is marked public only so that it
+ * can be shared within the packages provided by SWT. It is not
+ * available on all platforms, and should never be called from
+ * application code.
+ * </p>
+ *
+ * @param drawable the Drawable for the receiver.
+ * @param data the data for the receiver.
+ *
+ * @return a new <code>GC</code>
+ * 
+ * @noreference This method is not intended to be referenced by clients.
+ */
 public static GC gtk_new(Drawable drawable, GCData data) {
 	GC gc = new GC();
 	int /*long*/ gdkGC = drawable.internal_new_GC(data);
@@ -394,7 +428,7 @@ int /*long*/ convertRgn(int /*long*/ rgn, double[] matrix) {
 	int /*long*/ newRgn = OS.gdk_region_new();
 	int[] nRects = new int[1];
 	int /*long*/[] rects = new int /*long*/[1];
-	OS.gdk_region_get_rectangles(rgn, rects, nRects);
+	Region.gdk_region_get_rectangles(rgn, rects, nRects);
 	GdkRectangle rect = new GdkRectangle();
 	int[] pointArray = new int[8];
 	double[] x = new double[1], y = new double[1];
@@ -420,7 +454,7 @@ int /*long*/ convertRgn(int /*long*/ rgn, double[] matrix) {
 		Cairo.cairo_matrix_transform_point(matrix, x, y);
 		pointArray[6] = (int)x[0];
 		pointArray[7] = (int)Math.round(y[0]);
-		int /*long*/ polyRgn = OS.gdk_region_polygon(pointArray, pointArray.length / 2, OS.GDK_EVEN_ODD_RULE);
+		int /*long*/ polyRgn = Region.gdk_region_polygon(pointArray, pointArray.length / 2, OS.GDK_EVEN_ODD_RULE);
 		OS.gdk_region_union(newRgn, polyRgn);
 		OS.gdk_region_destroy(polyRgn);
 	}
@@ -452,6 +486,7 @@ public void copyArea(Image image, int x, int y) {
 		int /*long*/ cairo = Cairo.cairo_create(image.surface);
 		if (cairo == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 		Cairo.cairo_translate(cairo, -x, -y);
+		Cairo.cairo_push_group(cairo);
 		if (data.image != null) {
 			Cairo.cairo_set_source_surface(cairo, data.image.surface, 0, 0);
 		} else if (data.drawable != 0) {
@@ -468,9 +503,12 @@ public void copyArea(Image image, int x, int y) {
 				Cairo.cairo_set_source_surface(cairo, srcSurface, 0, 0);
 			}
 		} else {
+			Cairo.cairo_destroy(cairo);
 			return;
 		}
 		Cairo.cairo_set_operator(cairo, Cairo.CAIRO_OPERATOR_SOURCE);
+		Cairo.cairo_paint(cairo);
+		Cairo.cairo_pop_group_to_source(cairo);
 		Cairo.cairo_paint(cairo);
 		Cairo.cairo_destroy(cairo);
         return;
@@ -546,7 +584,12 @@ public void copyArea(int srcX, int srcY, int width, int height, int destX, int d
 			Cairo.cairo_paint(handle);
 			Cairo.cairo_restore(handle);
 			if (paint) {
-				int /*long*/ visibleRegion = OS.gdk_drawable_get_visible_region (drawable);
+				int /*long*/ visibleRegion;
+				if (OS.GTK3) {
+					visibleRegion = OS.gdk_window_get_visible_region (drawable);
+				} else {
+					visibleRegion = OS.gdk_drawable_get_visible_region (drawable);
+				}
 				GdkRectangle srcRect = new GdkRectangle ();
 				srcRect.x = srcX;
 				srcRect.y = srcY;
@@ -612,15 +655,7 @@ void createLayout() {
 	data.layout = layout;
 	OS.pango_context_set_language(context, OS.gtk_get_default_language());
 	OS.pango_context_set_base_dir(context, (data.style & SWT.MIRRORED) != 0 ? OS.PANGO_DIRECTION_RTL : OS.PANGO_DIRECTION_LTR);
-	/*
-	 * Colormap is automatically set for GTK 2.6.0 and newer.
-	 */
-	if (OS.GTK_VERSION < OS.VERSION(2, 6, 0)) {
-	    OS.gdk_pango_context_set_colormap(context, OS.gdk_colormap_get_system());	
-	}
-	if (OS.GTK_VERSION >= OS.VERSION(2, 4, 0)) {
-		OS.pango_layout_set_auto_dir(layout, false);
-	}
+	OS.pango_layout_set_auto_dir(layout, false);
 }
 
 void disposeLayout() {
@@ -746,6 +781,27 @@ public void drawArc(int x, int y, int width, int height, int startAngle, int arc
  */
 public void drawFocus(int x, int y, int width, int height) {
 	if (handle == 0) SWT.error(SWT.ERROR_GRAPHIC_DISPOSED);
+	int /*long*/ cairo = data.cairo;
+	if (cairo != 0) {
+		checkGC(FOREGROUND);
+		if (OS.GTK3) {
+			int /*long*/  context = OS.gtk_widget_get_style_context(data.device.shellHandle);
+			OS.gtk_render_focus(context, cairo, x, y, width, height);
+		} else {
+			int[] lineWidth = new int[1];
+			OS.gtk_widget_style_get(data.device.shellHandle, OS.focus_line_width, lineWidth, 0);
+			Cairo.cairo_save(cairo);		
+			Cairo.cairo_set_line_width(cairo, lineWidth[0]);
+			double[] dashes = new double[]{1, 1};
+			double dash_offset = -lineWidth[0] / 2f;
+			while (dash_offset < 0) dash_offset += 2;
+			Cairo.cairo_set_dash(cairo, dashes, dashes.length, dash_offset);
+			Cairo.cairo_rectangle(cairo, x + lineWidth[0] / 2f, y + lineWidth[0] / 2f, width, height);
+			Cairo.cairo_stroke(cairo);
+			Cairo.cairo_restore(cairo);
+		}
+		return;
+	}
 	/*
 	* Feature in GTK.  The function gtk_widget_get_default_style() 
 	* can't be used here because gtk_paint_focus() uses GCs, which
@@ -753,22 +809,6 @@ public void drawFocus(int x, int y, int width, int height) {
 	* from a widget.
 	*/
 	int /*long*/ style = OS.gtk_widget_get_style(data.device.shellHandle);
-	int /*long*/ cairo = data.cairo;
-	if (cairo != 0) {
-		checkGC(FOREGROUND);
-		int[] lineWidth = new int[1];
-		OS.gtk_widget_style_get(data.device.shellHandle, OS.focus_line_width, lineWidth, 0);
-		Cairo.cairo_save(cairo);		
-		Cairo.cairo_set_line_width(cairo, lineWidth[0]);
-		double[] dashes = new double[]{1, 1};
-		double dash_offset = -lineWidth[0] / 2f;
-		while (dash_offset < 0) dash_offset += 2;
-		Cairo.cairo_set_dash(cairo, dashes, dashes.length, dash_offset);
-		Cairo.cairo_rectangle(cairo, x + lineWidth[0] / 2f, y + lineWidth[0] / 2f, width, height);
-		Cairo.cairo_stroke(cairo);
-		Cairo.cairo_restore(cairo);
-		return;
-	}
 	OS.gtk_paint_focus(style, data.drawable, OS.GTK_STATE_NORMAL, null, data.device.shellHandle, new byte[1], x, y, width, height);
 }
 
@@ -849,7 +889,11 @@ void drawImage(Image srcImage, int srcX, int srcY, int srcWidth, int srcHeight, 
 	} else {
 		int[] width = new int[1];
 		int[] height = new int[1];
-	 	OS.gdk_drawable_get_size(srcImage.pixmap, width, height);
+		if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+			OS.gdk_pixmap_get_size(srcImage.pixmap, width, height);
+		} else {
+			OS.gdk_drawable_get_size(srcImage.pixmap, width, height);
+		}
 	 	imgWidth = width[0];
 	 	imgHeight = height[0];
 	}
@@ -2744,7 +2788,12 @@ void getSize(int[] width, int[] height) {
 		return;
 	}
 	if (data.drawable != 0) {
-		OS.gdk_drawable_get_size(data.drawable, width, height);
+		if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+			width[0] = OS.gdk_window_get_width(data.drawable);
+			height[0] = OS.gdk_window_get_height(data.drawable);
+		} else {
+			OS.gdk_drawable_get_size(data.drawable, width, height);
+		}
 		return;
 	}
 	if (OS.USE_CAIRO) {
@@ -2942,9 +2991,17 @@ void initCairo() {
 				translateY = -y[0];
 			}
 		}
-		int[] w = new int[1], h = new int[1];
-		OS.gdk_drawable_get_size(drawable, w, h);
-		int width = w[0], height = h[0];
+		int width = 0;
+		int height = 0;
+		if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+			width = OS.gdk_window_get_width(data.drawable);
+			height = OS.gdk_window_get_height(data.drawable);
+		} else {
+			int[] w = new int[1], h = new int[1];
+			OS.gdk_drawable_get_size(drawable, w, h);
+			width = w[0];
+			height = h[0];
+		}
 		int /*long*/ surface = Cairo.cairo_xlib_surface_create(xDisplay, xDrawable, xVisual, width, height);
 		if (surface == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 		Cairo.cairo_surface_set_device_offset(surface, translateX, translateY);
@@ -2962,9 +3019,9 @@ void initCairo() {
 
 void computeStringSize() {
 	int[] width = new int[1], height = new int[1];
-	OS.pango_layout_get_size(data.layout, width, height);
-	data.stringHeight = OS.PANGO_PIXELS(height[0]);
-	data.stringWidth = OS.PANGO_PIXELS(width[0]);
+	OS.pango_layout_get_pixel_size(data.layout, width, height);
+	data.stringHeight = height[0];
+	data.stringWidth = width[0];
 }
 
 /**
@@ -3212,6 +3269,7 @@ public void setBackgroundPattern(Pattern pattern) {
 }
 
 static void setCairoFont(int /*long*/ cairo, Font font) {
+	if (font == null || font.isDisposed()) return;
 	setCairoFont(cairo, font.handle);
 }
 
@@ -3260,7 +3318,7 @@ static void setCairoPatternColor(int /*long*/ pattern, int offset, Color c, int 
 
 void setCairoClip(int /*long*/ damageRgn, int /*long*/ clipRgn) {
 	int /*long*/ cairo = data.cairo;
-	if (OS.GTK_VERSION >= OS.VERSION(2,18,0) && data.drawable != 0) {
+	if (OS.GTK_VERSION >= OS.VERSION(2,18,0) && data.drawable != 0 && !OS.GTK3) {
 		OS.gdk_cairo_reset_clip(cairo, data.drawable);
 	} else {
 		Cairo.cairo_reset_clip(cairo);

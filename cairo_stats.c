@@ -24,8 +24,6 @@
 
 #ifdef NATIVE_STATS
 
-int Cairo_nativeFunctionCount = 157;
-int Cairo_nativeFunctionCallCount[157];
 char * Cairo_nativeFunctionNames[] = {
 	"CAIRO_1VERSION_1ENCODE",
 	"_1cairo_1append_1path",
@@ -117,6 +115,8 @@ char * Cairo_nativeFunctionNames[] = {
 	"_1cairo_1push_1group",
 	"_1cairo_1rectangle",
 	"_1cairo_1reference",
+	"_1cairo_1region_1get_1rectangle",
+	"_1cairo_1region_1num_1rectangles",
 	"_1cairo_1rel_1curve_1to",
 	"_1cairo_1rel_1line_1to",
 	"_1cairo_1rel_1move_1to",
@@ -197,6 +197,9 @@ char * Cairo_nativeFunctionNames[] = {
 	"memmove___3DJJ",
 #endif
 };
+#define NATIVE_FUNCTION_COUNT sizeof(Cairo_nativeFunctionNames) / sizeof(char*)
+int Cairo_nativeFunctionCount = NATIVE_FUNCTION_COUNT;
+int Cairo_nativeFunctionCallCount[NATIVE_FUNCTION_COUNT];
 
 #define STATS_NATIVE(func) Java_org_eclipse_swt_tools_internal_NativeStats_##func
 

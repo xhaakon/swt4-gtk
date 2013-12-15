@@ -14,13 +14,18 @@
 include make_common.mak
 
 SWT_VERSION=$(maj_ver)$(min_ver)
+GTK_VERSION?=2.0
 
 # Define the various shared libraries to be build.
 WS_PREFIX = gtk
 SWT_PREFIX = swt
 CDE_PREFIX = swt-cde
 AWT_PREFIX = swt-awt
+ifeq ($(GTK_VERSION), 3.0)
+SWTPI_PREFIX = swt-pi3
+else
 SWTPI_PREFIX = swt-pi
+endif
 CAIRO_PREFIX = swt-cairo
 ATK_PREFIX = swt-atk
 GNOME_PREFIX = swt-gnome
@@ -47,16 +52,20 @@ CAIROCFLAGS = `pkg-config --cflags cairo`
 CAIROLIBS = `pkg-config --libs-only-L cairo` -lcairo
 
 # Do not use pkg-config to get libs because it includes unnecessary dependencies (i.e. pangoxft-1.0)
-GTKCFLAGS = `pkg-config --cflags gtk+-2.0`
-GTKLIBS = `pkg-config --libs-only-L gtk+-2.0 gthread-2.0` $(XLIB64) -L/usr/X11R6/lib -lgtk-x11-2.0 -lgthread-2.0 -lXtst
+GTKCFLAGS = `pkg-config --cflags gtk+-$(GTK_VERSION)`
+ifeq ($(GTK_VERSION), 3.0)
+GTKLIBS = `pkg-config --libs-only-L gtk+-$(GTK_VERSION) gthread-2.0` $(XLIB64) -L/usr/X11R6/lib -lgtk-3 -lgdk-3 -lcairo -lgthread-2.0 -lXtst
+else
+GTKLIBS = `pkg-config --libs-only-L gtk+-$(GTK_VERSION) gthread-2.0` $(XLIB64) -L/usr/X11R6/lib -lgtk-x11-$(GTK_VERSION) -lgthread-2.0 -lXtst
+endif
 
 CDE_LIBS = -L$(CDE_HOME)/lib -R$(CDE_HOME)/lib -lXt -lX11 -lDtSvc
 
 AWT_LFLAGS = -shared ${SWT_LFLAGS} 
 AWT_LIBS = -L$(AWT_LIB_PATH) -ljawt
 
-ATKCFLAGS = `pkg-config --cflags atk gtk+-2.0`
-ATKLIBS = `pkg-config --libs-only-L atk gtk+-2.0` -latk-1.0 -lgtk-x11-2.0
+ATKCFLAGS = `pkg-config --cflags atk gtk+-$(GTK_VERSION)`
+ATKLIBS = `pkg-config --libs-only-L atk` -latk-1.0 
 
 GNOMECFLAGS = `pkg-config --cflags gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0`
 GNOMELIBS = `pkg-config --libs-only-L gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0` -lgnomevfs-2 -lgnome-2 -lgnomeui-2
@@ -79,7 +88,7 @@ MOZILLACFLAGS = -O \
 	-I$(JAVA_HOME)/include \
 	-I$(JAVA_HOME)/include/linux \
 	${SWT_PTR_CFLAGS}
-MOZILLALFLAGS = -shared -Wl,--version-script=mozilla_exports -Bsymbolic
+MOZILLALFLAGS = -shared ${SWT_LFLAGS} -Wl,--version-script=mozilla_exports -Bsymbolic
 MOZILLAEXCLUDES = -DNO__1XPCOMGlueShutdown \
 	-DNO__1XPCOMGlueStartup \
 	-DNO__1XPCOMGlueLoadXULFunctions \
@@ -241,7 +250,7 @@ xpcom_stats.o: xpcom_stats.cpp
 make_xulrunner:$(XULRUNNER_LIB)
 
 $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
-	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | gcc --shared -xc - -o libswt-xulrunner-fix.so
+	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | gcc  $(LFLAGS) $(CFLAGS) -xc - -o libswt-xulrunner-fix.so
 	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
 
 xpcomxul.o: xpcom.cpp

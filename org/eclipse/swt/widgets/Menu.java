@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -193,7 +193,7 @@ static int checkStyle (int style) {
 }
 
 void _setVisible (boolean visible) {
-	if (visible == OS.GTK_WIDGET_MAPPED (handle)) return;
+	if (visible == gtk_widget_get_mapped (handle)) return;
 	if (visible) {
 		sendEvent (SWT.Show);
 		if (getItemCount () != 0) {
@@ -372,16 +372,18 @@ void fixMenus (Decorations newParent) {
 
 /*public*/ Rectangle getBounds () {
 	checkWidget();
-	if (!OS.GTK_WIDGET_MAPPED (handle)) {
+	if (!gtk_widget_get_mapped (handle)) {
 		return new Rectangle (0, 0, 0, 0);
 	}
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
+	int /*long*/ window = gtk_widget_get_window (handle);
 	int [] origin_x = new int [1], origin_y = new int [1];
 	OS.gdk_window_get_origin (window, origin_x, origin_y);
-	int x = origin_x [0] + OS.GTK_WIDGET_X (handle);
-	int y = origin_y [0] + OS.GTK_WIDGET_Y (handle);
-	int width = OS.GTK_WIDGET_WIDTH (handle);
-	int height = OS.GTK_WIDGET_HEIGHT (handle);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
+	int x = origin_x [0] + allocation.x;
+	int y = origin_y [0] + allocation.y;
+	int width = allocation.width;
+	int height = allocation.height;
 	return new Rectangle (x, y, width, height);
 }
 
@@ -419,7 +421,7 @@ public MenuItem getDefaultItem () {
  */
 public boolean getEnabled () {
 	checkWidget();
-	return OS.GTK_WIDGET_SENSITIVE (handle);     
+	return gtk_widget_get_sensitive (handle);
 }
 
 /**
@@ -639,25 +641,14 @@ public boolean getVisible () {
 			}
 		}
 	}
-	return OS.GTK_WIDGET_MAPPED (handle);
+	return gtk_widget_get_mapped (handle);
 }
 
 int /*long*/ gtk_hide (int /*long*/ widget) {
 	if ((style & SWT.POP_UP) != 0) {
 		if (display.activeShell != null) display.activeShell = getShell ();
 	}
-	if (OS.GTK_VERSION >= OS.VERSION (2, 6, 0)) {
-		sendEvent (SWT.Hide);
-	} else {
-		/*
-		* Bug in GTK.  In GTK 2.4 and earlier
-		* a crash could occur if a menu item 
-		* was disposed within gtk_hide.  The
-		* workaroud is to post the event instead
-		* of send it on these platforms  
-		*/
-		postEvent (SWT.Hide);
-	}
+	sendEvent (SWT.Hide);
 	if (OS.ubuntu_menu_proxy_get() != 0) {
 		MenuItem[] items = getItems();
 		for (int i=0; i<items.length; i++) {
@@ -781,7 +772,7 @@ int /*long*/ menuPositionProc (int /*long*/ menu, int /*long*/ x, int /*long*/ y
 	* NOTE: This code doesn't work for multiple monitors.
 	*/
     GtkRequisition requisition = new GtkRequisition ();
-    OS.gtk_widget_size_request (menu, requisition);
+    gtk_widget_get_preferred_size (menu, requisition);
     int screenHeight = OS.gdk_screen_height ();
 	int reqy = this.y;
 	if (reqy + requisition.height > screenHeight) {
@@ -946,11 +937,7 @@ public void setDefaultItem (MenuItem item) {
  */
 public void setEnabled (boolean enabled) {
 	checkWidget();
-	if (enabled) {
-		OS.GTK_WIDGET_SET_FLAGS (handle, OS.GTK_SENSITIVE);
-	} else {
-		OS.GTK_WIDGET_UNSET_FLAGS (handle, OS.GTK_SENSITIVE);
-	}
+	OS.gtk_widget_set_sensitive (handle, enabled);
 }
 
 /**
@@ -1032,7 +1019,6 @@ public void setOrientation (int orientation) {
 }
 
 void _setOrientation (int orientation) {
-    if (OS.GTK_VERSION < OS.VERSION (2, 4, 0)) return;
     int flags = SWT.RIGHT_TO_LEFT | SWT.LEFT_TO_RIGHT;
     if ((orientation & flags) == 0 || (orientation & flags) == flags) return;
     style &= ~flags;

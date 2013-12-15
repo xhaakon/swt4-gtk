@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,12 +36,13 @@ import org.eclipse.swt.accessibility.*;
  * </dl>
  * 
  * </p><p>
- * IMPORTANT: This class is <em>not</em> intended to be subclassed.
+ * This class may be subclassed for the purpose of overriding the default string
+ * shortening algorithm that is implemented in method <code>shortenText()</code>.
  * </p>
  *
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: CustomControlExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
- * @noextend This class is not intended to be subclassed by clients.
+ * @see CLabel#shortenText(GC, String, int)
  */
 public class CLabel extends Canvas {
 
@@ -147,14 +148,6 @@ private static int checkStyle (int style) {
 	style = style & mask;
 	return style |= SWT.NO_FOCUS | SWT.DOUBLE_BUFFERED;
 }
-
-//protected void checkSubclass () {
-//	String name = getClass().getName ();
-//	String validName = CLabel.class.getName();
-//	if (!validName.equals(name)) {
-//		SWT.error (SWT.ERROR_INVALID_SUBCLASS);
-//	}
-//}
 
 public Point computeSize(int wHint, int hHint, boolean changed) {
 	checkWidget();

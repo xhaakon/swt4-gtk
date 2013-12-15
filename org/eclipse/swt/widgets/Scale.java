@@ -125,13 +125,13 @@ void createHandle (int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
+	gtk_widget_set_has_window (fixedHandle, true);
 	int /*long*/ hAdjustment = OS.gtk_adjustment_new (0, 0, 100, 1, 10, 0);
 	if (hAdjustment == 0) error (SWT.ERROR_NO_HANDLES);	
 	if ((style & SWT.HORIZONTAL) != 0) {
-		handle = OS.gtk_hscale_new (hAdjustment);
+		handle = gtk_scale_new (OS.GTK_ORIENTATION_HORIZONTAL, hAdjustment);
 	} else {
-		handle = OS.gtk_vscale_new (hAdjustment);
+		handle = gtk_scale_new (OS.GTK_ORIENTATION_VERTICAL, hAdjustment);
 	}
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
@@ -159,9 +159,7 @@ void hookEvents () {
 public int getIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.step_increment;
+	return (int) gtk_adjustment_get_step_increment (hAdjustment);
 }
 
 /**
@@ -177,9 +175,7 @@ public int getIncrement () {
 public int getMaximum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.upper;
+	return (int) gtk_adjustment_get_upper (hAdjustment);
 }
 
 /**
@@ -195,9 +191,7 @@ public int getMaximum () {
 public int getMinimum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.lower;
+	return (int) gtk_adjustment_get_lower (hAdjustment);
 }
 
 /**
@@ -215,9 +209,7 @@ public int getMinimum () {
 public int getPageIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.page_increment;
+	return (int) gtk_adjustment_get_page_increment (hAdjustment);
 }
 
 /**
@@ -233,9 +225,7 @@ public int getPageIncrement () {
 public int getSelection () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.value;
+	return (int) gtk_adjustment_get_value (hAdjustment);
 }
 
 int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
@@ -373,4 +363,17 @@ public void setSelection (int value) {
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
+int /*long*/ gtk_scale_new (int orientation, int /*long*/ adjustment) {
+	int /*long*/ scale = 0;
+	if (OS.GTK3)	{
+		scale = OS.gtk_scale_new (orientation, adjustment);
+	} else {
+		if (orientation == OS.GTK_ORIENTATION_HORIZONTAL) {
+			scale = OS.gtk_hscale_new (adjustment);
+		} else {
+			scale = OS.gtk_vscale_new (adjustment);
+		}
+	}
+	return scale;
+}
 }

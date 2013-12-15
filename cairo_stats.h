@@ -125,6 +125,8 @@ typedef enum {
 	_1cairo_1push_1group_FUNC,
 	_1cairo_1rectangle_FUNC,
 	_1cairo_1reference_FUNC,
+	_1cairo_1region_1get_1rectangle_FUNC,
+	_1cairo_1region_1num_1rectangles_FUNC,
 	_1cairo_1rel_1curve_1to_FUNC,
 	_1cairo_1rel_1line_1to_FUNC,
 	_1cairo_1rel_1move_1to_FUNC,

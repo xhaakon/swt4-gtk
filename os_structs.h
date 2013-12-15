@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -267,6 +267,18 @@ void setGdkImageFields(JNIEnv *env, jobject lpObject, GdkImage *lpStruct);
 #define GdkImage_sizeof() 0
 #endif
 
+#ifndef NO_GdkRGBA
+void cacheGdkRGBAFields(JNIEnv *env, jobject lpObject);
+GdkRGBA *getGdkRGBAFields(JNIEnv *env, jobject lpObject, GdkRGBA *lpStruct);
+void setGdkRGBAFields(JNIEnv *env, jobject lpObject, GdkRGBA *lpStruct);
+#define GdkRGBA_sizeof() sizeof(GdkRGBA)
+#else
+#define cacheGdkRGBAFields(a,b)
+#define getGdkRGBAFields(a,b,c) NULL
+#define setGdkRGBAFields(a,b,c)
+#define GdkRGBA_sizeof() 0
+#endif
+
 #ifndef NO_GdkRectangle
 void cacheGdkRectangleFields(JNIEnv *env, jobject lpObject);
 GdkRectangle *getGdkRectangleFields(JNIEnv *env, jobject lpObject, GdkRectangle *lpStruct);
@@ -409,18 +421,6 @@ void setGtkTargetEntryFields(JNIEnv *env, jobject lpObject, GtkTargetEntry *lpSt
 #define getGtkTargetEntryFields(a,b,c) NULL
 #define setGtkTargetEntryFields(a,b,c)
 #define GtkTargetEntry_sizeof() 0
-#endif
-
-#ifndef NO_GtkTargetPair
-void cacheGtkTargetPairFields(JNIEnv *env, jobject lpObject);
-GtkTargetPair *getGtkTargetPairFields(JNIEnv *env, jobject lpObject, GtkTargetPair *lpStruct);
-void setGtkTargetPairFields(JNIEnv *env, jobject lpObject, GtkTargetPair *lpStruct);
-#define GtkTargetPair_sizeof() sizeof(GtkTargetPair)
-#else
-#define cacheGtkTargetPairFields(a,b)
-#define getGtkTargetPairFields(a,b,c) NULL
-#define setGtkTargetPairFields(a,b,c)
-#define GtkTargetPair_sizeof() 0
 #endif
 
 #ifndef NO_GtkWidgetClass

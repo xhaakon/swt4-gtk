@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2009 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -104,7 +104,12 @@ public GLCanvas (Composite parent, int style, GLData data) {
 	}
 	glxAttrib [pos++] = 0;
 	OS.gtk_widget_realize (handle);
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
+	int /*long*/ window;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
+		window = OS.gtk_widget_get_window (handle);
+	} else {
+		window = OS.GTK_WIDGET_WINDOW (handle);
+	}
 	int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
 	int /*long*/ infoPtr = GLX.glXChooseVisual (xDisplay, OS.XDefaultScreen (xDisplay), glxAttrib);
 	if (infoPtr == 0) {
@@ -133,7 +138,11 @@ public GLCanvas (Composite parent, int style, GLData data) {
 	glWindow = OS.gdk_window_new (window, attrs, OS.GDK_WA_VISUAL);
 	OS.gdk_window_set_user_data (glWindow, handle);
 	if ((style & SWT.NO_BACKGROUND) != 0) OS.gdk_window_set_back_pixmap (window, 0, false);
-	xWindow = OS.gdk_x11_drawable_get_xid (glWindow);
+	if (OS.GTK3) {
+		xWindow = OS.gdk_x11_window_get_xid (glWindow);
+	} else {
+		xWindow = OS.gdk_x11_drawable_get_xid (glWindow);
+	}
 	OS.gdk_window_show (glWindow);
 
 	Listener listener = new Listener () {
@@ -156,8 +165,13 @@ public GLCanvas (Composite parent, int style, GLData data) {
 				OS.gdk_window_resize (glWindow, clientArea.width, clientArea.height);
 				break;
 			case SWT.Dispose:
-				int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
-				int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+				int /*long*/ window;
+				if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
+					window = OS.gtk_widget_get_window (handle);
+				} else {
+					window = OS.GTK_WIDGET_WINDOW (handle);
+				}
+				int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 				if (context != 0) {
 					if (GLX.glXGetCurrentContext () == context) {
 						GLX.glXMakeCurrent (xDisplay, 0, 0);
@@ -189,8 +203,13 @@ public GLCanvas (Composite parent, int style, GLData data) {
  */
 public GLData getGLData () {
 	checkWidget ();
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
-	int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+	int /*long*/ window;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
+		window = OS.gtk_widget_get_window (handle);
+	} else {
+		window = OS.GTK_WIDGET_WINDOW (handle);
+	}
+	int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 	GLData data = new GLData ();
 	int [] value = new int [1];
 	GLX.glXGetConfig (xDisplay, vinfo, GLX.GLX_DOUBLEBUFFER, value);
@@ -253,7 +272,7 @@ public void setCurrent () {
 	checkWidget ();
 	if (GLX.glXGetCurrentContext () == context) return;
 	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
-	int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+	int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 	GLX.glXMakeCurrent (xDisplay, xWindow, context);
 }
 
@@ -268,7 +287,17 @@ public void setCurrent () {
 public void swapBuffers () {
 	checkWidget ();
 	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
-	int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+	int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 	GLX.glXSwapBuffers (xDisplay, xWindow);
+}
+
+private int /*long*/ gdk_x11_display_get_xdisplay(int /*long*/ window) {
+	int /*long*/ xdisplay;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+		xdisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_window_get_display(window));
+	} else {
+		xdisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+	}
+	return xdisplay;
 }
 }

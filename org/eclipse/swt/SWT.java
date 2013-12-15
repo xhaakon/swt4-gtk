@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1784,6 +1784,23 @@ public class SWT {
 	public static final int TRANSPARENT = 1 << 30;
 	
 	/**
+	 * Style constant to indicate base text direction (value is 1&lt;&lt;31).
+	 * <p>
+	 * When the bit is set, text direction mismatches the widget orientation.
+	 * <br>Note that this is a <em>HINT</em>.
+	 * </p>
+	 * <p><b>Used By:</b><ul>
+	 * <li><code>Control</code></li>
+	 * </ul></p>
+	 * 
+	 * @see org.eclipse.swt.widgets.Control#setTextDirection(int)
+	 * @see org.eclipse.swt.widgets.Control#getTextDirection()
+	 * 
+	 * @since 3.102
+	 */
+	public static final int FLIP_TEXT_DIRECTION = 1 << 31;
+
+	/**
 	 * Style constant for align up behavior (value is 1&lt;&lt;7,
 	 * since align UP and align TOP are considered the same).
 	 * <p><b>Used By:</b><ul>
@@ -2266,19 +2283,19 @@ public class SWT {
 	public static final int MODIFIER_MASK;
 	
 	/**
-	 * Keyboard and/or mouse event mask indicating that mouse button one
+	 * Keyboard and/or mouse event mask indicating that mouse button one (usually 'left')
 	 * was pushed when the event was generated. (value is 1&lt;&lt;19).
 	 */
 	public static final int BUTTON1 = 1 << 19;
 
 	/**
-	 * Keyboard and/or mouse event mask indicating that mouse button two
+	 * Keyboard and/or mouse event mask indicating that mouse button two (usually 'middle')
 	 * was pushed when the event was generated. (value is 1&lt;&lt;20).
 	 */
 	public static final int BUTTON2 = 1 << 20;
 
 	/**
-	 * Keyboard and/or mouse event mask indicating that mouse button three
+	 * Keyboard and/or mouse event mask indicating that mouse button three (usually 'right')
 	 * was pushed when the event was generated. (value is 1&lt;&lt;21).
 	 */
 	public static final int BUTTON3 = 1 << 21;
@@ -2320,6 +2337,9 @@ public class SWT {
 	 * was pushed on the keyboard when the event was generated.
 	 * 
 	 * This is the primary keyboard modifier for the platform.
+	 * <p>
+	 * {@link #CTRL} on most platforms ({@link #COMMAND} on the Mac).
+	 * </p>
 	 * 
 	 * @since 2.1
 	 */
@@ -2330,6 +2350,9 @@ public class SWT {
 	 * was pushed on the keyboard when the event was generated.
 	 * 
 	 * This is the secondary keyboard modifier for the platform.
+	 * <p>
+	 * {@link #SHIFT} on most platforms.
+	 * </p>
 	 * 
 	 * @since 2.1
 	 */
@@ -2338,6 +2361,9 @@ public class SWT {
 	/**
 	 * Keyboard and/or mouse event mask indicating that the MOD3 key
 	 * was pushed on the keyboard when the event was generated.
+	 * <p>
+	 * {@link #ALT} on most platforms.
+	 * </p>
 	 * 
 	 * @since 2.1
 	 */
@@ -2346,6 +2372,9 @@ public class SWT {
 	/**
 	 * Keyboard and/or mouse event mask indicating that the MOD4 key
 	 * was pushed on the keyboard when the event was generated.
+	 * <p>
+	 * Undefined on most platforms ({@link #CTRL} on the Mac).
+	 * </p>
 	 * 
 	 * @since 2.1
 	 */
@@ -3156,6 +3185,13 @@ public class SWT {
 	 * System color used to paint inactive title background gradient (value is 35).
 	 */
 	public static final int COLOR_TITLE_INACTIVE_BACKGROUND_GRADIENT = 35;
+
+	/**
+	 * System color used to paint link text (value is 36).
+	 * 
+	 * @since 3.102
+	 */
+	public static final int COLOR_LINK_FOREGROUND = 36;
 	
 	/**
 	 * Draw constant indicating whether the drawing operation
@@ -4096,7 +4132,7 @@ public class SWT {
 	 * 
 	 * @since 3.6
 	 */
-	public static final String SKIN_CLASS = "org.eclipse.swt.skin.class";
+	public static final String SKIN_CLASS = "org.eclipse.swt.skin.class"; //$NON-NLS-1$
 
 	/**
 	 * Key value for setting and getting the skin id of a widget.
@@ -4106,7 +4142,7 @@ public class SWT {
 	 * 
 	 * @since 3.6
 	 */
-	public static final String SKIN_ID = "org.eclipse.swt.skin.id";
+	public static final String SKIN_ID = "org.eclipse.swt.skin.id"; //$NON-NLS-1$
 	
 	/**
 	 * The <code>Scrollable</code> constant to indicate that

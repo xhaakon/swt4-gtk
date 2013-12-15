@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -155,7 +155,7 @@ public FontData open () {
 	byte [] titleBytes;
 	titleBytes = Converter.wcsToMbcs (null, title, true);
 	Display display = parent != null ? parent.getDisplay (): Display.getCurrent ();
-	handle = OS.gtk_font_selection_dialog_new (titleBytes);
+	handle = gtk_font_chooser_dialog_new (titleBytes);
 	if (parent!=null) {
 		int /*long*/ shellHandle = parent.topHandle ();
 		OS.gtk_window_set_transient_for(handle, shellHandle);
@@ -178,7 +178,7 @@ public FontData open () {
 		OS.memmove (buffer, fontName, length);
 		font.dispose();
 		OS.g_free (fontName);
-		OS.gtk_font_selection_dialog_set_font_name (handle, buffer);
+		gtk_font_chooser_set_font (handle, buffer);
 	}
 	display.addIdleProc ();
 	Dialog oldModal = null;
@@ -208,7 +208,7 @@ public FontData open () {
 	}
 	boolean success = response == OS.GTK_RESPONSE_OK; 
 	if (success) {
-		int /*long*/ fontName = OS.gtk_font_selection_dialog_get_font_name (handle);
+		int /*long*/ fontName = gtk_font_chooser_get_font (handle);
 		int length = OS.strlen (fontName);
 		byte [] buffer = new byte [length + 1];
 		OS.memmove (buffer, fontName, length);
@@ -284,4 +284,30 @@ public void setFontList (FontData [] fontData) {
 public void setRGB (RGB rgb) {
 	this.rgb = rgb;
 }
+
+int /*long*/ gtk_font_chooser_get_font(int /*long*/ fontchooser) {
+	if (OS.GTK_VERSION >= OS.VERSION(3, 2, 0)) {
+		return OS.gtk_font_chooser_get_font(fontchooser);
+	} else {
+		return OS.gtk_font_selection_dialog_get_font_name(fontchooser);
+	}
+}
+
+int /*long*/ gtk_font_chooser_dialog_new (byte[] title) {
+	if (OS.GTK_VERSION >= OS.VERSION(3, 2, 0)) {
+		return OS.gtk_font_chooser_dialog_new (title, 0);
+	} else {
+		return OS.gtk_font_selection_dialog_new (title);
+	}
+}
+
+
+void gtk_font_chooser_set_font(int /*long*/ fsd, byte[] fontname) {
+	if (OS.GTK_VERSION >= OS.VERSION(3, 2, 0)) {
+		OS.gtk_font_chooser_set_font(fsd, fontname);
+	} else {
+		OS.gtk_font_selection_dialog_set_font_name(fsd, fontname);
+	}
+}
+
 }

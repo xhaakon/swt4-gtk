@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package org.eclipse.swt.internal.theme;
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
+import org.eclipse.swt.internal.cairo.Cairo;
 import org.eclipse.swt.internal.gtk.*;
 
 public class ButtonDrawData extends DrawData {
@@ -60,7 +61,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 			prelight_y = bounds.y + border_width;
 			prelight_width = bounds.width - (2 * border_width);
 			prelight_height = bounds.height - (2 * border_width);
-			OS.gtk_paint_flat_box(gtkStyle, drawable, OS.GTK_STATE_PRELIGHT, OS.GTK_SHADOW_ETCHED_OUT, null, radioButtonHandle, detail, prelight_x, prelight_y, prelight_width, prelight_height);
+			gtk_render_frame (gtkStyle, drawable, OS.GTK_STATE_PRELIGHT, OS.GTK_SHADOW_ETCHED_OUT, null, radioButtonHandle, detail, prelight_x, prelight_y, prelight_width, prelight_height);
 		}
 		int state_type = getStateType(DrawData.WIDGET_WHOLE);
 		OS.gtk_paint_option(gtkStyle, drawable, state_type, shadow_type, null, radioButtonHandle, detail, x, y, indicator_size, indicator_size);
@@ -107,10 +108,10 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 			prelight_y = bounds.y + border_width;
 			prelight_width = bounds.width - (2 * border_width);
 			prelight_height = bounds.height - (2 * border_width);
-			OS.gtk_paint_flat_box(gtkStyle, drawable, OS.GTK_STATE_PRELIGHT, OS.GTK_SHADOW_ETCHED_OUT, null, checkButtonHandle, detail, prelight_x, prelight_y, prelight_width, prelight_height);
+			gtk_render_frame (gtkStyle, drawable, OS.GTK_STATE_PRELIGHT, OS.GTK_SHADOW_ETCHED_OUT, null, checkButtonHandle, detail, prelight_x, prelight_y, prelight_width, prelight_height);
 		}
 		int state_type = getStateType(DrawData.WIDGET_WHOLE);
-		OS.gtk_paint_check(gtkStyle, drawable, state_type, shadow_type, null, checkButtonHandle, detail, x, y, indicator_size, indicator_size);
+		gtk_render_check (gtkStyle, drawable, state_type, shadow_type, checkButtonHandle, detail, x, y, indicator_size, indicator_size);
 		if (clientArea != null) {
 			clientArea.x = bounds.x + 2 * indicator_spacing + border_width + indicator_size;
 			clientArea.y = bounds.y + border_width;
@@ -155,7 +156,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 		int relief = OS.gtk_button_get_relief(buttonHandle);
 		byte[] detail = Converter.wcsToMbcs(null, (state & DrawData.DEFAULTED) != 0 ? "buttondefault" : "button", true);
 		if ((state & DrawData.DEFAULTED) != 0 && relief == OS.GTK_RELIEF_NORMAL) {
-            OS.gtk_paint_box(gtkStyle, drawable, OS.GTK_STATE_NORMAL, OS.GTK_SHADOW_IN, null, buttonHandle, detail, x, y, width, height);
+			gtk_render_box (gtkStyle, drawable, OS.GTK_STATE_NORMAL, OS.GTK_SHADOW_IN, null, buttonHandle, detail, x, y, width, height);
             x += default_border.left;
             y += default_border.top;
             width -= default_border.left + default_border.right;
@@ -172,16 +173,13 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 		int state_type = getStateType(DrawData.WIDGET_WHOLE);
 
 		if (relief != OS.GTK_RELIEF_NONE || ((state & (DrawData.PRESSED | DrawData.HOT)) != 0)) {
-			OS.gtk_paint_box(gtkStyle, drawable, state_type, shadow_type, null, buttonHandle, detail, x, y, width, height);
+			gtk_render_box (gtkStyle, drawable, state_type, shadow_type, null, buttonHandle, detail, x, y, width, height);
 		}
 		
 	    if ((state & DrawData.FOCUSED) != 0) {
 	    	int child_displacement_y = theme.getWidgetProperty(buttonHandle, "child-displacement-y");
 	    	int child_displacement_x = theme.getWidgetProperty(buttonHandle, "child-displacement-x");
-	    	int displace_focus = 0;
-	    	if (OS.GTK_VERSION >= OS.VERSION (2, 6, 0)) {
-	    		displace_focus = theme.getWidgetProperty(buttonHandle, "displace-focus");		    	
-	    	}
+	    	int displace_focus = theme.getWidgetProperty(buttonHandle, "displace-focus");		    	
 	    	int interior_focus = theme.getWidgetProperty(buttonHandle, "interior-focus");
 	    	
 	    	if (interior_focus != 0) {
@@ -203,7 +201,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 	              y += child_displacement_y;
 	    	}
 	    	
-	        OS.gtk_paint_focus(gtkStyle, drawable, state_type, null, buttonHandle, detail, x, y, width, height);
+	    	gtk_render_focus (gtkStyle, drawable, state_type, null, buttonHandle, detail, x, y, width, height);
 	    }
 		if (clientArea != null) {
 			clientArea.x = bounds.x + border_width;
@@ -217,6 +215,28 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 
 int hit(Theme theme, Point position, Rectangle bounds) {
 	return bounds.contains(position) ? DrawData.WIDGET_WHOLE : DrawData.WIDGET_NOWHERE;
+}
+
+void gtk_render_option (int /*long*/ style, int /*long*/ window, int state_type, int shadow_type, GdkRectangle area, int /*long*/ widget, byte[] detail, int x , int y, int width, int height) {
+	if (OS.GTK3) {
+		int /*long*/ cairo = OS.gdk_cairo_create (window);
+		int /*long*/ context = OS.gtk_widget_get_style_context (style);
+		OS.gtk_render_option (context, cairo, x, y, width, height);
+		Cairo.cairo_destroy (cairo);
+	} else {
+		OS.gtk_paint_option (style, window, state_type, shadow_type, area, widget, detail, x, y, width, height);
+	}
+}
+
+void gtk_render_check(int /*long*/ style, int /*long*/ window, int state_type, int shadow_type,  int /*long*/ widget, byte[] detail, int x , int y, int width, int height) {
+	if (OS.GTK3) {
+		int /*long*/ cairo = OS.gdk_cairo_create (window);
+		int /*long*/ context = OS.gtk_widget_get_style_context (style);
+		OS.gtk_render_check (context, cairo, x, y, width, height);
+		Cairo.cairo_destroy (cairo);
+	} else {
+		OS.gtk_paint_check (style, window, state_type, shadow_type, null, widget, detail, x, y, width, height);
+	}
 }
 
 }

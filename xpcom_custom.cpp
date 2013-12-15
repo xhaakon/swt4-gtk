@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -246,7 +246,7 @@ fail:
 #ifndef NO_CALLBACK_1JSNative
 extern "C" JNIEXPORT jintLong JNICALL XPCOM_NATIVE(CALLBACK_1JSNative)(JNIEnv *env, jclass that, jintLong arg0);
 static jintLong CALLBACK_1JSNative;
-static jint proc_CALLBACK_1JSNative(jintLong arg0, jint arg1, jintLong arg2) {
+static jintLong proc_CALLBACK_1JSNative(jintLong arg0, jint arg1, jintLong arg2) {
 	return ((jintLong (CALLING_CONVENTION*)(jintLong, jintLong, jintLong))CALLBACK_1JSNative)(arg0, arg1, arg2);
 }
 static jintLong CALLBACK_JSNative(jintLong func) {

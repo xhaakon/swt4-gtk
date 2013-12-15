@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ package org.eclipse.swt.internal.theme;
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
+import org.eclipse.swt.internal.cairo.Cairo;
 import org.eclipse.swt.internal.gtk.*;
 
 public class ToolItemDrawData extends DrawData {
@@ -56,9 +57,23 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 		int /*long*/ gtkStyle = OS.gtk_widget_get_style (separatorHandle);
 		theme.transferClipping(gc, gtkStyle);
 		if ((parent.style & SWT.VERTICAL) != 0) {
-			OS.gtk_paint_hline(gtkStyle, drawable, state_type, null, separatorHandle, detail, bounds.x, bounds.x + bounds.width, bounds.y + bounds.height / 2);
+			if (OS.GTK3) {
+				int /*long*/ cairo = OS.gdk_cairo_create (drawable);
+				int /*long*/ context = OS.gtk_widget_get_style_context (separatorHandle);
+				OS.gtk_render_line (context, cairo, bounds.x, bounds.y + bounds.height / 2, bounds.x + bounds.width, bounds.y + bounds.height / 2);
+				Cairo.cairo_destroy(cairo);
+			} else {
+				OS.gtk_paint_hline(gtkStyle, drawable, state_type, null, separatorHandle, detail, bounds.x, bounds.x + bounds.width, bounds.y + bounds.height / 2);
+			}	
 		} else {
-			OS.gtk_paint_vline(gtkStyle, drawable, state_type, null, separatorHandle, detail, bounds.y, bounds.y + bounds.height, bounds.x + bounds.width / 2);
+			if (OS.GTK3) {
+				int /*long*/ cairo = OS.gdk_cairo_create (drawable);
+				int /*long*/ context = OS.gtk_widget_get_style_context (separatorHandle);
+				OS.gtk_render_line (context, cairo, bounds.x + bounds.width / 2, bounds.y, bounds.x + bounds.width / 2, bounds.y + bounds.height);
+				Cairo.cairo_destroy (cairo);
+			} else {
+				OS.gtk_paint_vline(gtkStyle, drawable, state_type, null, separatorHandle, detail, bounds.y, bounds.y + bounds.height, bounds.x + bounds.width / 2);
+			}
 		}
 		return;
 	}
@@ -91,7 +106,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 	int state_type = getStateType(DrawData.WIDGET_WHOLE);
 		
 	if (relief[0] != OS.GTK_RELIEF_NONE || ((state & (DrawData.PRESSED | DrawData.HOT | DrawData.SELECTED)) != 0)) {
-		OS.gtk_paint_box(gtkStyle, drawable, state_type, shadow_type, null, buttonHandle, detail, x, y, width, height);
+		gtk_render_box(gtkStyle, drawable, state_type, shadow_type, null, buttonHandle, detail, x, y, width, height);
 	}
 
 	if (clientArea != null) {
@@ -110,7 +125,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
 		if (interior_focus == 0) arrow_x -= focus_line_width;
 		int arrow_y = y + (height - arrow_height) / 2;
 		byte[] arrow_detail = Converter.wcsToMbcs(null, "arrow", true);
-		OS.gtk_paint_arrow(gtkStyle, drawable, state_type, OS.GTK_SHADOW_NONE, null, theme.arrowHandle, arrow_detail, OS.GTK_ARROW_DOWN, true, arrow_x, arrow_y, arrow_width, arrow_height);
+		gtk_render_arrow (gtkStyle, drawable, state_type, OS.GTK_SHADOW_NONE, null, theme.arrowHandle, arrow_detail, OS.GTK_ARROW_DOWN, true, arrow_x, arrow_y, arrow_width, arrow_height);
 		if (clientArea != null) {
 			clientArea.width -= bounds.x + bounds.width - arrow_x;
 		}
@@ -119,10 +134,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
     if ((state & DrawData.FOCUSED) != 0) {
     	int child_displacement_y = theme.getWidgetProperty(buttonHandle, "child-displacement-y");
     	int child_displacement_x = theme.getWidgetProperty(buttonHandle, "child-displacement-x");
-    	int displace_focus = 0;
-    	if (OS.GTK_VERSION >= OS.VERSION (2, 6, 0)) {
-    		displace_focus = theme.getWidgetProperty(buttonHandle, "displace-focus");
-    	}
+    	int displace_focus = theme.getWidgetProperty(buttonHandle, "displace-focus");
     	
     	if (interior_focus != 0) {
     		int ythickness = OS.gtk_style_get_ythickness(gtkStyle);
@@ -142,7 +154,7 @@ void draw(Theme theme, GC gc, Rectangle bounds) {
               y += child_displacement_y;
     	}
     	
-        OS.gtk_paint_focus(gtkStyle, drawable, state_type, null, buttonHandle, detail, x, y, width, height);
+    	gtk_render_focus (gtkStyle, drawable, state_type, null, buttonHandle, detail, x, y, width, height);
     }
 }
 

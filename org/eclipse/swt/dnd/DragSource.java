@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -299,9 +299,13 @@ void drag(Event dragEvent) {
 	Image image = event.image; 
 	int /*long*/ context = OS.gtk_drag_begin(control.handle, targetList, actions, 1, 0);
 	if (context != 0 && image != null) {
-		int /*long*/ pixbuf = ImageList.createPixbuf(image);
-		OS.gtk_drag_set_icon_pixbuf(context, pixbuf, 0, 0);
-		OS.g_object_unref(pixbuf);
+		if (OS.GTK3) {
+			OS.gtk_drag_set_icon_surface(context, image.surface);
+		} else {
+			int /*long*/ pixbuf = ImageList.createPixbuf(image);
+			OS.gtk_drag_set_icon_pixbuf(context, pixbuf, 0, 0);
+			OS.g_object_unref(pixbuf);
+		}
 	}
 }
 
@@ -315,18 +319,36 @@ void dragEnd(int /*long*/ widget, int /*long*/ context){
 	 * NOTE: We believe that it is never an error to ungrab when
 	 * a drag is finished.
 	 */
-	OS.gdk_pointer_ungrab(OS.GDK_CURRENT_TIME); 
-	OS.gdk_keyboard_ungrab(OS.GDK_CURRENT_TIME);
+	if (OS.GTK3) {
+		int /*long*/ display = OS.gdk_window_get_display(OS.gtk_widget_get_window(widget));
+		int /*long*/ device_manager = OS.gdk_display_get_device_manager(display);
+		int /*long*/ pointer = OS.gdk_device_manager_get_client_pointer(device_manager);
+		int /*long*/ keyboard = OS.gdk_device_get_associated_device(pointer);
+		OS.gdk_device_ungrab(pointer, OS.GDK_CURRENT_TIME);
+		OS.gdk_device_ungrab(keyboard, OS.GDK_CURRENT_TIME);
+	} else {
+		OS.gdk_pointer_ungrab(OS.GDK_CURRENT_TIME);
+		OS.gdk_keyboard_ungrab(OS.GDK_CURRENT_TIME);
+	}
 	
 	int operation = DND.DROP_NONE;
 	if (context != 0) {
-		GdkDragContext gdkDragContext = new GdkDragContext ();
-		OS.memmove(gdkDragContext, context, GdkDragContext.sizeof);
-		if (gdkDragContext.dest_window != 0) { //NOTE: if dest_window is 0, drag was aborted
+		int /*long*/ dest_window = 0;
+		int action = 0;
+		if (OS.GTK3) {
+			dest_window = OS.gdk_drag_context_get_dest_window(context);
+			action = OS.gdk_drag_context_get_selected_action(context);
+		} else {
+			GdkDragContext gdkDragContext = new GdkDragContext ();
+			OS.memmove(gdkDragContext, context, GdkDragContext.sizeof);
+			dest_window = gdkDragContext.dest_window;
+			action = gdkDragContext.action;
+		}
+		if (dest_window != 0) { //NOTE: if dest_window is 0, drag was aborted
 			if (moveData) {
 				operation = DND.DROP_MOVE;
 			} else {
-				operation = osOpToOp(gdkDragContext.action);
+				operation = osOpToOp(action);
 				if (operation == DND.DROP_MOVE) operation = DND.DROP_NONE;
 			}
 		}
@@ -343,15 +365,30 @@ void dragEnd(int /*long*/ widget, int /*long*/ context){
 
 void dragGetData(int /*long*/ widget, int /*long*/ context, int /*long*/ selection_data,  int info, int time){
 	if (selection_data == 0) return;	
-	GtkSelectionData gtkSelectionData = new GtkSelectionData();
-	OS.memmove(gtkSelectionData, selection_data, GtkSelectionData.sizeof);
-	if (gtkSelectionData.target == 0) return;
+	int length;
+	int format;
+	int /*long*/ data;
+	int /*long*/ target;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)) {
+		length = OS.gtk_selection_data_get_length(selection_data);
+		format = OS.gtk_selection_data_get_format(selection_data);
+		data = OS.gtk_selection_data_get_data(selection_data);
+		target = OS.gtk_selection_data_get_target(selection_data);
+	} else {
+		GtkSelectionData gtkSelectionData = new GtkSelectionData();
+		OS.memmove(gtkSelectionData, selection_data, GtkSelectionData.sizeof);
+		length = gtkSelectionData.length;
+		format = gtkSelectionData.format;
+		data = gtkSelectionData.data;
+		target = gtkSelectionData.target;
+	}
+	if (target == 0) return;
 	
 	TransferData transferData = new TransferData();
-	transferData.type = gtkSelectionData.target;
-	transferData.pValue = gtkSelectionData.data;
-	transferData.length = gtkSelectionData.length;
-	transferData.format = gtkSelectionData.format;
+	transferData.type = target;
+	transferData.pValue = data;
+	transferData.length = length;
+	transferData.format = format;
 		
 	DNDEvent event = new DNDEvent();
 	event.widget = this;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -357,7 +357,7 @@ class AccessibleFactory {
 		AccessibleControlEvent event = new AccessibleControlEvent (accessible);
 		event.childID = childId;
 		Vector listeners = accessible.accessibleControlListeners;
-		for (int i = 0, length = listeners.size(); i < length; i++) {
+		for (int i = 0, length = listeners == null ? 0 : listeners.size(); i < length; i++) {
 			AccessibleControlListener listener = (AccessibleControlListener)listeners.elementAt (i);
 			listener.getRole (event);
 		}

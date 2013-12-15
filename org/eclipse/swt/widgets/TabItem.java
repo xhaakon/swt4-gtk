@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -150,10 +150,12 @@ void destroyWidget () {
  */
 public Rectangle getBounds () {
 	checkWidget();
-	int x = OS.GTK_WIDGET_X (handle);
-	int y = OS.GTK_WIDGET_Y (handle);
-	int width = (state & ZERO_WIDTH) != 0 ? 0 : OS.GTK_WIDGET_WIDTH (handle);
-	int height = (state & ZERO_HEIGHT) != 0 ? 0 : OS.GTK_WIDGET_HEIGHT (handle);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
+	int x = allocation.x;
+	int y = allocation.y;
+	int width = (state & ZERO_WIDTH) != 0 ? 0 : allocation.width;
+	int height = (state & ZERO_HEIGHT) != 0 ? 0 : allocation.height;
 	if ((parent.style & SWT.MIRRORED) != 0) x = parent.getClientWidth () - width - x;
 	return new Rectangle (x, y, width, height);
 }
@@ -282,14 +284,14 @@ public void setControl (Control control) {
 }
 
 void setFontDescription (int /*long*/ font) {
-	OS.gtk_widget_modify_font (labelHandle, font);
-	OS.gtk_widget_modify_font (imageHandle, font);
+	setFontDescription (labelHandle, font);
+	setFontDescription (imageHandle, font);
 }
 
 void setForegroundColor (GdkColor color) {
 	/* Don't set the color in vbox handle (it doesn't draw) */
-	setForegroundColor (labelHandle, color);
-	setForegroundColor (imageHandle, color);
+	setForegroundColor (labelHandle, color, false);
+	setForegroundColor (imageHandle, color, false);
 }
 
 public void setImage (Image image) {
@@ -305,10 +307,10 @@ public void setImage (Image image) {
 			imageList.put (imageIndex, image);
 		}
 		int /*long*/ pixbuf = imageList.getPixbuf (imageIndex);
-		OS.gtk_image_set_from_pixbuf (imageHandle, pixbuf);
+		gtk_image_set_from_pixbuf (imageHandle, pixbuf);
 		OS.gtk_widget_show (imageHandle);
 	} else {
-		OS.gtk_image_set_from_pixbuf (imageHandle, 0);
+		gtk_image_set_from_pixbuf (imageHandle, 0);
 		OS.gtk_widget_hide (imageHandle);
 	}
 }

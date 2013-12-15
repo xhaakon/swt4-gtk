@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -58,6 +58,7 @@ import org.eclipse.swt.events.*;
  */
 public class Text extends Scrollable {
 	int /*long*/ bufferHandle;
+	int /*long*/ imContext;
 	int tabs = 8, lastEventTime = 0;
 	int /*long*/ gdkEventKey = 0;
 	int fixStart = -1, fixEnd = -1;
@@ -193,7 +194,7 @@ void createHandle (int index) {
 	}
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
+	gtk_widget_set_has_window (fixedHandle, true);
 	if ((style & SWT.SINGLE) != 0) {
 		handle = OS.gtk_entry_new ();
 		if (handle == 0) error (SWT.ERROR_NO_HANDLES);
@@ -217,7 +218,7 @@ void createHandle (int index) {
 		OS.gtk_container_add (fixedHandle, scrolledHandle);
 		OS.gtk_container_add (scrolledHandle, handle);
 		OS.gtk_text_view_set_editable (handle, (style & SWT.READ_ONLY) == 0);
-		if ((style & SWT.WRAP) != 0) OS.gtk_text_view_set_wrap_mode (handle, OS.GTK_VERSION < OS.VERSION (2, 4, 0) ? OS.GTK_WRAP_WORD : OS.GTK_WRAP_WORD_CHAR);
+		if ((style & SWT.WRAP) != 0) OS.gtk_text_view_set_wrap_mode (handle, OS.GTK_WRAP_WORD_CHAR);
 		int hsp = (style & SWT.H_SCROLL) != 0 ? OS.GTK_POLICY_ALWAYS : OS.GTK_POLICY_NEVER;
 		int vsp = (style & SWT.V_SCROLL) != 0 ? OS.GTK_POLICY_ALWAYS : OS.GTK_POLICY_NEVER;
 		OS.gtk_scrolled_window_set_policy (scrolledHandle, hsp, vsp);
@@ -228,6 +229,12 @@ void createHandle (int index) {
 		if ((style & SWT.CENTER) != 0) just = OS.GTK_JUSTIFY_CENTER; 
 		if ((style & SWT.RIGHT) != 0) just = OS.GTK_JUSTIFY_RIGHT;
 		OS.gtk_text_view_set_justification (handle, just);
+	}
+	if (OS.GTK3) {
+		imContext = OS.imContextLast();
+		if ((style & SWT.SINGLE) != 0) {
+			OS.gtk_entry_set_width_chars(handle, 6);
+		}
 	}
 }
 
@@ -265,17 +272,19 @@ public void addModifyListener (ModifyListener listener) {
 /**
  * Adds a segment listener.
  * <p>
- * A <code>SegmentEvent</code> is sent whenever text content is being modified. The user can 
- * customize appearance of text by indicating certain characters to be inserted
+ * A <code>SegmentEvent</code> is sent whenever text content is being modified or
+ * a segment listener is added or removed. You can 
+ * customize the appearance of text by indicating certain characters to be inserted
  * at certain text offsets. This may be used for bidi purposes, e.g. when
  * adjacent segments of right-to-left text should not be reordered relative to
  * each other. 
- * E.g., Multiple Java string literals in a right-to-left language
+ * E.g., multiple Java string literals in a right-to-left language
  * should generally remain in logical order to each other, that is, the
  * way they are stored.
- * <br>
- * After SegmentListener is added, user may call <code>setText(String)</code>
- * for segments to take effect.
+ * </p>
+ * <p>
+ * <b>Warning</b>: This API is currently only implemented on Windows and GTK.
+ * <code>SegmentEvent</code>s won't be sent on Cocoa.
  * </p>
  *
  * @param listener the listener which should be notified
@@ -298,6 +307,8 @@ public void addSegmentListener (SegmentListener listener) {
 	checkWidget ();
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	addListener (SWT.Segments, new TypedListener (listener));
+	clearSegments (true);
+	applySegments ();
 }
 
 /**
@@ -528,7 +539,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	if ((style & SWT.SINGLE) != 0) {
 		OS.gtk_widget_realize (handle);
 		int /*long*/ layout = OS.gtk_entry_get_layout (handle);
-		OS.pango_layout_get_size (layout, w, h);
+		OS.pango_layout_get_pixel_size (layout, w, h);
 	} else {
 		byte [] start =  new byte [ITER_SIZEOF], end  =  new byte [ITER_SIZEOF];
 		OS.gtk_text_buffer_get_bounds (bufferHandle, start, end);
@@ -536,17 +547,17 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 		int /*long*/ layout = OS.gtk_widget_create_pango_layout (handle, text);
 		OS.g_free (text);
 		OS.pango_layout_set_width (layout, wHint * OS.PANGO_SCALE);
-		OS.pango_layout_get_size (layout, w, h);
+		OS.pango_layout_get_pixel_size (layout, w, h);
 		OS.g_object_unref (layout);
 	}
-	int width = OS.PANGO_PIXELS (w [0]);
-	int height = OS.PANGO_PIXELS (h [0]);
+	int width = w [0];
+	int height = h [0];
 	if ((style & SWT.SINGLE) != 0 && message.length () > 0) {
 		byte [] buffer = Converter.wcsToMbcs (null, message, true);
 		int /*long*/ layout = OS.gtk_widget_create_pango_layout (handle, buffer);
-		OS.pango_layout_get_size (layout, w, h);
+		OS.pango_layout_get_pixel_size (layout, w, h);
 		OS.g_object_unref (layout);
-		width = Math.max (width, OS.PANGO_PIXELS (w [0]));
+		width = Math.max (width, w [0]);
 	}
 	if (width == 0) width = DEFAULT_WIDTH;
 	if (height == 0) height = DEFAULT_HEIGHT;
@@ -561,16 +572,39 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	Rectangle trim = super.computeTrim (x, y, width, height);
 	int xborder = 0, yborder = 0;
 	if ((style & SWT.SINGLE) != 0) {
-		if ((style & SWT.BORDER) != 0) {
-			int /*long*/ style = OS.gtk_widget_get_style (handle);
-			xborder += OS.gtk_style_get_xthickness (style);
-			yborder += OS.gtk_style_get_ythickness (style);
+		if (OS.GTK3) {
+			GtkBorder tmp = new GtkBorder();
+			int /*long*/ context = OS.gtk_widget_get_style_context (handle);
+			OS.gtk_style_context_get_padding (context, OS.GTK_STATE_FLAG_NORMAL, tmp);
+			trim.x -= tmp.left;
+			trim.y -= tmp.top;
+			trim.width += tmp.left + tmp.right;
+			trim.height += tmp.top + tmp.bottom;
+			if ((style & SWT.BORDER) != 0) {
+				OS.gtk_style_context_get_border (context, OS.GTK_STATE_FLAG_NORMAL, tmp);
+				trim.x -= tmp.left;
+				trim.y -= tmp.top;
+				trim.width += tmp.left + tmp.right;
+				trim.height += tmp.top + tmp.bottom;
+			}
+			GdkRectangle icon_area = new GdkRectangle();
+			OS.gtk_entry_get_icon_area(handle, OS.GTK_ENTRY_ICON_PRIMARY, icon_area);
+			trim.x -= icon_area.width;
+			trim.width += icon_area.width;
+			OS.gtk_entry_get_icon_area(handle, OS.GTK_ENTRY_ICON_SECONDARY, icon_area);
+			trim.width += icon_area.width;
+		} else {
+			if ((style & SWT.BORDER) != 0) {
+				Point thickness = getThickness (handle);
+				xborder += thickness.x;
+				yborder += thickness.y;
+			}
+			GtkBorder innerBorder = Display.getEntryInnerBorder (handle);
+			trim.x -= innerBorder.left;
+			trim.y -= innerBorder.top;
+			trim.width += innerBorder.left + innerBorder.right;
+			trim.height += innerBorder.top + innerBorder.bottom;
 		}
-		GtkBorder innerBorder = Display.getEntryInnerBorder (handle);
-		trim.x -= innerBorder.left;
-		trim.y -= innerBorder.top;
-		trim.width += innerBorder.left + innerBorder.right;
-		trim.height += innerBorder.top + innerBorder.bottom;
 	} else {
 		int borderWidth = OS.gtk_container_get_border_width (handle);  
 		xborder += borderWidth;
@@ -763,9 +797,8 @@ GdkColor getBackgroundColor () {
 public int getBorderWidth () {
 	checkWidget();
 	if ((style & SWT.MULTI) != 0) return super.getBorderWidth ();
-	int /*long*/ style = OS.gtk_widget_get_style (handle);
 	if ((this.style & SWT.BORDER) != 0) {
-		 return OS.gtk_style_get_xthickness (style);
+		 return getThickness (handle).x;
 	}
 	return 0;
 }
@@ -807,9 +840,7 @@ public Point getCaretLocation () {
 	checkWidget ();
 	if ((style & SWT.SINGLE) != 0) {
 		int index = OS.gtk_editable_get_position (handle);
-		if (OS.GTK_VERSION >= OS.VERSION (2, 6, 0)) {
-			index = OS.gtk_entry_text_index_to_layout_index (handle, index);
-		}
+		index = OS.gtk_entry_text_index_to_layout_index (handle, index);
 		int [] offset_x = new int [1], offset_y = new int [1];
 		OS.gtk_entry_get_layout_offsets (handle, offset_x, offset_y);
 		int /*long*/ layout = OS.gtk_entry_get_layout (handle);
@@ -1233,6 +1264,11 @@ public String getText (int start, int end) {
  * The text for a text widget is the characters in the widget, or
  * a zero-length array if this has never been set.
  * </p>
+ * <p>
+ * Note: Use the API to protect the text, for example, when widget is used as
+ * a password field. However, the text can't be protected if Segment listener
+ * is added to the widget.
+ * </p>
  *
  * @return a character array that contains the widget's text
  *
@@ -1541,17 +1577,14 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	return super.gtk_event_after (widget, gdkEvent);
 }
 
-int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
-	if ((state & OBSCURED) != 0) return 0;
-	int /*long*/ result = super.gtk_expose_event (widget, event);
+void drawMessage (int /*long*/ cr) {
+	if (OS.GTK_VERSION >= OS.VERSION (3, 2, 0)) return;
 	if ((style & SWT.SINGLE) != 0 && message.length () > 0) {
 		int /*long*/ str = OS.gtk_entry_get_text (handle);
-		if (!OS.GTK_WIDGET_HAS_FOCUS (handle) && OS.strlen (str) == 0) {
-			GdkEventExpose gdkEvent = new GdkEventExpose ();
-			OS.memmove (gdkEvent, event, GdkEventExpose.sizeof);
+		if (!gtk_widget_has_focus (handle) && OS.strlen (str) == 0) {
 			int /*long*/ window = paintWindow ();
 			int [] w = new int [1], h = new int [1];
-			OS.gdk_drawable_get_size (window, w, h);
+			gdk_window_get_size (window, w, h);
 			GtkBorder innerBorder = Display.getEntryInnerBorder (handle);
 			int width = w [0] - innerBorder.left - innerBorder.right;
 			int height = h [0] - innerBorder.top - innerBorder.bottom;
@@ -1586,17 +1619,29 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
 				case SWT.CENTER: x = (width - rect.width) / 2; break;
 				case SWT.RIGHT: x = rtl ? innerBorder.left : width - rect.width; break;
 			}
-			int /*long*/ style = OS.gtk_widget_get_style (handle);	
 			GdkColor textColor = new GdkColor ();
-			OS.gtk_style_get_text (style, OS.GTK_STATE_INSENSITIVE, textColor);
 			GdkColor baseColor = new GdkColor ();
-			OS.gtk_style_get_base (style, OS.GTK_STATE_NORMAL, baseColor);
+			if (OS.GTK3) {
+				int /*long*/ styleContext = OS.gtk_widget_get_style_context (handle);
+				GdkRGBA rgba = new GdkRGBA ();
+				OS.gtk_style_context_get_color (styleContext, OS.GTK_STATE_FLAG_INSENSITIVE, rgba);
+				textColor.red = (short)(rgba.red * 0xFFFF);
+				textColor.green = (short)(rgba.green * 0xFFFF);
+				textColor.blue = (short)(rgba.blue * 0xFFFF);
+				Point thickness = getThickness (handle);
+				x += thickness.x;
+				y += thickness.y;
+			} else {
+				int /*long*/ style = OS.gtk_widget_get_style (handle);	
+				OS.gtk_style_get_text (style, OS.GTK_STATE_INSENSITIVE, textColor);
+				OS.gtk_style_get_base (style, OS.GTK_STATE_NORMAL, baseColor);
+			}
 			if (OS.USE_CAIRO) {
-				int /*long*/ cairo = OS.gdk_cairo_create(window);
+				int /*long*/ cairo = cr != 0 ? cr : OS.gdk_cairo_create(window);
 				Cairo.cairo_set_source_rgba(cairo, (textColor.red & 0xFFFF) / (float)0xFFFF, (textColor.green & 0xFFFF) / (float)0xFFFF, (textColor.blue & 0xFFFF) / (float)0xFFFF, 1);
 				Cairo.cairo_move_to(cairo, x, y);
 				OS.pango_cairo_show_layout(cairo, layout);
-				Cairo.cairo_destroy(cairo);
+				if (cr != cairo) Cairo.cairo_destroy(cairo);
 			} else {
 				int /*long*/ gc = OS.gdk_gc_new	(window);
 				OS.gdk_draw_layout_with_colors (window, gc, x, y, layout, textColor, baseColor);
@@ -1605,6 +1650,19 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
 			OS.g_object_unref (layout);
 		}
 	}
+}
+
+int /*long*/ gtk_draw (int /*long*/ widget, int /*long*/ cairo) {
+	if ((state & OBSCURED) != 0) return 0;
+	int /*long*/ result = super.gtk_draw (widget, cairo);
+	drawMessage (cairo);
+	return result;
+}
+
+int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
+	if ((state & OBSCURED) != 0) return 0;
+	int /*long*/ result = super.gtk_expose_event (widget, event);
+	drawMessage (0);
 	return result;
 }
 
@@ -1796,6 +1854,7 @@ void hookEvents () {
 }
 
 int /*long*/ imContext () {
+	if (imContext != 0) return imContext; 
 	if ((style & SWT.SINGLE) != 0) {
 		return OS.gtk_editable_get_editable (handle) ? OS.GTK_ENTRY_IM_CONTEXT (handle) : 0;
 	} 
@@ -1899,18 +1958,6 @@ void register () {
 void releaseWidget () {
 	super.releaseWidget ();
 	fixIM ();	
-	if (OS.GTK_VERSION < OS.VERSION (2, 6, 0)) {		 
-		/*
-		* Bug in GTK.  Any text copied into the clipboard will be lost when
-		* the GtkTextView is destroyed.  The fix is to paste the contents as
-		* the widget is being destroyed to reference the text buffer, keeping
-		* it around until ownership of the clipboard is lost.
-		*/
-		if ((style & SWT.MULTI) != 0) {
-			int /*long*/ clipboard = OS.gtk_clipboard_get (OS.GDK_NONE);
-			OS.gtk_text_buffer_paste_clipboard (bufferHandle, clipboard, null, OS.gtk_text_view_get_editable (handle));
-		}
-	}
 	message = null;
 }
 
@@ -1941,10 +1988,6 @@ public void removeModifyListener (ModifyListener listener) {
 /**
  * Removes the listener from the collection of listeners who will
  * be notified when the receiver's text is modified.
- * <p>
- * After SegmentListener is removed, user may call <code>setText(String)</code>
- * for segments to take effect.
- * </p>
  *
  * @param listener the listener which should no longer be notified
  *
@@ -1966,6 +2009,8 @@ public void removeSegmentListener (SegmentListener listener) {
 	checkWidget ();
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	eventTable.unhook (SWT.Segments, listener);
+	clearSegments (true);
+	applySegments ();
 }
 
 /**
@@ -2043,14 +2088,24 @@ public void selectAll () {
 
 void setBackgroundColor (GdkColor color) {
 	super.setBackgroundColor (color);
-	OS.gtk_widget_modify_base (handle, 0, color);
+	if (!OS.GTK3) {
+		OS.gtk_widget_modify_base (handle, 0, color);
+	}
+}
+
+void setBackgroundColor (int /*long*/ context, int /*long*/ handle, GdkRGBA rgba) {
+	if ((style & SWT.MULTI) != 0) {
+		super.setBackgroundColor (context, handle, rgba);
+		return;
+	}
+	setBackgroundColorGradient (context, handle, rgba);
 }
 
 void setCursor (int /*long*/ cursor) {
 	int /*long*/ defaultCursor = 0;
 	if (cursor == 0) defaultCursor = OS.gdk_cursor_new (OS.GDK_XTERM);
 	super.setCursor (cursor != 0 ? cursor : defaultCursor);
-	if (cursor == 0) OS.gdk_cursor_unref (defaultCursor);
+	if (cursor == 0) gdk_cursor_unref (defaultCursor);
 }
 
 /**
@@ -2131,6 +2186,10 @@ void setFontDescription (int /*long*/ font) {
 	setTabStops (tabs);
 }
 
+void setForegroundColor (GdkColor color) {
+	setForegroundColor (handle, color, false);
+}
+
 /**
  * Sets the widget message. The message text is displayed
  * as a hint for the user, indicating the purpose of the field.
@@ -2154,6 +2213,13 @@ public void setMessage (String message) {
 	checkWidget ();
 	if (message == null) error (SWT.ERROR_NULL_ARGUMENT);
 	this.message = message;
+	if (OS.GTK_VERSION >= OS.VERSION (3, 2, 0)) {
+		if ((style & SWT.SINGLE) != 0) {
+			byte [] buffer = Converter.wcsToMbcs (null, message, true);
+			OS.gtk_entry_set_placeholder_text (handle, buffer);
+			return;
+		}
+	}
 	redraw (false);
 }
 
@@ -2376,7 +2442,12 @@ public void setText (String string) {
  * Sets the contents of the receiver to the characters in the array. If the receiver
  * has style <code>SWT.SINGLE</code> and the argument contains multiple lines of text
  * then the result of this operation is undefined and may vary between platforms.
- *
+ * <p>
+ * Note: Use the API to protect the text, for example, when widget is used as
+ * a password field. However, the text can't be protected if Verify or
+ * Segment listener is added to the widget.
+ * </p>
+ * 
  * @param text a character array that contains the new text
  *
  * @exception IllegalArgumentException <ul>

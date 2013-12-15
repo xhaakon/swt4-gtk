@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2012 IBM Corporation and others.
+ * Copyright (c) 2003, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -120,12 +120,12 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIDirectoryServiceProvider.NS_IDIRECTORYSERVICEPROVIDER_IID)) {
+	if (guid.Equals (XPCOM.NS_IDIRECTORYSERVICEPROVIDER_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {directoryServiceProvider.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIDirectoryServiceProvider2.NS_IDIRECTORYSERVICEPROVIDER2_IID)) {
+	if (guid.Equals (XPCOM.NS_IDIRECTORYSERVICEPROVIDER2_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {directoryServiceProvider2.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -220,7 +220,7 @@ int getFiles (int /*long*/ prop, int /*long*/ _retval) {
 
 				nsILocalFile localFile = new nsILocalFile (result[0]);
 				result[0] = 0;
-				rc = localFile.QueryInterface (nsIFile.NS_IFILE_IID, result); 
+				rc = localFile.QueryInterface (Mozilla.IsPre_17 ? nsIFile.NS_IFILE_IID : nsIFile.NS_IFILE_17_IID, result);
 				if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 				if (result[0] == 0) Mozilla.error (XPCOM.NS_ERROR_NO_INTERFACE);
 				localFile.Release ();
@@ -315,7 +315,7 @@ int getFile(int /*long*/ prop, int /*long*/ persistent, int /*long*/ _retval) {
 		
 		nsILocalFile localFile = new nsILocalFile (result [0]);
 		result[0] = 0;
-	    rc = localFile.QueryInterface (nsIFile.NS_IFILE_IID, result); 
+	    rc = localFile.QueryInterface (Mozilla.IsPre_17 ? nsIFile.NS_IFILE_IID : nsIFile.NS_IFILE_17_IID, result); 
 		if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 		if (result[0] == 0) Mozilla.error (XPCOM.NS_ERROR_NO_INTERFACE);
 

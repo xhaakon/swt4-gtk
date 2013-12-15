@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 IBM Corporation and others.
+ * Copyright (c) 2012, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -68,7 +68,7 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIPromptFactory.NS_IPROMPTFACTORY_IID)) {
+	if (guid.Equals (XPCOM.NS_IPROMPTFACTORY_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {factory.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -98,7 +98,7 @@ int GetPrompt (int /*long*/ aParent, int /*long*/ iid, int /*long*/ result) {
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIAuthPrompt2.NS_IAUTHPROMPT2_IID)) {
+	if (guid.Equals (XPCOM.NS_IAUTHPROMPT2_IID)) {
 		PromptAuth2 promptAuth = new PromptAuth2();
 		promptAuth.AddRef ();
 		promptAuth.setParent (aParent);

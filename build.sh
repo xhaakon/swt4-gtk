@@ -1,6 +1,6 @@
 #!/bin/sh
 #*******************************************************************************
-# Copyright (c) 2000, 2011 IBM Corporation and others.
+# Copyright (c) 2000, 2012 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -140,7 +140,7 @@ case $SWT_OS.$SWT_ARCH in
 			export JAVA_HOME="/bluebird/teamswt/swt-builddir/JDKs/x86_64/jdk1.5.0"
 		fi
 		if [ "${PKG_CONFIG_PATH}" = "" ]; then
-			export PKG_CONFIG_PATH="/usr/lib64/pkgconfig:/bluebird/teamswt/swt-builddir/cairo_1.0.2/linux_x86_64/lib/pkgconfig"
+			export PKG_CONFIG_PATH="/usr/lib64/pkgconfig"
 		fi
 		if [ "${MOZILLA_SDK}" = "" ]; then
 			export MOZILLA_SDK="/bluebird/teamswt/swt-builddir/mozilla/1.7/amd64/mozilla/dist/sdk"
@@ -195,7 +195,7 @@ case $SWT_OS.$SWT_ARCH in
 			export CC=gcc
 		fi
 		if [ "${JAVA_HOME}" = "" ]; then
-			export JAVA_HOME="/bluebird/teamswt/swt-builddir/JDKs/PPC64/ibm-java2-ppc64-50"
+			export JAVA_HOME="/bluebird/teamswt/swt-builddir/JDKs/PPC64/jre5u10"
 		fi
 		if [ "${MOZILLA_SDK}" = "" ]; then
 			export MOZILLA_SDK=" /bluebird/teamswt/swt-builddir/mozilla/1.7/ppc64/mozilla/dist/sdk"
@@ -216,7 +216,7 @@ case $SWT_OS.$SWT_ARCH in
 			export XULRUNNER_LIBS="-m64 -L${XULRUNNER_SDK}/lib -lxpcomglue"
 		fi
 		if [ "${PKG_CONFIG_PATH}" = "" ]; then
-			export PKG_CONFIG_PATH="/usr/lib64/pkgconfig/:/bluebird/teamswt/swt-builddir/cairo_1.0.2/linux_ppc64/lib/pkgconfig/:/usr/local/GNOME/lib/pkgconfig:/usr/local/gtk2.4/lib/pkgconfig/"
+			export PKG_CONFIG_PATH="/usr/lib64/pkgconfig/"
 		fi
 		;;
 	"solaris.x86")
@@ -252,7 +252,7 @@ case $SWT_OS.$SWT_ARCH in
 #		export PATH="/export/home/SUNWspro/bin:/usr/ccs/bin:/usr/bin"
 		if [ "${CC}" = "" ]; then
 			export CC="cc"
-		fi
+		fi	
 		if [ "${CXX}" = "" ]; then
 			export CXX="CC"
 		fi
@@ -290,7 +290,7 @@ case $SWT_OS.$SWT_ARCH in
 			JAVA_HOME="/usr/j2se"
 		fi
 		if [ "${PKG_CONFIG_PATH}" = "" ]; then
-			PKG_CONFIG_PATH="/usr/local/cairo-1.4.10/lib/pkgconfig/"
+			PKG_CONFIG_PATH="/usr/local/lib/pkgconfig/"
 		fi
 		if [ "${MOZILLA_SDK}" = "" ]; then
 			MOZILLA_SDK="/bluebird/teamswt/swt-builddir/geckoSDK/1.4/gecko-sdk"
@@ -308,10 +308,10 @@ case $SWT_OS.$SWT_ARCH in
 			export CC=gcc
 		fi
 		if [ "${JAVA_HOME}" = "" ]; then
-			export JAVA_HOME="/home/swtbuild/java5/ibm-java2-s390-50"
+			export JAVA_HOME="/home/swtbuild/java5/s390/ibm-java2-s390-50"
 		fi
 		if [ "${MOZILLA_SDK}" = "" ]; then
-			export MOZILLA_SDK="/home/swtbuild/mozilla-1.7.13/mozilla/dist/sdk"
+			export MOZILLA_SDK="/home/swtbuild/mozilla/s390/mozilla-1.7.13/mozilla/dist/sdk"
 		fi
 		if [ "${MOZILLA_INCLUDES}" = "" ]; then
 			export MOZILLA_INCLUDES="-include ${MOZILLA_SDK}/include/mozilla-config.h -I${MOZILLA_SDK}/../include/xpcom -I${MOZILLA_SDK}/../include/nspr -I${MOZILLA_SDK}/../include/embed_base -I${MOZILLA_SDK}/../include/embedstring -I${MOZILLA_SDK}/../include/string"
@@ -320,7 +320,7 @@ case $SWT_OS.$SWT_ARCH in
 			export MOZILLA_LIBS="-L${MOZILLA_SDK}/lib -L${MOZILLA_SDK}/bin -lxpcom -lnspr4 -lplds4 -lplc4"
 		fi
 		if [ "${XULRUNNER_SDK}" = "" ]; then
-			export XULRUNNER_SDK="/home/swtbuild/xulrunner-1.8.0.1/mozilla/dist/sdk"
+			export XULRUNNER_SDK="/home/swtbuild/mozilla/s390/xulrunner-1.8.0.1/mozilla/dist/sdk"
 		fi
 		if [ "${XULRUNNER_INCLUDES}" = "" ]; then
 			export XULRUNNER_INCLUDES="-include ${XULRUNNER_SDK}/include/mozilla-config.h -I${XULRUNNER_SDK}/include"
@@ -329,7 +329,7 @@ case $SWT_OS.$SWT_ARCH in
 			export XULRUNNER_LIBS="-L${XULRUNNER_SDK}/lib -lxpcomglue"
 		fi
 		if [ "${PKG_CONFIG_PATH}" = "" ]; then
-			export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig"
+			export PKG_CONFIG_PATH="/usr/lib/pkgconfig"
 		fi
 		;;
 	"linux.s390x")
@@ -337,10 +337,10 @@ case $SWT_OS.$SWT_ARCH in
 			export CC=gcc
 		fi
 		if [ "${JAVA_HOME}" = "" ]; then
-			export JAVA_HOME="/home/swtbuild/java5/ibm-java2-s390x-50"
+			export JAVA_HOME="/home/swtbuild/java5/s390x/ibm-java2-s390x-50"
 		fi
 		if [ "${MOZILLA_SDK}" = "" ]; then
-			export MOZILLA_SDK="/home/swtbuild/mozilla1.7.13/mozilla/dist/sdk"
+			export MOZILLA_SDK="/home/swtbuild/mozilla/s390x/mozilla1.7.13/mozilla/dist/sdk"
 		fi
 		if [ "${MOZILLA_INCLUDES}" = "" ]; then
 			export MOZILLA_INCLUDES="-include ${MOZILLA_SDK}/include/mozilla-config.h -I${MOZILLA_SDK}/../include/xpcom -I${MOZILLA_SDK}/../include/nspr -I${MOZILLA_SDK}/../include/embed_base -I${MOZILLA_SDK}/../include/embedstring -I${MOZILLA_SDK}/../include/string"
@@ -349,7 +349,7 @@ case $SWT_OS.$SWT_ARCH in
 			export MOZILLA_LIBS="-L${MOZILLA_SDK}/lib -L${MOZILLA_SDK}/bin -lxpcom -lnspr4 -lplds4 -lplc4"
 		fi
 		if [ "${XULRUNNER_SDK}" = "" ]; then
-			export XULRUNNER_SDK="/home/swtbuild/xulrunner-1.8.0.1/mozilla/dist/sdk"
+			export XULRUNNER_SDK="/home/swtbuild/mozilla/s390x/xulrunner-1.8.0.1/mozilla/dist/sdk"
 		fi
 		if [ "${XULRUNNER_INCLUDES}" = "" ]; then
 			export XULRUNNER_INCLUDES="-include ${XULRUNNER_SDK}/include/mozilla-config.h -I${XULRUNNER_SDK}/include"
@@ -358,7 +358,7 @@ case $SWT_OS.$SWT_ARCH in
 			export XULRUNNER_LIBS="-L${XULRUNNER_SDK}/lib -lxpcomglue"
 		fi
 		if [ "${PKG_CONFIG_PATH}" = "" ]; then
-			export PKG_CONFIG_PATH="/usr/local/cairo64/lib/pkgconfig"
+			export PKG_CONFIG_PATH="/usr/lib64/pkgconfig"
 		fi
 		;;
 	"aix.ppc")
@@ -393,18 +393,18 @@ case $SWT_OS.$SWT_ARCH in
 		fi
 		;;
 	"hpux.ia64")
-#		export PATH="/bluebird/teamswt/bog/gtk/hpux/bin:${PATH}"
+		export PATH="/opt/hp-gcc/bin:/opt/gtk_64bit/bin:/opt/${PATH}"
 		if [ "${CC}" = "" ]; then
 			export CC=gcc
 		fi
 		if [ "${JAVA_HOME}" = "" ]; then
 			export JAVA_HOME="/opt/java1.5"
 		fi
-		if [ "${AWT_HOME}" = "" ]; then
-			export AWT_HOME="/opt/java1.5/jre/lib/IA64W/"
+		if [ "${AWT_LIB_PATH}" = "" ]; then
+			export AWT_LIB_PATH="/opt/java1.5/jre/lib/IA64W/"
 		fi
 		if [ "${PKG_CONFIG_PATH}" = "" ]; then
-			export PKG_CONFIG_PATH="/bluebird/teamswt/bog/gtk/hpux/lib/pkgconfig"
+			export PKG_CONFIG_PATH="/opt/gtk_64bit/lib/hpux64/pkgconfig"
 		fi
 		;;
 esac	
@@ -449,8 +449,13 @@ if [ ${MODEL} = 's390' ]; then
 	SWT_LFLAGS=-m31
 	export SWT_LFLAGS SWT_PTR_CFLAGS
 fi
+if [ ${MODEL} = 'x86' -a ${SWT_OS} = 'linux' ]; then
+	SWT_PTR_CFLAGS="-m32"	
+	SWT_LFLAGS=-m32
+	export SWT_LFLAGS SWT_PTR_CFLAGS
+fi
 
-if [ x`pkg-config --exists gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0 && echo YES` = "xYES"  -a 	 ${MODEL} != "sparc64" 	]; then
+if [ x`pkg-config --exists gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0 && echo YES` = "xYES"  -a ${MODEL} != "sparc64" -a ${MODEL} != 'ia64' ]; then
 	echo "libgnomeui-2.0 found, compiling SWT program support using GNOME"
 	MAKE_GNOME=make_gnome
 else

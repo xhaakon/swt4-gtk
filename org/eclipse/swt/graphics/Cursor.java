@@ -161,7 +161,11 @@ public Cursor(Device device, int style) {
 			SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	}
 	if (shape == 0 && style == SWT.CURSOR_APPSTARTING) {
-		handle = createCursor(APPSTARTING_SRC, APPSTARTING_MASK, 32, 32, 2, 2, true);		
+		byte[] src = new byte[APPSTARTING_SRC.length];
+		System.arraycopy(APPSTARTING_SRC, 0, src, 0, src.length);
+		byte[] mask = new byte[APPSTARTING_MASK.length];
+		System.arraycopy(APPSTARTING_MASK, 0, mask, 0, mask.length);
+		handle = createCursor(src, mask, 32, 32, 2, 2, true);
 	} else {
 		handle = OS.gdk_cursor_new(shape);
 	}
@@ -291,7 +295,7 @@ public Cursor(Device device, ImageData source, int hotspotX, int hotspotY) {
 		SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	}
 	int /*long*/ display = 0;
-	if (OS.GTK_VERSION >= OS.VERSION(2, 4, 0) && OS.gdk_display_supports_cursor_color(display = OS.gdk_display_get_default ())) {
+	if (OS.gdk_display_supports_cursor_color(display = OS.gdk_display_get_default ())) {
 		int width = source.width;
 		int height = source.height;
 		PaletteData palette = source.palette;	
@@ -433,6 +437,64 @@ public Cursor(Device device, ImageData source, int hotspotX, int hotspotY) {
 }
 
 int /*long*/ createCursor(byte[] sourceData, byte[] maskData, int width, int height, int hotspotX, int hotspotY, boolean reverse) {
+	if (OS.GTK3) {
+		for (int i = 0; i < sourceData.length; i++) {
+			byte s = sourceData[i];
+			sourceData[i] = (byte)(((s & 0x80) >> 7) |
+				((s & 0x40) >> 5) |
+				((s & 0x20) >> 3) |
+				((s & 0x10) >> 1) |
+				((s & 0x08) << 1) |
+				((s & 0x04) << 3) |
+				((s & 0x02) << 5) |
+				((s & 0x01) << 7));
+			sourceData[i] = (byte) ~sourceData[i];
+		}
+		for (int i = 0; i < maskData.length; i++) {
+			byte s = maskData[i];
+			maskData[i] = (byte)(((s & 0x80) >> 7) |
+				((s & 0x40) >> 5) |
+				((s & 0x20) >> 3) |
+				((s & 0x10) >> 1) |
+				((s & 0x08) << 1) |
+				((s & 0x04) << 3) |
+				((s & 0x02) << 5) |
+				((s & 0x01) << 7));
+			maskData[i] = (byte) ~maskData[i];
+		}
+		PaletteData palette = new PaletteData(new RGB[]{new RGB(0, 0, 0), new RGB(255, 255, 255)});
+		ImageData source = new ImageData(width, height, 1, palette, 1, sourceData);
+		ImageData mask = new ImageData(width, height, 1, palette, 1, maskData);
+		byte[] data = new byte[source.width * source.height * 4];
+		for (int y = 0; y < source.height; y++) {
+			int offset = y * source.width * 4;
+			for (int x = 0; x < source.width; x++) {
+				int pixel = source.getPixel(x, y);
+				int maskPixel = mask.getPixel(x, y);
+				if (pixel == 0 && maskPixel == 0) {
+					// BLACK
+					data[offset+3] = (byte)0xFF;
+				} else if (pixel == 0 && maskPixel == 1) {
+					// WHITE - cursor color
+					data[offset] = data[offset + 1] = data[offset + 2] = data[offset + 3] = (byte)0xFF;
+				} else if (pixel == 1 && maskPixel == 0) {
+					// SCREEN
+				} else {
+					/* no support */
+					// REVERSE SCREEN -> SCREEN
+				}
+				offset += 4;
+			}
+		}
+		int /*long*/ pixbuf = OS.gdk_pixbuf_new(OS.GDK_COLORSPACE_RGB, true, 8, width, height);
+		if (pixbuf == 0) SWT.error(SWT.ERROR_NO_HANDLES);
+		int stride = OS.gdk_pixbuf_get_rowstride(pixbuf);
+		int /*long*/ pixels = OS.gdk_pixbuf_get_pixels(pixbuf);
+		OS.memmove(pixels, data, stride * height);
+		int /*long*/ cursor = OS.gdk_cursor_new_from_pixbuf(OS.gdk_display_get_default(), pixbuf, hotspotX, hotspotY);
+		OS.g_object_unref(pixbuf);
+		return cursor;
+	}
 	int /*long*/ sourcePixmap = OS.gdk_bitmap_create_from_data(0, sourceData, width, height);
 	int /*long*/ maskPixmap = OS.gdk_bitmap_create_from_data(0, maskData, width, height);
 	int /*long*/ cursor = 0;
@@ -449,7 +511,7 @@ int /*long*/ createCursor(byte[] sourceData, byte[] maskData, int width, int hei
 }
 
 void destroy() {
-	OS.gdk_cursor_unref(handle);
+	gdk_cursor_unref(handle);
 	handle = 0;
 }
 
@@ -528,6 +590,14 @@ public boolean isDisposed() {
 public String toString () {
 	if (isDisposed()) return "Cursor {*DISPOSED*}";
 	return "Cursor {" + handle + "}";
+}
+
+void gdk_cursor_unref (int /*long*/ cursor) {
+	if (OS.GTK3) {
+		OS.g_object_unref (cursor);
+	} else {
+		OS.gdk_cursor_unref(cursor);
+	}
 }
 
 }

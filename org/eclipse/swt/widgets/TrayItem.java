@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -317,8 +317,10 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
 int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	if (image != null && image.mask != 0) {
 		if (OS.gdk_drawable_get_depth (image.mask) == 1) {
-			int xoffset = (int) Math.floor (OS.GTK_WIDGET_X (widget) + ((OS.GTK_WIDGET_WIDTH (widget) - OS.GTK_WIDGET_REQUISITION_WIDTH (widget)) * 0.5) + 0.5);
-			int yoffset = (int) Math.floor (OS.GTK_WIDGET_Y (widget) + ((OS.GTK_WIDGET_HEIGHT (widget) - OS.GTK_WIDGET_REQUISITION_HEIGHT (widget)) * 0.5) + 0.5);
+			GtkAllocation widgetAllocation = new GtkAllocation ();
+			gtk_widget_get_allocation (widget, widgetAllocation);
+			int xoffset = (int) Math.floor (widgetAllocation.x + ((widgetAllocation.width -OS.GTK_WIDGET_REQUISITION_WIDTH (widget)) * 0.5) + 0.5);
+			int yoffset = (int) Math.floor (widgetAllocation.y + ((widgetAllocation.height - OS.GTK_WIDGET_REQUISITION_HEIGHT (widget)) * 0.5) + 0.5);
 			Rectangle b = image.getBounds();
 			int /*long*/ gdkImagePtr = OS.gdk_drawable_get_image (image.mask, 0, 0, b.width, b.height);
 			if (gdkImagePtr == 0) error(SWT.ERROR_NO_HANDLES);
@@ -339,7 +341,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 				}
 			}
 			OS.gtk_widget_realize (handle);
-			int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
+			int /*long*/ window = gtk_widget_get_window (handle);
 			OS.gdk_window_shape_combine_region (window, region.handle, 0, 0);
 			region.dispose ();
 		}
@@ -388,7 +390,7 @@ public boolean getVisible () {
 	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
 		return OS.gtk_status_icon_get_visible (handle);
 	}
-	return OS.GTK_WIDGET_VISIBLE (handle);
+	return gtk_widget_get_visible (handle);
 }
 
 void register () {
@@ -587,16 +589,17 @@ public void setToolTipText (String string) {
 	if (string != null && string.length () > 0) {
 		buffer = Converter.wcsToMbcs (null, string, true);
 	}
-	if (tooltipsHandle == 0) {
-		tooltipsHandle = OS.gtk_tooltips_new ();
-		if (tooltipsHandle == 0) error (SWT.ERROR_NO_HANDLES);
-		OS.g_object_ref (tooltipsHandle);
-		OS.gtk_object_sink (tooltipsHandle);
-	}
 	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
 		OS.gtk_status_icon_set_tooltip (handle, buffer);
-	} else
+	} else {
+		if (tooltipsHandle == 0) {
+			tooltipsHandle = OS.gtk_tooltips_new ();
+			if (tooltipsHandle == 0) error (SWT.ERROR_NO_HANDLES);
+			OS.g_object_ref (tooltipsHandle);
+			g_object_ref_sink (tooltipsHandle);
+		}
 		OS.gtk_tooltips_set_tip (tooltipsHandle, handle, buffer, null);
+	}
 }
 
 /**
@@ -615,7 +618,7 @@ public void setVisible (boolean visible) {
 	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
 		if(OS.gtk_status_icon_get_visible (handle) == visible) return;	
 	} else {
-		if (OS.GTK_WIDGET_VISIBLE (handle) == visible) return;
+		if (gtk_widget_get_visible (handle) == visible) return;
 	}
 	if (visible) {
 		/*

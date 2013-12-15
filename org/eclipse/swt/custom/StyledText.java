@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -247,7 +247,7 @@ public class StyledText extends Canvas {
 		fontData = styledText.getFont().getFontData()[0];
 		tabLength = styledText.tabLength;
 		int lineCount = printerRenderer.lineCount;
-		if (styledText.isListening(ST.LineGetBackground) || (styledText.isBidi() && styledText.isListening(ST.LineGetSegments)) || styledText.isListening(ST.LineGetStyle)) {
+		if (styledText.isListening(ST.LineGetBackground) || (styledText.isListening(ST.LineGetSegments)) || styledText.isListening(ST.LineGetStyle)) {
 			StyledTextContent content = printerRenderer.content;
 			for (int i = 0; i < lineCount; i++) {
 				String line = content.getLine(i);
@@ -256,12 +256,10 @@ public class StyledText extends Canvas {
 				if (event != null && event.lineBackground != null) {
 					printerRenderer.setLineBackground(i, 1, event.lineBackground);
 				}
-				if (styledText.isBidi()) {
-					event = styledText.getBidiSegments(lineOffset, line);
-					if (event != null) {
-						printerRenderer.setLineSegments(i, 1, event.segments);
-						printerRenderer.setLineSegmentChars(i, 1, event.segmentsChars);
-					}
+				event = styledText.getBidiSegments(lineOffset, line);
+				if (event != null) {
+					printerRenderer.setLineSegments(i, 1, event.segments);
+					printerRenderer.setLineSegmentChars(i, 1, event.segmentsChars);
 				}
 				event = styledText.getLineStyleData(lineOffset, line);
 				if (event != null) {
@@ -1289,12 +1287,12 @@ public void addExtendedModifyListener(ExtendedModifyListener extendedModifyListe
  * Adds a bidirectional segment listener.
  * <p>
  * A BidiSegmentEvent is sent 
- * whenever a line of text is measured or rendered. The user can 
+ * whenever a line of text is measured or rendered. You can 
  * specify text ranges in the line that should be treated as if they 
  * had a different direction than the surrounding text.
  * This may be used when adjacent segments of right-to-left text should
  * not be reordered relative to each other. 
- * E.g., Multiple Java string literals in a right-to-left language
+ * E.g., multiple Java string literals in a right-to-left language
  * should generally remain in logical order to each other, that is, the
  * way they are stored. 
  * </p>
@@ -1314,6 +1312,9 @@ public void addBidiSegmentListener(BidiSegmentListener listener) {
 	checkWidget();
 	if (listener == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	addListener(ST.LineGetSegments, new StyledTextListener(listener));
+	resetCache(0, content.getLineCount());
+	setCaretLocation();
+	super.redraw();
 }
 /**
  * Adds a caret listener. CaretEvent is sent when the caret offset changes.
@@ -2305,6 +2306,12 @@ void doBlockColumn(boolean next) {
 		Rectangle rect = new Rectangle(x, y, 0, 0);
 		showLocation(rect, true);
 	}
+}
+void doBlockContentStartEnd(boolean end) {
+	if (blockXLocation == -1) setBlockSelectionOffset(caretOffset, false);
+	int offset = end ? content.getCharCount() : 0;
+	setBlockSelectionOffset(offset, true);
+	showCaret();
 }
 void doBlockWord(boolean next) {
 	if (blockXLocation == -1) setBlockSelectionOffset(caretOffset, false);
@@ -4766,7 +4773,6 @@ public String getSelectionText() {
 	return content.getTextRange(selection.x, selection.y - selection.x);
 }
 StyledTextEvent getBidiSegments(int lineOffset, String line) {
-	if (!isBidi()) return null;
 	if (!isListening(ST.LineGetSegments)) {
 		StyledTextEvent event = new StyledTextEvent(content);
 		event.segments = getBidiSegmentsCompatibility(line, lineOffset);
@@ -4779,8 +4785,9 @@ StyledTextEvent getBidiSegments(int lineOffset, String line) {
 	if (segments[0] > lineLength) {
 		SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 	}
+	boolean hasSegmentsChars = event.segmentsChars != null;
 	for (int i = 1; i < segments.length; i++) {
-		if (segments[i] <= segments[i - 1] || segments[i] > lineLength) {
+		if ((hasSegmentsChars ? segments[i] < segments[i - 1] : segments[i] <= segments[i - 1]) || segments[i] > lineLength) {
 			SWT.error(SWT.ERROR_INVALID_ARGUMENT);
 		}
 	}
@@ -5766,14 +5773,28 @@ void handleCompositionOffset (Event event) {
 	event.count = trailing[0];
 }
 void handleCompositionSelection (Event event) {
-	event.start = selection.x;
-	event.end = selection.y;
-	event.text = getSelectionText();
+	if (event.start != event.end) {
+		int charCount = getCharCount();
+		event.start = Math.max(0, Math.min(event.start, charCount));
+		event.end = Math.max(0, Math.min(event.end, charCount));
+		if (event.text != null) {
+			setSelection(event.start, event.end);
+		} else {
+			event.text = getTextRange(event.start, event.end - event.start);
+		}
+	} else {
+		event.start = selection.x;
+		event.end = selection.y;
+		event.text = getSelectionText();
+	}
 }
 void handleCompositionChanged(Event event) {
 	String text = event.text;
 	int start = event.start;
 	int end = event.end;
+	int charCount = content.getCharCount();
+	start = Math.min(start, charCount);
+	end = Math.min(end, charCount);
 	int length = text.length();
 	if (length == ime.getCommitCount()) {
 		content.replaceTextRange(start, end - start, "");
@@ -5922,6 +5943,7 @@ void handleKeyDown(Event event) {
 		clipboardSelection = new Point(selection.x, selection.y);
 	}
 	newOrientation = SWT.NONE;
+	event.stateMask &= SWT.MODIFIER_MASK;
 	
 	Event verifyEvent = new Event();
 	verifyEvent.character = event.character;
@@ -7053,10 +7075,14 @@ boolean invokeBlockAction(int action) {
 			return true;
 		case ST.SELECT_ALL:
 			return false;
+		case ST.SELECT_TEXT_START:
+			doBlockContentStartEnd(false);
+			break;
+		case ST.SELECT_TEXT_END:
+			doBlockContentStartEnd(true);
+			break;
 		case ST.SELECT_PAGE_UP:
 		case ST.SELECT_PAGE_DOWN:
-		case ST.SELECT_TEXT_START:
-		case ST.SELECT_TEXT_END:
 		case ST.SELECT_WINDOW_START:
 		case ST.SELECT_WINDOW_END:
 			//blocked actions
@@ -7079,12 +7105,6 @@ boolean invokeBlockAction(int action) {
 			return blockXLocation != -1;
 	}
 	return false;
-}
-/**
- * Temporary until SWT provides this
- */
-boolean isBidi() {
-	return IS_GTK || IS_MAC || BidiUtil.isBidiPlatform() || isMirrored();
 }
 boolean isBidiCaret() {
 	return BidiUtil.isBidiPlatform();
@@ -7489,6 +7509,9 @@ public void removeBidiSegmentListener(BidiSegmentListener listener) {
 	checkWidget();
 	if (listener == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	removeListener(ST.LineGetSegments, listener);	
+	resetCache(0, content.getLineCount());
+	setCaretLocation();
+	super.redraw();
 }
 /**
  * Removes the specified caret listener.
@@ -9502,7 +9525,11 @@ void setSelection(int start, int length, boolean sendEvent, boolean doBlock) {
 		(length > 0 && selectionAnchor != selection.x) || 
 		(length < 0 && selectionAnchor != selection.y)) {
 		if (blockSelection && doBlock) {
-			setBlockSelectionOffset(start, end, sendEvent);
+			if (length < 0) {
+				setBlockSelectionOffset(end, start, sendEvent);
+			} else {
+				setBlockSelectionOffset(start, end, sendEvent);
+			}
 		} else {
 			clearSelection(sendEvent);
 			if (length < 0) {

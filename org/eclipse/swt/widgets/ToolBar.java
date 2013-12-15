@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -130,7 +130,7 @@ void createHandle (int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
+	gtk_widget_set_has_window (fixedHandle, true);
 	handle = OS.gtk_toolbar_new ();
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
@@ -138,6 +138,29 @@ void createHandle (int index) {
 		byte [] swt_toolbar_flat = Converter.wcsToMbcs (null, "swt-toolbar-flat", true);
 		OS.gtk_widget_set_name (handle, swt_toolbar_flat);
 	}
+
+	/*
+	* Bug in GTK. For some reason, the toolbar style context does not read
+	* the CSS style sheet until the window containing the toolbar is shown.
+	* The fix is to call gtk_style_context_invalidate() which it seems to
+	* force the style sheet to be read. 
+	*/
+	if (OS.GTK3) { 
+		int /*long*/ context = OS.gtk_widget_get_style_context (handle);
+		OS.gtk_style_context_invalidate (context);
+	}
+	
+	/*
+	* Bug in GTK.  GTK will segment fault if gtk_widget_reparent() is called
+	* on a tool bar or on a widget hierarchy containing a tool bar when the icon
+	* size is not GTK_ICON_SIZE_LARGE_TOOLBAR.  The fix is to set the icon
+	* size to GTK_ICON_SIZE_LARGE_TOOLBAR.
+	* 
+	* Note that the segmentation fault does not happen on GTK 3, but the 
+	* tool bar preferred size is too big with GTK_ICON_SIZE_LARGE_TOOLBAR
+	* when the tool bar item has no image or text.
+	*/
+	OS.gtk_toolbar_set_icon_size (handle, OS.GTK3 ? OS.GTK_ICON_SIZE_SMALL_TOOLBAR : OS.GTK_ICON_SIZE_LARGE_TOOLBAR);
 }
 
 public Point computeSize (int wHint, int hHint, boolean changed) {
@@ -379,28 +402,7 @@ ToolItem [] _getTabItemList () {
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	if (!hasFocus ()) return 0;
 	int /*long*/ result = super.gtk_key_press_event (widget, eventPtr);
-	if (result != 0) return result;
-	GdkEventKey gdkEvent = new GdkEventKey ();
-	OS.memmove (gdkEvent, eventPtr, GdkEventKey.sizeof);
-	switch (gdkEvent.keyval) {
-		case OS.GDK_Down: {
-			if (OS.GTK_VERSION < OS.VERSION (2, 6, 0) && (currentFocusItem != null) && (currentFocusItem.style & SWT.DROP_DOWN) != 0) {
-				Event event = new Event ();
-				event.detail = SWT.ARROW;
-				int /*long*/ topHandle = currentFocusItem.topHandle ();
-				event.x = OS.GTK_WIDGET_X (topHandle);
-				event.y = OS.GTK_WIDGET_Y (topHandle) + OS.GTK_WIDGET_HEIGHT (topHandle);
-				if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth() - OS.GTK_WIDGET_WIDTH(topHandle) - event.x;
-				currentFocusItem.sendSelectionEvent  (SWT.Selection, event, false);
-				/*
-				 * Stop GTK from processing the event further as key_down binding
-				 * will move the focus to the next item.
-				 */
-				return 1;
-			}
-		}
-		default: return result;
-	}
+	return result;
 }
 
 int /*long*/ gtk_focus (int /*long*/ widget, int /*long*/ directionType) {
@@ -461,9 +463,11 @@ int /*long*/ menuItemSelected (int /*long*/ widget, ToolItem item) {
 			 * as Arrow click, in order to popup the drop-down. 
 			 */
 			event.detail = SWT.ARROW;
-			event.x = OS.GTK_WIDGET_X (widget);
-			if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth () - OS.GTK_WIDGET_WIDTH (widget) - event.x;
-			event.y = OS.GTK_WIDGET_Y (widget) + OS.GTK_WIDGET_HEIGHT (widget);
+			GtkAllocation allocation = new GtkAllocation ();
+			gtk_widget_get_allocation (widget, allocation);
+			event.x = allocation.x;
+			if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth () - allocation.width - event.x;
+			event.y = allocation.y + allocation.height;
 			break;
 		case SWT.RADIO :
 			if ((style & SWT.NO_RADIO_GROUP) == 0)	item.selectRadio ();

@@ -129,8 +129,8 @@ void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (fixedHandle, true);
-	handle = OS.gtk_vbox_new (false, 0);
+	gtk_widget_set_has_window (fixedHandle, true);
+	handle = gtk_box_new (OS.GTK_ORIENTATION_VERTICAL, false, 0);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	if ((style & SWT.V_SCROLL) != 0) {
 		scrolledHandle = OS.gtk_scrolled_window_new (0, 0);
@@ -437,7 +437,7 @@ void setScrollbar () {
 	if (item.expanded) maxHeight += item.height;
 	int /*long*/ adjustmentHandle = OS.gtk_scrolled_window_get_vadjustment (scrolledHandle);
 	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, adjustmentHandle);
+	gtk_adjustment_get (adjustmentHandle, adjustment);
 	yCurrentScroll = (int)adjustment.value;
 
 	//claim bottom free space
@@ -449,15 +449,21 @@ void setScrollbar () {
 	adjustment.value = Math.min (yCurrentScroll, maxHeight);
 	adjustment.upper = maxHeight;
 	adjustment.page_size = height;
-	OS.memmove (adjustmentHandle, adjustment);
-	OS.gtk_adjustment_changed (adjustmentHandle);
+	gtk_adjustment_configure (adjustmentHandle, adjustment);
 	int policy = maxHeight > height ? OS.GTK_POLICY_ALWAYS : OS.GTK_POLICY_NEVER;
 	OS.gtk_scrolled_window_set_policy (scrolledHandle, OS.GTK_POLICY_NEVER, policy);
-	int width = OS.GTK_WIDGET_WIDTH (fixedHandle) - spacing * 2;
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (fixedHandle, allocation);
+	int width = allocation.width - spacing * 2;
 	if (policy == OS.GTK_POLICY_ALWAYS) {
-		int /*long*/ vHandle = OS.GTK_SCROLLED_WINDOW_VSCROLLBAR (scrolledHandle);
+		int /*long*/ vHandle = 0;
+		if (OS.GTK_VERSION < OS.VERSION(2, 8, 0)) {
+			vHandle = OS.GTK_SCROLLED_WINDOW_VSCROLLBAR (scrolledHandle);
+		} else {
+			vHandle = OS.gtk_scrolled_window_get_vscrollbar (scrolledHandle);
+		}
 		GtkRequisition requisition = new GtkRequisition ();
-		OS.gtk_widget_size_request (vHandle, requisition);
+		gtk_widget_get_preferred_size (vHandle, requisition);
 		width -= requisition.width;
 	}
 	width = Math.max (0,  width);

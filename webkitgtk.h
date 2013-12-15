@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2011 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2009, 2012 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -18,15 +18,21 @@
 
 #include <dlfcn.h>
 #include <string.h>
+#include <stdlib.h>
 #include <glib-object.h>
 
 #define WebKitGTK_LOAD_FUNCTION(var, name) \
 	static int initialized = 0; \
 	static void *var = NULL; \
 	if (!initialized) { \
-		void* handle = dlopen("libwebkit-1.0.so.2", LOAD_FLAGS); /* webkitgtk 1.2.x lib */ \
-		if (!handle) { \
-			handle = dlopen("libwebkitgtk-1.0.so.0", LOAD_FLAGS); /* webkitgtk >= 1.4.x lib */ \
+		void* handle ; \
+		if (getenv("SWT_GTK3")) { \
+			handle = dlopen("libwebkitgtk-3.0.so.0", LOAD_FLAGS); /* webkitgtk >= 3.x lib */ \
+		} else { \
+    		handle = dlopen("libwebkit-1.0.so.2", LOAD_FLAGS); /* webkitgtk 1.2.x lib */ \
+	    	if (!handle) { \
+		    	handle = dlopen("libwebkitgtk-1.0.so.0", LOAD_FLAGS); /* webkitgtk >= 1.4.x lib */ \
+		    } \
 		} \
 		if (handle) { \
 			var = dlsym(handle, #name); \

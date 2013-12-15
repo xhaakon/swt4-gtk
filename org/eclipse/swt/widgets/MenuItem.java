@@ -257,7 +257,7 @@ void createHandle (int index) {
 			groupHandle = OS.gtk_radio_menu_item_new (0);
 			if (groupHandle == 0) error (SWT.ERROR_NO_HANDLES);
 			OS.g_object_ref (groupHandle);
-			OS.gtk_object_sink (groupHandle);
+			g_object_ref_sink (groupHandle);
 			int /*long*/ group = OS.gtk_radio_menu_item_get_group (groupHandle);
 			handle = OS.gtk_radio_menu_item_new_with_label (group, buffer);
 			break;
@@ -275,10 +275,10 @@ void createHandle (int index) {
 		OS.gtk_accel_label_set_accel_widget (label, 0);
 	}
 	int /*long*/ parentHandle = parent.handle;
-	boolean enabled = OS.GTK_WIDGET_SENSITIVE (parentHandle);     
-	if (!enabled) OS.GTK_WIDGET_SET_FLAGS (parentHandle, OS.GTK_SENSITIVE);
+	boolean enabled = gtk_widget_get_sensitive (parentHandle);
+	if (!enabled) OS.gtk_widget_set_sensitive (parentHandle, true);
 	OS.gtk_menu_shell_insert (parentHandle, handle, index);
-	if (!enabled) OS.GTK_WIDGET_UNSET_FLAGS (parentHandle, OS.GTK_SENSITIVE);
+	if (!enabled) OS.gtk_widget_set_sensitive (parentHandle, false);
 	OS.gtk_widget_show (handle);
 }
 
@@ -319,13 +319,15 @@ int /*long*/ getAccelGroup () {
 
 /*public*/ Rectangle getBounds () {
 	checkWidget();
-	if (!OS.GTK_WIDGET_MAPPED (handle)) {
+	if (!gtk_widget_get_mapped (handle)) {
 		return new Rectangle (0, 0, 0, 0);
 	}
-	int x = OS.GTK_WIDGET_X (handle);
-	int y = OS.GTK_WIDGET_Y (handle);
-	int width = OS.GTK_WIDGET_WIDTH (handle);
-	int height = OS.GTK_WIDGET_HEIGHT (handle);
+	GtkAllocation allocation = new GtkAllocation ();
+	gtk_widget_get_allocation (handle, allocation);
+	int x = allocation.x;
+	int y = allocation.y;
+	int width = allocation.width;
+	int height = allocation.height;
 	return new Rectangle (x, y, width, height);
 }
 
@@ -346,7 +348,7 @@ int /*long*/ getAccelGroup () {
  */
 public boolean getEnabled () {
 	checkWidget();
-	return OS.GTK_WIDGET_SENSITIVE (handle);
+	return gtk_widget_get_sensitive (handle);
 }
 
 /**
@@ -654,7 +656,7 @@ public void setAccelerator (int accelerator) {
  */
 public void setEnabled (boolean enabled) {
 	checkWidget();
-	if (OS.GTK_WIDGET_SENSITIVE (handle) == enabled) return;
+	if (gtk_widget_get_sensitive (handle) == enabled) return;
 	int /*long*/ accelGroup = getAccelGroup ();
 	if (accelGroup != 0) removeAccelerator (accelGroup);
 	OS.gtk_widget_set_sensitive (handle, enabled);
@@ -882,13 +884,15 @@ public void setText (String string) {
 	int /*long*/ label = OS.gtk_bin_get_child (handle);
 	if (label != 0 && OS.GTK_IS_LABEL(label)) {
 		OS.gtk_label_set_text_with_mnemonic (label, buffer);
-		buffer = Converter.wcsToMbcs (null, accelString, true);
-		int /*long*/ ptr = OS.g_malloc (buffer.length);
-		OS.memmove (ptr, buffer, buffer.length);
-		if (OS.GTK_IS_ACCEL_LABEL(label)) {
-			int /*long*/ oldPtr = OS.GTK_ACCEL_LABEL_GET_ACCEL_STRING (label);
-			OS.GTK_ACCEL_LABEL_SET_ACCEL_STRING (label, ptr);
-			if (oldPtr != 0) OS.g_free (oldPtr);
+		if (!OS.GTK3) {
+			if (OS.GTK_IS_ACCEL_LABEL(label)) {
+				buffer = Converter.wcsToMbcs (null, accelString, true);
+				int /*long*/ ptr = OS.g_malloc (buffer.length);
+				OS.memmove (ptr, buffer, buffer.length);
+				int /*long*/ oldPtr = OS.GTK_ACCEL_LABEL_GET_ACCEL_STRING (label);
+				OS.GTK_ACCEL_LABEL_SET_ACCEL_STRING (label, ptr);
+				if (oldPtr != 0) OS.g_free (oldPtr);
+			}
 		}
 	}
 }

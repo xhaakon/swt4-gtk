@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2013 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -29,6 +29,10 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#if GTK_CHECK_VERSION(3,0,0)
+#include <gtk/gtkx.h>
+#include <gdk/gdkx.h>
+#endif
 #include <pango/pango.h>
 #include <pango/pango-font.h>
 #include <string.h>
@@ -88,6 +92,99 @@
 #include <gdk/gdkx.h>
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xrender.h>
+#endif
+
+/* Disable access to sealed structs in GTK3 */
+#if GTK_CHECK_VERSION(3,0,0)
+
+#define GTK3 1
+
+#define GdkRegion cairo_region_t
+#define gdk_region_point_in cairo_region_contains_point
+#define gdk_region_new cairo_region_create
+#define gdk_region_offset cairo_region_translate
+#define gdk_region_subtract cairo_region_subtract
+#define gdk_region_union cairo_region_union
+#define gdk_region_intersect cairo_region_intersect
+#define gdk_region_destroy cairo_region_destroy
+#define gdk_region_empty cairo_region_is_empty
+#define gdk_region_get_clipbox cairo_region_get_extents
+#define gdk_region_rectangle cairo_region_create_rectangle
+#define gdk_region_union_with_rect cairo_region_union_rectangle
+#define gdk_region_rect_in cairo_region_contains_rectangle
+
+#define NO_GdkDragContext
+#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GdkDragContext_2II
+#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GdkDragContext_2JJ
+#define NO_GtkSelectionData
+#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GtkSelectionData_2II
+#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GtkSelectionData_2JJ
+#define NO__1gtk_1style_1get_1bg_1gc
+#define NO__1gtk_1style_1get_1black_1gc
+#define NO__1gtk_1style_1get_1dark_1gc
+#define NO__1gtk_1style_1get_1fg_1gc
+#define NO__1gtk_1style_1get_1light_1gc
+#define NO__1gtk_1style_1get_1mid_1gc
+#define NO__1gtk_1style_1get_1text_1aa_1gc
+#define NO__1gtk_1style_1get_1text_1gc
+#define NO__1gtk_1style_1get_1white_1gc
+#define NO__1gdk_1gc_1get_1values
+#define NO__1gdk_1gc_1new
+#define NO__1gdk_1draw_1rectangle
+#define NO__1gdk_1gc_1set_1clip_1region
+#define NO__1gdk_1gc_1set_1foreground
+#define NO__1gdk_1gc_1set_1function
+#define NO__1gdk_1gc_1set_1subwindow
+#define NO__1gdk_1gc_1set_1values
+#define NO__1gdk_1draw_1drawable
+#define NO__1gdk_1pixmap_1new
+#define NO__1GDK_1PIXMAP_1XID
+#define NO_GdkImage
+#define NO_GdkVisual
+#define NO_GtkColorSelectionDialog
+#define NO_GdkGCValues
+#define NO_GtkAccessible
+#define NO_GTK_1ENTRY_1IM_1CONTEXT
+#define NO_GTK_1TEXTVIEW_1IM_1CONTEXT
+#define NO_GtkAdjustment
+#define NO_memmove__ILorg_eclipse_swt_internal_gtk_GtkAdjustment_2
+#define NO_memmove__JLorg_eclipse_swt_internal_gtk_GtkAdjustment_2
+#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GtkAdjustment_2I
+#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GtkAdjustment_2J
+#define NO_GtkFixed
+#define NO_memmove__ILorg_eclipse_swt_internal_gtk_GtkFixed_2
+#define NO_memmove__JLorg_eclipse_swt_internal_gtk_GtkFixed_2
+
+#define NO_GTK_1WIDGET_1REQUISITION_1HEIGHT
+#define NO_GTK_1WIDGET_1REQUISITION_1WIDTH
+
+
+#else
+
+#define NO_SwtFixed
+#define NO__1swt_1fixed_1get_1type
+#define NO__1swt_1fixed_1move
+#define NO__1swt_1fixed_1resize
+#define NO__1swt_1fixed_1restack
+#define NO__1gtk_1widget_1input_1shape_1combine_1region
+
+#define NO_GdkRGBA
+#define NO__1gtk_1widget_1draw
+#define NO__1gtk_1widget_1override_1color
+#define NO__1gtk_1widget_1override_1background_1color
+#define NO__1gtk_1widget_1override_1font
+#define NO__1gtk_1style_1context_1get_1font
+#define NO__1gtk_1style_1context_1get_1color
+#define NO__1gtk_1style_1context_1get_1background_1color
+#define NO__1gtk_1style_1context_1add_1class
+#define NO__1gtk_1style_1context_1get_1border_1color
+#define NO__1gtk_1style_1context_1get_1padding
+#define NO__1gtk_1style_1context_1restore
+#define NO__1gtk_1style_1context_1save
+#define NO__1gtk_1style_1context_1set_1state
+#define NO__1gtk_1color_1chooser_1get_1rgba
+#define NO__1gtk_1color_1chooser_1set_1rgba
+
 #endif
 
 #include "os_custom.h"

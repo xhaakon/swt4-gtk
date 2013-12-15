@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2012 IBM Corporation and others.
+ * Copyright (c) 2003, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -69,7 +69,7 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIFactory.NS_IFACTORY_IID)) {
+	if (guid.Equals (XPCOM.NS_IFACTORY_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {factory.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -88,7 +88,11 @@ int Release () {
 /* nsIFactory */
 
 int CreateInstance (int /*long*/ aOuter, int /*long*/ iid, int /*long*/ result) {
-	if (!Mozilla.IsPre_4) {
+	if (!Mozilla.IsPre_17) {
+		FilePicker_17 picker = new FilePicker_17 ();
+		picker.AddRef ();
+		XPCOM.memmove (result, new int /*long*/[] {picker.getAddress ()}, C.PTR_SIZEOF);
+	} else if (!Mozilla.IsPre_4) {
 		FilePicker_10 picker = new FilePicker_10 ();
 		picker.AddRef ();
 		XPCOM.memmove (result, new int /*long*/[] {picker.getAddress ()}, C.PTR_SIZEOF);

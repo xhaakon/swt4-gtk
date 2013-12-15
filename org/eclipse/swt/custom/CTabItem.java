@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2012 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -145,6 +145,7 @@ public void dispose() {
  */
 public Rectangle getBounds () {
 	//checkWidget();
+	parent.runUpdate();
 	return new Rectangle(x, y, width, height);
 }
 /**
@@ -296,7 +297,7 @@ public void setControl (Control control) {
 		    int selectedIndex = parent.getSelectionIndex();
 		    Control selectedControl = null;
 		    if (selectedIndex != -1) {
-		    	selectedControl = parent.getItem(selectedIndex).getControl();
+		    	selectedControl = parent.getItem(selectedIndex).control;
 		    }
 		    if (this.control != selectedControl) {
 		    	this.control.setVisible(false);
@@ -324,6 +325,9 @@ public void setDisabledImage (Image image) {
 	}
 	this.disabledImage = image;
 }
+boolean setFocus () {
+	return control != null && !control.isDisposed() && control.setFocus ();
+}
 /**
  * Sets the font that the receiver will use to paint textual information
  * for this item to the font specified by the argument, or to the default font
@@ -349,10 +353,7 @@ public void setFont (Font font){
 	if (font == null && this.font == null) return;
 	if (font != null && font.equals(this.font)) return;
 	this.font = font;
-	if (!parent.updateTabHeight(false)) {
-		parent.updateItems();
-		parent.redrawTabs();
-	}
+	parent.updateFolder(CTabFolder.UPDATE_TAB_HEIGHT | CTabFolder.REDRAW_TABS);
 }
 public void setImage (Image image) {
 	checkWidget();
@@ -363,47 +364,7 @@ public void setImage (Image image) {
 	if (image == null && oldImage == null) return;
 	if (image != null && image.equals(oldImage)) return;
 	super.setImage(image);
-	if (!parent.updateTabHeight(false)) {
-		// If image is the same size as before, 
-		// redraw only the image
-		if (oldImage != null && image != null) {
-			Rectangle oldBounds = oldImage.getBounds();
-			Rectangle bounds = image.getBounds();
-			if (bounds.width == oldBounds.width && bounds.height == oldBounds.height) {
-				if (showing) {
-					int index = parent.indexOf(this);
-					boolean selected = index == parent.selectedIndex;
-					if (selected || parent.showUnselectedImage) {
-						CTabFolderRenderer renderer = parent.renderer;
-						Rectangle trim = renderer.computeTrim(index, SWT.NONE, 0, 0, 0, 0);
-						int imageX = x - trim.x, maxImageWidth;
-						if (selected) {
-							GC gc = new GC(parent);
-							if (parent.single && (parent.showClose || showClose)) {
-								imageX += renderer.computeSize(CTabFolderRenderer.PART_CLOSE_BUTTON, SWT.NONE, gc, SWT.DEFAULT, SWT.DEFAULT).x; 
-							}
-							int rightEdge = Math.min (x + width, parent.getRightItemEdge(gc));
-							gc.dispose();
-							maxImageWidth = rightEdge - imageX - (trim.width + trim.x);
-							if (!parent.single && closeRect.width > 0) maxImageWidth -= closeRect.width + CTabFolderRenderer.INTERNAL_SPACING;
-						} else {
-							maxImageWidth = x + width - imageX  - (trim.width + trim.x);
-							if (parent.showUnselectedClose && (parent.showClose || showClose)) {
-								maxImageWidth -= closeRect.width + CTabFolderRenderer.INTERNAL_SPACING;
-							}
-						}
-						if (bounds.width < maxImageWidth) {
-							int imageY = y + (height - bounds.height) / 2 + (parent.onBottom ? -1 : 1);
-							parent.redraw(imageX, imageY, bounds.width, bounds.height, false);
-						}
-					}
-				}
-				return;
-			}
-		} 
-		parent.updateItems();
-		parent.redrawTabs();
-	}
+	parent.updateFolder(CTabFolder.UPDATE_TAB_HEIGHT | CTabFolder.REDRAW_TABS);
 }
 /**
  * Sets to <code>true</code> to indicate that the receiver's close button should be shown.
@@ -423,8 +384,7 @@ public void setShowClose(boolean close) {
 	checkWidget();
 	if (showClose == close) return;
 	showClose = close;
-	parent.updateItems();
-	parent.redrawTabs();
+	parent.updateFolder(CTabFolder.REDRAW_TABS);
 }
 public void setText (String string) {
 	checkWidget();
@@ -433,10 +393,7 @@ public void setText (String string) {
 	super.setText(string);
 	shortenedText = null;
 	shortenedTextWidth = 0;
-	if (!parent.updateTabHeight(false)) {
-		parent.updateItems();
-		parent.redrawTabs();
-	}
+	parent.updateFolder(CTabFolder.UPDATE_TAB_HEIGHT | CTabFolder.REDRAW_TABS);
 }
 /**
  * Sets the receiver's tool tip text to the argument, which

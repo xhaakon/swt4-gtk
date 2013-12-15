@@ -47,6 +47,18 @@ import org.eclipse.swt.graphics.*;
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
  */
 public class Composite extends Scrollable {
+	/**
+	 * the handle to the OS resource 
+	 * (Warning: This field is platform dependent)
+	 * <p>
+	 * <b>IMPORTANT:</b> This field is <em>not</em> part of the SWT
+	 * public API. It is marked public only so that it can be shared
+	 * within the packages provided by SWT. It is not available on all
+	 * platforms and should never be accessed from application code.
+	 * </p>
+	 * 
+	 * @noreference This field is not intended to be referenced by clients.
+	 */
 	public int /*long*/  embeddedHandle;
 	int /*long*/ imHandle, socketHandle;
 	Layout layout;
@@ -96,6 +108,9 @@ public Composite (Composite parent, int style) {
 }
 
 static int checkStyle (int style) {
+	if (OS.INIT_CAIRO) {
+		style &= ~SWT.NO_BACKGROUND;
+	}
 	style &= ~SWT.TRANSPARENT;
 	return style;
 }
@@ -262,7 +277,7 @@ void createHandle (int index, boolean fixed, boolean scrolled) {
 		if (fixed) {
 			fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 			if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-			OS.gtk_fixed_set_has_window (fixedHandle, true);
+			gtk_widget_set_has_window (fixedHandle, true);
 		}
 		int /*long*/ vadj = OS.gtk_adjustment_new (0, 0, 100, 1, 10, 10);
 		if (vadj == 0) error (SWT.ERROR_NO_HANDLES);
@@ -273,8 +288,8 @@ void createHandle (int index, boolean fixed, boolean scrolled) {
 	}
 	handle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-	OS.gtk_fixed_set_has_window (handle, true);
-	OS.GTK_WIDGET_SET_FLAGS(handle, OS.GTK_CAN_FOCUS);
+	gtk_widget_set_has_window (handle, true);
+	gtk_widget_set_can_focus (handle, true);
 	if ((style & SWT.EMBEDDED) == 0) {
 		if ((state & CANVAS) != 0) {
 			/* Prevent an input method context from being created for the Browser widget */
@@ -379,7 +394,7 @@ public void drawBackground (GC gc, int x, int y, int width, int height, int offs
 					int /*long*/ drawable = control.backgroundImage.pixmap;
 					int /*long*/ xDrawable = OS.GDK_PIXMAP_XID (drawable);				
 					int [] w = new int [1], h = new int [1];
-					OS.gdk_drawable_get_size (drawable, w, h);
+					gdk_pixmap_get_size (drawable, w, h);
 					surface = Cairo.cairo_xlib_surface_create (xDisplay, xDrawable, xVisual, w [0], h [0]);
 					if (surface == 0) error (SWT.ERROR_NO_HANDLES);
 				} else {
@@ -501,7 +516,7 @@ void fixTabList (Control control) {
 void fixZOrder () {
 	if ((state & CANVAS) != 0) return;
 	int /*long*/ parentHandle = parentingHandle ();
-	int /*long*/ parentWindow = OS.GTK_WIDGET_WINDOW (parentHandle);
+	int /*long*/ parentWindow = gtk_widget_get_window (parentHandle);
 	if (parentWindow == 0) return;
 	int /*long*/ [] userData = new int /*long*/ [1];
 	int /*long*/ windowList = OS.gdk_window_get_children (parentWindow);
@@ -527,9 +542,9 @@ int /*long*/ focusHandle () {
 }
 
 boolean forceFocus (int /*long*/ focusHandle) {
-	if (socketHandle != 0) OS.GTK_WIDGET_SET_FLAGS (focusHandle, OS.GTK_CAN_FOCUS);
+	if (socketHandle != 0) gtk_widget_set_can_focus (focusHandle, true);
 	boolean result = super.forceFocus (focusHandle);
-	if (socketHandle != 0) OS.GTK_WIDGET_UNSET_FLAGS (focusHandle, OS.GTK_CAN_FOCUS);
+	if (socketHandle != 0) gtk_widget_set_can_focus (focusHandle, false);
 	return result;
 }
 
@@ -538,7 +553,7 @@ boolean forceFocus (int /*long*/ focusHandle) {
  * will be one of the following constants defined in class
  * <code>SWT</code>:
  * <code>INHERIT_NONE</code>, <code>INHERIT_DEFAULT</code>,
- * <code>INHERTIT_FORCE</code>.
+ * <code>INHERIT_FORCE</code>.
  *
  * @return the background mode
  *
@@ -602,15 +617,20 @@ public Rectangle getClientArea () {
 		}
 		forceResize ();
 		int /*long*/ clientHandle = clientHandle ();
-		int width = (state & ZERO_WIDTH) != 0 ? 0 : OS.GTK_WIDGET_WIDTH (clientHandle);
-		int height = (state & ZERO_HEIGHT) != 0 ? 0 : OS.GTK_WIDGET_HEIGHT (clientHandle);
+		GtkAllocation allocation = new GtkAllocation();
+		gtk_widget_get_allocation (clientHandle, allocation);
+		int width = (state & ZERO_WIDTH) != 0 ? 0 : allocation.width;
+		int height = (state & ZERO_HEIGHT) != 0 ? 0 : allocation.height;
 		return new Rectangle (0, 0, width, height);
 	}
 	return super.getClientArea();
 }
 
 int getClientWidth() {
-	return (state & ZERO_WIDTH) != 0 ? 0 : OS.GTK_WIDGET_WIDTH (clientHandle ());
+	if ((state & ZERO_WIDTH) != 0) return 0;
+	GtkAllocation allocation = new GtkAllocation();
+	gtk_widget_get_allocation(clientHandle (), allocation);
+	return allocation.width;
 }
 
 /**
@@ -705,7 +725,7 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	if ((style & SWT.NO_MERGE_PAINTS) == 0) {
 		return super.gtk_expose_event (widget, eventPtr);
 	}
-	if (!hooks (SWT.Paint) && !filters (SWT.Paint)) return 0;
+	if (!hooksPaint ()) return 0;
 	GdkEventExpose gdkEvent = new GdkEventExpose ();
 	OS.memmove(gdkEvent, eventPtr, GdkEventExpose.sizeof);
 	int /*long*/ [] rectangles = new int /*long*/ [1];
@@ -729,7 +749,7 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
 		gc.dispose ();
 		OS.gdk_region_destroy (damageRgn);
 		event.gc = null;
-	}
+	}	
 	OS.g_free (rectangles [0]);
 	return 0;
 }
@@ -778,7 +798,7 @@ int /*long*/ gtk_map (int /*long*/ widget) {
 int /*long*/ gtk_realize (int /*long*/ widget) {
 	int /*long*/ result = super.gtk_realize (widget);
 	if ((style & SWT.NO_BACKGROUND) != 0) {
-		int /*long*/ window = OS.GTK_WIDGET_WINDOW (paintHandle ());
+		int /*long*/ window = gtk_widget_get_window (paintHandle ());
 		if (window != 0) OS.gdk_window_set_back_pixmap (window, 0, false);
 	}
 	if (socketHandle != 0) {
@@ -796,7 +816,7 @@ int /*long*/ gtk_scroll_child (int /*long*/ widget, int /*long*/ scrollType, int
 int /*long*/ gtk_style_set (int /*long*/ widget, int /*long*/ previousStyle) {
 	int /*long*/ result = super.gtk_style_set (widget, previousStyle);
 	if ((style & SWT.NO_BACKGROUND) != 0) {
-		int /*long*/ window = OS.GTK_WIDGET_WINDOW (paintHandle ());
+		int /*long*/ window = gtk_widget_get_window (paintHandle ());
 		if (window != 0) OS.gdk_window_set_back_pixmap (window, 0, false);
 	}
 	return result;
@@ -1118,6 +1138,10 @@ void markLayout (boolean changed, boolean all) {
 void moveAbove (int /*long*/ child, int /*long*/ sibling) {
 	if (child == sibling) return;
 	int /*long*/ parentHandle = parentingHandle ();
+	if (OS.GTK3) {
+		OS.swt_fixed_restack (parentHandle, child, sibling, true);
+		return;
+	}
 	GtkFixed fixed = new GtkFixed ();
 	OS.memmove (fixed, parentHandle);
 	int /*long*/ children = fixed.children;
@@ -1159,6 +1183,10 @@ void moveBelow (int /*long*/ child, int /*long*/ sibling) {
 		moveAbove (child, scrolledHandle != 0  ? scrolledHandle : handle);
 		return;
 	}
+	if (OS.GTK3) {
+		OS.swt_fixed_restack (parentHandle, child, sibling, false);
+		return;
+	}
 	GtkFixed fixed = new GtkFixed ();
 	OS.memmove (fixed, parentHandle);
 	int /*long*/ children = fixed.children;
@@ -1198,9 +1226,11 @@ void moveChildren(int oldWidth) {
 	for (int i = 0; i < children.length; i++) {
 		Control child = children[i];
 		int /*long*/ topHandle = child.topHandle ();
-		int x = OS.GTK_WIDGET_X (topHandle);
-		int y = OS.GTK_WIDGET_Y (topHandle);
-		int controlWidth = (child.state & ZERO_WIDTH) != 0 ? 0 : OS.GTK_WIDGET_WIDTH (topHandle);
+		GtkAllocation allocation = new GtkAllocation();
+		gtk_widget_get_allocation (topHandle, allocation);
+		int x = allocation.x;
+		int y = allocation.y;
+		int controlWidth = (child.state & ZERO_WIDTH) != 0 ? 0 : allocation.width;
 		if (oldWidth > 0) x = oldWidth - controlWidth - x; 
 		int clientWidth = getClientWidth ();
 		x = clientWidth - controlWidth - x;
@@ -1215,11 +1245,8 @@ void moveChildren(int oldWidth) {
 		*/
 		GtkRequisition requisition = new GtkRequisition ();
 		gtk_widget_size_request (topHandle, requisition);
-		GtkAllocation allocation = new GtkAllocation ();
 		allocation.x = x;
 		allocation.y = y;
-		allocation.width = OS.GTK_WIDGET_WIDTH (topHandle);
-		allocation.height = OS.GTK_WIDGET_HEIGHT (topHandle);
 		OS.gtk_widget_size_allocate (topHandle, allocation);
 		Control control = child.findBackgroundControl ();
 		if (control != null && control.backgroundImage != null) {
@@ -1329,7 +1356,13 @@ void reskinChildren (int flags) {
 
 void resizeHandle (int width, int height) {
 	super.resizeHandle (width, height);
-	if (socketHandle != 0) OS.gtk_widget_set_size_request (socketHandle, width, height);
+	if (socketHandle != 0) {
+		if (OS.GTK3) {
+			OS.swt_fixed_resize (handle, socketHandle, width, height);
+		} else {
+			OS.gtk_widget_set_size_request (socketHandle, width, height);
+		}
+	}
 }
 
 /**

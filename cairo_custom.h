@@ -42,3 +42,5 @@
 #define cairo_surface_get_content_LIB LIB_CAIRO
 #define cairo_push_group_LIB LIB_CAIRO
 #define cairo_pop_group_to_source_LIB LIB_CAIRO
+#define cairo_region_num_rectangles_LIB LIB_CAIRO
+#define cairo_region_get_rectangle_LIB LIB_CAIRO
