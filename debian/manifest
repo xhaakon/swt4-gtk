@@ -1,9 +1,9 @@
-usr/share/java/swt.jar:
+usr/share/java/swt-gtk-4.3.jar:
  Bundle-ManifestVersion: 2
  Bundle-Name: Standard Widget Toolkit
  Bundle-SymbolicName: org.eclipse.swt; singleton:=true
  Bundle-Vendor: Eclipse.org
- Bundle-Version: 3.8.0
+ Bundle-Version: 4.3.1
  Bundle-Localization: plugin
  Export-Package: org.eclipse.swt,org.eclipse.swt.accessibility,org.eclipse.swt.awt,org.eclipse.swt.browser,org.eclipse.swt.custom,org.eclipse.swt.dnd,org.eclipse.swt.events,org.eclipse.swt.graphics,org.eclipse.swt.layout,org.eclipse.swt.opengl,org.eclipse.swt.printing,org.eclipse.swt.program,org.eclipse.swt.widgets,org.eclipse.swt.internal;x-friends:="org.eclipse.ui",org.eclipse.swt.internal.image; x-internal:=true,org.eclipse.swt.internal.theme; x-internal:=true
  DynamicImport-Package: org.eclipse.swt.accessibility2, org.mozilla.xpcom
