@@ -21,19 +21,6 @@ Architecture: any
 Section: java
 Depends: libswt-gtk-4-jni (= ${binary:Version}), ${misc:Depends}
 Suggests: libswt-gtk-4-java-gcj
-Conflicts: libswt3.2-gtk-jni,
-           libswt3.2-gtk-java,
-           libswt-gtk-3.4-java,
-           libswt-gtk-3.4-jni,
-           libswt-gtk-3.5-jni,
-           libswt-gnome-gtk-3.5-jni,
-           libswt-cairo-gtk-3.5-jni,
-           libswt-mozilla-gtk-3.5-jni
-Breaks: libswt-gnome-gtk-3-jni (<< 3.8.0~rc2-2~),
-        libswt-cairo-gtk-3-jni (<< 3.8.0~rc2-2~),
-        libswt-glx-gtk-3-jni (<< 3.8.0~rc2-2~),
-        libswt-webkit-gtk-3-jni (<< 3.8.0~rc2-2~),
-        eclipse-rcp (<< 3.8)
 Description: Standard Widget Toolkit for GTK+ Java library
  The Standard Widget Toolkit (SWT) is a fast and rich Java GUI toolkit.
  For platforms with existing SWT implementations it provides efficient, portable

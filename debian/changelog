@@ -5,6 +5,7 @@ swt4-gtk (4.3.1-1) UNRELEASED; urgency=medium
 
   [ Ángel Guzmán Maeso ]
   * Update-version-for-package-binaries
+  * Remove ancient Conflicts: and Breaks: from libswt-gtk-4-java
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 15 Dec 2013 14:34:25 +0100
 
