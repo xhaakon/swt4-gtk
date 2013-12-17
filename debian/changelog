@@ -8,6 +8,8 @@ swt4-gtk (4.3.1-1) UNRELEASED; urgency=medium
   * Remove ancient Conflicts: and Breaks: from libswt-gtk-4-java
   * debian/control
     - Bump Standards-Version to 3.9.5 (no changes)
+  * Use sed to patch java sources on 64 bit architectures
+    - no need for debian/patches/64* anymore.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 15 Dec 2013 14:34:25 +0100
 

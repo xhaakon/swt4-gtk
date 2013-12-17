@@ -13,17 +13,7 @@ include /usr/share/javahelper/java-vars.mk
 
 include /usr/share/gcj/debian_defaults
 
-DEB_PATCHDIRS = debian/patches/common
 BITS = $(shell dpkg-architecture -qDEB_HOST_ARCH_BITS)
-
-ifeq (64,$(BITS))
-DEB_PATCHDIRS += debian/patches/64
-endif
-
-# Must be included after setting DEB_PATCHDIRS
-include /usr/share/cdbs/1/rules/simple-patchsys.mk
-
-
 
 DEB_DH_MAKESHLIBS_ARGS_ALL := -Xjni
 
@@ -39,4 +29,25 @@ DEB_MAKE_MAKEFILE = debian/Makefile
 ifneq (,$(filter $(DEB_HOST_ARCH), $(gcj_native_archs)))
 common-binary-post-install-arch::
 	dh_nativejava -a
+endif
+
+post-patches:: patch_64_bit
+
+clean:: unpatch_64_bit
+
+patch_64_bit:
+ifeq ($(BITS), 64)
+	# Replaces occurrences in *.java files
+	# of 'int /*long*/' with 'long /*int*/' for 64 bits
+	find . -name '*.java' | xargs sed -i 's@int /\*long\*/@long /\*int\*/@g'
+
+	# Add PTR_CFLAGS flags for 64 bits
+	sed -i 's@SWT_VERSION=$$(maj_ver)$$(min_ver)@SWT_VERSION=$$(maj_ver)$$(min_ver)\nSWT_PTR_CFLAGS=-DJNI64@g' make_linux.mak
+endif
+
+unpatch_64_bit:
+ifeq ($(BITS), 64)
+	# Reverse patch_64_bit target
+	find . -name '*.java' | xargs sed -i 's@long /\*int\*/@int /\*long\*/@g'
+	sed -i '/SWT_PTR_CFLAGS=-DJNI64/d' make_linux.mak
 endif
