@@ -12,6 +12,7 @@ swt4-gtk (4.3.1-1) UNRELEASED; urgency=medium
     - no need for debian/patches/64* anymore.
   * Move d/patches/common to d/patches.
   * Refresh d/patches/01-make_linux.patch
+  * Remove d/patches/fix-libwebkitgtk-1.11.91-compatibility.diff.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 15 Dec 2013 14:34:25 +0100
 

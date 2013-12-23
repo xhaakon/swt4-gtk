@@ -1,5 +1,4 @@
 01-make_linux.patch
 fix-glib-2.35-compatibility.patch
-fix-libwebkitgtk-1.11.91-compatibility.diff
 format-security.diff
 search-usr-lib-jni.diff
