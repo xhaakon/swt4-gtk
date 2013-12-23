@@ -1,0 +1,1 @@
+libswt-glx-gtk-4-jni: hardening-no-fortify-functions usr/lib/jni/libswt-glx-gtk-*.so
