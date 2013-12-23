@@ -2,6 +2,7 @@ swt4-gtk (4.3.1-1) UNRELEASED; urgency=medium
 
   [ Jakub Adam ]
   * New upstream release.
+  * Removed d/patches/fix-glib-2.35-compatibility.patch.
 
   [ Ángel Guzmán Maeso ]
   * Update-version-for-package-binaries
