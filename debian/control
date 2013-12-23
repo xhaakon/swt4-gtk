@@ -30,7 +30,7 @@ Package: libswt-gtk-4-jni
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: libswt-gnome-gtk-4-jni
-Breaks: libswt-gtk-3-java (<< ${binary:Version}), libswt-gtk-3-java (>> ${binary:Version})
+Breaks: libswt-gtk-4-java (<< ${binary:Version}), libswt-gtk-4-java (>> ${binary:Version})
 Description: Standard Widget Toolkit for GTK+ JNI library
  The Standard Widget Toolkit (SWT) is a fast and rich Java GUI toolkit.
  For platforms with existing SWT implementations it provides efficient, portable
@@ -71,7 +71,7 @@ Description: Standard Widget Toolkit for GTK+ GLX JNI library
 Package: libswt-webkit-gtk-4-jni
 Architecture: any
 Depends: libswt-gtk-4-jni (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Breaks: libswt-gtk-3-java (<< ${binary:Version}), libswt-gtk-3-java (>> ${binary:Version})
+Breaks: libswt-gtk-4-java (<< ${binary:Version}), libswt-gtk-4-java (>> ${binary:Version})
 Description: Standard Widget Toolkit for GTK+ WebKit JNI library
  The Standard Widget Toolkit (SWT) is a fast and rich Java GUI toolkit.
  For platforms with existing SWT implementations it provides efficient, portable
