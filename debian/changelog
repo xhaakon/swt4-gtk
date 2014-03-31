@@ -1,4 +1,4 @@
-swt4-gtk (4.3.1-1) UNRELEASED; urgency=medium
+swt4-gtk (4.3.2-1) UNRELEASED; urgency=medium
 
   [ Jakub Adam ]
   * New upstream release.
@@ -17,7 +17,7 @@ swt4-gtk (4.3.1-1) UNRELEASED; urgency=medium
   * Refresh d/patches/01-make_linux.patch
   * Remove d/patches/fix-libwebkitgtk-1.11.91-compatibility.diff.
 
- -- Jakub Adam <jakub.adam@ktknet.cz>  Sun, 15 Dec 2013 14:34:25 +0100
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 31 Mar 2014 18:47:33 +0200
 
 swt-gtk (3.8.2-3) unstable; urgency=low
 
