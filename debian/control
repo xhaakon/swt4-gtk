@@ -6,10 +6,10 @@ Uploaders: Adrian Perez <blackxored@debian.org>,
            أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>,
            Jakub Adam <jakub.adam@ktknet.cz>,
            Niels Thykier <niels@thykier.net>
-Build-Depends: default-jdk, gcj-native-helper, libgnomeui-dev, libxtst-dev,
+Build-Depends: default-jdk, libgnomeui-dev, libxtst-dev,
  libxcb-render-util0-dev, libxt-dev, libglib2.0-dev (>= 2.35),
  libgl1-mesa-dev | libgl-dev, libglu1-mesa-dev | libglu-dev,
- fastjar, cdbs, patchutils, debhelper (>= 9), libwebkitgtk-dev, javahelper,
+ fastjar, cdbs, debhelper (>= 9), libwebkitgtk-dev, javahelper,
  dpkg-dev (>= 1.16.1~)
 Standards-Version: 3.9.5
 Vcs-Git: git://anonscm.debian.org/pkg-java/swt-gtk.git
@@ -78,19 +78,3 @@ Description: Standard Widget Toolkit for GTK+ WebKit JNI library
  and fast access to native controls and user interface facilities.
  .
  This package includes the WebKit JNI libraries.
-
-Package: libswt-gtk-4-java-gcj
-Architecture: any
-Section: java
-Depends: ${misc:Depends}, ${shlibs:Depends},
-	  libswt-cairo-gtk-4-jni (= ${binary:Version}),
-	  libswt-glx-gtk-4-jni (= ${binary:Version}),
-	  libswt-gnome-gtk-4-jni (= ${binary:Version}),
-	  libswt-gtk-4-jni (= ${binary:Version}),
-	  libswt-webkit-gtk-4-jni (= ${binary:Version})
-Description: Standard Widget Toolkit for GTK+ native library
- The Standard Widget Toolkit (SWT) is a fast and rich Java GUI toolkit.
- For platforms with existing SWT implementations it provides efficient, portable
- and fast access to native controls and user interface facilities.
- .
- This package contains a native library built using gcj.

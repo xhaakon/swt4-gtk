@@ -5,6 +5,7 @@ swt4-gtk (4.3.2-1) UNRELEASED; urgency=medium
   * Removed d/patches/fix-glib-2.35-compatibility.patch.
   * Removed java-config.
   * Removed unnecessary hardening-no-fortify-functions lintian overrides.
+  * Don't build libswt-gtk-4-java-gcj.
 
   [ Ángel Guzmán Maeso ]
   * Update-version-for-package-binaries

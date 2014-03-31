@@ -11,8 +11,6 @@ include /usr/share/cdbs/1/class/javahelper.mk
 
 include /usr/share/javahelper/java-vars.mk
 
-include /usr/share/gcj/debian_defaults
-
 BITS = $(shell dpkg-architecture -qDEB_HOST_ARCH_BITS)
 
 DEB_DH_MAKESHLIBS_ARGS_ALL := -Xjni
@@ -25,11 +23,6 @@ export AWT_LIB_PATH=/usr/lib/jvm/default-java/jre/lib/$(AWT_LIB_DIR)
 makecleanbuildir::patch
 
 DEB_MAKE_MAKEFILE = debian/Makefile
-
-ifneq (,$(filter $(DEB_HOST_ARCH), $(gcj_native_archs)))
-common-binary-post-install-arch::
-	dh_nativejava -a
-endif
 
 post-patches:: patch_64_bit
 
