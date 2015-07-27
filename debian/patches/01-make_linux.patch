@@ -1,8 +1,13 @@
-Description: Ensure the underlying build system gets the right
- flags and settings.
+From: Debian Java Maintainers <pkg-java-maintainers@lists.alioth.debian.org>
+Date: Mon, 27 Jul 2015 18:12:00 +0200
+Subject: make_linux
+
+---
+ make_linux.mak | 29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
 diff --git a/make_linux.mak b/make_linux.mak
-index 6e12009..ef004d5 100644
+index 9d3aa87..a75a23a 100644
 --- a/make_linux.mak
 +++ b/make_linux.mak
 @@ -75,6 +75,7 @@ GLXLIBS = -lGL -lGLU -lm
@@ -106,16 +111,16 @@ index 6e12009..ef004d5 100644
  
  xpcom.o: xpcom.cpp
  	$(CXX) $(MOZILLACFLAGS) $(MOZILLAEXCLUDES) ${MOZILLA_INCLUDES} -c xpcom.cpp
-@@ -251,7 +254,7 @@ make_xulrunner:$(XULRUNNER_LIB)
+@@ -250,7 +253,7 @@ xpcom_stats.o: xpcom_stats.cpp
+ make_xulrunner:$(XULRUNNER_LIB)
  
  $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
- 	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | gcc  $(LFLAGS) $(CFLAGS) -xc - -o libswt-xulrunner-fix.so
 -	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
 +	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) -Wl,--as-needed ${XULRUNNER_LIBS}
  
  xpcomxul.o: xpcom.cpp
  	$(CXX) -o xpcomxul.o $(MOZILLACFLAGS) $(XULRUNNEREXCLUDES) ${XULRUNNER_INCLUDES} -c xpcom.cpp
-@@ -271,7 +274,7 @@ xpcomxul_stats.o: xpcom_stats.cpp
+@@ -277,7 +280,7 @@ xpcomxul_stats.o: xpcom_stats.cpp
  make_xpcominit:$(XPCOMINIT_LIB)
  
  $(XPCOMINIT_LIB): $(XPCOMINIT_OBJECTS)
@@ -124,7 +129,7 @@ index 6e12009..ef004d5 100644
  
  xpcominit.o: xpcominit.cpp
  	$(CXX) $(MOZILLACFLAGS) ${XULRUNNER_INCLUDES} -c xpcominit.cpp
-@@ -305,7 +308,7 @@ webkit_stats.o: webkitgtk_stats.c webkitgtk_stats.h
+@@ -311,7 +314,7 @@ webkit_stats.o: webkitgtk_stats.c webkitgtk_stats.h
  make_glx: $(GLX_LIB)
  
  $(GLX_LIB): $(GLX_OBJECTS)
