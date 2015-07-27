@@ -35,23 +35,35 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 
 	windowCreator = new XPCOMObject (new int[] {2, 0, 0, 3}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return CreateChromeWindow (args[0], (int)/*64*/args[1], args[2]);}
 	};
 
 	windowCreator2 = new XPCOMObject (new int[] {2, 0, 0, 3, 6}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return CreateChromeWindow (args[0], (int)/*64*/args[1], args[2]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return CreateChromeWindow2 (args[0], (int)/*64*/args[1], (int)/*64*/args[2], args[3], args[4], args[5]);}
 	};
 }
@@ -81,7 +93,7 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 	
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -129,10 +141,9 @@ int CreateChromeWindow2 (int /*long*/ parent, int chromeFlags, int contextFlags,
 
 		nsIWebBrowser webBrowser = new nsIWebBrowser (aWebBrowser[0]);
 		int /*long*/[] result = new int /*long*/[1];
-		rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_10_IID, result);
+		rc = webBrowser.QueryInterface (IIDStore.GetIID (nsIBaseWindow.class), result);
 		if (rc != XPCOM.NS_OK) {
-			rc = webBrowser.QueryInterface (nsIBaseWindow.NS_IBASEWINDOW_IID, result);
-			if (rc != XPCOM.NS_OK) Mozilla.error (rc);
+			SWT.error (rc);
 		}
 		if (result[0] == 0) Mozilla.error (XPCOM.NS_ERROR_NO_INTERFACE);
 		webBrowser.Release ();
@@ -211,7 +222,7 @@ int CreateChromeWindow2 (int /*long*/ parent, int chromeFlags, int contextFlags,
 		doit = browser != null && !browser.isDisposed ();
 		if (doit) {
 			String platform = Platform.PLATFORM;
-			boolean isMozillaNativePlatform = platform.equals ("gtk") || platform.equals ("motif"); //$NON-NLS-1$ //$NON-NLS-2$
+			boolean isMozillaNativePlatform = platform.equals ("gtk"); //$NON-NLS-1$
 			doit = isMozillaNativePlatform || (browser.getStyle () & SWT.MOZILLA) != 0;
 		}
 	}

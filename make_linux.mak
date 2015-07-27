@@ -52,7 +52,7 @@ CAIROCFLAGS = `pkg-config --cflags cairo`
 CAIROLIBS = `pkg-config --libs-only-L cairo` -lcairo
 
 # Do not use pkg-config to get libs because it includes unnecessary dependencies (i.e. pangoxft-1.0)
-GTKCFLAGS = `pkg-config --cflags gtk+-$(GTK_VERSION)`
+GTKCFLAGS = `pkg-config --cflags gtk+-$(GTK_VERSION) gtk+-unix-print-$(GTK_VERSION)`
 ifeq ($(GTK_VERSION), 3.0)
 GTKLIBS = `pkg-config --libs-only-L gtk+-$(GTK_VERSION) gthread-2.0` $(XLIB64) -L/usr/X11R6/lib -lgtk-3 -lgdk-3 -lcairo -lgthread-2.0 -lXtst
 else
@@ -64,7 +64,7 @@ CDE_LIBS = -L$(CDE_HOME)/lib -R$(CDE_HOME)/lib -lXt -lX11 -lDtSvc
 AWT_LFLAGS = -shared ${SWT_LFLAGS} 
 AWT_LIBS = -L$(AWT_LIB_PATH) -ljawt
 
-ATKCFLAGS = `pkg-config --cflags atk gtk+-$(GTK_VERSION)`
+ATKCFLAGS = `pkg-config --cflags atk gtk+-$(GTK_VERSION) gtk+-unix-print-$(GTK_VERSION)`
 ATKLIBS = `pkg-config --libs-only-L atk` -latk-1.0 
 
 GNOMECFLAGS = `pkg-config --cflags gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0`
@@ -245,12 +245,11 @@ xpcom_stats.o: xpcom_stats.cpp
 	$(CXX) $(MOZILLACFLAGS) $(MOZILLAEXCLUDES) ${MOZILLA_INCLUDES} -c xpcom_stats.cpp
 
 #
-# XULRunner lib
+# XULRunner libs
 #
 make_xulrunner:$(XULRUNNER_LIB)
 
 $(XULRUNNER_LIB): $(XULRUNNER_OBJECTS)
-	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | gcc  $(LFLAGS) $(CFLAGS) -xc - -o libswt-xulrunner-fix.so
 	$(CXX) -o $(XULRUNNER_LIB) $(XULRUNNER_OBJECTS) $(MOZILLALFLAGS) ${XULRUNNER_LIBS}
 
 xpcomxul.o: xpcom.cpp
@@ -264,6 +263,13 @@ xpcomxul_custom.o: xpcom_custom.cpp
 
 xpcomxul_stats.o: xpcom_stats.cpp
 	$(CXX) -o xpcomxul_stats.o $(MOZILLACFLAGS) $(XULRUNNEREXCLUDES) ${XULRUNNER_INCLUDES} -c xpcom_stats.cpp
+
+#
+# libswt-xulrunner-fix10.so and libswt-xulrunner-fix31.so are not built each time, they have been built and committed to the repository
+# make_xulrunner_fix:
+#	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | $(CXX) $(LFLAGS) $(CFLAGS) -xc - -o libswt-xulrunner-fix10.so
+#	echo -e "#include<stdlib.h>\nsize_t je_malloc_usable_size_in_advance(size_t n) {\nreturn n;\n}" | $(CXX) $(LFLAGS) $(CFLAGS) -L${XULRUNNER31_SDK}/lib -Wl,--whole-archive -lmozglue -Wl,--no-whole-archive -xc - -o libswt-xulrunner-fix31.so
+#
 
 #
 # XPCOMInit lib

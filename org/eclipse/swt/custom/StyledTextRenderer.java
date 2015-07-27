@@ -11,7 +11,7 @@
 package org.eclipse.swt.custom;
 
 
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
@@ -324,18 +324,6 @@ void drawBullet(Bullet bullet, GC gc, int paintX, int paintY, int index, int lin
 	GlyphMetrics metrics = style.metrics;
 	Color color = style.foreground;
 	if (color != null) gc.setForeground(color);
-	if ((bullet.type & ST.BULLET_DOT) != 0 && StyledText.IS_MOTIF) {
-		int size = Math.max(4, (lineAscent + lineDescent) / 4);
-		if ((size & 1) == 0) size++;
-		if (color == null) {
-			Display display = styledText.getDisplay();
-			color = display.getSystemColor(SWT.COLOR_BLACK);
-		}
-		gc.setBackground(color);
-		int x = paintX + Math.max(0, metrics.width - size - BULLET_MARGIN);
-		gc.fillArc(x, paintY + size, size + 1, size + 1, 0, 360);
-		return;
-	}
 	Font font = style.font;
 	if (font != null) gc.setFont(font);
 	String string = "";
@@ -778,6 +766,7 @@ TextLayout getTextLayout(int lineIndex, int orientation, int width, int lineSpac
 	int indent = 0;
 	int wrapIndent = 0;
 	int alignment = SWT.LEFT;
+	int textDirection = orientation;
 	boolean justify = false;
 	int[] tabs = {tabWidth};
 	Bullet bullet = null;
@@ -795,6 +784,9 @@ TextLayout getTextLayout(int lineIndex, int orientation, int width, int lineSpac
 		indent = styledText.indent;
 		wrapIndent = styledText.wrapIndent;
 		alignment = styledText.alignment;
+		if ((styledText.getStyle() & SWT.FLIP_TEXT_DIRECTION) != 0) {
+			textDirection = orientation == SWT.RIGHT_TO_LEFT ? SWT.LEFT_TO_RIGHT : SWT.RIGHT_TO_LEFT;
+		}
 		justify = styledText.justify;
 		if (styledText.tabs != null) tabs = styledText.tabs;
 	}
@@ -882,6 +874,7 @@ TextLayout getTextLayout(int lineIndex, int orientation, int width, int lineSpac
 	layout.setWrapIndent(wrapIndent);
 	layout.setAlignment(alignment);
 	layout.setJustify(justify);
+	layout.setTextDirection(textDirection);
 	
 	int lastOffset = 0;
 	int length = line.length();

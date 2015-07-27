@@ -27,7 +27,7 @@ import org.eclipse.swt.internal.gtk.*;
  * <p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
- * 
+ *
  * @see <a href="http://www.eclipse.org/swt/snippets/#directorydialog">DirectoryDialog snippets</a>
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample, Dialog tab</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
@@ -36,6 +36,7 @@ import org.eclipse.swt.internal.gtk.*;
 public class DirectoryDialog extends Dialog {
 	String message = "", filterPath = "";
 	static final String SEPARATOR = System.getProperty ("file.separator");
+	private static final int PATH_MAX = 1024;
 
 /**
  * Constructs a new instance of this class given only its parent.
@@ -59,7 +60,7 @@ public DirectoryDialog (Shell parent) {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -86,7 +87,7 @@ public DirectoryDialog (Shell parent, int style) {
  * the directories it shows.
  *
  * @return the filter path
- * 
+ *
  * @see #setFilterPath
  */
 public String getFilterPath () {
@@ -128,10 +129,8 @@ String openChooserDialog () {
 		handle = OS.gtk_file_chooser_dialog_new (titleBytes, shellHandle, OS.GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, OS.GTK_STOCK_OK (), OS.GTK_RESPONSE_OK, OS.GTK_STOCK_CANCEL (), OS.GTK_RESPONSE_CANCEL, 0);
 	}
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-		int /*long*/ group = OS.gtk_window_get_group(0);
-		OS.gtk_window_group_add_window (group, handle);
-	}
+	int /*long*/ group = OS.gtk_window_get_group(0);
+	OS.gtk_window_group_add_window (group, handle);
 	OS.gtk_window_set_modal (handle, true);
 	int /*long*/ pixbufs = OS.gtk_window_get_icon_list (shellHandle);
 	if (pixbufs != 0) {
@@ -147,14 +146,25 @@ String openChooserDialog () {
 		stringBuffer.append (filterPath);
 		byte [] buffer = Converter.wcsToMbcs (null, stringBuffer.toString (), true);
 		/*
-		* Bug in GTK. GtkFileChooser may crash on GTK versions 2.4.10 to 2.6
-		* when setting a file name that is not a true canonical path. 
-		* The fix is to use the canonical path.
-		*/
-		int /*long*/ ptr = OS.realpath (buffer, null);
-		if (ptr != 0) {
-			OS.gtk_file_chooser_set_current_folder (handle, ptr);
-			OS.g_free (ptr);
+		 * in GTK version 2.10, gtk_file_chooser_set_current_folder requires path
+		 * to be true canonical path. So using realpath to convert the path to
+		 * true canonical path.
+		 */
+		if (OS.IsAIX) {
+			byte [] outputBuffer = new byte [PATH_MAX];
+			int /*long*/ ptr = OS.realpath (buffer, outputBuffer);
+			if (ptr != 0) {
+				OS.gtk_file_chooser_set_current_folder (handle, ptr);
+			}
+			/* We are not doing free here because realpath returns the address of outputBuffer
+			 * which is created in this code and we let the garbage collector to take care of this
+			 */
+		} else {
+			int /*long*/ ptr = OS.realpath (buffer, null);
+			if (ptr != 0) {
+				OS.gtk_file_chooser_set_current_folder (handle, ptr);
+				OS.g_free (ptr);
+			}
 		}
 	}
 	if (message.length () > 0) {
@@ -187,15 +197,17 @@ String openChooserDialog () {
 	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
 		signalId = OS.g_signal_lookup (OS.map, OS.GTK_TYPE_WIDGET());
 		hookId = OS.g_signal_add_emission_hook (signalId, 0, display.emissionProc, handle, 0);
-	}	
+	}
+	display.sendPreExternalEventDispatchEvent ();
 	int response = OS.gtk_dialog_run (handle);
 	/*
 	* This call to gdk_threads_leave() is a temporary work around
 	* to avoid deadlocks when gdk_threads_init() is called by native
 	* code outside of SWT (i.e AWT, etc). It ensures that the current
-	* thread leaves the GTK lock acquired by the function above. 
+	* thread leaves the GTK lock acquired by the function above.
 	*/
 	OS.gdk_threads_leave();
+	display.sendPostExternalEventDispatchEvent ();
 	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
 		OS.g_signal_remove_emission_hook (signalId, hookId);
 	}
@@ -249,7 +261,7 @@ public void setFilterPath (String string) {
  * visible on the dialog while it is open.
  *
  * @param string the message
- * 
+ *
  * @exception IllegalArgumentException <ul>
  *    <li>ERROR_NULL_ARGUMENT - if the string is null</li>
  * </ul>

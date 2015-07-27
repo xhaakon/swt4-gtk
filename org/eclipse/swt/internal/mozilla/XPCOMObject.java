@@ -11,6 +11,7 @@
 package org.eclipse.swt.internal.mozilla;
 
 import java.util.*;
+
 import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 
@@ -21,13 +22,13 @@ public class XPCOMObject {
 		IsSolaris = osName.startsWith ("sunos") || osName.startsWith("solaris"); //$NON-NLS-1$
 	}
 	
-	private int /*long*/ ppVtable;
+	int /*long*/ ppVtable;
 
 	static private final int MAX_ARG_COUNT = 12;
 	static private final int MAX_VTABLE_LENGTH = 80;
 	static final int OS_OFFSET = IsSolaris ? 2 : 0;
 	static private Callback[][] Callbacks = new Callback[MAX_VTABLE_LENGTH + OS_OFFSET][MAX_ARG_COUNT];
-	static private Hashtable ObjectMap = new Hashtable ();
+	static private Hashtable<LONG, XPCOMObject> ObjectMap = new Hashtable<LONG, XPCOMObject> ();
 	
 	
 public XPCOMObject (int[] argCounts) {
@@ -48,7 +49,11 @@ public XPCOMObject (int[] argCounts) {
 	XPCOM.memmove (ppVtable, new int /*long*/[] {pVtable}, C.PTR_SIZEOF);
 	ObjectMap.put (new LONG (ppVtable), this);
 }
-	
+
+public int /*long*/ getVtable () {
+	return ppVtable;
+}
+
 static int /*long*/ callback0 (int /*long*/[] callbackArgs) {
 	// find the object on which this call was invoked
 	int /*long*/ address = callbackArgs[0];

@@ -12,10 +12,10 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.*;
-import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.accessibility.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class represent a non-selectable
@@ -61,7 +61,7 @@ public class Label extends Control {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -101,10 +101,11 @@ static int checkStyle (int style) {
 	if ((style & SWT.SEPARATOR) != 0) {
 		style = checkBits (style, SWT.VERTICAL, SWT.HORIZONTAL, 0, 0, 0, 0);
 		return checkBits (style, SWT.SHADOW_OUT, SWT.SHADOW_IN, SWT.SHADOW_NONE, 0, 0, 0);
-	} 
+	}
 	return checkBits (style, SWT.LEFT, SWT.CENTER, SWT.RIGHT, 0, 0, 0);
 }
 
+@Override
 void addRelation (Control control) {
 	if (!control.isDescribedByLabel ()) return;
 	if (labelHandle == 0) return;
@@ -112,6 +113,7 @@ void addRelation (Control control) {
 	control.labelRelation = this;
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
@@ -123,13 +125,13 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 			if (hHint == SWT.DEFAULT) hHint = DEFAULT_HEIGHT;
 		}
 	}
-	Point size; 
-	/* 
-	* Feature in GTK. GTK has a predetermined maximum width for wrapping text. 
-	* The fix is to use pango layout directly instead of the label size request 
+	Point size;
+	/*
+	* Feature in GTK. GTK has a predetermined maximum width for wrapping text.
+	* The fix is to use pango layout directly instead of the label size request
 	* to calculate its preferred size.
 	*/
-	boolean fixWrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && gtk_widget_get_visible (labelHandle);
+	boolean fixWrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && OS.gtk_widget_get_visible (labelHandle);
 	if (fixWrap || frameHandle != 0) forceResize ();
 	if (fixWrap) {
 		int /*long*/ labelLayout = OS.gtk_label_get_layout (labelHandle);
@@ -150,7 +152,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 			OS.gtk_widget_set_size_request (labelHandle, labelWidth [0], labelHeight [0]);
 			size.x = size.x - 1;
 			size.y = size.y - 1;
-		} else { 
+		} else {
 			size = new Point (0,0);
 		}
 		size.x += wHint == SWT.DEFAULT ? w [0] : wHint;
@@ -171,7 +173,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	* the preferred height of the widget, GTK uses the text metrics.
 	* The fix is to ensure that the preferred height is at least as
 	* tall as the font height.
-	* 
+	*
 	* NOTE: This work around does not fix the case when there are
 	* muliple lines of text.
 	*/
@@ -197,11 +199,12 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	return size;
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	if ((style & SWT.SEPARATOR) != 0) {
 		if ((style & SWT.HORIZONTAL)!= 0) {
 			handle = gtk_separator_new (OS.GTK_ORIENTATION_HORIZONTAL);
@@ -233,18 +236,23 @@ void createHandle (int index) {
 	if ((style & SWT.SEPARATOR) != 0) return;
 	if ((style & SWT.WRAP) != 0) {
 		OS.gtk_label_set_line_wrap (labelHandle, true);
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			OS.gtk_label_set_line_wrap_mode (labelHandle, OS.PANGO_WRAP_WORD_CHAR);
-		}
+		OS.gtk_label_set_line_wrap_mode (labelHandle, OS.PANGO_WRAP_WORD_CHAR);
+	}
+	// In GTK 3 font description is inherited from parent widget which is not how SWT has always worked,
+	// reset to default font to get the usual behavior
+	if (OS.GTK3) {
+		setFontDescription(defaultFont ().handle);
 	}
 	setAlignment ();
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget (index);
 	text = "";
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	if (frameHandle != 0) display.removeWidget (frameHandle);
@@ -252,6 +260,7 @@ void deregister () {
 	if (imageHandle != 0) display.removeWidget (imageHandle);
 }
 
+@Override
 int /*long*/ eventHandle () {
 	return fixedHandle;
 }
@@ -260,10 +269,10 @@ int /*long*/ eventHandle () {
  * Returns a value which describes the position of the
  * text or image in the receiver. The value will be one of
  * <code>LEFT</code>, <code>RIGHT</code> or <code>CENTER</code>
- * unless the receiver is a <code>SEPARATOR</code> label, in 
+ * unless the receiver is a <code>SEPARATOR</code> label, in
  * which case, <code>NONE</code> is returned.
  *
- * @return the alignment 
+ * @return the alignment
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -279,6 +288,7 @@ public int getAlignment () {
 	return SWT.LEFT;
 }
 
+@Override
 public int getBorderWidth () {
 	checkWidget();
 	if (frameHandle != 0) {
@@ -303,6 +313,7 @@ public Image getImage () {
 	return image;
 }
 
+@Override
 String getNameText () {
 	return getText ();
 }
@@ -325,17 +336,20 @@ public String getText () {
 	return text;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents();
 	if (labelHandle != 0) {
-		OS.g_signal_connect_closure_by_id (labelHandle, display.signalIds [MNEMONIC_ACTIVATE], 0, display.closures [MNEMONIC_ACTIVATE], false);
+		OS.g_signal_connect_closure_by_id (labelHandle, display.signalIds [MNEMONIC_ACTIVATE], 0, display.getClosure (MNEMONIC_ACTIVATE), false);
 	}
 }
 
+@Override
 boolean isDescribedByLabel () {
 	return false;
 }
 
+@Override
 boolean mnemonicHit (char key) {
 	if (labelHandle == 0) return false;
 	boolean result = super.mnemonicHit (labelHandle, key);
@@ -358,11 +372,13 @@ boolean mnemonicHit (char key) {
 	return result;
 }
 
+@Override
 boolean mnemonicMatch (char key) {
 	if (labelHandle == 0) return false;
 	return mnemonicMatch (labelHandle, key);
 }
 
+@Override
 void register () {
 	super.register ();
 	if (frameHandle != 0) display.addWidget (frameHandle, this);
@@ -370,11 +386,13 @@ void register () {
 	if (imageHandle != 0) display.addWidget (imageHandle, this);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	frameHandle = imageHandle = labelHandle = 0;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (imageList != null) imageList.dispose ();
@@ -383,6 +401,7 @@ void releaseWidget () {
 	text = null;
 }
 
+@Override
 void resizeHandle (int width, int height) {
 	if (OS.GTK3) {
 		OS.swt_fixed_resize (OS.gtk_widget_get_parent (fixedHandle), fixedHandle, width, height);
@@ -400,7 +419,7 @@ void resizeHandle (int width, int height) {
  * or <code>CENTER</code>.  If the receiver is a <code>SEPARATOR</code>
  * label, the argument is ignored and the alignment is not changed.
  *
- * @param alignment the new alignment 
+ * @param alignment the new alignment
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -418,25 +437,51 @@ public void setAlignment (int alignment) {
 
 void setAlignment () {
 	if ((style & SWT.LEFT) != 0) {
-		OS.gtk_misc_set_alignment (labelHandle, 0.0f, 0.0f);
+		if (OS.GTK_VERSION >= OS.VERSION(3, 16, 0)) {
+			gtk_widget_set_align(labelHandle,OS.GTK_ALIGN_START, OS.GTK_ALIGN_START); //Aligns widget
+			gtk_label_set_align (0.0f, 0.0f); //Aligns text inside the widget.
+			gtk_widget_set_align(imageHandle, OS.GTK_ALIGN_START, OS.GTK_ALIGN_CENTER);
+		} else {
+			OS.gtk_misc_set_alignment (labelHandle, 0.0f, 0.0f);
+			OS.gtk_misc_set_alignment (imageHandle, 0.0f, 0.5f);
+		}
 		OS.gtk_label_set_justify (labelHandle, OS.GTK_JUSTIFY_LEFT);
-		OS.gtk_misc_set_alignment (imageHandle, 0.0f, 0.5f);
 		return;
 	}
 	if ((style & SWT.CENTER) != 0) {
-		OS.gtk_misc_set_alignment (labelHandle, 0.5f, 0.0f);
+		if (OS.GTK_VERSION >= OS.VERSION(3, 16, 0)) {
+			gtk_widget_set_align(labelHandle,OS.GTK_ALIGN_CENTER, OS.GTK_ALIGN_START); //Aligns widget
+			gtk_label_set_align (0.5f, 0.0f); //Aligns text inside the widget.
+			gtk_widget_set_align(imageHandle, OS.GTK_ALIGN_CENTER, OS.GTK_ALIGN_CENTER);
+		} else {
+			OS.gtk_misc_set_alignment (labelHandle, 0.5f, 0.0f);
+			OS.gtk_misc_set_alignment (imageHandle, 0.5f, 0.5f);
+		}
+
 		OS.gtk_label_set_justify (labelHandle, OS.GTK_JUSTIFY_CENTER);
-		OS.gtk_misc_set_alignment (imageHandle, 0.5f, 0.5f);
 		return;
 	}
 	if ((style & SWT.RIGHT) != 0) {
-		OS.gtk_misc_set_alignment (labelHandle, 1.0f, 0.0f);
+		if (OS.GTK_VERSION >= OS.VERSION(3, 16, 0)) {
+			gtk_widget_set_align(labelHandle,OS.GTK_ALIGN_END, OS.GTK_ALIGN_START); //Aligns widget.
+			gtk_label_set_align (1.0f, 0.0f); //Aligns text inside the widget.
+			gtk_widget_set_align(imageHandle, OS.GTK_ALIGN_END, OS.GTK_ALIGN_CENTER);
+		} else  {
+			OS.gtk_misc_set_alignment (labelHandle, 1.0f, 0.0f);
+			OS.gtk_misc_set_alignment (imageHandle, 1.0f, 0.5f);
+		}
 		OS.gtk_label_set_justify (labelHandle, OS.GTK_JUSTIFY_RIGHT);
-		OS.gtk_misc_set_alignment (imageHandle, 1.0f, 0.5f);
 		return;
 	}
 }
 
+
+private void gtk_label_set_align (float xalign, float yalign) {
+	OS.gtk_label_set_xalign (labelHandle, xalign);
+	OS.gtk_label_set_yalign (labelHandle, yalign);
+}
+
+@Override
 void setBackgroundColor (GdkColor color) {
 	super.setBackgroundColor (color);
 	setBackgroundColor(fixedHandle, color);
@@ -444,6 +489,7 @@ void setBackgroundColor (GdkColor color) {
 	if (imageHandle != 0) setBackgroundColor(imageHandle, color);
 }
 
+@Override
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	/*
 	* Bug in GTK.  For some reason, when the label is
@@ -452,7 +498,7 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	* determine the size that will wrap the label
 	* and expilictly set that size to force the label
 	* to wrap.
-	* 
+	*
 	* This part of the fix causes the label to be
 	* resized to the preferred size but it still
 	* won't draw properly.
@@ -467,23 +513,23 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	* determine the size that will wrap the label
 	* and expilictly set that size to force the label
 	* to wrap.
-	* 
+	*
 	* This part of the fix forces the label to be
 	* resized so that it will draw wrapped.
 	*/
 	if (fixWrap) {
 		GtkAllocation allocation = new GtkAllocation();
-		gtk_widget_get_allocation (handle, allocation);
+		OS.gtk_widget_get_allocation (handle, allocation);
 		int labelWidth = allocation.width;
 		int labelHeight = allocation.height;
 		OS.gtk_widget_set_size_request (labelHandle, labelWidth, labelHeight);
 		/*
 		* Bug in GTK.  Setting the size request should invalidate the label's
-		* layout, but it does not.  The fix is to resize the label directly. 
+		* layout, but it does not.  The fix is to resize the label directly.
 		*/
 		GtkRequisition requisition = new GtkRequisition ();
 		gtk_widget_get_preferred_size (labelHandle, requisition);
-		gtk_widget_get_allocation(labelHandle, allocation);
+		OS.gtk_widget_get_allocation(labelHandle, allocation);
 		allocation.width = labelWidth;
 		allocation.height = labelHeight;
 		OS.gtk_widget_size_allocate (labelHandle, allocation);
@@ -491,12 +537,14 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	return result;
 }
 
+@Override
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	if (labelHandle != 0) setFontDescription (labelHandle, font);
 	if (imageHandle != 0) setFontDescription (imageHandle, font);
 }
 
+@Override
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (color);
 	setForegroundColor (fixedHandle, color);
@@ -504,10 +552,11 @@ void setForegroundColor (GdkColor color) {
 	if (imageHandle != 0) setForegroundColor (imageHandle, color);
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
-		int dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;	
+		int dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
 		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, dir);
 		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, dir);
 	}
@@ -520,7 +569,7 @@ void setOrientation (boolean create) {
  * @param image the image to display on the receiver (may be null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -563,6 +612,10 @@ public void setImage (Image image) {
  * '&amp;' can be escaped by doubling it in the string, causing
  * a single '&amp;' to be displayed.
  * </p>
+ * <p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
+ * </p>
  * 
  * @param string the new text
  *
@@ -586,6 +639,7 @@ public void setText (String string) {
 	OS.gtk_widget_show (labelHandle);
 }
 
+@Override
 void showWidget () {
 	super.showWidget ();
 	if (frameHandle != 0) OS.gtk_widget_show (frameHandle);

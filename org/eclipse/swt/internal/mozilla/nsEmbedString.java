@@ -42,10 +42,15 @@ public nsEmbedString(String string) {
 	}   
 }
 
+public nsEmbedString(int /*long*/ handle) {
+	this.handle = handle;
+}
+
 public int /*long*/ getAddress() {
 	return handle;
 }	
 	
+@Override
 public String toString() {
 	if (handle == 0) return null;
 	int length = XPCOM.nsEmbedString_Length(handle);

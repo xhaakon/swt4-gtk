@@ -57,7 +57,7 @@ public static byte [] wcsToMbcs (String codePage, String string, boolean termina
 public static byte [] wcsToMbcs (String codePage, char [] buffer, boolean terminate) {
 	int /*long*/ [] items_read = new int /*long*/ [1], items_written = new int /*long*/ [1];
 	/*
-	* Note that g_utf16_to_utf8()  stops converting 
+	* Note that g_utf16_to_utf8()  stops converting
 	* when it finds the first NULL.
 	*/
 	int /*long*/ ptr = OS.g_utf16_to_utf8 (buffer, buffer.length, items_read, items_written, null);

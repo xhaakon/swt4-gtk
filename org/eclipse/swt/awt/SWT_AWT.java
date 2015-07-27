@@ -97,9 +97,9 @@ static synchronized void initializeSwing() {
 	OS.gdk_error_trap_push();
 	try {
 		/* Initialize the default focus traversal policy */
-		Class[] emptyClass = new Class[0];
+		Class<?>[] emptyClass = new Class[0];
 		Object[] emptyObject = new Object[0];
-		Class clazz = Class.forName("javax.swing.UIManager");
+		Class<?> clazz = Class.forName("javax.swing.UIManager");
 		Method method = clazz.getMethod("getDefaults", emptyClass);
 		if (method != null) method.invoke(clazz, emptyObject);
 	} catch (Throwable e) {}
@@ -158,7 +158,7 @@ public static Frame new_Frame (final Composite parent) {
 	 * and other JREs take a long.  To handle this binary incompatibility, use
 	 * reflection to create the embedded frame.
 	 */
-	Class clazz = null;
+	Class<?> clazz = null;
 	try {
 		String className = embeddedFrameClass != null ? embeddedFrameClass : "sun.awt.X11.XEmbeddedFrame";
 		clazz = Class.forName(className);
@@ -167,7 +167,7 @@ public static Frame new_Frame (final Composite parent) {
 	}
 	initializeSwing ();
 	Object value = null;
-	Constructor constructor = null;
+	Constructor<?> constructor = null;
 	try {
 		constructor = clazz.getConstructor (new Class [] {int.class, boolean.class});
 		value = constructor.newInstance (new Object [] {new Integer ((int)/*64*/handle), Boolean.TRUE});
@@ -205,10 +205,8 @@ public static Frame new_Frame (final Composite parent) {
 							int /*long*/ xWindow;
 							if (OS.GTK3) {
 								xWindow = OS.gdk_x11_window_get_xid (OS.gtk_widget_get_window (shell.handle));
-							} else if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
-								xWindow = OS.gdk_x11_drawable_get_xid(OS.gtk_widget_get_window(OS.gtk_widget_get_toplevel(shell.handle)));
 							} else {
-								xWindow = OS.gdk_x11_drawable_get_xid(OS.GTK_WIDGET_WINDOW(OS.gtk_widget_get_toplevel(shell.handle)));
+								xWindow = OS.gdk_x11_drawable_get_xid(OS.gtk_widget_get_window(OS.gtk_widget_get_toplevel(shell.handle)));
 							}
 							OS.XSetTransientForHint(OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default()), awtHandle, xWindow);
 						}
@@ -318,6 +316,7 @@ public static Shell new_Shell (final Display display, final Canvas parent) {
 
 	final Shell shell = Shell.gtk_new (display, handle);
 	final ComponentListener listener = new ComponentAdapter () {
+		@Override
 		public void componentResized (ComponentEvent e) {
 			display.syncExec (new Runnable () {
 				public void run () {

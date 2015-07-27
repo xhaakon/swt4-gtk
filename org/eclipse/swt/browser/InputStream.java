@@ -34,13 +34,21 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	inputStream = new XPCOMObject (new int[] {2, 0, 0, 0, 1, 3, 4, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return Close ();}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return Available (args[0]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return Read (args[0], (int)/*64*/args[1], args[2]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return ReadSegments (args[0], args[1], (int)/*64*/args[2], args[3]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return IsNonBlocking (args[0]);}
 	};
 }
@@ -61,12 +69,12 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 	
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {inputStream.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIInputStream.NS_IINPUTSTREAM_IID) || guid.Equals (nsIInputStream.NS_IINPUTSTREAM_17_IID)) {
+	if (guid.Equals (IIDStore.GetIID (nsIInputStream.class))) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {inputStream.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -91,7 +99,10 @@ int Close () {
 
 int Available (int /*long*/ _retval) {
 	int available = buffer == null ? 0 : buffer.length - index;
-	XPCOM.memmove (_retval, new int[] {available}, 4);
+	if (MozillaVersion.CheckVersion (MozillaVersion.VERSION_XR24))
+		XPCOM.memmove (_retval, new long[] {available}, 8);
+	else
+		XPCOM.memmove (_retval, new int[] {available}, 4);
 	return XPCOM.NS_OK;
 }
 

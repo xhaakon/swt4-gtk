@@ -12,9 +12,9 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of the receiver represent a selectable user
@@ -46,7 +46,7 @@ public class Scale extends Control {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -108,6 +108,7 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.HORIZONTAL, SWT.VERTICAL, 0, 0, 0, 0);
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
@@ -121,13 +122,14 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	return size;
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	int /*long*/ hAdjustment = OS.gtk_adjustment_new (0, 0, 100, 1, 10, 0);
-	if (hAdjustment == 0) error (SWT.ERROR_NO_HANDLES);	
+	if (hAdjustment == 0) error (SWT.ERROR_NO_HANDLES);
 	if ((style & SWT.HORIZONTAL) != 0) {
 		handle = gtk_scale_new (OS.GTK_ORIENTATION_HORIZONTAL, hAdjustment);
 	} else {
@@ -135,13 +137,14 @@ void createHandle (int index) {
 	}
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
-	OS.gtk_scale_set_digits (handle, 0); 
+	OS.gtk_scale_set_digits (handle, 0);
 	OS.gtk_scale_set_draw_value (handle, false);
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
-	OS.g_signal_connect_closure (handle, OS.value_changed, display.closures [VALUE_CHANGED], false);
+	OS.g_signal_connect_closure (handle, OS.value_changed, display.getClosure (VALUE_CHANGED), false);
 }
 
 /**
@@ -159,7 +162,7 @@ void hookEvents () {
 public int getIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_step_increment (hAdjustment);
+	return (int) OS.gtk_adjustment_get_step_increment (hAdjustment);
 }
 
 /**
@@ -175,7 +178,7 @@ public int getIncrement () {
 public int getMaximum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_upper (hAdjustment);
+	return (int) OS.gtk_adjustment_get_upper (hAdjustment);
 }
 
 /**
@@ -191,7 +194,7 @@ public int getMaximum () {
 public int getMinimum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_lower (hAdjustment);
+	return (int) OS.gtk_adjustment_get_lower (hAdjustment);
 }
 
 /**
@@ -209,7 +212,7 @@ public int getMinimum () {
 public int getPageIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_page_increment (hAdjustment);
+	return (int) OS.gtk_adjustment_get_page_increment (hAdjustment);
 }
 
 /**
@@ -225,9 +228,10 @@ public int getPageIncrement () {
 public int getSelection () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_value (hAdjustment);
+	return (int) OS.gtk_adjustment_get_value (hAdjustment);
 }
 
+@Override
 int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 	sendSelectionEvent  (SWT.Selection);
 	return 0;
@@ -255,13 +259,13 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
 /**
  * Sets the amount that the receiver's value will be
  * modified by when the up/down (or right/left) arrows
- * are pressed to the argument, which must be at least 
+ * are pressed to the argument, which must be at least
  * one.
  *
  * @param increment the new increment (must be greater than zero)

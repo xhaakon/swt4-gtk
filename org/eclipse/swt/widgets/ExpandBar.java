@@ -11,9 +11,9 @@
 package org.eclipse.swt.widgets;
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class support the layout of selectable
@@ -31,7 +31,7 @@ import org.eclipse.swt.graphics.*;
  * </p><p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
- * 
+ *
  * @see ExpandItem
  * @see ExpandEvent
  * @see ExpandListener
@@ -39,7 +39,7 @@ import org.eclipse.swt.graphics.*;
  * @see <a href="http://www.eclipse.org/swt/snippets/#expandbar">ExpandBar snippets</a>
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
- * 
+ *
  * @since 3.2
  * @noextend This class is not intended to be subclassed by clients.
  */
@@ -56,7 +56,7 @@ public class ExpandBar extends Composite {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -109,10 +109,12 @@ public void addExpandListener (ExpandListener listener) {
 	addListener (SWT.Collapse, typedListener);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
 	if (hHint != SWT.DEFAULT && hHint < 0) hHint = 0;
@@ -125,11 +127,12 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	return size;
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	handle = gtk_box_new (OS.GTK_ORIENTATION_VERTICAL, false, 0);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	if ((style & SWT.V_SCROLL) != 0) {
@@ -137,13 +140,22 @@ void createHandle (int index) {
 		if (scrolledHandle == 0) error (SWT.ERROR_NO_HANDLES);
 		OS.gtk_scrolled_window_set_policy (scrolledHandle, OS.GTK_POLICY_NEVER, OS.GTK_POLICY_AUTOMATIC);
 		OS.gtk_container_add (fixedHandle, scrolledHandle);
-		OS.gtk_scrolled_window_add_with_viewport (scrolledHandle, handle);
+		if (OS.GTK_VERSION < OS.VERSION(3, 8, 0)) {
+			OS.gtk_scrolled_window_add_with_viewport (scrolledHandle, handle);
+		} else {
+			OS.gtk_container_add(scrolledHandle, handle);
+		}
 		int /*long*/ viewport = OS.gtk_bin_get_child (scrolledHandle);
 		OS.gtk_viewport_set_shadow_type (viewport, OS.GTK_SHADOW_NONE);
 	} else {
 		OS.gtk_container_add (fixedHandle, handle);
 	}
 	OS.gtk_container_set_border_width (handle, 0);
+	// In GTK 3 font description is inherited from parent widget which is not how SWT has always worked,
+	// reset to default font to get the usual behavior
+	if (OS.GTK3) {
+		setFontDescription(defaultFont().handle);
+	}
 }
 
 void createItem (ExpandItem item, int style, int index) {
@@ -160,9 +172,10 @@ void createItem (ExpandItem item, int style, int index) {
 	layoutItems (index, true);
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget (index);
-	items = new ExpandItem [4];	
+	items = new ExpandItem [4];
 }
 
 void destroyItem (ExpandItem item) {
@@ -178,10 +191,12 @@ void destroyItem (ExpandItem item) {
 	layoutItems (index, true);
 }
 
+@Override
 int /*long*/ eventHandle () {
 	return fixedHandle;
 }
 
+@Override
 boolean forceFocus (int /*long*/ focusHandle) {
 	if (lastFocus != null && lastFocus.setFocus ()) return true;
 	for (int i = 0; i < itemCount; i++) {
@@ -191,6 +206,7 @@ boolean forceFocus (int /*long*/ focusHandle) {
 	return super.forceFocus (focusHandle);
 }
 
+@Override
 boolean hasFocus () {
 	for (int i=0; i<itemCount; i++) {
 		ExpandItem item = items [i];
@@ -199,10 +215,11 @@ boolean hasFocus () {
 	return super.hasFocus();
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
 	if (scrolledHandle != 0) {
-		OS.g_signal_connect_closure (scrolledHandle, OS.size_allocate, display.closures [SIZE_ALLOCATE], true);
+		OS.g_signal_connect_closure (scrolledHandle, OS.size_allocate, display.getClosure (SIZE_ALLOCATE), true);
 	}
 }
 
@@ -252,11 +269,11 @@ public int getItemCount () {
 
 /**
  * Returns an array of <code>ExpandItem</code>s which are the items
- * in the receiver. 
+ * in the receiver.
  * <p>
  * Note: This is not the actual structure used by the receiver
  * to maintain its list of items, so modifying the array will
- * not affect the receiver. 
+ * not affect the receiver.
  * </p>
  *
  * @return the items in the receiver
@@ -288,6 +305,7 @@ public int getSpacing () {
 	return spacing;
 }
 
+@Override
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	if (!hasFocus ()) return 0;
 	int /*long*/ result = super.gtk_key_press_event (widget, event);
@@ -303,7 +321,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	switch (gdkEvent.keyval) {
 		case OS.GDK_Up:
 		case OS.GDK_Left: next = false; break;
-		case OS.GDK_Down: 
+		case OS.GDK_Down:
 		case OS.GDK_Right: next = true; break;
 		default: return result;
 	}
@@ -317,7 +335,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 
 /**
  * Searches the receiver's list starting at the first item
- * (index 0) until an item is found that is equal to the 
+ * (index 0) until an item is found that is equal to the
  * argument, and returns the index of that item. If no item
  * is found, returns -1.
  *
@@ -349,16 +367,19 @@ void layoutItems (int index, boolean setScrollbar) {
 	}
 }
 
+@Override
 int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	int /*long*/ result = super.gtk_size_allocate (widget, allocation);
 	layoutItems (0, false);
 	return result;
 }
 
+@Override
 int /*long*/ parentingHandle () {
 	return fixedHandle;
 }
 
+@Override
 void releaseChildren (boolean destroy) {
 	for (int i = 0; i < itemCount; i++) {
 		ExpandItem item = items [i];
@@ -394,6 +415,7 @@ public void removeExpandListener (ExpandListener listener) {
 	eventTable.unhook (SWT.Collapse, listener);
 }
 
+@Override
 void reskinChildren (int flags) {
 	if (items != null) {
 		for (int i=0; i<items.length; i++) {
@@ -404,6 +426,7 @@ void reskinChildren (int flags) {
 	super.reskinChildren (flags);
 }
 
+@Override
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	for (int i = 0; i < itemCount; i++) {
@@ -412,6 +435,7 @@ void setFontDescription (int /*long*/ font) {
 	layoutItems (0, true);
 }
 
+@Override
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (color);
 	for (int i = 0; i < itemCount; i++) {
@@ -419,6 +443,7 @@ void setForegroundColor (GdkColor color) {
 	}
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if (items != null) {
@@ -445,23 +470,20 @@ void setScrollbar () {
 		yCurrentScroll = Math.max (0, yCurrentScroll + maxHeight - height);
 		layoutItems (0, false);
 	}
-	maxHeight += yCurrentScroll;	
+	maxHeight += yCurrentScroll;
 	adjustment.value = Math.min (yCurrentScroll, maxHeight);
 	adjustment.upper = maxHeight;
 	adjustment.page_size = height;
-	gtk_adjustment_configure (adjustmentHandle, adjustment);
+	OS.gtk_adjustment_configure(adjustmentHandle, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	int policy = maxHeight > height ? OS.GTK_POLICY_ALWAYS : OS.GTK_POLICY_NEVER;
 	OS.gtk_scrolled_window_set_policy (scrolledHandle, OS.GTK_POLICY_NEVER, policy);
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (fixedHandle, allocation);
+	OS.gtk_widget_get_allocation (fixedHandle, allocation);
 	int width = allocation.width - spacing * 2;
 	if (policy == OS.GTK_POLICY_ALWAYS) {
 		int /*long*/ vHandle = 0;
-		if (OS.GTK_VERSION < OS.VERSION(2, 8, 0)) {
-			vHandle = OS.GTK_SCROLLED_WINDOW_VSCROLLBAR (scrolledHandle);
-		} else {
-			vHandle = OS.gtk_scrolled_window_get_vscrollbar (scrolledHandle);
-		}
+		vHandle = OS.gtk_scrolled_window_get_vscrollbar (scrolledHandle);
 		GtkRequisition requisition = new GtkRequisition ();
 		gtk_widget_get_preferred_size (vHandle, requisition);
 		width -= requisition.width;
@@ -474,9 +496,9 @@ void setScrollbar () {
 }
 
 /**
- * Sets the receiver's spacing. Spacing specifies the number of pixels allocated around 
+ * Sets the receiver's spacing. Spacing specifies the number of pixels allocated around
  * each item.
- * 
+ *
  * @param spacing the spacing around each item
  *
  * @exception SWTException <ul>
@@ -503,6 +525,7 @@ void showItem (ExpandItem item) {
 	layoutItems (index + 1, true);
 }
 
+@Override
 void updateScrollBarValue (ScrollBar bar) {
 	yCurrentScroll = bar.getSelection();
 	layoutItems (0, false);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,12 +12,12 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.events.*;
 
 /**
- * This class is the abstract superclass of all user interface objects.  
+ * This class is the abstract superclass of all user interface objects.
  * Widgets are created, disposed and issue notification to listeners
  * when events occur which affect them.
  * <dl>
@@ -45,7 +45,7 @@ import org.eclipse.swt.events.*;
  */
 public abstract class Widget {
 	/**
-	 * the handle to the OS resource 
+	 * the handle to the OS resource
 	 * (Warning: This field is platform dependent)
 	 * <p>
 	 * <b>IMPORTANT:</b> This field is <em>not</em> part of the SWT
@@ -53,7 +53,7 @@ public abstract class Widget {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
-	 * 
+	 *
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ handle;
@@ -61,7 +61,7 @@ public abstract class Widget {
 	Display display;
 	EventTable eventTable;
 	Object data;
-	
+
 	/* Global state flags */
 	static final int DISPOSED = 1<<0;
 	static final int CANVAS = 1<<1;
@@ -80,13 +80,13 @@ public abstract class Widget {
 	static final int FONT = 1<<14;
 	static final int PARENT_BACKGROUND = 1<<15;
 	static final int THEME_BACKGROUND = 1<<16;
-	
+
 	/* A layout was requested on this widget */
 	static final int LAYOUT_NEEDED	= 1<<17;
-	
+
 	/* The preferred size of a child has changed */
 	static final int LAYOUT_CHANGED = 1<<18;
-	
+
 	/* A layout was requested in this widget hierachy */
 	static final int LAYOUT_CHILD = 1<<19;
 
@@ -95,17 +95,23 @@ public abstract class Widget {
 	static final int DISPOSE_SENT = 1<<21;
 	static final int FOREIGN_HANDLE = 1<<22;
 	static final int DRAG_DETECT = 1<<23;
-	
+
 	/* Notify of the opportunity to skin this widget */
 	static final int SKIN_NEEDED = 1<<24;
 
 	/* Should sub-windows be checked when EnterNotify received */
 	static final int CHECK_SUBWINDOW = 1<<25;
 
+	/* Bidi "auto" text direction */
+	static final int HAS_AUTO_DIRECTION = 0;
+	
+	/* Bidi flag and for auto text direction */
+	static final int AUTO_TEXT_DIRECTION = SWT.LEFT_TO_RIGHT | SWT.RIGHT_TO_LEFT;
+
 	/* Default size for widgets */
 	static final int DEFAULT_WIDTH	= 64;
 	static final int DEFAULT_HEIGHT	= 64;
-	
+
 	/* GTK signals data */
 	static final int ACTIVATE = 1;
 	static final int BUTTON_PRESS_EVENT = 2;
@@ -165,7 +171,6 @@ public abstract class Widget {
 	static final int UNMAP_EVENT = 55;
 	static final int UNREALIZE = 56;
 	static final int VALUE_CHANGED = 57;
-	static final int VISIBILITY_NOTIFY_EVENT = 58;
 	static final int WINDOW_STATE_EVENT = 59;
 	static final int ACTIVATE_INVERSE = 60;
 	static final int DAY_SELECTED = 61;
@@ -191,8 +196,9 @@ public abstract class Widget {
 	static final int MOVE_CURSOR_INVERSE = 81;
 	static final int DIRECTION_CHANGED = 82;
 	static final int CREATE_MENU_PROXY = 83;
-	static final int LAST_SIGNAL = 84;
-	
+	static final int ROW_HAS_CHILD_TOGGLED = 84;
+	static final int LAST_SIGNAL = 85;
+
 	static final String IS_ACTIVE = "org.eclipse.swt.internal.control.isactive"; //$NON-NLS-1$
 	static final String KEY_CHECK_SUBWINDOW = "org.eclipse.swt.internal.control.checksubwindow"; //$NON-NLS-1$
 
@@ -207,7 +213,7 @@ Widget () {}
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -332,11 +338,6 @@ void checkOrientation (Widget parent) {
 		}
 	}
 	style = checkBits (style, SWT.LEFT_TO_RIGHT, SWT.RIGHT_TO_LEFT, 0, 0, 0, 0);
-	/* Versions of GTK prior to 2.8 do not render RTL text properly */
-	if (OS.GTK_VERSION < OS.VERSION (2, 8, 0)) {
-		style &= ~SWT.RIGHT_TO_LEFT;
-		style |= SWT.LEFT_TO_RIGHT;			
-	}
 }
 
 /**
@@ -361,14 +362,14 @@ void checkParent (Widget parent) {
 /**
  * Checks that this class can be subclassed.
  * <p>
- * The SWT class library is intended to be subclassed 
- * only at specific, controlled points (most notably, 
+ * The SWT class library is intended to be subclassed
+ * only at specific, controlled points (most notably,
  * <code>Composite</code> and <code>Canvas</code> when
  * implementing new widgets). This method enforces this
  * rule unless it is overridden.
  * </p><p>
  * <em>IMPORTANT:</em> By providing an implementation of this
- * method that allows a subclass of a class which does not 
+ * method that allows a subclass of a class which does not
  * normally allow subclassing to be created, the implementer
  * agrees to be fully responsible for the fact that any such
  * subclass will likely fail between SWT releases and will be
@@ -399,7 +400,7 @@ protected void checkSubclass () {
  * widget implementors to enforce the standard SWT invariants.
  * <p>
  * Currently, it is an error to invoke any method (other than
- * <code>isDisposed()</code>) on a widget that has had its 
+ * <code>isDisposed()</code>) on a widget that has had its
  * <code>dispose()</code> method called. It is also an error
  * to call widget methods from any thread that is different
  * from the thread that created the widget.
@@ -485,7 +486,7 @@ void error (int code) {
  * Returns the application defined widget data associated
  * with the receiver, or null if it has not been set. The
  * <em>widget data</em> is a single, unnamed field that is
- * stored with every widget. 
+ * stored with every widget.
  * <p>
  * Applications may put arbitrary objects in this field. If
  * the object stored in the widget data needs to be notified
@@ -569,8 +570,8 @@ public Display getDisplay () {
 }
 
 /**
- * Returns an array of listeners who will be notified when an event 
- * of the given type occurs. The event type is one of the event constants 
+ * Returns an array of listeners who will be notified when an event
+ * of the given type occurs. The event type is one of the event constants
  * defined in class <code>SWT</code>.
  *
  * @param eventType the type of event to listen for
@@ -586,7 +587,7 @@ public Display getDisplay () {
  * @see #addListener(int, Listener)
  * @see #removeListener(int, Listener)
  * @see #notifyListeners
- * 
+ *
  * @since 3.4
  */
 public Listener[] getListeners (int eventType) {
@@ -598,7 +599,7 @@ public Listener[] getListeners (int eventType) {
 String getName () {
 //	String string = getClass ().getName ();
 //	int index = string.lastIndexOf ('.');
-//	if (index == -1) return string;	
+//	if (index == -1) return string;
 	String string = getClass ().getName ();
 	int index = string.length ();
 	while ((--index > 0) && (string.charAt (index) != '.')) {}
@@ -640,79 +641,12 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
 }
 
 void gtk_adjustment_get (int /*long*/ hAdjustment, GtkAdjustment adjustment) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		adjustment.lower = OS.gtk_adjustment_get_lower (hAdjustment);
-		adjustment.upper = OS.gtk_adjustment_get_upper (hAdjustment);
-		adjustment.page_increment = OS.gtk_adjustment_get_page_increment (hAdjustment);
-		adjustment.step_increment = OS.gtk_adjustment_get_step_increment (hAdjustment);
-		adjustment.page_size = OS.gtk_adjustment_get_page_size (hAdjustment);
-		adjustment.value = OS.gtk_adjustment_get_value (hAdjustment);
-	} else {
-		OS.memmove(adjustment, hAdjustment);
-	}
-}
-
-double gtk_adjustment_get_step_increment (int /*long*/ hAdjustment) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		return (int) OS.gtk_adjustment_get_step_increment (hAdjustment);
-	}
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.step_increment;
-}
-
-double gtk_adjustment_get_page_increment (int /*long*/ hAdjustment) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		return (int) OS.gtk_adjustment_get_page_increment (hAdjustment);
-	}
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.page_increment;
-}
-
-double gtk_adjustment_get_lower (int /*long*/ hAdjustment) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		return (int) OS.gtk_adjustment_get_lower (hAdjustment);
-	}
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.lower;
-}
-
-double gtk_adjustment_get_upper (int /*long*/ hAdjustment) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		return (int) OS.gtk_adjustment_get_upper (hAdjustment);
-	}
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.upper;
-}
-
-double gtk_adjustment_get_page_size (int /*long*/ hAdjustment) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		return (int) OS.gtk_adjustment_get_page_size (hAdjustment);
-	}
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.page_size;
-}
-
-double gtk_adjustment_get_value (int /*long*/ hAdjustment) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		return (int) OS.gtk_adjustment_get_value (hAdjustment);
-	}
-	GtkAdjustment adjustment = new GtkAdjustment ();
-	OS.memmove (adjustment, hAdjustment);
-	return (int) adjustment.value;
-}
-
-void gtk_adjustment_configure (int /*long*/ hAdjustment, GtkAdjustment a) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		OS.gtk_adjustment_configure(hAdjustment, a.value, a.lower, a.upper, a.step_increment, a.page_increment, a.page_size);
-	} else {
-		OS.memmove (hAdjustment, a);
-		OS.gtk_adjustment_changed (hAdjustment);
-	}
+	adjustment.lower = OS.gtk_adjustment_get_lower (hAdjustment);
+	adjustment.upper = OS.gtk_adjustment_get_upper (hAdjustment);
+	adjustment.page_increment = OS.gtk_adjustment_get_page_increment (hAdjustment);
+	adjustment.step_increment = OS.gtk_adjustment_get_step_increment (hAdjustment);
+	adjustment.page_size = OS.gtk_adjustment_get_page_size (hAdjustment);
+	adjustment.value = OS.gtk_adjustment_get_value (hAdjustment);
 }
 
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
@@ -895,6 +829,10 @@ int /*long*/ gtk_row_inserted (int /*long*/ model, int /*long*/ path, int /*long
 	return 0;
 }
 
+int /*long*/ gtk_row_has_child_toggled (int /*long*/ model, int /*long*/ path, int /*long*/ iter) {
+	return 0;
+}
+
 int /*long*/ gtk_scroll_child (int /*long*/ widget, int /*long*/ scrollType, int /*long*/ horizontal) {
 	return 0;
 }
@@ -909,7 +847,7 @@ int /*long*/ gtk_select (int /*long*/ item) {
 
 int /*long*/ gtk_selection_done (int /*long*/ menushell) {
 	return 0;
-} 
+}
 
 int /*long*/ gtk_show (int /*long*/ widget) {
 	return 0;
@@ -975,19 +913,19 @@ int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 	return 0;
 }
 
-int /*long*/ gtk_visibility_notify_event (int /*long*/ widget, int /*long*/ event) {
-	return 0;
-}
-
-void gtk_widget_get_allocation (int /*long*/ widget, GtkAllocation allocation) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		OS.gtk_widget_get_allocation (widget, allocation);
-	} else {
-		allocation.x = OS.GTK_WIDGET_X (widget);
-		allocation.y = OS.GTK_WIDGET_Y (widget);
-		allocation.width = OS.GTK_WIDGET_WIDTH (widget);
-		allocation.height = OS.GTK_WIDGET_HEIGHT (widget);
-	}
+/**
+ * Reparent on gtk side.
+ * Note: Composites with a setControl() function should probably use this function
+ * to correct hierarchy on gtk side.
+ * @param widget  the handle to the widget. (usually topHandle())
+ * @param newParent  handle to the new widget.
+ */
+void gtk_widget_reparent (int /*long*/ widget, int /*long*/ newParent) {
+	//Note, we do not actually call  * 'gtk_widget_reparent(...) as it's deprecated as of gtk 3.14
+	OS.g_object_ref (widget); //so that it won't get destroyed due to lack of references.
+	OS.gtk_container_remove (OS.gtk_widget_get_parent (widget), widget);
+	OS.gtk_container_add (newParent, widget);
+	OS.g_object_unref (widget);
 }
 
 boolean gtk_widget_get_mapped (int /*long*/ widget) {
@@ -995,14 +933,6 @@ boolean gtk_widget_get_mapped (int /*long*/ widget) {
 		return OS.gtk_widget_get_mapped (widget);
 	} else {
 		return OS.GTK_WIDGET_MAPPED (widget);
-	}
-}
-
-boolean gtk_widget_has_focus (int /*long*/ widget) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		return OS.gtk_widget_has_focus (widget);
-	} else {
-		return OS.GTK_WIDGET_HAS_FOCUS (widget);
 	}
 }
 
@@ -1153,7 +1083,7 @@ boolean mnemonicHit (int /*long*/ mnemonicHandle, char key) {
 
 boolean mnemonicMatch (int /*long*/ mnemonicHandle, char key) {
 	int keyval1 = OS.gdk_keyval_to_lower (OS.gdk_unicode_to_keyval (key));
-	int keyval2 = OS.gdk_keyval_to_lower (OS.gtk_label_get_mnemonic_keyval (mnemonicHandle)); 
+	int keyval2 = OS.gdk_keyval_to_lower (OS.gtk_label_get_mnemonic_keyval (mnemonicHandle));
 	return keyval1 == keyval2;
 }
 
@@ -1175,7 +1105,7 @@ void modifyStyle (int /*long*/ handle, int /*long*/ style) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see SWT
  * @see #addListener
  * @see #getListeners(int)
@@ -1292,8 +1222,9 @@ public void removeListener (int eventType, Listener listener) {
  *
  * @see Listener
  * @see #addListener
- * 
+ *
  * @noreference This method is not intended to be referenced by clients.
+ * @nooverride This method is not intended to be re-implemented or extended by clients.
  */
 protected void removeListener (int eventType, SWTEventListener handler) {
 	checkWidget ();
@@ -1319,14 +1250,14 @@ int /*long*/ rendererRenderProc (int /*long*/ cell, int /*long*/ window, int /*l
 }
 
 /**
- * Marks the widget to be skinned. 
+ * Marks the widget to be skinned.
  * <p>
  * The skin event is sent to the receiver's display when appropriate (usually before the next event
  * is handled). Widgets are automatically marked for skinning upon creation as well as when its skin
- * id or class changes. The skin id and/or class can be changed by calling <code>Display.setData(String, Object)</code> 
- * with the keys SWT.SKIN_ID and/or SWT.SKIN_CLASS. Once the skin event is sent to a widget, it 
- * will not be sent again unless <code>reskin(int)</code> is called on the widget or on an ancestor 
- * while specifying the <code>SWT.ALL</code> flag.  
+ * id or class changes. The skin id and/or class can be changed by calling <code>Display.setData(String, Object)</code>
+ * with the keys SWT.SKIN_ID and/or SWT.SKIN_CLASS. Once the skin event is sent to a widget, it
+ * will not be sent again unless <code>reskin(int)</code> is called on the widget or on an ancestor
+ * while specifying the <code>SWT.ALL</code> flag.
  * </p>
  * <p>
  * The parameter <code>flags</code> may be either:
@@ -1338,8 +1269,8 @@ int /*long*/ rendererRenderProc (int /*long*/ cell, int /*long*/ window, int /*l
  * </dl>
  * </p>
  * @param flags the flags specifying how to reskin
- * 
- * @exception SWTException 
+ *
+ * @exception SWTException
  * <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -1352,7 +1283,7 @@ public void reskin (int flags) {
 	if ((flags & SWT.ALL) != 0) reskinChildren (flags);
 }
 
-void reskinChildren (int flags) {	
+void reskinChildren (int flags) {
 }
 
 void reskinWidget() {
@@ -1386,10 +1317,14 @@ public void removeDisposeListener (DisposeListener listener) {
 	eventTable.unhook (SWT.Dispose, listener);
 }
 
+static int resolveTextDirection(String text) {
+	return SWT.NONE;
+}
+
 void sendEvent (Event event) {
 	Display display = event.display;
 	if (!display.filterEvent (event)) {
-		if (eventTable != null) eventTable.sendEvent (event);
+		if (eventTable != null) display.sendEvent(eventTable, event);
 	}
 }
 
@@ -1427,7 +1362,7 @@ boolean sendKeyEvent (int type, GdkEventKey keyEvent) {
 		if (!setKeyState (event, keyEvent)) return true;
 		sendEvent (type, event);
 		// widget could be disposed at this point
-	
+
 		/*
 		* It is possible (but unlikely), that application
 		* code could have disposed the widget in the key
@@ -1476,7 +1411,7 @@ char [] sendIMKeyEvent (int type, GdkEventKey keyEvent, char [] chars) {
 		}
 		event.character = chars [index];
 		sendEvent (type, event);
-	
+
 		/*
 		* It is possible (but unlikely), that application
 		* code could have disposed the widget in the key
@@ -1515,9 +1450,9 @@ void sendSelectionEvent (int eventType, Event event, boolean send) {
 		OS.memmove (gdkEvent, ptr, GdkEvent.sizeof);
 		switch (gdkEvent.type) {
 			case OS.GDK_KEY_PRESS:
-			case OS.GDK_KEY_RELEASE: 
+			case OS.GDK_KEY_RELEASE:
 			case OS.GDK_BUTTON_PRESS:
-			case OS.GDK_2BUTTON_PRESS: 
+			case OS.GDK_2BUTTON_PRESS:
 			case OS.GDK_BUTTON_RELEASE: {
 				int [] state = new int [1];
 				OS.gdk_event_get_state (ptr, state);
@@ -1534,7 +1469,7 @@ void sendSelectionEvent (int eventType, Event event, boolean send) {
  * Sets the application defined widget data associated
  * with the receiver to be the argument. The <em>widget
  * data</em> is a single, unnamed field that is stored
- * with every widget. 
+ * with every widget.
  * <p>
  * Applications may put arbitrary objects in this field. If
  * the object stored in the widget data needs to be notified
@@ -1549,7 +1484,7 @@ void sendSelectionEvent (int eventType, Event event, boolean send) {
  *    <li>ERROR_WIDGET_DISPOSED - when the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - when called from the wrong thread</li>
  * </ul>
- * 
+ *
  * @see #getData()
  */
 public void setData (Object data) {
@@ -1646,7 +1581,7 @@ public void setData (String key, Object value) {
 void setFontDescription (int /*long*/ widget, int /*long*/ font) {
 	if (OS.GTK3) {
 		OS.gtk_widget_override_font (widget, font);
-		int /*long*/ context = OS.gtk_widget_get_style_context (handle);
+		int /*long*/ context = OS.gtk_widget_get_style_context (widget);
 		OS.gtk_style_context_invalidate (context);
 	} else {
 		OS.gtk_widget_modify_font (widget, font);
@@ -1672,7 +1607,7 @@ void setForegroundColor (int /*long*/ handle, GdkColor color, boolean setStateAc
 		OS.gtk_style_context_invalidate (context);
 		return;
 	}
-	
+
 	/*
 	 * Feature in GTK. When the widget doesn't have focus, then
 	 * gtk_default_draw_flat_box () changes the background color state_type
@@ -1702,15 +1637,15 @@ void setForegroundColor (int /*long*/ handle, GdkColor color, boolean setStateAc
 	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_NORMAL);
 	flags = (color == null) ? flags & ~OS.GTK_RC_TEXT: flags | OS.GTK_RC_TEXT;
 	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_NORMAL, flags);
-	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_PRELIGHT);	
+	flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_PRELIGHT);
 	flags = (color == null) ? flags & ~OS.GTK_RC_TEXT: flags | OS.GTK_RC_TEXT;
-	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_PRELIGHT, flags);	
+	OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_PRELIGHT, flags);
 	if (setStateActive) {
 		flags = OS.gtk_rc_style_get_color_flags (style, OS.GTK_STATE_ACTIVE);
 		flags = (color == null) ? flags & ~OS.GTK_RC_TEXT: flags | OS.GTK_RC_TEXT;
 		OS.gtk_rc_style_set_color_flags (style, OS.GTK_STATE_ACTIVE, flags);
 	}
-	modifyStyle (handle, style);	
+	modifyStyle (handle, style);
 }
 
 boolean setInputState (Event event, int state) {
@@ -1829,30 +1764,6 @@ int /*long*/ sizeAllocateProc (int /*long*/ handle, int /*long*/ arg0, int /*lon
 int /*long*/ sizeRequestProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	return 0;
 }
-int /*long*/ g_object_ref_sink (int /*long*/ object) {
-	if (OS.GLIB_VERSION >= OS.VERSION (2, 10, 0)) { 
-		return OS.g_object_ref_sink (object);
-	} else {
-		OS.gtk_object_sink (object);
-	}
-	return 0;
-}
-
-boolean gtk_widget_get_sensitive (int /*long*/ widget) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		return OS.gtk_widget_get_sensitive (widget);
-	} else {
-		return OS.GTK_WIDGET_SENSITIVE (widget);
-	}
-}
-
-boolean gtk_widget_get_visible (int /*long*/ widget) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		return OS.gtk_widget_get_visible (widget);
-	} else {
-		return (OS.GTK_WIDGET_FLAGS (widget) & OS.GTK_VISIBLE) != 0;
-	}
-}
 
 boolean gtk_widget_get_realized (int /*long*/ widget) {
 	 if (OS.GTK_VERSION >= OS.VERSION (2, 20, 0)) {
@@ -1862,52 +1773,11 @@ boolean gtk_widget_get_realized (int /*long*/ widget) {
 	 }
 }
 
-boolean gtk_widget_get_can_default (int /*long*/ widget){
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		return OS.gtk_widget_get_can_default (widget);
-	} else {
-		return (OS.GTK_WIDGET_FLAGS (widget) & OS.GTK_CAN_DEFAULT) != 0;
-	}
-}
-
-boolean gtk_widget_get_has_window (int /*long*/ widget) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		return OS.gtk_widget_get_has_window (widget);
-	} else {
-		return (OS.GTK_WIDGET_FLAGS (widget) & OS.GTK_NO_WINDOW) == 0;
-	}
-}
-
 int /*long*/ gtk_widget_get_window (int /*long*/ widget){
-	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
-		return OS.gtk_widget_get_window (widget);
-	} else {
-		return OS.GTK_WIDGET_WINDOW (widget);
+	if (OS.GTK3) {
+		OS.gtk_widget_realize(widget);
 	}
-}
-
-void gtk_widget_set_can_default (int /*long*/ widget, boolean can_default) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		OS.gtk_widget_set_can_default (widget, can_default);
-	} else {
-		if (can_default) {
-			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_CAN_DEFAULT);
-		} else {
-			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_CAN_DEFAULT);
-		}
-	}
-}
-
-void gtk_widget_set_can_focus (int /*long*/ widget, boolean can_focus) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		OS.gtk_widget_set_can_focus (widget, can_focus);
-	} else {
-		if (can_focus) {
-			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_CAN_FOCUS);
-		} else {
-			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_CAN_FOCUS);
-		}
-	}
+	return OS.gtk_widget_get_window (widget);
 }
 
 void gtk_widget_set_mapped (int /*long*/ widget, boolean mapped) {
@@ -1930,18 +1800,6 @@ void gtk_widget_set_visible (int /*long*/ widget, boolean visible) {
 			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_VISIBLE);
 		} else {
 			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_VISIBLE);
-		}
-	}
-}
-
-void gtk_widget_set_receives_default (int /*long*/ widget, boolean receives_default) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) {
-		OS.gtk_widget_set_receives_default (widget, receives_default);	
-	} else {
-		if (receives_default) {
-			OS.GTK_WIDGET_SET_FLAGS (widget, OS.GTK_RECEIVES_DEFAULT);
-		} else {
-			OS.GTK_WIDGET_UNSET_FLAGS (widget, OS.GTK_RECEIVES_DEFAULT);
 		}
 	}
 }
@@ -2012,6 +1870,7 @@ void gdk_pointer_ungrab (int /*long*/ window, int time_) {
  *
  * @return a string representation of the receiver
  */
+@Override
 public String toString () {
 	String string = "*Disposed*";
 	if (!isDisposed ()) {
@@ -2063,12 +1922,19 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ user_data) {
 int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	switch ((int)/*64*/user_data) {
 		case EXPOSE_EVENT_INVERSE: {
-			GdkEventExpose gdkEvent = new GdkEventExpose ();
-			OS.memmove (gdkEvent, arg0, GdkEventExpose.sizeof);
-			int /*long*/ paintWindow = paintWindow();
-			int /*long*/ window = gdkEvent.window;
-			if (window != paintWindow) return 0;
-			return (state & OBSCURED) != 0 ? 1 : 0;
+			if (OS.GTK3) {
+				if (OS.GTK_VERSION >= OS.VERSION (3, 9, 0) && OS.GTK_IS_CONTAINER (handle)) {
+					return gtk_draw (handle, arg0);
+				}
+			} else {
+				GdkEventExpose gdkEvent = new GdkEventExpose ();
+				OS.memmove (gdkEvent, arg0, GdkEventExpose.sizeof);
+				int /*long*/ paintWindow = paintWindow ();
+				int /*long*/ window = gdkEvent.window;
+				if (window != paintWindow) return 0;
+				return (state & OBSCURED) != 0 ? 1 : 0;
+			}
+			return 0;
 		}
 		case BUTTON_PRESS_EVENT_INVERSE:
 		case BUTTON_RELEASE_EVENT_INVERSE:
@@ -2085,10 +1951,13 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ us
 		case EVENT_AFTER: return gtk_event_after (handle, arg0);
 		case EXPOSE_EVENT: {
 			if (OS.GTK3) {
-				return gtk_draw (handle, arg0);
+				if (OS.GTK_VERSION < OS.VERSION (3, 9, 0) || !OS.GTK_IS_CONTAINER (handle)) {
+					return gtk_draw (handle, arg0);
+				}
 			} else {
 				return gtk_expose_event (handle, arg0);
 			}
+			return 0;
 		}
 		case FOCUS: return gtk_focus (handle, arg0);
 		case FOCUS_IN_EVENT: return gtk_focus_in_event (handle, arg0);
@@ -2108,7 +1977,6 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ us
 		case STYLE_SET: return gtk_style_set (handle, arg0);
 		case TOGGLED: return gtk_toggled (handle, arg0);
 		case UNMAP_EVENT: return gtk_unmap_event (handle, arg0);
-		case VISIBILITY_NOTIFY_EVENT: return gtk_visibility_notify_event (handle, arg0);
 		case WINDOW_STATE_EVENT: return gtk_window_state_event (handle, arg0);
 		case ROW_DELETED: return gtk_row_deleted (handle, arg0);
 		default: return 0;
@@ -2127,6 +1995,7 @@ int /*long*/ windowProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ ar
 		case TEST_COLLAPSE_ROW: return gtk_test_collapse_row (handle, arg0, arg1);
 		case TEST_EXPAND_ROW: return gtk_test_expand_row(handle, arg0, arg1);
 		case ROW_INSERTED: return gtk_row_inserted (handle, arg0, arg1);
+		case ROW_HAS_CHILD_TOGGLED: return gtk_row_has_child_toggled(handle, arg0, arg1);
 		default: return 0;
 	}
 }

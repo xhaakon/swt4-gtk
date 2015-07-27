@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2003, 2013 IBM Corporation and others.
+ * Copyright (c) 2003, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,7 +10,8 @@
  *******************************************************************************/
 package org.eclipse.swt.browser;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.mozilla.*;
@@ -30,6 +31,7 @@ class AppFileLocProvider {
 	static final String HISTORY_FILE = "history.dat"; //$NON-NLS-1$
 	static final String LOCALSTORE_FILE = "localstore.rdf"; //$NON-NLS-1$
 	static final String MIMETYPES_FILE = "mimeTypes.rdf"; //$NON-NLS-1$
+	static final String MOZILLA_PLUGIN_PATH = "MOZ_PLUGIN_PATH"; //$NON-NLS-1$
 	static final String PLUGINS_DIR = "plugins"; //$NON-NLS-1$
 	static final String USER_PLUGINS_DIR = ".mozilla" + SEPARATOR_OS + "plugins"; //$NON-NLS-1$ //$NON-NLS-2$
 	static final String PREFERENCES_FILE = "prefs.js"; //$NON-NLS-1$
@@ -70,23 +72,35 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 	
 	directoryServiceProvider = new XPCOMObject (new int[] {2, 0, 0, 3}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return getFile (args[0], args[1], args[2]);}
 	};
 		
 	directoryServiceProvider2 = new XPCOMObject (new int[] {2, 0, 0, 3, 2}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return getFile (args[0], args[1], args[2]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return getFiles (args[0], args[1]);}
 	};
 }
@@ -115,7 +129,7 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 	
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -154,7 +168,7 @@ int getFiles (int /*long*/ prop, int /*long*/ _retval) {
 		if (pluginDirs == null) {
 			int index = 0;
 			/* set the first value(s) to the MOZ_PLUGIN_PATH environment variable value if it's defined */
-			int /*long*/ ptr = C.getenv (MozillaDelegate.wcsToMbcs (null, XPCOM.MOZILLA_PLUGIN_PATH, true));
+			int /*long*/ ptr = C.getenv (MozillaDelegate.wcsToMbcs (null, MOZILLA_PLUGIN_PATH, true));
 			if (ptr != 0) {
 				int length = C.strlen (ptr);
 				byte[] buffer = new byte[length];
@@ -162,7 +176,7 @@ int getFiles (int /*long*/ prop, int /*long*/ _retval) {
 				String value = new String (MozillaDelegate.mbcsToWcs (null, buffer));
 				if (value.length () > 0) {
 					String separator = System.getProperty ("path.separator"); // $NON-NLS-1$
-					Vector segments = new Vector ();
+					List<String> segments = new ArrayList<String> ();
 					int start, end = -1;
 					do {
 						start = end + 1;
@@ -173,12 +187,12 @@ int getFiles (int /*long*/ prop, int /*long*/ _retval) {
 						} else {
 							segment = value.substring (start, end);
 						}
-						if (segment.length () > 0) segments.addElement (segment);
+						if (segment.length () > 0) segments.add (segment);
 					} while (end != -1);
 					int segmentsSize = segments.size ();
 					pluginDirs = new String [segmentsSize + (IsSparc ? 1 : 2)];
 					for (index = 0; index < segmentsSize; index++) {
-						pluginDirs[index] = (String)segments.elementAt (index);
+						pluginDirs[index] = segments.get (index);
 					}
 				}
 			}
@@ -220,7 +234,7 @@ int getFiles (int /*long*/ prop, int /*long*/ _retval) {
 
 				nsILocalFile localFile = new nsILocalFile (result[0]);
 				result[0] = 0;
-				rc = localFile.QueryInterface (Mozilla.IsPre_17 ? nsIFile.NS_IFILE_IID : nsIFile.NS_IFILE_17_IID, result);
+				rc = localFile.QueryInterface (IIDStore.GetIID (nsIFile.class), result);
 				if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 				if (result[0] == 0) Mozilla.error (XPCOM.NS_ERROR_NO_INTERFACE);
 				localFile.Release ();
@@ -280,15 +294,27 @@ int getFile(int /*long*/ prop, int /*long*/ persistent, int /*long*/ _retval) {
 	} else if (propertyName.equals (XPCOM.NS_GRE_DIR)) {
 		propertyValue = mozillaPath;
 	} else if (propertyName.equals (XPCOM.NS_GRE_COMPONENT_DIR)) {
-		propertyValue = profilePath + COMPONENTS_DIR;
+		if (MozillaVersion.CheckVersion (MozillaVersion.VERSION_XR24, false)) {
+			propertyValue = mozillaPath + COMPONENTS_DIR;
+		} else {
+			propertyValue = profilePath + COMPONENTS_DIR;
+		}
 	} else if (propertyName.equals (XPCOM.NS_XPCOM_INIT_CURRENT_PROCESS_DIR)) {
 		propertyValue = mozillaPath;
 	} else if (propertyName.equals (XPCOM.NS_OS_CURRENT_PROCESS_DIR)) {
 		propertyValue = mozillaPath;
 	} else if (propertyName.equals (XPCOM.NS_XPCOM_COMPONENT_DIR)) {
-		propertyValue = mozillaPath + COMPONENTS_DIR;
+		if (MozillaVersion.CheckVersion (MozillaVersion.VERSION_XR24, false)) {
+			propertyValue = profilePath + COMPONENTS_DIR;
+		} else {
+			propertyValue = mozillaPath + COMPONENTS_DIR;
+		}
 	} else if (propertyName.equals (XPCOM.NS_XPCOM_CURRENT_PROCESS_DIR)) {
-		propertyValue = mozillaPath;
+		if (MozillaVersion.CheckVersion (MozillaVersion.VERSION_XR24, false)) {
+			propertyValue = profilePath;
+		} else {
+			propertyValue = mozillaPath;
+		}
 	} else if (propertyName.equals (XPCOM.NS_APP_PREF_DEFAULTS_50_DIR)) {
 		/*
 		* Answering a value for this property causes problems in Mozilla versions
@@ -315,7 +341,7 @@ int getFile(int /*long*/ prop, int /*long*/ persistent, int /*long*/ _retval) {
 		
 		nsILocalFile localFile = new nsILocalFile (result [0]);
 		result[0] = 0;
-	    rc = localFile.QueryInterface (Mozilla.IsPre_17 ? nsIFile.NS_IFILE_IID : nsIFile.NS_IFILE_17_IID, result); 
+	    rc = localFile.QueryInterface (IIDStore.GetIID (nsIFile.class), result); 
 		if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 		if (result[0] == 0) Mozilla.error (XPCOM.NS_ERROR_NO_INTERFACE);
 

@@ -27,15 +27,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsISeekableStream extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 3;
 
-	public static final String NS_ISEEKABLESTREAM_IID_STR =
-		"8429d350-1040-4661-8b71-f2a6ba455980";
+	static final String NS_ISEEKABLESTREAM_IID_STR = "8429d350-1040-4661-8b71-f2a6ba455980";
 
-	public static final nsID NS_ISEEKABLESTREAM_IID =
-		new nsID(NS_ISEEKABLESTREAM_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsISeekableStream.class, MozillaVersion.VERSION_BASE, new nsID(NS_ISEEKABLESTREAM_IID_STR));
+	}
 
 	public nsISeekableStream(int /*long*/ address) {
 		super(address);
@@ -46,14 +47,10 @@ public class nsISeekableStream extends nsISupports {
 	public static final int NS_SEEK_END = 2;
 
 	public int Seek(int whence, long offset) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), whence, offset);
+		return XPCOM.VtblCall(this.getMethodIndex("seek"), getAddress(), whence, offset);
 	}
 
 	public int Tell(long[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), _retval);
-	}
-
-	public int SetEOF() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress());
+		return XPCOM.VtblCall(this.getMethodIndex("tell"), getAddress(), _retval);
 	}
 }

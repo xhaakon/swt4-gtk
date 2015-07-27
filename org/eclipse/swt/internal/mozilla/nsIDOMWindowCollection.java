@@ -27,29 +27,26 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIDOMWindowCollection extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 3;
 
-	public static final String NS_IDOMWINDOWCOLLECTION_IID_STR =
-		"a6cf906f-15b3-11d2-932e-00805f8add32";
+	static final String NS_IDOMWINDOWCOLLECTION_IID_STR = "a6cf906f-15b3-11d2-932e-00805f8add32";
 
-	public static final nsID NS_IDOMWINDOWCOLLECTION_IID =
-		new nsID(NS_IDOMWINDOWCOLLECTION_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIDOMWindowCollection.class, MozillaVersion.VERSION_BASE, new nsID(NS_IDOMWINDOWCOLLECTION_IID_STR));
+	}
 
 	public nsIDOMWindowCollection(int /*long*/ address) {
 		super(address);
 	}
 
 	public int GetLength(int[] aLength) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aLength);
+		return XPCOM.VtblCall(this.getGetterIndex("length"), getAddress(), aLength);
 	}
 
 	public int Item(int index, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), index, _retval);
-	}
-
-	public int NamedItem(int /*long*/ name, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), name, _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("item"), getAddress(), index, _retval);
 	}
 }

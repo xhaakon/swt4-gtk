@@ -46,62 +46,110 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 	
 	download = new XPCOMObject (new int[] {2, 0, 0, 7, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return Init (args[0], args[1], args[2], args[3], args[4], args[5], args[6]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return GetSource (args[0]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return GetTarget (args[0]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return GetPersist (args[0]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return GetPercentComplete (args[0]);}
+		@Override
 		public int /*long*/ method8 (int /*long*/[] args) {return GetDisplayName (args[0]);}
+		@Override
 		public int /*long*/ method9 (int /*long*/[] args) {return SetDisplayName (args[0]);}
+		@Override
 		public int /*long*/ method10 (int /*long*/[] args) {return GetStartTime (args[0]);}
+		@Override
 		public int /*long*/ method11 (int /*long*/[] args) {return GetMIMEInfo (args[0]);}
+		@Override
 		public int /*long*/ method12 (int /*long*/[] args) {return GetListener (args[0]);}
+		@Override
 		public int /*long*/ method13 (int /*long*/[] args) {return SetListener (args[0]);}
+		@Override
 		public int /*long*/ method14 (int /*long*/[] args) {return GetObserver (args[0]);}
+		@Override
 		public int /*long*/ method15 (int /*long*/[] args) {return SetObserver (args[0]);}
 	};
 	
 	progressDialog = new XPCOMObject (new int[] {2, 0, 0, 7, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return Init (args[0], args[1], args[2], args[3], args[4], args[5], args[6]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return GetSource (args[0]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return GetTarget (args[0]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return GetPersist (args[0]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return GetPercentComplete (args[0]);}
+		@Override
 		public int /*long*/ method8 (int /*long*/[] args) {return GetDisplayName (args[0]);}
+		@Override
 		public int /*long*/ method9 (int /*long*/[] args) {return SetDisplayName (args[0]);}
+		@Override
 		public int /*long*/ method10 (int /*long*/[] args) {return GetStartTime (args[0]);}
+		@Override
 		public int /*long*/ method11 (int /*long*/[] args) {return GetMIMEInfo (args[0]);}
+		@Override
 		public int /*long*/ method12 (int /*long*/[] args) {return GetListener (args[0]);}
+		@Override
 		public int /*long*/ method13 (int /*long*/[] args) {return SetListener (args[0]);}
+		@Override
 		public int /*long*/ method14 (int /*long*/[] args) {return GetObserver (args[0]);}
+		@Override
 		public int /*long*/ method15 (int /*long*/[] args) {return SetObserver (args[0]);}
+		@Override
 		public int /*long*/ method16 (int /*long*/[] args) {return Open (args[0]);}
+		@Override
 		public int /*long*/ method17 (int /*long*/[] args) {return GetCancelDownloadOnClose (args[0]);}
+		@Override
 		public int /*long*/ method18 (int /*long*/[] args) {return SetCancelDownloadOnClose ((int)/*64*/args[0]);}
+		@Override
 		public int /*long*/ method19 (int /*long*/[] args) {return GetDialog (args[0]);}
+		@Override
 		public int /*long*/ method20 (int /*long*/[] args) {return SetDialog (args[0]);}
 	};
 	
 	webProgressListener = new XPCOMObject (new int[] {2, 0, 0, 4, 6, 3, 4, 3}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return OnStateChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return OnProgressChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3], (int)/*64*/args[4], (int)/*64*/args[5]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return OnLocationChange (args[0], args[1], args[2]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return OnStatusChange (args[0], args[1], (int)/*64*/args[2], args[3]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return OnSecurityChange (args[0], args[1], (int)/*64*/args[2]);}
 	};
 }
@@ -134,22 +182,22 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIDownload.NS_IDOWNLOAD_IID)) {
+	if (guid.Equals (XPCOM.NS_IDOWNLOAD_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {download.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIProgressDialog.NS_IPROGRESSDIALOG_IID)) {
+	if (guid.Equals (XPCOM.NS_IPROGRESSDIALOG_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {progressDialog.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIWebProgressListener.NS_IWEBPROGRESSLISTENER_IID)) {
+	if (guid.Equals (IIDStore.GetIID (nsIWebProgressListener.class))) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {webProgressListener.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;
@@ -187,7 +235,7 @@ int Init (int /*long*/ aSource, int /*long*/ aTarget, int /*long*/ aDisplayName,
 	String filename = null;
 	nsISupports supports = new nsISupports (aTarget);
 	int /*long*/[] result = new int /*long*/[1];
-	rc = supports.QueryInterface (!Mozilla.IsPre_4 ? nsIURI.NS_IURI_10_IID : nsIURI.NS_IURI_IID, result);
+	rc = supports.QueryInterface (IIDStore.GetIID (nsIURI.class), result);
 	if (rc == XPCOM.NS_OK) {	/* >= 1.7 */
 		nsIURI target = new nsIURI (result[0]);
 		result[0] = 0;
@@ -205,15 +253,11 @@ int Init (int /*long*/ aSource, int /*long*/ aTarget, int /*long*/ aDisplayName,
 		target.Release ();
 	} else {	/* < 1.7 */
 		nsILocalFile target = new nsILocalFile (aTarget);
-		int /*long*/ aNativeTarget = XPCOM.nsEmbedString_new ();
-		rc = target.GetLeafName (aNativeTarget);
+		nsEmbedString aNativeTarget = new nsEmbedString ();
+		rc = target.GetLeafName (aNativeTarget.getAddress());
 		if (rc != XPCOM.NS_OK) Mozilla.error (rc);
-		length = XPCOM.nsEmbedString_Length (aNativeTarget);
-		buffer = XPCOM.nsEmbedString_get (aNativeTarget);
-		char[] chars = new char[length];
-		XPCOM.memmove (chars, buffer, length * 2);
-		XPCOM.nsEmbedString_delete (aNativeTarget);
-		filename = new String (chars);
+		filename = aNativeTarget.toString ();
+		aNativeTarget.dispose ();
 	}
 
 	Listener listener = new Listener () {
@@ -307,7 +351,7 @@ int SetObserver (int /*long*/ aObserver) {
 	if (aObserver != 0) {
 		nsISupports supports = new nsISupports (aObserver);
 		int /*long*/[] result = new int /*long*/[1];
-		int rc = supports.QueryInterface (nsIHelperAppLauncher.NS_IHELPERAPPLAUNCHER_IID, result);
+		int rc = supports.QueryInterface (IIDStore.GetIID (nsIHelperAppLauncher.class), result);
 		if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 		if (result[0] == 0) Mozilla.error (XPCOM.NS_ERROR_NO_INTERFACE);
 		helperAppLauncher = new nsIHelperAppLauncher (result[0]);

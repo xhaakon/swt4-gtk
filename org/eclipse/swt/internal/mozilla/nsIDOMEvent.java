@@ -27,27 +27,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIDOMEvent extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRunner17 ? 25 : (IsXULRunner10 ? 12 : 10));
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRVersionOrLater(MozillaVersion.VERSION_XR24) ? 25 : (IsXULRunner10() ? 12 : 10));
 
-	public static final String NS_IDOMEVENT_IID_STR =
-		"a66b7b80-ff46-bd97-0080-5f8ae38add32";
+	static final String NS_IDOMEVENT_IID_STR = "a66b7b80-ff46-bd97-0080-5f8ae38add32";
+	static final String NS_IDOMEVENT_10_IID_STR = "e85cff74-951f-45c1-be0c-89442ea2f500";
+	static final String NS_IDOMEVENT_24_IID_STR = "02d54f52-a1f5-4ad2-b560-36f14012935e";
 
-	public static final String NS_IDOMEVENT_10_IID_STR =
-		"e85cff74-951f-45c1-be0c-89442ea2f500";
-	
-	public static final String NS_IDOMEVENT_17_IID_STR =
-		"270c945b-8a65-4170-bc0b-4ec1443cd39f";
-
-	public static final nsID NS_IDOMEVENT_IID =
-		new nsID(NS_IDOMEVENT_IID_STR);
-
-	public static final nsID NS_IDOMEVENT_10_IID =
-		new nsID(NS_IDOMEVENT_10_IID_STR);
-
-	public static final nsID NS_IDOMEVENT_17_IID =
-		new nsID(NS_IDOMEVENT_17_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIDOMEvent.class, MozillaVersion.VERSION_BASE, new nsID(NS_IDOMEVENT_IID_STR));
+		IIDStore.RegisterIID(nsIDOMEvent.class, MozillaVersion.VERSION_XR10, new nsID(NS_IDOMEVENT_10_IID_STR));
+		IIDStore.RegisterIID(nsIDOMEvent.class, MozillaVersion.VERSION_XR24, new nsID(NS_IDOMEVENT_24_IID_STR));
+	}
 
 	public nsIDOMEvent(int /*long*/ address) {
 		super(address);
@@ -58,14 +51,14 @@ public class nsIDOMEvent extends nsISupports {
 	public static final int BUBBLING_PHASE = 3;
 
 	public int GetType(int /*long*/ aType) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aType);
+		return XPCOM.VtblCall(this.getGetterIndex("type"), getAddress(), aType);
 	}
 
 	public int GetCurrentTarget(int /*long*/[] aCurrentTarget) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aCurrentTarget);
+		return XPCOM.VtblCall(this.getGetterIndex("currentTarget"), getAddress(), aCurrentTarget);
 	}
 
 	public int PreventDefault() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 9, getAddress());
+		return XPCOM.VtblCall(this.getMethodIndex("preventDefault"), getAddress());
 	}
 }

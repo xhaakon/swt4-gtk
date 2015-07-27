@@ -27,27 +27,22 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIPrincipal extends nsISerializable {
 
-	static final int LAST_METHOD_ID = nsISerializable.LAST_METHOD_ID + (IsXULRunner17 ? 27 : (IsXULRunner10 ? 26 : 23));
+	static final int LAST_METHOD_ID = nsISerializable.LAST_METHOD_ID + (IsXULRunner31 () ? 19 : (IsXULRunner24() ? 21 : (IsXULRunner10() ? 26 : 23)));
 
-	public static final String NS_IPRINCIPAL_IID_STR =
-		"b8268b9a-2403-44ed-81e3-614075c92034";
+	static final String NS_IPRINCIPAL_IID_STR = "b8268b9a-2403-44ed-81e3-614075c92034";
+	static final String NS_IPRINCIPAL_10_IID_STR = "b406a2db-e547-4c95-b8e2-ad09ecb54ce0";
+	static final String NS_IPRINCIPAL_24_IID_STR = "dbda8bb0-3023-4aec-ad98-8e9931a29d70";
+	static final String NS_IPRINCIPAL_31_IID_STR = "204555e7-04ad-4cc8-9f0e-840615cc43e8";
 
-	public static final nsID NS_IPRINCIPAL_IID =
-		new nsID(NS_IPRINCIPAL_IID_STR);
-
-	public static final String NS_IPRINCIPAL_10_IID_STR =
-		"b406a2db-e547-4c95-b8e2-ad09ecb54ce0";
-
-	public static final nsID NS_IPRINCIPAL_10_IID =
-		new nsID(NS_IPRINCIPAL_10_IID_STR);
-	
-	public static final String NS_IPRINCIPAL_17_IID_STR =
-		"825ffce8-962d-11e1-aef3-8f2b6188709b";
-
-	public static final nsID NS_IPRINCIPAL_17_IID =
-		new nsID(NS_IPRINCIPAL_17_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIPrincipal.class, MozillaVersion.VERSION_BASE, new nsID(NS_IPRINCIPAL_IID_STR));
+		IIDStore.RegisterIID(nsIPrincipal.class, MozillaVersion.VERSION_XR10, new nsID(NS_IPRINCIPAL_10_IID_STR));
+		IIDStore.RegisterIID(nsIPrincipal.class, MozillaVersion.VERSION_XR24, new nsID(NS_IPRINCIPAL_24_IID_STR));
+		IIDStore.RegisterIID(nsIPrincipal.class, MozillaVersion.VERSION_XR31, new nsID(NS_IPRINCIPAL_31_IID_STR));
+	}
 
 	public nsIPrincipal(int /*long*/ address) {
 		super(address);
@@ -59,7 +54,7 @@ public class nsIPrincipal extends nsISerializable {
 	public static final int ENABLE_GRANTED = 4;
 
 	public int GetJSPrincipals(int /*long*/ cx, int /*long*/[] _retval) {
-		if (IsXULRunner17) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISerializable.LAST_METHOD_ID + (IsXULRunner10 ? 5 : 4), getAddress(), cx, _retval);
+		if (IsXULRVersionOrLater(MozillaVersion.VERSION_XR24)) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(this.getMethodIndex("getJSPrincipals"), getAddress(), cx, _retval);
 	}
 }

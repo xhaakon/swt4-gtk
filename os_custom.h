@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2000, 2013 IBM Corporation and others. All rights reserved.
+* Copyright (c) 2000, 2015 IBM Corporation and others. All rights reserved.
 * The contents of this file are made available under the terms
 * of the GNU Lesser General Public License (LGPL) Version 2.1 that
 * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -78,8 +78,40 @@
 #define XRenderFreePicture_LIB LIB_XRENDER
 #define XRenderSetPictureClipRectangles_LIB LIB_XRENDER
 #define XRenderSetPictureTransform_LIB LIB_XRENDER
+#define g_bus_get_sync_LIB LIB_GIO
+#define g_bus_own_name_LIB LIB_GIO
+#define g_dbus_connection_register_object_LIB LIB_GIO
+#define g_dbus_method_invocation_return_value_LIB LIB_GIO
+#define g_dbus_node_info_lookup_interface_LIB LIB_GIO
+#define g_dbus_node_info_new_for_xml_LIB LIB_GIO
+#define g_dbus_proxy_call_LIB LIB_GIO
+#define g_dbus_proxy_call_finish_LIB LIB_GIO
+#define g_dbus_proxy_call_sync_LIB LIB_GIO
+#define g_dbus_proxy_call_sync_finish_LIB LIB_GIO
+#define g_dbus_proxy_new_LIB LIB_GIO
+#define g_dbus_proxy_new_finish_LIB LIB_GIO
+#define g_dbus_proxy_new_sync_LIB LIB_GIO
 #define g_filename_display_name_LIB LIB_GLIB
+#define g_hash_table_get_values_LIB LIB_GLIB
 #define g_thread_init_LIB LIB_GTHREAD
+#define g_variant_get_boolean_LIB LIB_GIO
+#define g_variant_get_child_value_LIB LIB_GIO
+#define g_variant_get_double_LIB LIB_GIO
+#define g_variant_get_string_LIB LIB_GIO
+#define g_variant_get_type_string_LIB LIB_GIO
+#define g_variant_get_type_LIB LIB_GIO
+#define g_variant_get_uint64_LIB LIB_GIO
+#define g_variant_get_uint64_LIB LIB_GIO
+#define g_variant_is_of_type_LIB LIB_GIO
+#define g_variant_new_boolean_LIB LIB_GIO
+#define g_variant_new_byte_LIB LIB_GIO
+#define g_variant_new_double_LIB LIB_GIO
+#define g_variant_new_int64_LIB LIB_GIO
+#define g_variant_new_maybe_LIB LIB_GIO
+#define g_variant_new_string_LIB LIB_GIO
+#define g_variant_new_tuple_LIB LIB_GIO
+#define g_variant_new_uint64_LIB LIB_GIO
+#define g_variant_n_children_LIB LIB_GIO
 #define gtk_widget_set_allocation_LIB LIB_GTK
 #define gtk_adjustment_configure_LIB LIB_GTK
 #define gtk_adjustment_get_lower_LIB LIB_GTK
@@ -90,6 +122,8 @@
 #define gtk_adjustment_get_value_LIB LIB_GTK
 #define gtk_adjustment_set_page_increment_LIB LIB_GTK
 #define gtk_adjustment_set_step_increment_LIB LIB_GTK
+#define gtk_arrow_new_LIB LIB_GTK
+#define gtk_arrow_set_LIB LIB_GTK
 #define gtk_box_new_LIB LIB_GTK
 #define gtk_box_set_homogeneous_LIB LIB_GTK
 #define gtk_hbox_new_LIB LIB_GTK
@@ -128,14 +162,9 @@
 #define gtk_combo_box_remove_text_LIB LIB_GTK
 #define gtk_combo_box_text_remove_LIB LIB_GTK
 #define gtk_combo_box_text_remove_all_LIB LIB_GTK
-#define gtk_combo_box_get_active_LIB LIB_GTK
-#define gtk_combo_box_get_model_LIB LIB_GTK
-#define gtk_combo_box_set_active_LIB LIB_GTK
-#define gtk_combo_box_set_focus_on_click_LIB LIB_GTK
-#define gtk_combo_box_popup_LIB LIB_GTK
-#define gtk_combo_box_popdown_LIB LIB_GTK
 #define gtk_combo_box_text_new_LIB LIB_GTK
 #define gtk_combo_box_text_new_with_entry_LIB LIB_GTK
+#define gtk_drag_begin_LIB LIB_GTK
 #define gtk_entry_text_index_to_layout_index_LIB LIB_GTK
 #define gtk_entry_get_inner_border_LIB LIB_GTK
 #define gtk_font_chooser_dialog_new_LIB LIB_GTK
@@ -177,10 +206,12 @@
 #define gtk_icon_info_free_LIB LIB_GTK
 #define gtk_icon_set_render_icon_LIB LIB_GTK
 #define gtk_icon_theme_lookup_by_gicon_LIB LIB_GTK
+#define gtk_icon_source_free_LIB LIB_GTK
+#define gtk_icon_source_new_LIB LIB_GTK
+#define gtk_icon_source_set_pixbuf_LIB LIB_GTK
 #define gtk_image_set_from_gicon_LIB LIB_GTK
 #define gdk_keyboard_ungrab_LIB LIB_GDK
 #define gtk_icon_theme_get_default_LIB LIB_GTK
-#define gtk_menu_item_remove_submenu_LIB LIB_GTK
 #define gtk_menu_shell_set_take_focus_LIB LIB_GTK
 #define gtk_menu_tool_button_new_LIB LIB_GTK
 #define gtk_window_set_keep_below_LIB LIB_GTK
@@ -192,27 +223,21 @@
 #define gtk_rc_parse_string_LIB LIB_GTK
 #define gtk_hseparator_new_LIB LIB_GTK
 #define gtk_vseparator_new_LIB LIB_GTK
-#define gtk_toolbar_set_orientation_LIB LIB_GTK
 #define gtk_tooltip_trigger_tooltip_query_LIB LIB_GTK
-#define gtk_tooltips_set_tip_LIB LIB_GTK
-#define gtk_tooltips_enable_LIB LIB_GTK
-#define gtk_tooltips_disable_LIB LIB_GTK
-#define gtk_tooltips_data_get_LIB LIB_GTK
-#define gtk_tooltips_force_window_LIB LIB_GTK
 #define gtk_tree_selection_count_selected_rows_LIB LIB_GTK
 #define gtk_tree_selection_get_selected_rows_LIB LIB_GTK
 #define gtk_tree_view_column_get_button_LIB LIB_GTK
-#define gtk_tree_view_column_get_cell_renderers_LIB LIB_GTK
 #define gtk_tree_view_column_cell_get_position_LIB LIB_GTK
 #define gtk_tree_view_convert_bin_window_to_tree_coords_LIB LIB_GTK
 #define gtk_tree_view_set_grid_lines_LIB LIB_GTK
-#define gtk_tree_view_widget_to_tree_coords_LIB LIB_GTK
+#define gtk_tree_view_set_rules_hint_LIB LIB_GTK
+#define gtk_tree_view_get_rules_hint_LIB LIB_GTK
 #define gtk_entry_set_alignment_LIB LIB_GTK
-#define gtk_entry_set_icon_from_stock_LIB LIB_GTK
+#define gtk_entry_set_icon_from_icon_name_LIB LIB_GTK
 #define gtk_entry_set_icon_sensitive_LIB LIB_GTK
-#define gtk_tooltips_new_LIB LIB_GTK
 #define gdk_cursor_new_from_pixbuf_LIB LIB_GDK
 #define gdk_cursor_unref_LIB LIB_GDK
+#define gdk_device_warp_LIB LIB_GDK
 #define gdk_device_manager_get_client_pointer_LIB LIB_GDK
 #define gdk_device_get_window_at_position_LIB LIB_GDK
 #define gdk_device_grab_LIB LIB_GDK
@@ -279,7 +304,8 @@
 #define gdk_screen_get_monitor_at_window_LIB LIB_GDK
 #define gdk_screen_get_monitor_geometry_LIB LIB_GDK
 #define gdk_screen_get_n_monitors_LIB LIB_GDK
-#define gdk_screen_get_number_LIB LIB_GDK
+#define gdk_screen_get_monitor_width_mm_LIB LIB_GDK
+#define gdk_screen_get_primary_monitor_LIB LIB_GDK
 #define gdk_pixbuf_render_to_drawable_LIB LIB_GDK
 #define gdk_visual_get_depth_LIB LIB_GDK
 #define gtk_scrolled_window_get_hscrollbar_LIB LIB_GTK
@@ -293,16 +319,12 @@
 #define gtk_style_render_icon_LIB LIB_GTK
 #define gtk_hscale_new_LIB LIB_GTK
 #define gtk_vscale_new_LIB LIB_GTK
+#define gtk_scrolled_window_add_with_viewport_LIB LIB_GTK
 #define gtk_selection_data_get_data_LIB LIB_GTK
 #define gtk_selection_data_get_data_type_LIB LIB_GTK
 #define gtk_selection_data_get_format_LIB LIB_GTK
 #define gtk_selection_data_get_length_LIB LIB_GTK
 #define gtk_selection_data_get_target_LIB LIB_GTK
-#define gtk_status_icon_get_geometry_LIB LIB_GTK
-#define gtk_status_icon_get_visible_LIB LIB_GTK
-#define gtk_status_icon_new_LIB LIB_GTK
-#define gtk_status_icon_set_from_pixbuf_LIB LIB_GTK
-#define gtk_status_icon_set_visible_LIB LIB_GTK
 #define gtk_status_icon_set_tooltip_LIB LIB_GTK
 #define gtk_status_icon_position_menu_LIB LIB_GTK
 #define gtk_window_get_group_LIB LIB_GTK
@@ -310,7 +332,6 @@
 #define gdk_window_create_similar_surface_LIB LIB_GDK
 #define gdk_window_lookup_LIB LIB_GDK
 #define gdk_window_restack_LIB LIB_GDK
-#define gdk_window_begin_paint_region_LIB LIB_GDK
 #define gdk_window_get_device_position_LIB LIB_GDK
 #define gdk_window_get_pointer_LIB LIB_GDK
 #define gdk_window_at_pointer_LIB LIB_GDK
@@ -321,11 +342,17 @@
 #define gdk_window_get_visible_region_LIB LIB_GDK
 #define gdk_window_set_keep_above_LIB LIB_GDK
 #define gdk_window_set_accept_focus_LIB LIB_GDK
+#define gtk_misc_set_alignment_LIB LIB_GTK
+#define gtk_label_set_xalign_LIB LIB_GTK
+#define gtk_label_set_yalign_LIB LIB_GTK
+#define gtk_widget_set_halign_LIB LIB_GTK
+#define gtk_widget_set_valign_LIB LIB_GTK
 #define gtk_window_set_opacity_LIB LIB_GTK
 #define gtk_window_set_skip_taskbar_hint_LIB LIB_GTK
 #define gtk_widget_is_composited_LIB LIB_GTK
 #define gtk_widget_get_allocation_LIB LIB_GTK
 #define gtk_widget_size_request_LIB LIB_GTK
+#define gtk_widget_get_default_style_LIB LIB_GTK
 #define gtk_widget_get_preferred_size_LIB LIB_GTK
 #define gtk_widget_get_style_context_LIB LIB_GTK
 #define gtk_widget_get_tooltip_text_LIB LIB_GTK
@@ -335,7 +362,6 @@
 #define gtk_widget_has_default_LIB LIB_GTK
 #define gtk_widget_set_tooltip_text_LIB LIB_GTK
 #define gtk_widget_set_has_window_LIB LIB_GTK
-#define gtk_fixed_set_has_window_LIB LIB_GTK
 #define gtk_widget_get_mapped_LIB LIB_GTK
 #define gtk_widget_get_sensitive_LIB LIB_GTK
 #define gtk_widget_get_has_window_LIB LIB_GTK
@@ -349,7 +375,14 @@
 #define gtk_widget_set_sensitive_LIB LIB_GTK
 #define gtk_widget_set_receives_default_LIB LIB_GTK
 #define gtk_widget_set_visible_LIB LIB_GTK
+#define gtk_widget_set_state_LIB LIB_GTK
 #define gtk_widget_shape_combine_region_LIB LIB_GTK
+#define gtk_widget_modify_base_LIB LIB_GTK
+#define gtk_widget_modify_bg_LIB LIB_GTK
+#define gtk_widget_modify_font_LIB LIB_GTK
+#define gtk_widget_modify_style_LIB LIB_GTK
+#define gtk_widget_get_style_LIB LIB_GTK
+#define gtk_widget_get_modifier_style_LIB LIB_GTK
 #define gtk_range_get_slider_range_LIB LIB_GTK
 #define gdk_x11_screen_get_window_manager_name_LIB LIB_GDK
 #define gdk_x11_screen_lookup_visual_LIB LIB_GDK
@@ -390,8 +423,6 @@
 #define gdk_cairo_create_LIB LIB_GDK
 #define gdk_colormap_alloc_color_LIB LIB_GDK
 #define gdk_colormap_free_colors_LIB LIB_GDK
-#define gtk_enumerate_printers_LIB LIB_GTK
-#define gtk_object_sink_LIB LIB_GTK
 #define gtk_orientable_set_orientation_LIB LIB_GTK
 #define gtk_paint_arrow_LIB LIB_GTK
 #define gtk_paint_box_LIB LIB_GTK
@@ -408,75 +439,8 @@
 #define gtk_paint_shadow_gap_LIB LIB_GTK
 #define gtk_paint_option_LIB LIB_GTK
 #define gtk_paint_layout_LIB LIB_GTK
-#define gtk_page_setup_get_bottom_margin_LIB LIB_GTK
-#define gtk_page_setup_get_left_margin_LIB LIB_GTK
-#define gtk_page_setup_get_orientation_LIB LIB_GTK
-#define gtk_page_setup_get_page_height_LIB LIB_GTK
-#define gtk_page_setup_get_page_width_LIB LIB_GTK
-#define gtk_page_setup_get_paper_height_LIB LIB_GTK
-#define gtk_page_setup_get_paper_size_LIB LIB_GTK
-#define gtk_page_setup_get_paper_width_LIB LIB_GTK
-#define gtk_page_setup_get_right_margin_LIB LIB_GTK
-#define gtk_page_setup_get_top_margin_LIB LIB_GTK
-#define gtk_page_setup_new_LIB LIB_GTK
-#define gtk_page_setup_set_bottom_margin_LIB LIB_GTK
-#define gtk_page_setup_set_left_margin_LIB LIB_GTK
-#define gtk_page_setup_set_orientation_LIB LIB_GTK
-#define gtk_page_setup_set_paper_size_LIB LIB_GTK
-#define gtk_page_setup_set_right_margin_LIB LIB_GTK
-#define gtk_page_setup_set_top_margin_LIB LIB_GTK
-#define gtk_paper_size_free_LIB LIB_GTK
-#define gtk_paper_size_get_display_name_LIB LIB_GTK
-#define gtk_paper_size_get_name_LIB LIB_GTK
-#define gtk_paper_size_get_ppd_name_LIB LIB_GTK
-#define gtk_paper_size_get_height_LIB LIB_GTK
-#define gtk_paper_size_get_width_LIB LIB_GTK
-#define gtk_paper_size_is_custom_LIB LIB_GTK
-#define gtk_paper_size_new_LIB LIB_GTK
-#define gtk_paper_size_new_custom_LIB LIB_GTK
-#define gtk_paper_size_new_from_ppd_LIB LIB_GTK
-#define gtk_print_job_get_printer_LIB LIB_GTK
-#define gtk_print_job_get_settings_LIB LIB_GTK
-#define gtk_print_job_get_status_LIB LIB_GTK
-#define gtk_print_job_get_surface_LIB LIB_GTK
-#define gtk_print_job_get_title_LIB LIB_GTK
-#define gtk_print_job_new_LIB LIB_GTK
-#define gtk_print_job_send_LIB LIB_GTK
-#define gtk_print_job_set_source_file_LIB LIB_GTK
-#define gtk_print_settings_foreach_LIB LIB_GTK
-#define gtk_print_settings_get_LIB LIB_GTK
-#define gtk_print_settings_get_collate_LIB LIB_GTK
-#define gtk_print_settings_get_duplex_LIB LIB_GTK
-#define gtk_print_settings_get_n_copies_LIB LIB_GTK
-#define gtk_print_settings_get_orientation_LIB LIB_GTK
-#define gtk_print_settings_get_page_ranges_LIB LIB_GTK
-#define gtk_print_settings_get_paper_height_LIB LIB_GTK
-#define gtk_print_settings_get_paper_width_LIB LIB_GTK
-#define gtk_print_settings_get_print_pages_LIB LIB_GTK
-#define gtk_print_settings_get_printer_LIB LIB_GTK
-#define gtk_print_settings_get_resolution_LIB LIB_GTK
-#define gtk_print_settings_new_LIB LIB_GTK
-#define gtk_print_settings_set_LIB LIB_GTK
-#define gtk_print_settings_set_collate_LIB LIB_GTK
-#define gtk_print_settings_set_duplex_LIB LIB_GTK
-#define gtk_print_settings_set_n_copies_LIB LIB_GTK
-#define gtk_print_settings_set_orientation_LIB LIB_GTK
-#define gtk_print_settings_set_page_ranges_LIB LIB_GTK
-#define gtk_print_settings_set_print_pages_LIB LIB_GTK
-#define gtk_print_settings_set_printer_LIB LIB_GTK
-#define gtk_print_unix_dialog_get_current_page_LIB LIB_GTK
-#define gtk_print_unix_dialog_get_page_setup_LIB LIB_GTK
-#define gtk_print_unix_dialog_get_selected_printer_LIB LIB_GTK
-#define gtk_print_unix_dialog_get_settings_LIB LIB_GTK
-#define gtk_print_unix_dialog_new_LIB LIB_GTK
-#define gtk_print_unix_dialog_set_current_page_LIB LIB_GTK
-#define gtk_print_unix_dialog_set_manual_capabilities_LIB LIB_GTK
+#define gtk_printer_option_widget_get_type_LIB LIB_GTK
 #define gtk_print_unix_dialog_set_embed_page_setup_LIB LIB_GTK
-#define gtk_print_unix_dialog_set_page_setup_LIB LIB_GTK
-#define gtk_print_unix_dialog_set_settings_LIB LIB_GTK
-#define gtk_printer_get_backend_LIB LIB_GTK
-#define gtk_printer_get_name_LIB LIB_GTK
-#define gtk_printer_is_default_LIB LIB_GTK
 #define gtk_render_check_LIB LIB_GTK
 #define gtk_render_extension_LIB LIB_GTK
 #define gtk_render_expander_LIB LIB_GTK
@@ -525,7 +489,6 @@
 #define g_icon_to_string_LIB LIB_GIO
 #define g_icon_new_for_string_LIB LIB_GIO
 #define g_file_query_info_LIB LIB_GIO
-#define g_object_ref_sink_LIB LIB_GOBJECT
 
 // GTK3 only
 #define gtk_widget_draw_LIB LIB_GTK
@@ -534,6 +497,7 @@
 #define gtk_widget_override_font_LIB LIB_GTK
 #define gtk_widget_get_preferred_height_for_width_LIB LIB_GTK
 #define gtk_widget_get_preferred_width_for_height_LIB LIB_GTK
+#define gtk_spin_button_set_numeric_LIB LIB_GTK
 #define gtk_style_context_get_font_LIB LIB_GTK
 #define gtk_style_context_get_color_LIB LIB_GTK
 #define gtk_style_context_get_background_color_LIB LIB_GTK
@@ -544,6 +508,7 @@
 #define gtk_style_context_invalidate_LIB LIB_GTK
 #define gtk_hsv_to_rgb_LIB LIB_GTK
 #define gtk_rgb_to_hsv_LIB LIB_GTK
+#define gdk_screen_get_monitor_workarea_LIB LIB_GDK
 #define gdk_window_set_background_pattern_LIB LIB_GTK
 #define gtk_widget_input_shape_combine_region_LIB LIB_GTK
 #define gtk_entry_set_placeholder_text_LIB LIB_GTK
@@ -555,7 +520,8 @@
 #define gtk_css_provider_new_LIB LIB_GTK
 #define gtk_icon_set_render_icon_pixbuf_LIB LIB_GTK
 #define gtk_drag_set_icon_surface_LIB LIB_GTK
-
+#define gtk_accel_label_set_accel_LIB LIB_GTK
+#define gtk_drag_begin_with_coordinates_LIB LIB_GTK
 #ifndef g_thread_supported
 #define g_thread_supported() 0
 #endif
@@ -566,9 +532,18 @@
 #endif
 #define G_OBJECT_CLASS_CONSTRUCTOR(arg0) (arg0)->constructor
 #define G_OBJECT_CLASS_SET_CONSTRUCTOR(arg0, arg1) (arg0)->constructor = (GObject* (*) (GType, guint, GObjectConstructParam *))arg1
+struct _GtkAccelLabelPrivate
+{
+  GtkWidget     *accel_widget;       /* done */
+  GClosure      *accel_closure;      /* has set function */
+  GtkAccelGroup *accel_group;        /* set by set_accel_closure() */
+  gchar         *accel_string;       /* has set function */
+  guint          accel_padding;      /* should be style property? */
+  guint16        accel_string_width; /* seems to be private */
+};
 #if GTK_CHECK_VERSION(3,0,0)
-#define GTK_ACCEL_LABEL_SET_ACCEL_STRING(arg0, arg1)
-#define GTK_ACCEL_LABEL_GET_ACCEL_STRING(arg0) 0
+#define GTK_ACCEL_LABEL_SET_ACCEL_STRING(arg0, arg1) (arg0)->priv->accel_string = arg1
+#define GTK_ACCEL_LABEL_GET_ACCEL_STRING(arg0) (arg0)->priv->accel_string
 #else
 #define GTK_ACCEL_LABEL_SET_ACCEL_STRING(arg0, arg1) (arg0)->accel_string = arg1
 #define GTK_ACCEL_LABEL_GET_ACCEL_STRING(arg0) (arg0)->accel_string
@@ -583,26 +558,7 @@
 #else
 #define GTK_RANGE_SLIDER_END(arg0) (arg0)->slider_end
 #endif
-#if GTK_CHECK_VERSION(2,8,0)
-#define GTK_SCROLLED_WINDOW_HSCROLLBAR(arg0) 0
-#else
-#define GTK_SCROLLED_WINDOW_HSCROLLBAR(arg0) (arg0)->hscrollbar
-#endif
-#define GTK_SCROLLED_WINDOW_SCROLLBAR_SPACING(arg0) (GTK_SCROLLED_WINDOW_GET_CLASS (arg0)->scrollbar_spacing >= 0 ? GTK_SCROLLED_WINDOW_GET_CLASS (arg0)->scrollbar_spacing : 3)		
-#if GTK_CHECK_VERSION(2,8,0)
-#define GTK_SCROLLED_WINDOW_VSCROLLBAR(arg0) 0
-#else
-#define GTK_SCROLLED_WINDOW_VSCROLLBAR(arg0) (arg0)->vscrollbar
-#endif
-#ifndef GTK_WIDGET_HAS_DEFAULT
-#define GTK_WIDGET_HAS_DEFAULT(arg0) 0
-#endif
-#ifndef GTK_WIDGET_HAS_FOCUS
-#define GTK_WIDGET_HAS_FOCUS(arg0) 0
-#endif
-#ifndef GTK_WIDGET_SENSITIVE
-#define GTK_WIDGET_SENSITIVE(arg0) 0
-#endif
+#define GTK_SCROLLED_WINDOW_SCROLLBAR_SPACING(arg0) (GTK_SCROLLED_WINDOW_GET_CLASS (arg0)->scrollbar_spacing >= 0 ? GTK_SCROLLED_WINDOW_GET_CLASS (arg0)->scrollbar_spacing : 3)
 #ifndef GTK_WIDGET_SET_FLAGS
 #define GTK_WIDGET_SET_FLAGS(arg0, arg1)
 #endif
@@ -612,64 +568,21 @@
 #ifndef GTK_OBJECT_FLAGS
 #define GTK_OBJECT_FLAGS(arg0) arg0
 #endif
-#ifndef GTK_WIDGET_VISIBLE
-#define GTK_WIDGET_VISIBLE(arg0) 0
-#endif
-#if GTK_CHECK_VERSION(2,18,0)
-#define GTK_WIDGET_HEIGHT(arg0) 0
-#else
-#define GTK_WIDGET_HEIGHT(arg0) (arg0)->allocation.height
-#endif
 #ifndef GTK_WIDGET_MAPPED
 #define GTK_WIDGET_MAPPED(arg0) 0
 #endif
-#if GTK_CHECK_VERSION(2,18,0)
-#define GTK_WIDGET_WIDTH(arg0) 0
-#else
-#define GTK_WIDGET_WIDTH(arg0) (arg0)->allocation.width
-#endif
-#if GTK_CHECK_VERSION(2,14,0)
-#define GTK_WIDGET_WINDOW(arg0) 0
-#else
-#define GTK_WIDGET_WINDOW(arg0) (arg0)->window
-#endif
-#if GTK_CHECK_VERSION(2,18,0)
-#define GTK_WIDGET_X(arg0) 0
-#else
-#define GTK_WIDGET_X(arg0) (arg0)->allocation.x
-#endif
-#if GTK_CHECK_VERSION(2,18,0)
-#define GTK_WIDGET_SET_X(arg0, arg1)
-#else
-#define GTK_WIDGET_SET_X(arg0, arg1) (arg0)->allocation.x = arg1
+#if !GTK_CHECK_VERSION(3,0,0)
+#define GDK_IS_X11_DISPLAY(arg0) 1
 #endif
 #define GTK_ENTRY_IM_CONTEXT(arg0) (arg0)->im_context
 #define GTK_TEXTVIEW_IM_CONTEXT(arg0) (arg0)->im_context
-#if GTK_CHECK_VERSION(2,12,0)
-#define GTK_TOOLTIPS_TIP_WINDOW(arg0) 0
-#define GTK_TOOLTIPS_SET_ACTIVE(arg0, arg1)
-#define GTK_TOOLTIPS_GET_TIP_TEXT(arg0) 0
-#else
-#define GTK_TOOLTIPS_TIP_WINDOW(arg0) (arg0)->tip_window
-#define GTK_TOOLTIPS_SET_ACTIVE(arg0, arg1) (arg0)->active_tips_data = arg1
-#define GTK_TOOLTIPS_GET_TIP_TEXT(arg0) (arg0)->tip_text
-#endif
-#if GTK_CHECK_VERSION(2,18,0)
-#define GTK_WIDGET_Y(arg0) 0
-#else
-#define GTK_WIDGET_Y(arg0) ((GtkWidget *)arg0)->allocation.y
-#endif
-#if GTK_CHECK_VERSION(2,18,0)
-#define GTK_WIDGET_SET_Y(arg0, arg1)
-#else
-#define GTK_WIDGET_SET_Y(arg0, arg1) (arg0)->allocation.y = arg1
-#endif
 #define GTK_WIDGET_REQUISITION_WIDTH(arg0) (arg0)->requisition.width
 #define GTK_WIDGET_REQUISITION_HEIGHT(arg0) (arg0)->requisition.height
 #define GDK_EVENT_TYPE(arg0) (arg0)->type
 #define GDK_EVENT_WINDOW(arg0) (arg0)->window
 #define X_EVENT_TYPE(arg0) (arg0)->type
 #define X_EVENT_WINDOW(arg0) (arg0)->window
+#define g_error_get_message(arg0) (arg0)->message
 #define g_list_data(arg0) (arg0)->data
 #define g_slist_data(arg0) (arg0)->data
 #define g_list_set_next(arg0, arg1) (arg0)->next = arg1

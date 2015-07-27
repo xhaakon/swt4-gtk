@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Lars Vogel <Lars.Vogel@vogella.com> - Bug 455263
  *******************************************************************************/
 package org.eclipse.swt;
 
@@ -770,6 +771,74 @@ public class SWT {
      * @since 3.8
 	 */
 	public static final int Segments = 49;
+	
+	/**
+	 * The PreEvent event type (value is 50).
+	 *
+	 * <p>
+	 * This event is sent before an event other than {@link #PreExternalEventDispatch} or
+	 * {@link #PostExternalEventDispatch} is dispatched.
+	 * </p>
+	 * <p>
+	 * The detail field of the event contains the type of the following event.
+	 * </p>
+	 *
+	 * @since 3.103
+	 */
+	public static final int PreEvent = 50;
+
+	/**
+	 * The PostEvent event type (value is 51).
+	 *
+	 * <p>
+	 * This event is sent after an event other than {@link #PreExternalEventDispatch} or
+	 * {@link #PostExternalEventDispatch} is dispatched.
+	 * </p>
+	 * <p>
+	 * The detail field of the event contains the type of the prior event.
+	 * </p>
+	 *
+	 * @since 3.103
+	 */
+	public static final int PostEvent = 51;
+
+	/**
+	 * The PreExternalEventDispatch event type (value is 52).
+	 *
+	 * <p>
+	 * This event is sent before calling a blocking method that does its own event dispatch outside
+	 * of the SWT code.
+	 * </p>
+	 *
+	 * @since 3.104
+	 */
+	public static final int PreExternalEventDispatch = 52;
+
+	/**
+	 * The PostExternalEventDispatch event type (value is 53).
+	 *
+	 * <p>
+	 * This event is sent after calling a blocking method that does its own event dispatch outside
+	 * of the SWT code.
+	 * </p>
+	 *
+	 * @since 3.104
+	 */
+	public static final int PostExternalEventDispatch = 53;
+
+	/**
+	 * @deprecated The same as PreExternalEventDispatch (value is 52).
+	 * @since 3.103
+	 */
+	@Deprecated
+	public static final int Sleep = PreExternalEventDispatch;
+
+	/**
+	 * @deprecated The same as PostExternalEventDispatch (value is 53). 
+	 * @since 3.103
+	 */
+	@Deprecated
+	public static final int Wakeup = PostExternalEventDispatch;
 
 	/* Event Details */
 	
@@ -1321,7 +1390,7 @@ public class SWT {
 
 	/**
 	 * Style constant for shadow etched in behavior (value is 1&lt;&lt;4).
-	 * <br>Note that this is a <em>HINT</em>. It is ignored on all platforms except Motif.
+	 * <br>Note that this is a <em>HINT</em>. It is currently ignored on all platforms.
 	 * <p><b>Used By:</b><ul>
 	 * <li><code>Group</code></li>
 	 * </ul></p>
@@ -1330,7 +1399,7 @@ public class SWT {
 
 	/**
 	 * Style constant for shadow etched out behavior (value is 1&lt;&lt;6).
-	 * <br>Note that this is a <em>HINT</em>. It is ignored on all platforms except Motif.
+	 * <br>Note that this is a <em>HINT</em>. It is currently ignored on all platforms.
 	 * <p><b>Used By:</b><ul>
 	 * <li><code>Group</code></li>
 	 * </ul></p>
@@ -1936,7 +2005,9 @@ public class SWT {
 	 * <p><b>Used By:</b><ul>
 	 * <li><code>Button</code></li>
 	 * <li><code>Label</code></li>
+	 * <li><code>Text</code></li>
 	 * <li><code>TableColumn</code></li>
+	 * <li><code>TreeColumn</code></li>
 	 * <li><code>Tracker</code></li>
 	 * <li><code>FormAttachment</code> in a <code>FormLayout</code></li>
 	 * </ul></p>
@@ -1962,7 +2033,9 @@ public class SWT {
 	 * <p><b>Used By:</b><ul>
 	 * <li><code>Button</code></li>
 	 * <li><code>Label</code></li>
+	 * <li><code>Text</code></li>
 	 * <li><code>TableColumn</code></li>
+	 * <li><code>TreeColumn</code></li>
 	 * <li><code>Tracker</code></li>
 	 * <li><code>FormAttachment</code> in a <code>FormLayout</code></li>
 	 * </ul></p>
@@ -3194,6 +3267,27 @@ public class SWT {
 	public static final int COLOR_LINK_FOREGROUND = 36;
 	
 	/**
+	 * System color used to paint with alpha 0 (value is 37).
+	 * <p>
+	 * This pseudo-color can be used to set a transparent background on SWT
+	 * controls. <br>
+	 * Note that this is a <em>HINT</em> and may be overridden by the platform.
+	 * For example:
+	 * <ul>
+	 * <li>{@link org.eclipse.swt.widgets.Combo Combo},
+	 * {@link org.eclipse.swt.widgets.List List} and
+	 * {@link org.eclipse.swt.widgets.Tree Tree} support transparent background
+	 * on GTK3 and Windows only.</li>
+	 * <li>{@link org.eclipse.swt.widgets.Text Text} supports transparent
+	 * background on Windows only whereas {@link org.eclipse.swt.widgets.Table
+	 * Table} supports transparent background on GTK3 only.</li>
+	 * </ul>
+	 * 
+	 * @since 3.104
+	 */
+	public static final int COLOR_TRANSPARENT = 37;
+	
+	/**
 	 * Draw constant indicating whether the drawing operation
 	 * should fill the background (value is 1&lt;&lt;0).
 	 */
@@ -4256,7 +4350,7 @@ public static String getMessage(String key, Object[] args) {
 
 /**
  * Returns the SWT platform name.
- * Examples: "win32", "motif", "gtk", "photon", "carbon", "cocoa", "wpf"
+ * Examples: "win32", "gtk", "cocoa"
  *
  * @return the SWT platform name
  */
@@ -4447,7 +4541,7 @@ static {
 	* to stop the compiler from inlining.
 	*/
 	String platform = getPlatform ();
-	if ("carbon".equals (platform) || "cocoa".equals (platform)) { //$NON-NLS-1$ //$NON-NLS-2$
+	if ("cocoa".equals (platform)) { //$NON-NLS-1$
 		MOD1 = COMMAND;
 		MOD2 = SHIFT;
 		MOD3 = ALT;

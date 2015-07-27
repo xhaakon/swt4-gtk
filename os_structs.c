@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2015 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -818,46 +818,6 @@ void setGdkEventScrollFields(JNIEnv *env, jobject lpObject, GdkEventScroll *lpSt
 }
 #endif
 
-#ifndef NO_GdkEventVisibility
-typedef struct GdkEventVisibility_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID window, send_event, state;
-} GdkEventVisibility_FID_CACHE;
-
-GdkEventVisibility_FID_CACHE GdkEventVisibilityFc;
-
-void cacheGdkEventVisibilityFields(JNIEnv *env, jobject lpObject)
-{
-	if (GdkEventVisibilityFc.cached) return;
-	cacheGdkEventFields(env, lpObject);
-	GdkEventVisibilityFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	GdkEventVisibilityFc.window = (*env)->GetFieldID(env, GdkEventVisibilityFc.clazz, "window", I_J);
-	GdkEventVisibilityFc.send_event = (*env)->GetFieldID(env, GdkEventVisibilityFc.clazz, "send_event", "B");
-	GdkEventVisibilityFc.state = (*env)->GetFieldID(env, GdkEventVisibilityFc.clazz, "state", "I");
-	GdkEventVisibilityFc.cached = 1;
-}
-
-GdkEventVisibility *getGdkEventVisibilityFields(JNIEnv *env, jobject lpObject, GdkEventVisibility *lpStruct)
-{
-	if (!GdkEventVisibilityFc.cached) cacheGdkEventVisibilityFields(env, lpObject);
-	getGdkEventFields(env, lpObject, (GdkEvent *)lpStruct);
-	lpStruct->window = (GdkWindow *)(*env)->GetIntLongField(env, lpObject, GdkEventVisibilityFc.window);
-	lpStruct->send_event = (gint8)(*env)->GetByteField(env, lpObject, GdkEventVisibilityFc.send_event);
-	lpStruct->state = (GdkVisibilityState)(*env)->GetIntField(env, lpObject, GdkEventVisibilityFc.state);
-	return lpStruct;
-}
-
-void setGdkEventVisibilityFields(JNIEnv *env, jobject lpObject, GdkEventVisibility *lpStruct)
-{
-	if (!GdkEventVisibilityFc.cached) cacheGdkEventVisibilityFields(env, lpObject);
-	setGdkEventFields(env, lpObject, (GdkEvent *)lpStruct);
-	(*env)->SetIntLongField(env, lpObject, GdkEventVisibilityFc.window, (jintLong)lpStruct->window);
-	(*env)->SetByteField(env, lpObject, GdkEventVisibilityFc.send_event, (jbyte)lpStruct->send_event);
-	(*env)->SetIntField(env, lpObject, GdkEventVisibilityFc.state, (jint)lpStruct->state);
-}
-#endif
-
 #ifndef NO_GdkEventWindowState
 typedef struct GdkEventWindowState_FID_CACHE {
 	int cached;
@@ -1521,46 +1481,6 @@ void setGtkCellRendererClassFields(JNIEnv *env, jobject lpObject, GtkCellRendere
 }
 #endif
 
-#ifndef NO_GtkColorSelectionDialog
-typedef struct GtkColorSelectionDialog_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID colorsel, ok_button, cancel_button, help_button;
-} GtkColorSelectionDialog_FID_CACHE;
-
-GtkColorSelectionDialog_FID_CACHE GtkColorSelectionDialogFc;
-
-void cacheGtkColorSelectionDialogFields(JNIEnv *env, jobject lpObject)
-{
-	if (GtkColorSelectionDialogFc.cached) return;
-	GtkColorSelectionDialogFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	GtkColorSelectionDialogFc.colorsel = (*env)->GetFieldID(env, GtkColorSelectionDialogFc.clazz, "colorsel", I_J);
-	GtkColorSelectionDialogFc.ok_button = (*env)->GetFieldID(env, GtkColorSelectionDialogFc.clazz, "ok_button", I_J);
-	GtkColorSelectionDialogFc.cancel_button = (*env)->GetFieldID(env, GtkColorSelectionDialogFc.clazz, "cancel_button", I_J);
-	GtkColorSelectionDialogFc.help_button = (*env)->GetFieldID(env, GtkColorSelectionDialogFc.clazz, "help_button", I_J);
-	GtkColorSelectionDialogFc.cached = 1;
-}
-
-GtkColorSelectionDialog *getGtkColorSelectionDialogFields(JNIEnv *env, jobject lpObject, GtkColorSelectionDialog *lpStruct)
-{
-	if (!GtkColorSelectionDialogFc.cached) cacheGtkColorSelectionDialogFields(env, lpObject);
-	lpStruct->colorsel = (GtkWidget *)(*env)->GetIntLongField(env, lpObject, GtkColorSelectionDialogFc.colorsel);
-	lpStruct->ok_button = (GtkWidget *)(*env)->GetIntLongField(env, lpObject, GtkColorSelectionDialogFc.ok_button);
-	lpStruct->cancel_button = (GtkWidget *)(*env)->GetIntLongField(env, lpObject, GtkColorSelectionDialogFc.cancel_button);
-	lpStruct->help_button = (GtkWidget *)(*env)->GetIntLongField(env, lpObject, GtkColorSelectionDialogFc.help_button);
-	return lpStruct;
-}
-
-void setGtkColorSelectionDialogFields(JNIEnv *env, jobject lpObject, GtkColorSelectionDialog *lpStruct)
-{
-	if (!GtkColorSelectionDialogFc.cached) cacheGtkColorSelectionDialogFields(env, lpObject);
-	(*env)->SetIntLongField(env, lpObject, GtkColorSelectionDialogFc.colorsel, (jintLong)lpStruct->colorsel);
-	(*env)->SetIntLongField(env, lpObject, GtkColorSelectionDialogFc.ok_button, (jintLong)lpStruct->ok_button);
-	(*env)->SetIntLongField(env, lpObject, GtkColorSelectionDialogFc.cancel_button, (jintLong)lpStruct->cancel_button);
-	(*env)->SetIntLongField(env, lpObject, GtkColorSelectionDialogFc.help_button, (jintLong)lpStruct->help_button);
-}
-#endif
-
 #ifndef NO_GtkFixed
 typedef struct GtkFixed_FID_CACHE {
 	int cached;
@@ -1623,52 +1543,6 @@ void setGtkRequisitionFields(JNIEnv *env, jobject lpObject, GtkRequisition *lpSt
 	if (!GtkRequisitionFc.cached) cacheGtkRequisitionFields(env, lpObject);
 	(*env)->SetIntField(env, lpObject, GtkRequisitionFc.width, (jint)lpStruct->width);
 	(*env)->SetIntField(env, lpObject, GtkRequisitionFc.height, (jint)lpStruct->height);
-}
-#endif
-
-#ifndef NO_GtkSelectionData
-typedef struct GtkSelectionData_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID selection, target, type, format, data, length;
-} GtkSelectionData_FID_CACHE;
-
-GtkSelectionData_FID_CACHE GtkSelectionDataFc;
-
-void cacheGtkSelectionDataFields(JNIEnv *env, jobject lpObject)
-{
-	if (GtkSelectionDataFc.cached) return;
-	GtkSelectionDataFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	GtkSelectionDataFc.selection = (*env)->GetFieldID(env, GtkSelectionDataFc.clazz, "selection", I_J);
-	GtkSelectionDataFc.target = (*env)->GetFieldID(env, GtkSelectionDataFc.clazz, "target", I_J);
-	GtkSelectionDataFc.type = (*env)->GetFieldID(env, GtkSelectionDataFc.clazz, "type", I_J);
-	GtkSelectionDataFc.format = (*env)->GetFieldID(env, GtkSelectionDataFc.clazz, "format", "I");
-	GtkSelectionDataFc.data = (*env)->GetFieldID(env, GtkSelectionDataFc.clazz, "data", I_J);
-	GtkSelectionDataFc.length = (*env)->GetFieldID(env, GtkSelectionDataFc.clazz, "length", "I");
-	GtkSelectionDataFc.cached = 1;
-}
-
-GtkSelectionData *getGtkSelectionDataFields(JNIEnv *env, jobject lpObject, GtkSelectionData *lpStruct)
-{
-	if (!GtkSelectionDataFc.cached) cacheGtkSelectionDataFields(env, lpObject);
-	lpStruct->selection = (GdkAtom)(*env)->GetIntLongField(env, lpObject, GtkSelectionDataFc.selection);
-	lpStruct->target = (GdkAtom)(*env)->GetIntLongField(env, lpObject, GtkSelectionDataFc.target);
-	lpStruct->type = (GdkAtom)(*env)->GetIntLongField(env, lpObject, GtkSelectionDataFc.type);
-	lpStruct->format = (gint)(*env)->GetIntField(env, lpObject, GtkSelectionDataFc.format);
-	lpStruct->data = (guchar *)(*env)->GetIntLongField(env, lpObject, GtkSelectionDataFc.data);
-	lpStruct->length = (gint)(*env)->GetIntField(env, lpObject, GtkSelectionDataFc.length);
-	return lpStruct;
-}
-
-void setGtkSelectionDataFields(JNIEnv *env, jobject lpObject, GtkSelectionData *lpStruct)
-{
-	if (!GtkSelectionDataFc.cached) cacheGtkSelectionDataFields(env, lpObject);
-	(*env)->SetIntLongField(env, lpObject, GtkSelectionDataFc.selection, (jintLong)lpStruct->selection);
-	(*env)->SetIntLongField(env, lpObject, GtkSelectionDataFc.target, (jintLong)lpStruct->target);
-	(*env)->SetIntLongField(env, lpObject, GtkSelectionDataFc.type, (jintLong)lpStruct->type);
-	(*env)->SetIntField(env, lpObject, GtkSelectionDataFc.format, (jint)lpStruct->format);
-	(*env)->SetIntLongField(env, lpObject, GtkSelectionDataFc.data, (jintLong)lpStruct->data);
-	(*env)->SetIntField(env, lpObject, GtkSelectionDataFc.length, (jint)lpStruct->length);
 }
 #endif
 
@@ -2127,131 +2001,6 @@ void setXAnyEventFields(JNIEnv *env, jobject lpObject, XAnyEvent *lpStruct)
 }
 #endif
 
-#ifndef NO_XClientMessageEvent
-typedef struct XClientMessageEvent_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID type, serial, send_event, display, window, message_type, format, data;
-} XClientMessageEvent_FID_CACHE;
-
-XClientMessageEvent_FID_CACHE XClientMessageEventFc;
-
-void cacheXClientMessageEventFields(JNIEnv *env, jobject lpObject)
-{
-	if (XClientMessageEventFc.cached) return;
-	XClientMessageEventFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	XClientMessageEventFc.type = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "type", "I");
-	XClientMessageEventFc.serial = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "serial", I_J);
-	XClientMessageEventFc.send_event = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "send_event", "Z");
-	XClientMessageEventFc.display = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "display", I_J);
-	XClientMessageEventFc.window = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "window", I_J);
-	XClientMessageEventFc.message_type = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "message_type", I_J);
-	XClientMessageEventFc.format = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "format", "I");
-	XClientMessageEventFc.data = (*env)->GetFieldID(env, XClientMessageEventFc.clazz, "data", I_JArray);
-	XClientMessageEventFc.cached = 1;
-}
-
-XClientMessageEvent *getXClientMessageEventFields(JNIEnv *env, jobject lpObject, XClientMessageEvent *lpStruct)
-{
-	if (!XClientMessageEventFc.cached) cacheXClientMessageEventFields(env, lpObject);
-	lpStruct->type = (*env)->GetIntField(env, lpObject, XClientMessageEventFc.type);
-	lpStruct->serial = (*env)->GetIntLongField(env, lpObject, XClientMessageEventFc.serial);
-	lpStruct->send_event = (*env)->GetBooleanField(env, lpObject, XClientMessageEventFc.send_event);
-	lpStruct->display = (Display *)(*env)->GetIntLongField(env, lpObject, XClientMessageEventFc.display);
-	lpStruct->window = (Window)(*env)->GetIntLongField(env, lpObject, XClientMessageEventFc.window);
-	lpStruct->message_type = (Atom)(*env)->GetIntLongField(env, lpObject, XClientMessageEventFc.message_type);
-	lpStruct->format = (*env)->GetIntField(env, lpObject, XClientMessageEventFc.format);
-	{
-	jintLongArray lpObject1 = (jintLongArray)(*env)->GetObjectField(env, lpObject, XClientMessageEventFc.data);
-	(*env)->GetIntLongArrayRegion(env, lpObject1, 0, sizeof(lpStruct->data.l) / sizeof(jintLong), (jintLong *)lpStruct->data.l);
-	}
-	return lpStruct;
-}
-
-void setXClientMessageEventFields(JNIEnv *env, jobject lpObject, XClientMessageEvent *lpStruct)
-{
-	if (!XClientMessageEventFc.cached) cacheXClientMessageEventFields(env, lpObject);
-	(*env)->SetIntField(env, lpObject, XClientMessageEventFc.type, (jint)lpStruct->type);
-	(*env)->SetIntLongField(env, lpObject, XClientMessageEventFc.serial, (jintLong)lpStruct->serial);
-	(*env)->SetBooleanField(env, lpObject, XClientMessageEventFc.send_event, (jboolean)lpStruct->send_event);
-	(*env)->SetIntLongField(env, lpObject, XClientMessageEventFc.display, (jintLong)lpStruct->display);
-	(*env)->SetIntLongField(env, lpObject, XClientMessageEventFc.window, (jintLong)lpStruct->window);
-	(*env)->SetIntLongField(env, lpObject, XClientMessageEventFc.message_type, (jintLong)lpStruct->message_type);
-	(*env)->SetIntField(env, lpObject, XClientMessageEventFc.format, (jint)lpStruct->format);
-	{
-	jintLongArray lpObject1 = (jintLongArray)(*env)->GetObjectField(env, lpObject, XClientMessageEventFc.data);
-	(*env)->SetIntLongArrayRegion(env, lpObject1, 0, sizeof(lpStruct->data.l) / sizeof(jintLong), (jintLong *)lpStruct->data.l);
-	}
-}
-#endif
-
-#ifndef NO_XCrossingEvent
-typedef struct XCrossingEvent_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID root, subwindow, time, x, y, x_root, y_root, mode, detail, same_screen, focus, state;
-} XCrossingEvent_FID_CACHE;
-
-XCrossingEvent_FID_CACHE XCrossingEventFc;
-
-void cacheXCrossingEventFields(JNIEnv *env, jobject lpObject)
-{
-	if (XCrossingEventFc.cached) return;
-	cacheXAnyEventFields(env, lpObject);
-	XCrossingEventFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	XCrossingEventFc.root = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "root", I_J);
-	XCrossingEventFc.subwindow = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "subwindow", I_J);
-	XCrossingEventFc.time = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "time", "I");
-	XCrossingEventFc.x = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "x", "I");
-	XCrossingEventFc.y = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "y", "I");
-	XCrossingEventFc.x_root = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "x_root", "I");
-	XCrossingEventFc.y_root = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "y_root", "I");
-	XCrossingEventFc.mode = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "mode", "I");
-	XCrossingEventFc.detail = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "detail", "I");
-	XCrossingEventFc.same_screen = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "same_screen", "Z");
-	XCrossingEventFc.focus = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "focus", "Z");
-	XCrossingEventFc.state = (*env)->GetFieldID(env, XCrossingEventFc.clazz, "state", "I");
-	XCrossingEventFc.cached = 1;
-}
-
-XCrossingEvent *getXCrossingEventFields(JNIEnv *env, jobject lpObject, XCrossingEvent *lpStruct)
-{
-	if (!XCrossingEventFc.cached) cacheXCrossingEventFields(env, lpObject);
-	getXAnyEventFields(env, lpObject, (XAnyEvent *)lpStruct);
-	lpStruct->root = (Window)(*env)->GetIntLongField(env, lpObject, XCrossingEventFc.root);
-	lpStruct->subwindow = (Window)(*env)->GetIntLongField(env, lpObject, XCrossingEventFc.subwindow);
-	lpStruct->time = (Time)(*env)->GetIntField(env, lpObject, XCrossingEventFc.time);
-	lpStruct->x = (*env)->GetIntField(env, lpObject, XCrossingEventFc.x);
-	lpStruct->y = (*env)->GetIntField(env, lpObject, XCrossingEventFc.y);
-	lpStruct->x_root = (*env)->GetIntField(env, lpObject, XCrossingEventFc.x_root);
-	lpStruct->y_root = (*env)->GetIntField(env, lpObject, XCrossingEventFc.y_root);
-	lpStruct->mode = (*env)->GetIntField(env, lpObject, XCrossingEventFc.mode);
-	lpStruct->detail = (*env)->GetIntField(env, lpObject, XCrossingEventFc.detail);
-	lpStruct->same_screen = (Bool)(*env)->GetBooleanField(env, lpObject, XCrossingEventFc.same_screen);
-	lpStruct->focus = (Bool)(*env)->GetBooleanField(env, lpObject, XCrossingEventFc.focus);
-	lpStruct->state = (unsigned int)(*env)->GetIntField(env, lpObject, XCrossingEventFc.state);
-	return lpStruct;
-}
-
-void setXCrossingEventFields(JNIEnv *env, jobject lpObject, XCrossingEvent *lpStruct)
-{
-	if (!XCrossingEventFc.cached) cacheXCrossingEventFields(env, lpObject);
-	setXAnyEventFields(env, lpObject, (XAnyEvent *)lpStruct);
-	(*env)->SetIntLongField(env, lpObject, XCrossingEventFc.root, (jintLong)lpStruct->root);
-	(*env)->SetIntLongField(env, lpObject, XCrossingEventFc.subwindow, (jintLong)lpStruct->subwindow);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.time, (jint)lpStruct->time);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.x, (jint)lpStruct->x);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.y, (jint)lpStruct->y);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.x_root, (jint)lpStruct->x_root);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.y_root, (jint)lpStruct->y_root);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.mode, (jint)lpStruct->mode);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.detail, (jint)lpStruct->detail);
-	(*env)->SetBooleanField(env, lpObject, XCrossingEventFc.same_screen, (jboolean)lpStruct->same_screen);
-	(*env)->SetBooleanField(env, lpObject, XCrossingEventFc.focus, (jboolean)lpStruct->focus);
-	(*env)->SetIntField(env, lpObject, XCrossingEventFc.state, (jint)lpStruct->state);
-}
-#endif
-
 #ifndef NO_XEvent
 typedef struct XEvent_FID_CACHE {
 	int cached;
@@ -2430,89 +2179,6 @@ void setXRenderPictureAttributesFields(JNIEnv *env, jobject lpObject, XRenderPic
 	(*env)->SetIntField(env, lpObject, XRenderPictureAttributesFc.poly_mode, (jint)lpStruct->poly_mode);
 	(*env)->SetIntLongField(env, lpObject, XRenderPictureAttributesFc.dither, (jintLong)lpStruct->dither);
 	(*env)->SetBooleanField(env, lpObject, XRenderPictureAttributesFc.component_alpha, (jboolean)lpStruct->component_alpha);
-}
-#endif
-
-#ifndef NO_XVisibilityEvent
-typedef struct XVisibilityEvent_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID state;
-} XVisibilityEvent_FID_CACHE;
-
-XVisibilityEvent_FID_CACHE XVisibilityEventFc;
-
-void cacheXVisibilityEventFields(JNIEnv *env, jobject lpObject)
-{
-	if (XVisibilityEventFc.cached) return;
-	cacheXAnyEventFields(env, lpObject);
-	XVisibilityEventFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	XVisibilityEventFc.state = (*env)->GetFieldID(env, XVisibilityEventFc.clazz, "state", "I");
-	XVisibilityEventFc.cached = 1;
-}
-
-XVisibilityEvent *getXVisibilityEventFields(JNIEnv *env, jobject lpObject, XVisibilityEvent *lpStruct)
-{
-	if (!XVisibilityEventFc.cached) cacheXVisibilityEventFields(env, lpObject);
-	getXAnyEventFields(env, lpObject, (XAnyEvent *)lpStruct);
-	lpStruct->state = (*env)->GetIntField(env, lpObject, XVisibilityEventFc.state);
-	return lpStruct;
-}
-
-void setXVisibilityEventFields(JNIEnv *env, jobject lpObject, XVisibilityEvent *lpStruct)
-{
-	if (!XVisibilityEventFc.cached) cacheXVisibilityEventFields(env, lpObject);
-	setXAnyEventFields(env, lpObject, (XAnyEvent *)lpStruct);
-	(*env)->SetIntField(env, lpObject, XVisibilityEventFc.state, (jint)lpStruct->state);
-}
-#endif
-
-#ifndef NO_XWindowChanges
-typedef struct XWindowChanges_FID_CACHE {
-	int cached;
-	jclass clazz;
-	jfieldID x, y, width, height, border_width, sibling, stack_mode;
-} XWindowChanges_FID_CACHE;
-
-XWindowChanges_FID_CACHE XWindowChangesFc;
-
-void cacheXWindowChangesFields(JNIEnv *env, jobject lpObject)
-{
-	if (XWindowChangesFc.cached) return;
-	XWindowChangesFc.clazz = (*env)->GetObjectClass(env, lpObject);
-	XWindowChangesFc.x = (*env)->GetFieldID(env, XWindowChangesFc.clazz, "x", "I");
-	XWindowChangesFc.y = (*env)->GetFieldID(env, XWindowChangesFc.clazz, "y", "I");
-	XWindowChangesFc.width = (*env)->GetFieldID(env, XWindowChangesFc.clazz, "width", "I");
-	XWindowChangesFc.height = (*env)->GetFieldID(env, XWindowChangesFc.clazz, "height", "I");
-	XWindowChangesFc.border_width = (*env)->GetFieldID(env, XWindowChangesFc.clazz, "border_width", "I");
-	XWindowChangesFc.sibling = (*env)->GetFieldID(env, XWindowChangesFc.clazz, "sibling", I_J);
-	XWindowChangesFc.stack_mode = (*env)->GetFieldID(env, XWindowChangesFc.clazz, "stack_mode", "I");
-	XWindowChangesFc.cached = 1;
-}
-
-XWindowChanges *getXWindowChangesFields(JNIEnv *env, jobject lpObject, XWindowChanges *lpStruct)
-{
-	if (!XWindowChangesFc.cached) cacheXWindowChangesFields(env, lpObject);
-	lpStruct->x = (*env)->GetIntField(env, lpObject, XWindowChangesFc.x);
-	lpStruct->y = (*env)->GetIntField(env, lpObject, XWindowChangesFc.y);
-	lpStruct->width = (*env)->GetIntField(env, lpObject, XWindowChangesFc.width);
-	lpStruct->height = (*env)->GetIntField(env, lpObject, XWindowChangesFc.height);
-	lpStruct->border_width = (*env)->GetIntField(env, lpObject, XWindowChangesFc.border_width);
-	lpStruct->sibling = (*env)->GetIntLongField(env, lpObject, XWindowChangesFc.sibling);
-	lpStruct->stack_mode = (*env)->GetIntField(env, lpObject, XWindowChangesFc.stack_mode);
-	return lpStruct;
-}
-
-void setXWindowChangesFields(JNIEnv *env, jobject lpObject, XWindowChanges *lpStruct)
-{
-	if (!XWindowChangesFc.cached) cacheXWindowChangesFields(env, lpObject);
-	(*env)->SetIntField(env, lpObject, XWindowChangesFc.x, (jint)lpStruct->x);
-	(*env)->SetIntField(env, lpObject, XWindowChangesFc.y, (jint)lpStruct->y);
-	(*env)->SetIntField(env, lpObject, XWindowChangesFc.width, (jint)lpStruct->width);
-	(*env)->SetIntField(env, lpObject, XWindowChangesFc.height, (jint)lpStruct->height);
-	(*env)->SetIntField(env, lpObject, XWindowChangesFc.border_width, (jint)lpStruct->border_width);
-	(*env)->SetIntLongField(env, lpObject, XWindowChangesFc.sibling, (jintLong)lpStruct->sibling);
-	(*env)->SetIntField(env, lpObject, XWindowChangesFc.stack_mode, (jint)lpStruct->stack_mode);
 }
 #endif
 

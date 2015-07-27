@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,9 +12,9 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 
 /**
  * Instances of this class provide an etched border
@@ -35,7 +35,7 @@ import org.eclipse.swt.graphics.*;
  * </p><p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
- * 
+ *
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
  * @noextend This class is not intended to be subclassed by clients.
@@ -50,7 +50,7 @@ public class Group extends Composite {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -92,25 +92,29 @@ static int checkStyle (int style) {
 	return style & ~(SWT.H_SCROLL | SWT.V_SCROLL);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 int /*long*/ clientHandle () {
 	return clientHandle;
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	Point size = super.computeSize(wHint, hHint, changed);
 	int width = computeNativeSize (handle, SWT.DEFAULT, SWT.DEFAULT, false).x;
 	size.x = Math.max (size.x, width);
 	return size;
 }
+@Override
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget();
 	forceResize ();
 	GtkAllocation allocation = new GtkAllocation();
-	gtk_widget_get_allocation (clientHandle, allocation);
+	OS.gtk_widget_get_allocation (clientHandle, allocation);
 	int clientX = allocation.x;
 	int clientY = allocation.y;
 	x -= clientX;
@@ -120,25 +124,53 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	return new Rectangle (x, y, width, height);
 }
 
+@Override
+public Rectangle getClientArea () {
+	Rectangle clientRectangle = super.getClientArea ();
+	/*
+	* Bug 453827 Child position fix.
+	* SWT's calls to gtk_widget_size_allocate and gtk_widget_set_allocation
+	* causes GTK+ to move the clientHandle's SwtFixed down by the size of the label.
+	* These calls can come up from 'shell' and group has no control over these calls.
+	*
+	* This is an undesired side-effect. Client handle's x & y positions should never
+	* be incremented as this is an internal sub-container.
+	*
+	* Note: 0 by 0 was chosen as 1 by 1 shifts controls beyond their original pos.
+	* The long term fix would be to not use widget_*_allocation from higher containers
+	* like shell and to not use	gtkframe in non-group widgets (e.g used in label atm).
+	*/
+	clientRectangle.x = 0;
+	clientRectangle.y = 0;
+	return clientRectangle;
+}
+
+
+@Override
 void createHandle(int index) {
 	state |= HANDLE | THEME_BACKGROUND;
+
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
+
 	handle = OS.gtk_frame_new (null);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
+
 	labelHandle = OS.gtk_label_new (null);
 	if (labelHandle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.g_object_ref (labelHandle);
-	g_object_ref_sink (labelHandle);
+	OS.g_object_ref_sink (labelHandle);
+
 	clientHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (clientHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	if (OS.GTK3) {
-		OS.gtk_widget_override_background_color (clientHandle, OS.GTK_STATE_FLAG_NORMAL, new GdkRGBA ());
-		int /*long*/ region = OS.gdk_region_new ();
-		OS.gtk_widget_input_shape_combine_region (clientHandle, region);
-		OS.gdk_region_destroy (region);
-	}
+	/*
+	 * Bug 453827 - clientHandle now has it's own window so that
+	 * it can listen to events (clicking/tooltip etc.) and so that
+	 * background can be drawn on it.
+	 */
+	OS.gtk_widget_set_has_window (clientHandle, true);
+
 	OS.gtk_container_add (fixedHandle, handle);
 	OS.gtk_container_add (handle, clientHandle);
 	if ((style & SWT.SHADOW_IN) != 0) {
@@ -153,22 +185,41 @@ void createHandle(int index) {
 	if ((style & SWT.SHADOW_ETCHED_OUT) != 0) {
 		OS.gtk_frame_set_shadow_type (handle, OS.GTK_SHADOW_ETCHED_OUT);
 	}
+	// In GTK 3 font description is inherited from parent widget which is not how SWT has always worked,
+	// reset to default font to get the usual behavior
+	if (OS.GTK3) {
+		setFontDescription (defaultFont ().handle);
+	}
 }
 
+@Override
+int applyThemeBackground () {
+	return 1;
+}
+
+@Override
 void deregister () {
 	super.deregister ();
 	display.removeWidget (clientHandle);
 	display.removeWidget (labelHandle);
 }
 
+@Override
 void enableWidget (boolean enabled) {
 	OS.gtk_widget_set_sensitive (labelHandle, enabled);
 }
 
+@Override
 int /*long*/ eventHandle () {
-	return fixedHandle;
+	/*
+	 * Bug 453827 - Group's events should be handled via it's internal
+	 * fixed container (clientHandle) and not via it's top level.
+	 * This makes it behave more like composite.
+	 */
+	return clientHandle;
 }
 
+@Override
 String getNameText () {
 	return getText ();
 }
@@ -190,13 +241,15 @@ public String getText () {
 	return text;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents();
 	if (labelHandle != 0) {
-		OS.g_signal_connect_closure_by_id (labelHandle, display.signalIds [MNEMONIC_ACTIVATE], 0, display.closures [MNEMONIC_ACTIVATE], false);
+		OS.g_signal_connect_closure_by_id (labelHandle, display.signalIds [MNEMONIC_ACTIVATE], 0, display.getClosure (MNEMONIC_ACTIVATE), false);
 	}
 }
 
+@Override
 boolean mnemonicHit (char key) {
 	if (labelHandle == 0) return false;
 	boolean result = super.mnemonicHit (labelHandle, key);
@@ -204,47 +257,62 @@ boolean mnemonicHit (char key) {
 	return result;
 }
 
+@Override
 boolean mnemonicMatch (char key) {
 	if (labelHandle == 0) return false;
 	return mnemonicMatch (labelHandle, key);
 }
 
+@Override
 int /*long*/ parentingHandle() {
-	return fixedHandle;
+	/*
+	 * Bug 453827 - Children should be attached to the internal fixed
+	 * subcontainer (clienthandle) and not the top-level fixedHandle.
+	 */
+	return clientHandle;
 }
 
+@Override
 void register () {
 	super.register ();
 	display.addWidget (clientHandle, this);
 	display.addWidget (labelHandle, this);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	clientHandle = labelHandle = 0;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (labelHandle != 0) OS.g_object_unref (labelHandle);
 	text = null;
 }
 
+@Override
 void setBackgroundColor (GdkColor color) {
 	super.setBackgroundColor (color);
-	setBackgroundColor(fixedHandle, color);
+	setBackgroundColor (fixedHandle, color);
+	// Bug 453827 - client handle should also be painted as it's visible to the user now.
+	setBackgroundColor (clientHandle, color);
 }
 
+@Override
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	setFontDescription (labelHandle, font);
 }
 
+@Override
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (color);
 	setForegroundColor (labelHandle, color);
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
@@ -266,6 +334,9 @@ void setOrientation (boolean create) {
  * platform specific manner.  The mnemonic indicator character
  * '&amp;' can be escaped by doubling it in the string, causing
  * a single '&amp;' to be displayed.
+ * </p><p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
  * </p>
  * @param string the new text
  *
@@ -287,12 +358,13 @@ public void setText (String string) {
 	if (string.length () != 0) {
 		if (OS.gtk_frame_get_label_widget (handle) == 0) {
 			OS.gtk_frame_set_label_widget (handle, labelHandle);
-		}	
+		}
 	} else {
 		OS.gtk_frame_set_label_widget (handle, 0);
 	}
 }
 
+@Override
 void showWidget () {
 	super.showWidget ();
 	if (clientHandle != 0) OS.gtk_widget_show (clientHandle);

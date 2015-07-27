@@ -27,43 +27,38 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIDOMEventTarget extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 3;
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRVersionOrLater(MozillaVersion.VERSION_XR24) ? 5 : 3);
 
-	public static final String NS_IDOMEVENTTARGET_IID_STR =
-		"1c773b30-d1cf-11d2-bd95-00805f8ae3f4";
+	static final String NS_IDOMEVENTTARGET_IID_STR = "1c773b30-d1cf-11d2-bd95-00805f8ae3f4";
+	static final String NS_IDOMEVENTTARGET_10_IID_STR = "1797d5a4-b12a-428d-9eef-a0e13839728c";
+	static final String NS_IDOMEVENTTARGET_24_IID_STR = "31e92e56-4d23-4a4a-9cfe-a6d12cf434bc";
+	static final String NS_IDOMEVENTTARGET_31_IID_STR = "b128448c-7b53-4769-92cb-cd6eafee676c";
 
-	public static final String NS_IDOMEVENTTARGET_10_IID_STR =
-		"1797d5a4-b12a-428d-9eef-a0e13839728c";
-	
-	public static final String NS_IDOMEVENTTARGET_17_IID_STR =
-		"8e375931-298d-4d0a-9cb4-5668f0cdc5a8";
-	
-	public static final nsID NS_IDOMEVENTTARGET_IID =
-		new nsID(NS_IDOMEVENTTARGET_IID_STR);
-
-	public static final nsID NS_IDOMEVENTTARGET_10_IID =
-		new nsID(NS_IDOMEVENTTARGET_10_IID_STR);
-
-	public static final nsID NS_IDOMEVENTTARGET_17_IID =
-		new nsID(NS_IDOMEVENTTARGET_17_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIDOMEventTarget.class, MozillaVersion.VERSION_BASE, new nsID(NS_IDOMEVENTTARGET_IID_STR));
+		IIDStore.RegisterIID(nsIDOMEventTarget.class, MozillaVersion.VERSION_XR10, new nsID(NS_IDOMEVENTTARGET_10_IID_STR));
+		IIDStore.RegisterIID(nsIDOMEventTarget.class, MozillaVersion.VERSION_XR24, new nsID(NS_IDOMEVENTTARGET_24_IID_STR));
+		IIDStore.RegisterIID(nsIDOMEventTarget.class, MozillaVersion.VERSION_XR31, new nsID(NS_IDOMEVENTTARGET_31_IID_STR));
+	}
 
 	public nsIDOMEventTarget(int /*long*/ address) {
 		super(address);
 	}
 
 	public int AddEventListener(int /*long*/ type, int /*long*/ listener, int useCapture) {
-		if (IsXULRunner10 || IsXULRunner17) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), type, listener, useCapture);
+		if (IsXULRVersionOrLater(MozillaVersion.VERSION_XR10)) return XPCOM.NS_COMFALSE;
+		return XPCOM.VtblCall(this.getMethodIndex("addEventListener"), getAddress(), type, listener, useCapture);
 	}
 
 	public int AddEventListener(int /*long*/ type, int /*long*/ listener, int useCapture, int wantsUntrusted, int _argc) {
-		if (!(IsXULRunner10 || IsXULRunner17)) return AddEventListener(type, listener, useCapture);
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), type, listener, useCapture, wantsUntrusted, _argc);
+		if (!IsXULRVersionOrLater(MozillaVersion.VERSION_XR10)) return AddEventListener(type, listener, useCapture);
+		return XPCOM.VtblCall(this.getMethodIndex("addEventListener"), getAddress(), type, listener, useCapture, wantsUntrusted, _argc);
 	}
 
 	public int RemoveEventListener(int /*long*/ type, int /*long*/ listener, int useCapture) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + (IsXULRunner17 ? 3 : 2), getAddress(), type, listener, useCapture);
+		return XPCOM.VtblCall(this.getMethodIndex("removeEventListener"), getAddress(), type, listener, useCapture);
 	}
 }

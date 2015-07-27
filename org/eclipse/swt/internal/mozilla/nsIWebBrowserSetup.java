@@ -27,15 +27,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIWebBrowserSetup extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 1;
 
-	public static final String NS_IWEBBROWSERSETUP_IID_STR =
-		"f15398a0-8018-11d3-af70-00a024ffc08c";
+	static final String NS_IWEBBROWSERSETUP_IID_STR = "f15398a0-8018-11d3-af70-00a024ffc08c";
 
-	public static final nsID NS_IWEBBROWSERSETUP_IID =
-		new nsID(NS_IWEBBROWSERSETUP_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIWebBrowserSetup.class, MozillaVersion.VERSION_BASE, new nsID(NS_IWEBBROWSERSETUP_IID_STR));
+	}
 
 	public nsIWebBrowserSetup(int /*long*/ address) {
 		super(address);
@@ -51,6 +52,6 @@ public class nsIWebBrowserSetup extends nsISupports {
 	public static final int SETUP_IS_CHROME_WRAPPER = 7;
 
 	public int SetProperty(int aId, int aValue) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aId, aValue);
+		return XPCOM.VtblCall(this.getMethodIndex("setProperty"), getAddress(), aId, aValue);
 	}
 }

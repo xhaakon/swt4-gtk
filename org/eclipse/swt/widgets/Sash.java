@@ -12,9 +12,9 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of the receiver represent a selectable user interface object
@@ -51,7 +51,7 @@ public class Sash extends Control {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -119,6 +119,7 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.HORIZONTAL, SWT.VERTICAL, 0, 0, 0, 0);
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
@@ -135,12 +136,13 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	return new Point (width, height);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	handle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (handle, true);
-	gtk_widget_set_can_focus (handle, true);
+	OS.gtk_widget_set_has_window (handle, true);
+	OS.gtk_widget_set_can_focus (handle, true);
 	int type = (style & SWT.VERTICAL) != 0 ? OS.GDK_SB_H_DOUBLE_ARROW : OS.GDK_SB_V_DOUBLE_ARROW;
 	defaultCursor = OS.gdk_cursor_new (type);
 }
@@ -155,16 +157,17 @@ void drawBand (int x, int y, int width, int height) {
 	int /*long*/ colormap = OS.gdk_colormap_get_system();
 	GdkColor color = new GdkColor ();
 	OS.gdk_color_white (colormap, color);
-	OS.gdk_gc_set_foreground (gc, color);	
+	OS.gdk_gc_set_foreground (gc, color);
 	OS.gdk_gc_set_stipple (gc, stipplePixmap);
 	OS.gdk_gc_set_subwindow (gc, OS.GDK_INCLUDE_INFERIORS);
 	OS.gdk_gc_set_fill (gc, OS.GDK_STIPPLED);
 	OS.gdk_gc_set_function (gc, OS.GDK_XOR);
-	OS.gdk_draw_rectangle (window, gc, 1, x, y, width, height);	
+	OS.gdk_draw_rectangle (window, gc, 1, x, y, width, height);
 	OS.g_object_unref (stipplePixmap);
 	OS.g_object_unref (gc);
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_button_press_event (widget, eventPtr);
 	if (result != 0) return result;
@@ -180,12 +183,12 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
 	startX = (int) (gdkEvent.x_root - origin_x [0]);
 	startY = (int) (gdkEvent.y_root - origin_y [0]);
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation(handle, allocation);
+	OS.gtk_widget_get_allocation(handle, allocation);
 	int x = allocation.x;
 	int y = allocation.y;
 	int width = allocation.width;
 	int height = allocation.height;
-	lastX = x; 
+	lastX = x;
 	lastY = y;
 	Event event = new Event ();
 	event.time = gdkEvent.time;
@@ -211,9 +214,10 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
 			// widget could be disposed at this point
 		}
 	}
-	return result;	
+	return result;
 }
 
+@Override
 int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_button_release_event (widget, eventPtr);
 	if (result != 0) return result;
@@ -224,7 +228,7 @@ int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ eventPt
 	if (!dragging) return 0;
 	dragging = false;
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	int width = allocation.width;
 	int height = allocation.height;
 	Event event = new Event ();
@@ -246,19 +250,21 @@ int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ eventPt
 	return result;
 }
 
+@Override
 int /*long*/ gtk_focus_in_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_focus_in_event (widget, event);
 	if (result != 0) return result;
 	// widget could be disposed at this point
 	if (handle != 0) {
 		GtkAllocation allocation = new GtkAllocation ();
-		gtk_widget_get_allocation (handle, allocation);
+		OS.gtk_widget_get_allocation (handle, allocation);
 		lastX = allocation.x;
-		lastY = allocation.y;	
+		lastY = allocation.y;
 	}
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_key_press_event (widget, eventPtr);
 	if (result != 0) return result;
@@ -282,10 +288,10 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			}
 			int parentBorder = 0;
 			GtkAllocation allocation = new GtkAllocation ();
-			gtk_widget_get_allocation (handle, allocation);
+			OS.gtk_widget_get_allocation (handle, allocation);
 			int width = allocation.width;
 			int height = allocation.height;
-			gtk_widget_get_allocation (parent.handle, allocation);
+			OS.gtk_widget_get_allocation (parent.handle, allocation);
 			int parentWidth = allocation.width;
 			int parentHeight = allocation.height;
 			int newX = lastX, newY = lastY;
@@ -295,7 +301,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 				newY = Math.min (Math.max (0, lastY + yChange - parentBorder - startY), parentHeight - height);
 			}
 			if (newX == lastX && newY == lastY) return result;
-			
+
 			/* Ensure that the pointer image does not change */
 			int /*long*/ window = gtk_widget_get_window (handle);
 			int grabMask = OS.GDK_POINTER_MOTION_MASK | OS.GDK_BUTTON_RELEASE_MASK;
@@ -313,7 +319,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			sendSelectionEvent (SWT.Selection, event, true);
 			if (ptrGrabResult == OS.GDK_GRAB_SUCCESS) gdk_pointer_ungrab (window, OS.GDK_CURRENT_TIME);
 			if (isDisposed ()) break;
-			
+
 			if (event.doit) {
 				lastX = event.x;
 				lastY = event.y;
@@ -336,6 +342,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_motion_notify_event (widget, eventPtr);
 	if (result != 0) return result;
@@ -351,20 +358,20 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ eventPtr
 		eventState = mask [0];
 	} else {
 		int [] origin_x = new int [1], origin_y = new int [1];
-		OS.gdk_window_get_origin (gdkEvent.window, origin_x, origin_y);	
+		OS.gdk_window_get_origin (gdkEvent.window, origin_x, origin_y);
 		eventX = (int) (gdkEvent.x_root - origin_x [0]);
 		eventY = (int) (gdkEvent.y_root - origin_y [0]);
 		eventState = gdkEvent.state;
 	}
 	if ((eventState & OS.GDK_BUTTON1_MASK) == 0) return 0;
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	int x = allocation.x;
 	int y = allocation.y;
 	int width = allocation.width;
 	int height = allocation.height;
 	int parentBorder = 0;
-	gtk_widget_get_allocation (parent.handle, allocation);
+	OS.gtk_widget_get_allocation (parent.handle, allocation);
 	int parentWidth = allocation.width;
 	int parentHeight = allocation.height;
 	int newX = lastX, newY = lastY;
@@ -375,7 +382,7 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ eventPtr
 	}
 	if (newX == lastX && newY == lastY) return 0;
 	drawBand (lastX, lastY, width, height);
-	
+
 	Event event = new Event ();
 	event.time = gdkEvent.time;
 	event.x = newX;
@@ -402,16 +409,19 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ eventPtr
 	return result;
 }
 
+@Override
 int /*long*/ gtk_realize (int /*long*/ widget) {
 	setCursor (cursor != null ? cursor.handle : 0);
 	return super.gtk_realize (widget);
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
 	OS.gtk_widget_add_events (handle, OS.GDK_POINTER_MOTION_HINT_MASK);
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (defaultCursor != 0) gdk_cursor_unref (defaultCursor);
@@ -440,13 +450,15 @@ public void removeSelectionListener(SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
+@Override
 void setCursor (int /*long*/ cursor) {
 	super.setCursor (cursor != 0 ? cursor : defaultCursor);
 }
 
+@Override
 int traversalCode (int key, GdkEventKey event) {
 	return 0;
 }

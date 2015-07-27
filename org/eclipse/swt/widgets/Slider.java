@@ -12,15 +12,15 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class are selectable user interface
- * objects that represent a range of positive, numeric values. 
+ * objects that represent a range of positive, numeric values.
  * <p>
- * At any given moment, a given slider will have a 
+ * At any given moment, a given slider will have a
  * single 'selection' that is considered to be its
  * value, which is constrained to be within the range of
  * values the slider represents (that is, between its
@@ -77,7 +77,7 @@ public class Slider extends Control {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -148,11 +148,12 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.HORIZONTAL, SWT.VERTICAL, 0, 0, 0, 0);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	int /*long*/ hAdjustment = OS.gtk_adjustment_new (0, 0, 100, 1, 10, 10);
 	if (hAdjustment == 0) error (SWT.ERROR_NO_HANDLES);
 	if ((style & SWT.HORIZONTAL) != 0) {
@@ -167,14 +168,15 @@ void createHandle (int index) {
 	* when the GTK_CAN_FOCUS flag is set. The fix is not to set
 	* the flag for horizontal bars in all versions of 2.10. Note
 	* that a bug has been logged with GTK about this issue.
-	* (http://bugzilla.gnome.org/show_bug.cgi?id=475909) 
+	* (http://bugzilla.gnome.org/show_bug.cgi?id=475909)
 	*/
-	if (OS.GTK_VERSION < OS.VERSION (2, 10, 0) || (style & SWT.VERTICAL) != 0) {
-		gtk_widget_set_can_focus (handle, true);
+	if ((style & SWT.VERTICAL) != 0) {
+		OS.gtk_widget_set_can_focus (handle, true);
 	}
 	OS.gtk_container_add (fixedHandle, handle);
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_button_press_event (widget, eventPtr);
 	if (result != 0) return result;
@@ -183,11 +185,13 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
 	return result;
 }
 
+@Override
 int /*long*/ gtk_change_value (int /*long*/ widget, int /*long*/ scroll, int /*long*/ value1, int /*long*/ value2) {
 	detail = (int)/*64*/scroll;
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 	Event event = new Event ();
 	dragSent = detail == OS.GTK_SCROLL_JUMP;
@@ -214,6 +218,7 @@ int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	GdkEvent gtkEvent = new GdkEvent ();
 	OS.memmove (gtkEvent, gdkEvent, GdkEvent.sizeof);
@@ -237,24 +242,28 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	return super.gtk_event_after (widget, gdkEvent);
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
-	OS.g_signal_connect_closure (handle, OS.change_value, display.closures [CHANGE_VALUE], false);
-	OS.g_signal_connect_closure (handle, OS.value_changed, display.closures [VALUE_CHANGED], false);
+	OS.g_signal_connect_closure (handle, OS.change_value, display.getClosure (CHANGE_VALUE), false);
+	OS.g_signal_connect_closure (handle, OS.value_changed, display.getClosure (VALUE_CHANGED), false);
 }
 
+@Override
 void register () {
 	super.register ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
 	display.addWidget (hAdjustment, this);
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
 	display.removeWidget (hAdjustment);
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget();
 	OS.gtk_widget_realize(handle);
@@ -284,7 +293,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 public int getIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_step_increment (hAdjustment);
+	return (int) OS.gtk_adjustment_get_step_increment (hAdjustment);
 }
 
 /**
@@ -300,7 +309,7 @@ public int getIncrement () {
 public int getMaximum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_upper (hAdjustment);
+	return (int) OS.gtk_adjustment_get_upper (hAdjustment);
 }
 
 /**
@@ -316,7 +325,7 @@ public int getMaximum () {
 public int getMinimum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_lower (hAdjustment);
+	return (int) OS.gtk_adjustment_get_lower (hAdjustment);
 }
 
 /**
@@ -334,7 +343,7 @@ public int getMinimum () {
 public int getPageIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_page_increment (hAdjustment);
+	return (int) OS.gtk_adjustment_get_page_increment (hAdjustment);
 }
 
 /**
@@ -350,7 +359,7 @@ public int getPageIncrement () {
 public int getSelection () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_value (hAdjustment);
+	return (int) OS.gtk_adjustment_get_value (hAdjustment);
 }
 
 /**
@@ -366,7 +375,7 @@ public int getSelection () {
 public int getThumb () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_range_get_adjustment (handle);
-	return (int) gtk_adjustment_get_page_size (hAdjustment);
+	return (int) OS.gtk_adjustment_get_page_size (hAdjustment);
 }
 
 /**
@@ -391,13 +400,13 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
 /**
  * Sets the amount that the receiver's value will be
  * modified by when the up/down (or right/left) arrows
- * are pressed to the argument, which must be at least 
+ * are pressed to the argument, which must be at least
  * one.
  *
  * @param value the new increment (must be greater than zero)
@@ -439,7 +448,8 @@ public void setMaximum (int value) {
 	adjustment.page_size = Math.min ((int)adjustment.page_size, value - minimum);
 	adjustment.value = Math.min ((int)adjustment.value, (int)(value - adjustment.page_size));
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (hAdjustment, adjustment);
+	OS.gtk_adjustment_configure(hAdjustment, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -468,10 +478,12 @@ public void setMinimum (int value) {
 	adjustment.page_size = Math.min ((int)adjustment.page_size, maximum - value);
 	adjustment.value = Math.max ((int)adjustment.value, value);
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (hAdjustment, adjustment);
+	OS.gtk_adjustment_configure(hAdjustment, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
@@ -522,11 +534,11 @@ public void setSelection (int value) {
 }
 
 /**
- * Sets the thumb value. The thumb value should be used to represent 
+ * Sets the thumb value. The thumb value should be used to represent
  * the size of the visual portion of the current range. This value is
  * usually the same as the page increment value.
  * <p>
- * This new value will be ignored if it is less than one, and will be 
+ * This new value will be ignored if it is less than one, and will be
  * clamped if it exceeds the receiver's current range.
  * </p>
  *
@@ -548,7 +560,8 @@ public void setThumb (int value) {
 	adjustment.page_size = (double) value;
 	adjustment.value = Math.min ((int)adjustment.value, (int)(adjustment.upper - value));
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (hAdjustment, adjustment);
+	OS.gtk_adjustment_configure(hAdjustment, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -557,7 +570,7 @@ public void setThumb (int value) {
  * value, thumb, increment and page increment all at once.
  * <p>
  * Note: This is similar to setting the values individually
- * using the appropriate methods, but may be implemented in a 
+ * using the appropriate methods, but may be implemented in a
  * more efficient fashion on some platforms.
  * </p>
  *
@@ -590,7 +603,8 @@ public void setValues (int selection, int minimum, int maximum, int thumb, int i
 	adjustment.step_increment = (double) increment;
 	adjustment.page_increment = (double) pageIncrement;
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (hAdjustment, adjustment);
+	OS.gtk_adjustment_configure(hAdjustment, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.gtk_adjustment_value_changed (hAdjustment);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }

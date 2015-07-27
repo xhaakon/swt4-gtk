@@ -27,15 +27,16 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIServiceManager extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 4;
 
-	public static final String NS_ISERVICEMANAGER_IID_STR =
-		"8bb35ed9-e332-462d-9155-4a002ab5c958";
+	static final String NS_ISERVICEMANAGER_IID_STR = "8bb35ed9-e332-462d-9155-4a002ab5c958";
 
-	public static final nsID NS_ISERVICEMANAGER_IID =
-		new nsID(NS_ISERVICEMANAGER_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIServiceManager.class, MozillaVersion.VERSION_BASE, new nsID(NS_ISERVICEMANAGER_IID_STR));
+	}
 
 	public nsIServiceManager(int /*long*/ address) {
 		super(address);
@@ -47,13 +48,5 @@ public class nsIServiceManager extends nsISupports {
 
 	public int GetServiceByContractID(byte[] aContractID, nsID aIID, int /*long*/[] result) {
 		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aContractID, aIID, result);
-	}
-
-	public int IsServiceInstantiated(nsID aClass, nsID aIID, int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aClass, aIID, _retval);
-	}
-
-	public int IsServiceInstantiatedByContractID(byte[] aContractID, nsID aIID, int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aContractID, aIID, _retval);
 	}
 }

@@ -27,58 +27,23 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIRequest extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 10;
 
-	public static final String NS_IREQUEST_IID_STR =
-		"ef6bfbd2-fd46-48d8-96b7-9f8f0fd387fe";
+	static final String NS_IREQUEST_IID_STR = "ef6bfbd2-fd46-48d8-96b7-9f8f0fd387fe";
 
-	public static final nsID NS_IREQUEST_IID =
-		new nsID(NS_IREQUEST_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIRequest.class, MozillaVersion.VERSION_BASE, new nsID(NS_IREQUEST_IID_STR));
+	}
 
 	public nsIRequest(int /*long*/ address) {
 		super(address);
 	}
 
 	public int GetName(int /*long*/ aName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aName);
-	}
-
-	public int IsPending(int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), _retval);
-	}
-
-	public int GetStatus(int /*long*/[] aStatus) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aStatus);
-	}
-
-	public int Cancel(int aStatus) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aStatus);
-	}
-
-	public int Suspend() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress());
-	}
-
-	public int Resume() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress());
-	}
-
-	public int GetLoadGroup(int /*long*/[] aLoadGroup) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aLoadGroup);
-	}
-
-	public int SetLoadGroup(int /*long*/ aLoadGroup) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aLoadGroup);
-	}
-
-	public int GetLoadFlags(int /*long*/[] aLoadFlags) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 9, getAddress(), aLoadFlags);
-	}
-
-	public int SetLoadFlags(int aLoadFlags) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 10, getAddress(), aLoadFlags);
+		return XPCOM.VtblCall(this.getGetterIndex("name"), getAddress(), aName);
 	}
 
 	public static final int LOAD_NORMAL = 0;

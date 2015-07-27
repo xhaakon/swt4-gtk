@@ -27,49 +27,26 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIWebBrowserFocus extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 8;
 
-	public static final String NS_IWEBBROWSERFOCUS_IID_STR =
-		"9c5d3c58-1dd1-11b2-a1c9-f3699284657a";
+	static final String NS_IWEBBROWSERFOCUS_IID_STR = "9c5d3c58-1dd1-11b2-a1c9-f3699284657a";
 
-	public static final nsID NS_IWEBBROWSERFOCUS_IID =
-		new nsID(NS_IWEBBROWSERFOCUS_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIWebBrowserFocus.class, MozillaVersion.VERSION_BASE, new nsID(NS_IWEBBROWSERFOCUS_IID_STR));
+	}
 
 	public nsIWebBrowserFocus(int /*long*/ address) {
 		super(address);
 	}
 
 	public int Activate() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress());
+		return XPCOM.VtblCall(this.getMethodIndex("activate"), getAddress());
 	}
 
 	public int Deactivate() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress());
-	}
-
-	public int SetFocusAtFirstElement() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress());
-	}
-
-	public int SetFocusAtLastElement() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress());
-	}
-
-	public int GetFocusedWindow(int /*long*/[] aFocusedWindow) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aFocusedWindow);
-	}
-
-	public int SetFocusedWindow(int /*long*/ aFocusedWindow) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), aFocusedWindow);
-	}
-
-	public int GetFocusedElement(int /*long*/[] aFocusedElement) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aFocusedElement);
-	}
-
-	public int SetFocusedElement(int /*long*/ aFocusedElement) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aFocusedElement);
+		return XPCOM.VtblCall(this.getMethodIndex("deactivate"), getAddress());
 	}
 }

@@ -27,33 +27,26 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIPrefLocalizedString extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 4;
 
-	public static final String NS_IPREFLOCALIZEDSTRING_IID_STR =
-		"ae419e24-1dd1-11b2-b39a-d3e5e7073802";
+	static final String NS_IPREFLOCALIZEDSTRING_IID_STR = "ae419e24-1dd1-11b2-b39a-d3e5e7073802";
 
-	public static final nsID NS_IPREFLOCALIZEDSTRING_IID =
-		new nsID(NS_IPREFLOCALIZEDSTRING_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIPrefLocalizedString.class, MozillaVersion.VERSION_BASE, new nsID(NS_IPREFLOCALIZEDSTRING_IID_STR));
+	}
 
 	public nsIPrefLocalizedString(int /*long*/ address) {
 		super(address);
 	}
 
-	public int GetData(int /*long*/[] aData) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aData);
-	}
-
-	public int SetData(char[] aData) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aData);
-	}
-
 	public int ToString(int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("toString"), getAddress(), _retval);
 	}
 
 	public int SetDataWithLength(int length, char[] data) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), length, data);
+		return XPCOM.VtblCall(this.getMethodIndex("setDataWithLength"), getAddress(), length, data);
 	}
 }

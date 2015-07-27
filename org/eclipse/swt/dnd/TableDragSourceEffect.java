@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -19,10 +19,10 @@ import org.eclipse.swt.widgets.*;
 /**
  * This class provides default implementations to display a source image
  * when a drag is initiated from a <code>Table</code>.
- * 
+ *
  * <p>Classes that wish to provide their own source image for a <code>Table</code> can
- * extend the <code>TableDragSourceEffect</code> class, override the 
- * <code>TableDragSourceEffect.dragStart</code> method and set the field 
+ * extend the <code>TableDragSourceEffect</code> class, override the
+ * <code>TableDragSourceEffect.dragStart</code> method and set the field
  * <code>DragSourceEvent.image</code> with their own image.</p>
  *
  * Subclasses that override any methods of this class must call the corresponding
@@ -31,14 +31,14 @@ import org.eclipse.swt.widgets.*;
  * @see DragSourceEffect
  * @see DragSourceEvent
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
- * 
+ *
  * @since 3.3
  */
 public class TableDragSourceEffect extends DragSourceEffect {
 	Image dragSourceImage = null;
 
 	/**
-	 * Creates a new <code>TableDragSourceEffect</code> to handle drag effect 
+	 * Creates a new <code>TableDragSourceEffect</code> to handle drag effect
 	 * from the specified <code>Table</code>.
 	 *
 	 * @param table the <code>Table</code> that the user clicks on to initiate the drag
@@ -50,15 +50,16 @@ public class TableDragSourceEffect extends DragSourceEffect {
 	/**
 	 * This implementation of <code>dragFinished</code> disposes the image
 	 * that was created in <code>TableDragSourceEffect.dragStart</code>.
-	 * 
+	 *
 	 * Subclasses that override this method should call <code>super.dragFinished(event)</code>
 	 * to dispose the image in the default implementation.
-	 * 
+	 *
 	 * @param event the information associated with the drag finished event
 	 */
+	@Override
 	public void dragFinished(DragSourceEvent event) {
 		if (dragSourceImage != null) dragSourceImage.dispose();
-		dragSourceImage = null;		
+		dragSourceImage = null;
 	}
 
 	/**
@@ -66,16 +67,17 @@ public class TableDragSourceEffect extends DragSourceEffect {
 	 * image that will be used during the drag. The image should be disposed
 	 * when the drag is completed in the <code>TableDragSourceEffect.dragFinished</code>
 	 * method.
-	 * 
+	 *
 	 * Subclasses that override this method should call <code>super.dragStart(event)</code>
 	 * to use the image from the default implementation.
-	 * 
+	 *
 	 * @param event the information associated with the drag start event
 	 */
+	@Override
 	public void dragStart(DragSourceEvent event) {
 		event.image = getDragSourceImage(event);
 	}
-	
+
 	Image getDragSourceImage(DragSourceEvent event) {
 		if (dragSourceImage != null) dragSourceImage.dispose();
 		dragSourceImage = null;
@@ -83,7 +85,7 @@ public class TableDragSourceEffect extends DragSourceEffect {
 		Table table = (Table) control;
 		//TEMPORARY CODE
 		if (table.isListening(SWT.EraseItem) || table.isListening (SWT.PaintItem)) return null;
-		
+
 		/*
 		* Bug in GTK.  gtk_tree_selection_get_selected_rows() segmentation faults
 		* in versions smaller than 2.2.4 if the model is NULL.  The fix is
@@ -95,6 +97,7 @@ public class TableDragSourceEffect extends DragSourceEffect {
 		int /*long*/ list = OS.gtk_tree_selection_get_selected_rows (selection, model);
 		if (list == 0) return null;
 		int count = Math.min(10, OS.g_list_length (list));
+		int /*long*/ originalList = list;
 
 		Display display = table.getDisplay();
 		if (count == 1) {
@@ -109,7 +112,7 @@ public class TableDragSourceEffect extends DragSourceEffect {
 			int /*long*/ [] icons = new int /*long*/ [count];
 			GdkRectangle rect = new GdkRectangle ();
 			for (int i=0; i<count; i++) {
-				int /*long*/ path = OS.g_list_nth_data (list, i);
+				int /*long*/ path = OS.g_list_data (list);
 				OS.gtk_tree_view_get_cell_area (handle, path, 0, rect);
 				icons[i] = OS.gtk_tree_view_create_row_drag_icon(handle, path);
 				if (OS.GTK3) {
@@ -124,6 +127,7 @@ public class TableDragSourceEffect extends DragSourceEffect {
 				height = rect.y + h[0] - yy[0];
 				yy[i] = rect.y;
 				hh[i] = h[0];
+				list = OS.g_list_next (list);
 				OS.gtk_tree_path_free (path);
 			}
 			if (OS.GTK3) {
@@ -161,7 +165,7 @@ public class TableDragSourceEffect extends DragSourceEffect {
 				dragSourceImage  = Image.gtk_new(display, SWT.ICON, source, mask);
 			}
 		}
-		OS.g_list_free (list);
+		OS.g_list_free (originalList);
 		return dragSourceImage;
 	}
 }

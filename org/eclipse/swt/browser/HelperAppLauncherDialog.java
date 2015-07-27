@@ -38,16 +38,24 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 	
 	helperAppLauncherDialog = new XPCOMObject (new int[] {2, 0, 0, 3, 5}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return Show (args[0], args[1], (int)/*64*/args[2]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return PromptForSaveToFile (args[0], args[1], args[2], args[3], args[4]);}
 	};		
 }
@@ -72,7 +80,7 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 	
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -110,7 +118,7 @@ int Show (int /*long*/ aLauncher, int /*long*/ aContext, int aReason) {
 	 */
 	nsISupports supports = new nsISupports (aLauncher);
 	int /*long*/[] result = new int /*long*/[1];
-	int rc = supports.QueryInterface (nsIHelperAppLauncher_1_8.NS_IHELPERAPPLAUNCHER_IID, result);
+	int rc = supports.QueryInterface (IIDStore.GetIID (nsIHelperAppLauncher_1_8.class), result);
 	if (rc == XPCOM.NS_OK) {	/* >= 1.8 */
 		nsIHelperAppLauncher_1_8 helperAppLauncher = new nsIHelperAppLauncher_1_8 (aLauncher);
 		rc = helperAppLauncher.SaveToDisk (0, 0);
@@ -141,14 +149,14 @@ int PromptForSaveToFile (int /*long*/ arg0, int /*long*/ arg1, int /*long*/ arg2
  	boolean using_1_8 = false;
 	nsISupports support = new nsISupports (arg0);
 	int /*long*/[] result = new int /*long*/[1];
-	int rc = support.QueryInterface (nsIHelperAppLauncher_1_8.NS_IHELPERAPPLAUNCHER_IID, result);
+	int rc = support.QueryInterface (IIDStore.GetIID (nsIHelperAppLauncher_1_8.class), result);
 	if (rc == XPCOM.NS_OK) {
 		using_1_8 = true;
 		hasLauncher = true;
 		new nsISupports (result[0]).Release ();
 	} else {
 		result[0] = 0;
-		rc = support.QueryInterface (nsIHelperAppLauncher.NS_IHELPERAPPLAUNCHER_IID, result);
+		rc = support.QueryInterface (IIDStore.GetIID (nsIHelperAppLauncher.class, MozillaVersion.VERSION_BASE), result);
 		if (rc == XPCOM.NS_OK) {
 			hasLauncher = true;
 			new nsISupports (result[0]).Release ();

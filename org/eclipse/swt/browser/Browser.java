@@ -189,8 +189,6 @@ static int checkStyle(int style) {
 		style &= ~SWT.WEBKIT;
 	}
 	if ((style & SWT.MOZILLA) != 0 || (style & SWT.WEBKIT) != 0) {
-		if ("carbon".equals (platform)) return style | SWT.EMBEDDED; //$NON-NLS-1$
-		if ("motif".equals (platform)) return style | SWT.EMBEDDED; //$NON-NLS-1$
 		return style;
 	}
 
@@ -200,12 +198,11 @@ static int checkStyle(int style) {
 		* the style so that the parent Composite will not draw a second border.
 		*/
 		return style & ~SWT.BORDER;
-	} else if ("motif".equals (platform)) { //$NON-NLS-1$
-		return style | SWT.EMBEDDED;
-	}
+	} 
 	return style;
 }
 
+@Override
 protected void checkWidget () {
 	super.checkWidget ();
 }
@@ -497,6 +494,7 @@ public boolean back () {
 	return webBrowser.back ();
 }
 
+@Override
 protected void checkSubclass () {
 	String name = getClass ().getName ();
 	int index = name.lastIndexOf ('.');
@@ -602,14 +600,67 @@ public boolean close () {
  *    <li>ERROR_WIDGET_DISPOSED when the widget has been disposed</li>
  * </ul>
  * 
+ * @see Browser#evaluate(String,boolean)
  * @see ProgressListener#completed(ProgressEvent)
  * 
  * @since 3.5
  */
 public Object evaluate (String script) throws SWTException {
 	checkWidget();
+	return evaluate (script, false);
+}
+
+/**
+ * Returns the result, if any, of executing the specified script.
+ * <p>
+ * Evaluates a script containing javascript commands.
+ * When <code>trusted</code> is <code>true</code> script is executed in the context of Chrome 
+ * with Chrome security privileges.
+ * When <code>trusted</code> is <code>false</code> script is executed in the context of the 
+ * current document with normal privileges.
+ * </p><p>
+ * If document-defined functions or properties are accessed by the script then
+ * this method should not be invoked until the document has finished loading 
+ * (<code>ProgressListener.completed()</code> gives notification of this).
+ * </p><p>
+ * If the script returns a value with a supported type then a java
+ * representation of the value is returned.  The supported
+ * javascript -> java mappings are:
+ * <ul>
+ * <li>javascript null or undefined -> <code>null</code></li>
+ * <li>javascript number -> <code>java.lang.Double</code></li>
+ * <li>javascript string -> <code>java.lang.String</code></li>
+ * <li>javascript boolean -> <code>java.lang.Boolean</code></li>
+ * <li>javascript array whose elements are all of supported types -> <code>java.lang.Object[]</code></li>
+ * </ul>
+ * An <code>SWTException</code> is thrown if the return value has an
+ * unsupported type, or if evaluating the script causes a javascript
+ * error to be thrown.
+ * </p><p>
+ * Note: Chrome security context is applicable only to Browsers with style <code>SWT.Mozilla</code>.
+ * </p>
+ * @param script the script with javascript commands
+ * @param trusted <code>true> or <code>false</code> depending on the security context to be used
+ *  
+ * @return the return value, if any, of executing the script
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the script is null</li>
+ * </ul>
+ * 
+ * @exception SWTException <ul>
+ *    <li>ERROR_FAILED_EVALUATE when the script evaluation causes a javascript error to be thrown</li>
+ *    <li>ERROR_INVALID_RETURN_VALUE when the script returns a value of unsupported type</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS when called from the wrong thread</li>
+ *    <li>ERROR_WIDGET_DISPOSED when the widget has been disposed</li>
+ * </ul>
+ * 
+ * @see ProgressListener#completed(ProgressEvent)
+ */
+public Object evaluate (String script, boolean trusted) throws SWTException {
+	checkWidget();
 	if (script == null) SWT.error (SWT.ERROR_NULL_ARGUMENT);
-	return webBrowser.evaluate (script);
+	return webBrowser.evaluate (script, trusted);
 }
 
 /**
@@ -667,6 +718,7 @@ public boolean getJavascriptEnabled () {
 	return webBrowser.jsEnabledOnNextPage;
 }
 
+@Override
 public int getStyle () {
 	/*
 	* If SWT.BORDER was specified at creation time then getStyle() should answer
@@ -748,6 +800,7 @@ public boolean isBackEnabled () {
 	return webBrowser.isBackEnabled ();
 }
 
+@Override
 public boolean isFocusControl () {
 	checkWidget();
 	if (webBrowser.isFocusControl ()) return true;

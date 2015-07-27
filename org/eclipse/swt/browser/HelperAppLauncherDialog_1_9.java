@@ -17,8 +17,8 @@ import org.eclipse.swt.widgets.*;
 
 /**
  * This class implements the nsIHelperAppLauncherDialog interface for mozilla
- * versions >= 1.9.  For mozilla versions 1.4 - 1.8.x this interface is
- * implemented by class HelperAppLauncherDialog.  HelperAppLauncherDialogFactory
+ * versions 1.9.x.x.  For other mozilla versions this interface is implemented
+ * by class HelperAppLauncherDialog(_10).  HelperAppLauncherDialogFactory
  * determines at runtime which of these classes to instantiate. 
  */
 class HelperAppLauncherDialog_1_9 {
@@ -38,16 +38,24 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 	
 	helperAppLauncherDialog = new XPCOMObject (new int[] {2, 0, 0, 3, 6}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return Show (args[0], args[1], (int)/*64*/args[2]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return PromptForSaveToFile (args[0], args[1], args[2], args[3], (int)/*64*/args[4], args[5]);}
 	};		
 }
@@ -72,7 +80,7 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -103,7 +111,7 @@ int Release () {
 /* nsIHelperAppLauncherDialog */
 
 int Show (int /*long*/ aLauncher, int /*long*/ aContext, int aReason) {
-	nsIHelperAppLauncher_1_9 helperAppLauncher = new nsIHelperAppLauncher_1_9 (aLauncher);
+	nsIHelperAppLauncher_1_8 helperAppLauncher = new nsIHelperAppLauncher_1_8 (aLauncher);
 	return helperAppLauncher.SaveToDisk (0, 0);
 }
 
@@ -125,7 +133,7 @@ int PromptForSaveToFile (int /*long*/ aLauncher, int /*long*/ aWindowContext, in
 	String name = fileDialog.open ();
 	shell.close ();
 	if (name == null) {
-		nsIHelperAppLauncher_1_9 launcher = new nsIHelperAppLauncher_1_9 (aLauncher);
+		nsIHelperAppLauncher_1_8 launcher = new nsIHelperAppLauncher_1_8 (aLauncher);
 		int rc = launcher.Cancel (XPCOM.NS_BINDING_ABORTED);
 		if (rc != XPCOM.NS_OK) Mozilla.error (rc);
 		return XPCOM.NS_ERROR_FAILURE;

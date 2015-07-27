@@ -27,53 +27,38 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIHelperAppLauncher_1_8 extends nsICancelable {
 
-	static final int LAST_METHOD_ID = nsICancelable.LAST_METHOD_ID + 9;
+	static final int LAST_METHOD_ID = nsICancelable.LAST_METHOD_ID + (MozillaVersion.CheckVersion(MozillaVersion.VERSION_XR1_9) ? 10 : 9);
 
-	public static final String NS_IHELPERAPPLAUNCHER_IID_STR =
-		"99a0882d-2ff9-4659-9952-9ac531ba5592";
-
-	public static final nsID NS_IHELPERAPPLAUNCHER_IID =
-		new nsID(NS_IHELPERAPPLAUNCHER_IID_STR);
+	static final String NS_IHELPERAPPLAUNCHER_IID_STR = "99a0882d-2ff9-4659-9952-9ac531ba5592";
+	static final String NS_IHELPERAPPLAUNCHER_1_9_IID_STR = "cc75c21a-0a79-4f68-90e1-563253d0c555";
+	static final String NS_IHELPERAPPLAUNCHER_10_IID_STR = "d9a19faf-497b-408c-b995-777d956b72c0";
+	static final String NS_IHELPERAPPLAUNCHER_24_IID_STR = "acf2a516-7d7f-4771-8b22-6c4a559c088e";
+	
+	static {
+		IIDStore.RegisterIID(nsIHelperAppLauncher_1_8.class, MozillaVersion.VERSION_BASE, new nsID(NS_IHELPERAPPLAUNCHER_IID_STR));
+		IIDStore.RegisterIID(nsIHelperAppLauncher_1_8.class, MozillaVersion.VERSION_XR1_9, new nsID(NS_IHELPERAPPLAUNCHER_1_9_IID_STR));
+		IIDStore.RegisterIID(nsIHelperAppLauncher_1_8.class, MozillaVersion.VERSION_XR10, new nsID(NS_IHELPERAPPLAUNCHER_10_IID_STR));
+		IIDStore.RegisterIID(nsIHelperAppLauncher_1_8.class, MozillaVersion.VERSION_XR24, new nsID(NS_IHELPERAPPLAUNCHER_24_IID_STR));
+	}
+	
+	/* 
+	 * This method is overridden in this Class because its Java Class name is different from the actual XULRunner Interface name. 
+	 * This would cause getMethodIndex() to fail as getClass().getSimpleName() returns the Java Class name.
+	 */
+	@Override
+	protected String getClassName() {
+		return "nsIHelperAppLauncher";
+	}
 
 	public nsIHelperAppLauncher_1_8(int /*long*/ address) {
 		super(address);
 	}
 
-	public int GetMIMEInfo(int /*long*/[] aMIMEInfo) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 1, getAddress(), aMIMEInfo);
-	}
-
-	public int GetSource(int /*long*/[] aSource) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 2, getAddress(), aSource);
-	}
-
-	public int GetSuggestedFileName(int /*long*/ aSuggestedFileName) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 3, getAddress(), aSuggestedFileName);
-	}
-
 	public int SaveToDisk(int /*long*/ aNewFileLocation, int aRememberThisPreference) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 4, getAddress(), aNewFileLocation, aRememberThisPreference);
+		return XPCOM.VtblCall(this.getMethodIndex("saveToDisk"), getAddress(), aNewFileLocation, aRememberThisPreference);
 	}
-
-	public int LaunchWithApplication(int /*long*/ aApplication, int aRememberThisPreference) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 5, getAddress(), aApplication, aRememberThisPreference);
-	}
-
-	public int SetWebProgressListener(int /*long*/ aWebProgressListener) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 6, getAddress(), aWebProgressListener);
-	}
-
-	public int CloseProgressWindow() {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 7, getAddress());
-	}
-
-	public int GetTargetFile(int /*long*/[] aTargetFile) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 8, getAddress(), aTargetFile);
-	}
-
-	public int GetTimeDownloadStarted(int /*long*/ aTimeDownloadStarted) {
-		return XPCOM.VtblCall(nsICancelable.LAST_METHOD_ID + 9, getAddress(), aTimeDownloadStarted);
-	}
+	
 }

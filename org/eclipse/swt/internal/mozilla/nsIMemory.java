@@ -27,15 +27,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIMemory extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 5;
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRVersionOrLater(MozillaVersion.VERSION_XR24) ? 6 : 5);
 
-	public static final String NS_IMEMORY_IID_STR =
-		"59e7e77a-38e4-11d4-8cf5-0060b0fc14a3";
+	static final String NS_IMEMORY_IID_STR = "59e7e77a-38e4-11d4-8cf5-0060b0fc14a3";
+	static final String NS_IMEMORY_24_IID_STR = "6aef11c4-8615-44a6-9711-98f43805693d";
 
-	public static final nsID NS_IMEMORY_IID =
-		new nsID(NS_IMEMORY_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIMemory.class, MozillaVersion.VERSION_BASE, new nsID(NS_IMEMORY_IID_STR));
+		IIDStore.RegisterIID(nsIMemory.class, MozillaVersion.VERSION_XR24, new nsID(NS_IMEMORY_24_IID_STR));
+	}
 
 	public nsIMemory(int /*long*/ address) {
 		super(address);
@@ -45,19 +48,7 @@ public class nsIMemory extends nsISupports {
 		return XPCOM.nsIMemory_Alloc(getAddress(), size);
 	}
 
-	public int /*long*/ Realloc(int /*long*/ ptr, int newSize) {
-		return XPCOM.nsIMemory_Realloc(getAddress(), ptr, newSize);
-	}
-
 	public int Free(int /*long*/ ptr) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), ptr);
-	}
-
-	public int HeapMinimize(int immediate) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), immediate);
-	}
-
-	public int IsLowMemory(int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("free"), getAddress(), ptr);
 	}
 }

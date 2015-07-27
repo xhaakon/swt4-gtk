@@ -12,14 +12,14 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.events.*;
 
 /**
  * Instances of this class are controls that allow the user
- * to choose an item from a list of items, or optionally 
+ * to choose an item from a list of items, or optionally
  * enter a new value by typing it into an editable text
  * field. Often, <code>Combo</code>s are used in the same place
  * where a single selection <code>List</code> widget could
@@ -32,7 +32,7 @@ import org.eclipse.swt.events.*;
  * which access one versus the other (compare for example,
  * <code>clearSelection()</code> and <code>deselectAll()</code>).
  * The API documentation is careful to indicate either "the
- * receiver's list" or the "the receiver's text field" to 
+ * receiver's list" or the "the receiver's text field" to
  * distinguish between the two cases.
  * </p><p>
  * Note that although this class is a subclass of <code>Composite</code>,
@@ -70,7 +70,7 @@ public class Combo extends Composite {
 	 * that the text field in an instance of this class can hold
 	 */
 	public final static int LIMIT;
-	
+
 	/*
 	* These values can be different on different platforms.
 	* Therefore they are not initialized in the declaration
@@ -86,7 +86,7 @@ public class Combo extends Composite {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -116,7 +116,10 @@ public Combo (Composite parent, int style) {
 
 /**
  * Adds the argument to the end of the receiver's list.
- *
+ * <p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
+ * </p>
  * @param string the new item
  *
  * @exception IllegalArgumentException <ul>
@@ -142,6 +145,9 @@ public void add (String string) {
  * Note: To add an item at the end of the list, use the
  * result of calling <code>getItemCount()</code> as the
  * index or use <code>add(String)</code>.
+ * </p><p>
+ * Also note, if control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
  * </p>
  *
  * @param string the new item
@@ -176,7 +182,7 @@ public void add (String string, int index) {
 		OS.gtk_combo_box_insert_text (handle, index, buffer);
 	}
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 && popupHandle != 0) {
-		OS.gtk_container_forall (popupHandle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);    
+		OS.gtk_container_forall (popupHandle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);
 	}
 }
 
@@ -204,6 +210,46 @@ public void addModifyListener (ModifyListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	TypedListener typedListener = new TypedListener (listener);
 	addListener (SWT.Modify, typedListener);
+}
+
+/**
+ * Adds a segment listener.
+ * <p>
+ * A <code>SegmentEvent</code> is sent whenever text content is being modified or
+ * a segment listener is added or removed. You can
+ * customize the appearance of text by indicating certain characters to be inserted
+ * at certain text offsets. This may be used for bidi purposes, e.g. when
+ * adjacent segments of right-to-left text should not be reordered relative to
+ * each other.
+ * E.g., multiple Java string literals in a right-to-left language
+ * should generally remain in logical order to each other, that is, the
+ * way they are stored.
+ * </p>
+ * <p>
+ * <b>Warning</b>: This API is currently only implemented on Windows.
+ * <code>SegmentEvent</code>s won't be sent on GTK and Cocoa.
+ * </p>
+ *
+ * @param listener the listener which should be notified
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @see SegmentEvent
+ * @see SegmentListener
+ * @see #removeSegmentListener
+ *
+ * @since 3.103
+ */
+public void addSegmentListener (SegmentListener listener) {
+	checkWidget ();
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
+	addListener (SWT.Segments, new TypedListener (listener));
 }
 
 /**
@@ -256,7 +302,7 @@ public void addSelectionListener(SelectionListener listener) {
  *
  * @see VerifyListener
  * @see #removeVerifyListener
- * 
+ *
  * @since 3.1
  */
 public void addVerifyListener (VerifyListener listener) {
@@ -280,7 +326,7 @@ static int checkStyle (int style) {
 	* all platforms.
 	*/
 	style &= ~SWT.BORDER;
-	
+
 	/*
 	* Even though it is legal to create this widget
 	* with scroll bars, they serve no useful purpose
@@ -294,6 +340,7 @@ static int checkStyle (int style) {
 	return style;
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
@@ -304,7 +351,7 @@ protected void checkSubclass () {
  * text field is editable, this has the effect of placing the
  * i-beam at the start of the text.
  * <p>
- * Note: To clear the selected items in the receiver's list, 
+ * Note: To clear the selected items in the receiver's list,
  * use <code>deselectAll()</code>.
  * </p>
  *
@@ -344,6 +391,7 @@ void clearText () {
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, CHANGED);
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	if ((style & SWT.READ_ONLY) != 0 || OS.GTK3) {
@@ -389,7 +437,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.1
  */
 public void copy () {
@@ -397,12 +445,13 @@ public void copy () {
 	if (entryHandle != 0) OS.gtk_editable_copy_clipboard (entryHandle);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE | MENU;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
-	int /*long*/ oldList = OS.gtk_window_list_toplevels ();  
+	OS.gtk_widget_set_has_window (fixedHandle, true);
+	int /*long*/ oldList = OS.gtk_window_list_toplevels ();
 	if ((style & SWT.READ_ONLY) != 0) {
 		if (OS.GTK3) {
 			handle = OS.gtk_combo_box_text_new ();
@@ -412,6 +461,8 @@ void createHandle (int index) {
 		if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 		cellHandle = OS.gtk_bin_get_child (handle);
 		if (cellHandle == 0) error (SWT.ERROR_NO_HANDLES);
+		// Setting wrap width has the side effect of removing the whitespace on top in popup bug#438992
+		OS.gtk_combo_box_set_wrap_width(handle, 1);
 	} else {
 		if (OS.GTK3) {
 			handle = OS.gtk_combo_box_text_new_with_entry();
@@ -425,13 +476,13 @@ void createHandle (int index) {
 			imContext = OS.imContextLast();
 		}
 	}
-	popupHandle = findPopupHandle (oldList);    
+	popupHandle = findPopupHandle (oldList);
 	OS.gtk_container_add (fixedHandle, handle);
 	textRenderer = OS.gtk_cell_renderer_text_new ();
 	if (textRenderer == 0) error (SWT.ERROR_NO_HANDLES);
 	/*
 	* Feature in GTK. In order to make a read only combo box the same
-	* height as an editable combo box the ypad must be set to 0. In 
+	* height as an editable combo box the ypad must be set to 0. In
 	* versions 2.4.x of GTK, a pad of 0 will clip some letters. The
 	* fix is to set the pad to 1.
 	*/
@@ -449,25 +500,27 @@ void createHandle (int index) {
 	OS.gtk_cell_layout_pack_start (handle, textRenderer, true);
 	OS.gtk_cell_layout_set_attributes (handle, textRenderer, OS.text, 0, 0);
 	/*
-	* Feature in GTK. Toggle button creation differs between GTK versions. The 
-	* fix is to call size_request() to force the creation of the button 
-	* for those versions of GTK that defer the creation. 
+	* Feature in GTK. Toggle button creation differs between GTK versions. The
+	* fix is to call size_request() to force the creation of the button
+	* for those versions of GTK that defer the creation.
 	*/
-	if (OS.GTK_VERSION < OS.VERSION (2, 8, 0)) {
-		gtk_widget_get_preferred_size (handle, new GtkRequisition());
-	}
 	menuHandle = findMenuHandle ();
 	if (menuHandle != 0) OS.g_object_ref (menuHandle);
 	buttonHandle = findButtonHandle ();
 	if (buttonHandle != 0) OS.g_object_ref (buttonHandle);
 	/*
-	* Feature in GTK. By default, read only combo boxes 
-	* process the RETURN key rather than allowing the 
+	* Feature in GTK. By default, read only combo boxes
+	* process the RETURN key rather than allowing the
 	* default button to process the key. The fix is to
 	* clear the GTK_RECEIVES_DEFAULT flag.
 	*/
 	if ((style & SWT.READ_ONLY) != 0 && buttonHandle != 0) {
-		gtk_widget_set_receives_default (buttonHandle, false);
+		OS.gtk_widget_set_receives_default (buttonHandle, false);
+	}
+	// In GTK 3 font description is inherited from parent widget which is not how SWT has always worked,
+	// reset to default font to get the usual behavior
+	if (OS.GTK3) {
+		setFontDescription(defaultFont().handle);
 	}
 }
 
@@ -482,7 +535,7 @@ void createHandle (int index) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.1
  */
 public void cut () {
@@ -490,6 +543,7 @@ public void cut () {
 	if (entryHandle != 0) OS.gtk_editable_cut_clipboard (entryHandle);
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	if (buttonHandle != 0) display.removeWidget (buttonHandle);
@@ -500,6 +554,7 @@ void deregister () {
 	if (imContext != 0) display.removeWidget (imContext);
 }
 
+@Override
 boolean filterKey (int keyval, int /*long*/ event) {
 	int time = OS.gdk_event_get_time (event);
 	if (time != lastEventTime) {
@@ -547,7 +602,7 @@ int /*long*/ findButtonHandle() {
 	* Feature in GTK.  There is no API to query the button
 	* handle from a combo box although it is possible to get the
 	* text field.  The button handle is needed to hook events.  The
-	* fix is to walk the combo tree and find the first child that is 
+	* fix is to walk the combo tree and find the first child that is
 	* an instance of button.
 	*/
 	int /*long*/ result = 0;
@@ -560,6 +615,7 @@ int /*long*/ findButtonHandle() {
 				result = widget;
 				break;
 			}
+			list = OS.g_list_next (list);
 		}
 		OS.g_list_free (display.allChildren);
 		display.allChildren = 0;
@@ -586,7 +642,8 @@ int /*long*/ findMenuHandle() {
 	}
 	return result;
 }
-	
+
+@Override
 void fixModal (int /*long*/ group, int /*long*/ modalGroup) {
 	if (popupHandle != 0) {
 		if (group != 0) {
@@ -603,11 +660,11 @@ void fixIM () {
 	/*
 	*  The IM filter has to be called one time for each key press event.
 	*  When the IM is open the key events are duplicated. The first event
-	*  is filtered by SWT and the second event is filtered by GTK.  In some 
-	*  cases the GTK handler does not run (the widget is destroyed, the 
+	*  is filtered by SWT and the second event is filtered by GTK.  In some
+	*  cases the GTK handler does not run (the widget is destroyed, the
 	*  application code consumes the event, etc), for these cases the IM
 	*  filter has to be called by SWT.
-	*/	
+	*/
 	if (gdkEventKey != 0 && gdkEventKey != -1) {
 		int /*long*/ imContext = imContext ();
 		if (imContext != 0) {
@@ -619,39 +676,43 @@ void fixIM () {
 	gdkEventKey = 0;
 }
 
+@Override
 int /*long*/ fontHandle () {
 	if (entryHandle != 0) return entryHandle;
 	return super.fontHandle ();
 }
 
+@Override
 int /*long*/ focusHandle () {
 	if (entryHandle != 0) return entryHandle;
 	return super.focusHandle ();
 }
 
+@Override
 boolean hasFocus () {
 	if (super.hasFocus ()) return true;
-	if (entryHandle != 0 && gtk_widget_has_focus (entryHandle)) return true;
+	if (entryHandle != 0 && OS.gtk_widget_has_focus (entryHandle)) return true;
 	return false;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
-	OS.g_signal_connect_closure (handle, OS.changed, display.closures [CHANGED], true);
+	OS.g_signal_connect_closure (handle, OS.changed, display.getClosure (CHANGED), true);
 
 	if (entryHandle != 0) {
-		OS.g_signal_connect_closure (entryHandle, OS.changed, display.closures [CHANGED], true);
-		OS.g_signal_connect_closure (entryHandle, OS.insert_text, display.closures [INSERT_TEXT], false);
-		OS.g_signal_connect_closure (entryHandle, OS.delete_text, display.closures [DELETE_TEXT], false);
-		OS.g_signal_connect_closure (entryHandle, OS.activate, display.closures [ACTIVATE], false);
-		OS.g_signal_connect_closure (entryHandle, OS.populate_popup, display.closures [POPULATE_POPUP], false);
+		OS.g_signal_connect_closure (entryHandle, OS.changed, display.getClosure (CHANGED), true);
+		OS.g_signal_connect_closure (entryHandle, OS.insert_text, display.getClosure (INSERT_TEXT), false);
+		OS.g_signal_connect_closure (entryHandle, OS.delete_text, display.getClosure (DELETE_TEXT), false);
+		OS.g_signal_connect_closure (entryHandle, OS.activate, display.getClosure (ACTIVATE), false);
+		OS.g_signal_connect_closure (entryHandle, OS.populate_popup, display.getClosure (POPULATE_POPUP), false);
 	}
 
 	hookEvents(new int /*long*/ [] {buttonHandle, entryHandle, menuHandle});
 
 	int /*long*/ imContext = imContext ();
 	if (imContext != 0) {
-		OS.g_signal_connect_closure (imContext, OS.commit, display.closures [COMMIT], false);
+		OS.g_signal_connect_closure (imContext, OS.commit, display.getClosure (COMMIT), false);
 		int id = OS.g_signal_lookup (OS.commit, OS.gtk_im_context_get_type ());
 		int blockMask =  OS.G_SIGNAL_MATCH_DATA | OS.G_SIGNAL_MATCH_ID;
 		OS.g_signal_handlers_block_matched (imContext, blockMask, id, 0, 0, 0, entryHandle);
@@ -665,9 +726,9 @@ void hookEvents(int /*long*/ [] handles) {
 		if (eventHandle != 0) {
 			/* Connect the mouse signals */
 			OS.gtk_widget_add_events (eventHandle, eventMask);
-			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.closures [BUTTON_PRESS_EVENT], false);
-			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_RELEASE_EVENT], 0, display.closures [BUTTON_RELEASE_EVENT], false);
-			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [MOTION_NOTIFY_EVENT], 0, display.closures [MOTION_NOTIFY_EVENT], false);
+			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.getClosure (BUTTON_PRESS_EVENT), false);
+			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_RELEASE_EVENT], 0, display.getClosure (BUTTON_RELEASE_EVENT), false);
+			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [MOTION_NOTIFY_EVENT], 0, display.getClosure (MOTION_NOTIFY_EVENT), false);
 			/*
 			* Feature in GTK.  Events such as mouse move are propagated up
 			* the widget hierarchy and are seen by the parent.  This is the
@@ -675,28 +736,28 @@ void hookEvents(int /*long*/ [] handles) {
 			* hook a signal after and stop the propagation using a negative
 			* event number to distinguish this case.
 			*/
-			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.closures [BUTTON_PRESS_EVENT_INVERSE], true);
-			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_RELEASE_EVENT], 0, display.closures [BUTTON_RELEASE_EVENT_INVERSE], true);
-			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [MOTION_NOTIFY_EVENT], 0, display.closures [MOTION_NOTIFY_EVENT_INVERSE], true);
+			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.getClosure (BUTTON_PRESS_EVENT_INVERSE), true);
+			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_RELEASE_EVENT], 0, display.getClosure (BUTTON_RELEASE_EVENT_INVERSE), true);
+			OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [MOTION_NOTIFY_EVENT], 0, display.getClosure (MOTION_NOTIFY_EVENT_INVERSE), true);
 
 			/* Connect the event_after signal for both key and mouse */
 			if (eventHandle != focusHandle ()) {
-				OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [EVENT_AFTER], 0, display.closures [EVENT_AFTER], false);
+				OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [EVENT_AFTER], 0, display.getClosure (EVENT_AFTER), false);
 			}
 			if (OS.G_OBJECT_TYPE (eventHandle) == OS.GTK_TYPE_MENU ()) {
-				OS.g_signal_connect_closure(eventHandle, OS.selection_done, display.closures[SELECTION_DONE], true);
+				OS.g_signal_connect_closure(eventHandle, OS.selection_done, display.getClosure (SELECTION_DONE), true);
 			}
 		}
 	}
 }
 
 int /*long*/ imContext () {
-	if (imContext != 0) return imContext; 
+	if (imContext != 0) return imContext;
 	return entryHandle != 0 ? OS.GTK_ENTRY_IM_CONTEXT (entryHandle) : 0;
 }
 
 /**
- * Deselects the item at the given zero-relative index in the receiver's 
+ * Deselects the item at the given zero-relative index in the receiver's
  * list.  If the item at the index was already deselected, it remains
  * deselected. Indices that are out of range are ignored.
  *
@@ -734,6 +795,7 @@ public void deselectAll () {
 	clearText ();
 }
 
+@Override
 boolean dragDetect(int x, int y, boolean filter, boolean dragOnTimeout, boolean[] consume) {
 	if (filter && entryHandle != 0) {
 		int [] index = new int [1];
@@ -756,14 +818,17 @@ boolean dragDetect(int x, int y, boolean filter, boolean dragOnTimeout, boolean[
 	return super.dragDetect (x, y, filter, dragOnTimeout, consume);
 }
 
+@Override
 int /*long*/ enterExitHandle () {
 	return fixedHandle;
 }
 
+@Override
 int /*long*/ eventWindow () {
 	return paintWindow ();
 }
 
+@Override
 GdkColor getBackgroundColor () {
 	return getBaseColor ();
 }
@@ -778,7 +843,7 @@ GdkColor getBackgroundColor () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.8
  */
 public Point getCaretLocation () {
@@ -810,7 +875,7 @@ public Point getCaretLocation () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.8
  */
 public int getCaretPosition () {
@@ -822,6 +887,7 @@ public int getCaretPosition () {
 	return (int)/*64*/OS.g_utf8_offset_to_utf16_offset (ptr, OS.gtk_editable_get_position (entryHandle));
 }
 
+@Override
 GdkColor getForegroundColor () {
 	return getTextColor ();
 }
@@ -883,11 +949,11 @@ public int getItemHeight () {
 
 /**
  * Returns a (possibly empty) array of <code>String</code>s which are
- * the items in the receiver's list. 
+ * the items in the receiver's list.
  * <p>
  * Note: This is not the actual structure used by the receiver
  * to maintain its list of items, so modifying the array will
- * not affect the receiver. 
+ * not affect the receiver.
  * </p>
  *
  * @return the items in the receiver's list
@@ -920,14 +986,15 @@ public String [] getItems () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public boolean getListVisible () {
 	checkWidget ();
-	return popupHandle != 0 && gtk_widget_get_visible (popupHandle); 
+	return popupHandle != 0 && OS.gtk_widget_get_visible (popupHandle);
 }
 
+@Override
 String getNameText () {
 	return getText ();
 }
@@ -936,14 +1003,15 @@ String getNameText () {
  * Returns the orientation of the receiver.
  *
  * @return the orientation style
- * 
+ *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.1.2
  */
+@Override
 public int getOrientation () {
 	return super.getOrientation ();
 }
@@ -1024,7 +1092,7 @@ public String getText () {
 		OS.memmove (buffer, str, length);
 		return new String (Converter.mbcsToWcs (null, buffer));
 	} else {
-		int index = OS.gtk_combo_box_get_active (handle);		  
+		int index = OS.gtk_combo_box_get_active (handle);
 		return index != -1 ? getItem (index) : "";
 	}
 }
@@ -1064,9 +1132,9 @@ public int getTextHeight () {
  * text field is capable of holding. If this has not been changed
  * by <code>setTextLimit()</code>, it will be the constant
  * <code>Combo.LIMIT</code>.
- * 
+ *
  * @return the text limit
- * 
+ *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -1094,7 +1162,7 @@ public int getTextLimit () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public int getVisibleItemCount () {
@@ -1102,14 +1170,16 @@ public int getVisibleItemCount () {
 	return visibleCount;
 }
 
+@Override
 int /*long*/ gtk_activate (int /*long*/ widget) {
 	sendSelectionEvent (SWT.DefaultSelection);
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	/*
-	* Feature in GTK. Depending on where the user clicks, GTK prevents 
+	* Feature in GTK. Depending on where the user clicks, GTK prevents
 	* the left mouse button event from being propagated. The fix is to
 	* send the mouse event from the event_after handler.
 	*/
@@ -1121,6 +1191,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	return super.gtk_button_press_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_changed (int /*long*/ widget) {
 	if (widget == handle) {
 		if (entryHandle == 0) {
@@ -1133,8 +1204,8 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
 		* by selecting an item in the list, but the event should
 		* only be sent when the list is selected. The fix is to
 		* only send out a selection event when there is a selected
-		* item. 
-		* 
+		* item.
+		*
 		* NOTE: This code relies on GTK clearing the selected
 		* item and not matching the item as the user types.
 		*/
@@ -1170,6 +1241,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
 	if (text == 0) return 0;
 	if (!OS.gtk_editable_get_editable (entryHandle)) return 0;
@@ -1208,6 +1280,7 @@ int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /*long*/ end_pos) {
 	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
 	int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
@@ -1233,18 +1306,19 @@ int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent)  {
 	/*
-	* Feature in GTK. Depending on where the user clicks, GTK prevents 
+	* Feature in GTK. Depending on where the user clicks, GTK prevents
 	* the left mouse button event from being propagated. The fix is to
 	* send the mouse event from the event_after handler.
-	* 
-	* Feature in GTK. When the user clicks anywhere in an editable 
-	* combo box, a single focus event should be issued, despite the 
+	*
+	* Feature in GTK. When the user clicks anywhere in an editable
+	* combo box, a single focus event should be issued, despite the
 	* fact that focus might switch between the drop down button and
 	* the text field. The fix is to use gtk_combo_box_set_focus_on_click ()
-	* to eat all focus events while focus is in the combo box. When the 
-	* user clicks on the drop down button focus is assigned to the text 
+	* to eat all focus events while focus is in the combo box. When the
+	* user clicks on the drop down button focus is assigned to the text
 	* field.
 	*/
 	GdkEvent event = new GdkEvent ();
@@ -1279,13 +1353,15 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent)  {
 	return super.gtk_event_after(widget, gdkEvent);
 }
 
+@Override
 int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	fixIM ();
 	return super.gtk_focus_out_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*long*/ new_text_length, int /*long*/ position) {
-	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;	
+	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
 	if (new_text == 0 || new_text_length == 0) return 0;
 	byte [] buffer = new byte [(int)/*64*/new_text_length];
 	OS.memmove (buffer, new_text, buffer.length);
@@ -1324,6 +1400,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_key_press_event (widget, event);
 	if (result != 0) {
@@ -1341,13 +1418,13 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 		int key = keyEvent.keyval;
 		switch (key) {
 			case OS.GDK_Down:
-			case OS.GDK_KP_Down: 
+			case OS.GDK_KP_Down:
 				 if (oldIndex != (items.length - 1)) {
 					newIndex = oldIndex + 1;
 				 }
 				 break;
 			case OS.GDK_Up:
-			case OS.GDK_KP_Up: 
+			case OS.GDK_KP_Up:
 				if (oldIndex != -1 && oldIndex != 0) {
 					newIndex = oldIndex - 1;
 				}
@@ -1365,7 +1442,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 		    case OS.GDK_Page_Down:
 		    case OS.GDK_KP_Page_Down:
 		    	newIndex = items.length - 1;
-		    	break;  
+		    	break;
 		}
 		if (newIndex != oldIndex) {
 			OS.gtk_combo_box_set_active (handle, newIndex);
@@ -1375,6 +1452,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
 	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
 		OS.gtk_widget_set_direction (menu, OS.GTK_TEXT_DIR_RTL);
@@ -1383,6 +1461,7 @@ int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_selection_done(int /*long*/ menushell) {
 	int index = OS.gtk_combo_box_get_active (handle);
 	if (indexSelected == -1){
@@ -1394,6 +1473,7 @@ int /*long*/ gtk_selection_done(int /*long*/ menushell) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_style_set (int /*long*/ widget, int /*long*/ previousStyle) {
 	setButtonHandle (findButtonHandle ());
 	setMenuHandle (findMenuHandle ());
@@ -1402,7 +1482,7 @@ int /*long*/ gtk_style_set (int /*long*/ widget, int /*long*/ previousStyle) {
 
 /**
  * Searches the receiver's list starting at the first item
- * (index 0) until an item is found that is equal to the 
+ * (index 0) until an item is found that is equal to the
  * argument, and returns the index of that item. If no item
  * is found, returns -1.
  *
@@ -1423,7 +1503,7 @@ public int indexOf (String string) {
 }
 
 /**
- * Searches the receiver's list starting at the given, 
+ * Searches the receiver's list starting at the given,
  * zero-relative index until an item is found that is equal
  * to the argument, and returns the index of that item. If
  * no item is found or the starting index is out of range,
@@ -1451,14 +1531,16 @@ public int indexOf (String string, int start) {
 	return -1;
 }
 
+@Override
 boolean isFocusHandle(int /*long*/ widget) {
 	if (buttonHandle != 0 && widget == buttonHandle) return true;
 	if (entryHandle != 0 && widget == entryHandle) return true;
 	return super.isFocusHandle (widget);
 }
 
+@Override
 int /*long*/ paintWindow () {
-	int /*long*/ childHandle =  entryHandle != 0 ? entryHandle : handle;	
+	int /*long*/ childHandle =  entryHandle != 0 ? entryHandle : handle;
 	OS.gtk_widget_realize (childHandle);
 	int /*long*/ window = gtk_widget_get_window (childHandle);
 	if ((style & SWT.READ_ONLY) != 0) return window;
@@ -1479,7 +1561,7 @@ int /*long*/ paintWindow () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.1
  */
 public void paste () {
@@ -1487,10 +1569,12 @@ public void paste () {
 	if (entryHandle != 0) OS.gtk_editable_paste_clipboard (entryHandle);
 }
 
+@Override
 int /*long*/ parentingHandle() {
 	return fixedHandle;
 }
 
+@Override
 void register () {
 	super.register ();
 	if (buttonHandle != 0) display.addWidget (buttonHandle, this);
@@ -1501,6 +1585,7 @@ void register () {
 	if (imContext != 0) display.addWidget (imContext, this);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	if (menuHandle != 0) {
@@ -1512,6 +1597,7 @@ void releaseHandle () {
 	menuHandle = buttonHandle = entryHandle = 0;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	textRenderer = 0;
@@ -1552,7 +1638,7 @@ public void remove (int index) {
 
 /**
  * Removes the items from the receiver's list which are
- * between the given zero-relative start and end 
+ * between the given zero-relative start and end
  * indices (inclusive).
  *
  * @param start the start of the range
@@ -1581,7 +1667,7 @@ public void remove (int start, int end) {
 	if (start <= index && index <= end) clearText();
 	for (int i = end; i >= start; i--) {
 		if (OS.GTK3) {
-			OS.gtk_combo_box_text_remove(handle, index);
+			OS.gtk_combo_box_text_remove(handle, i);
 		} else {
 			OS.gtk_combo_box_remove_text (handle, i);
 		}
@@ -1590,7 +1676,7 @@ public void remove (int start, int end) {
 
 /**
  * Searches the receiver's list starting at the first item
- * until an item is found that is equal to the argument, 
+ * until an item is found that is equal to the argument,
  * and removes that item from the list.
  *
  * @param string the item to remove
@@ -1656,7 +1742,33 @@ public void removeModifyListener (ModifyListener listener) {
 	checkWidget();
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
-	eventTable.unhook (SWT.Modify, listener);	
+	eventTable.unhook (SWT.Modify, listener);
+}
+
+/**
+ * Removes the listener from the collection of listeners who will
+ * be notified when the receiver's text is modified.
+ *
+ * @param listener the listener which should no longer be notified
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if the listener is null</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @see SegmentEvent
+ * @see SegmentListener
+ * @see #addSegmentListener
+ *
+ * @since 3.103
+ */
+public void removeSegmentListener (SegmentListener listener) {
+	checkWidget ();
+	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
+	eventTable.unhook (SWT.Segments, listener);
 }
 
 /**
@@ -1681,7 +1793,7 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
 /**
@@ -1700,18 +1812,18 @@ public void removeSelectionListener (SelectionListener listener) {
  *
  * @see VerifyListener
  * @see #addVerifyListener
- * 
+ *
  * @since 3.1
  */
 public void removeVerifyListener (VerifyListener listener) {
 	checkWidget ();
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
-	eventTable.unhook (SWT.Verify, listener);	
+	eventTable.unhook (SWT.Verify, listener);
 }
 
 /**
- * Selects the item at the given zero-relative index in the receiver's 
+ * Selects the item at the given zero-relative index in the receiver's
  * list.  If the item at the index was already selected, it remains
  * selected. Indices that are out of range are ignored.
  *
@@ -1731,31 +1843,58 @@ public void select (int index) {
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, CHANGED);
 	if ((style & SWT.READ_ONLY) != 0 && selected != index) {
 		/*
-		* Feature in GTK. Read Only combo boxes do not get a chance to send out a 
-		* Modify event in the gtk_changed callback. The fix is to send a Modify event 
+		* Feature in GTK. Read Only combo boxes do not get a chance to send out a
+		* Modify event in the gtk_changed callback. The fix is to send a Modify event
 		* here.
 		*/
 		sendEvent (SWT.Modify);
 	}
 }
 
+
+@Override
 void setBackgroundColor (int /*long*/ context, int /*long*/ handle, GdkRGBA rgba) {
+	//Note, in Gtk3's CSS, we can't access all of the sub-widgets inside GtkComboBox.
+	//Some have to be themed by the global system theme.
+
 	if (entryHandle == 0 || (style & SWT.READ_ONLY) != 0) {
-		super.setBackgroundColor (context, handle, rgba);
-		return;
+		int /*long*/ buttonHandle = findButtonHandle (); //get's the GtkEntry handle.
+		//TODO Refactor this and Button#setBackground, they have similar CSS construction code.
+		String css = "* {\n";
+		if (rgba != null) {
+			String color = gtk_rgba_to_css_string (rgba);
+			css += "background: " + color + ";\n";
+		}
+		css += "}\n";
+		gtk_css_provider_load_from_css (OS.gtk_widget_get_style_context(buttonHandle), css); //Apply to Entry
+	} else {
+		setBackgroundColorGradient (OS.gtk_widget_get_style_context (entryHandle), handle, rgba);
+		super.setBackgroundColor (OS.gtk_widget_get_style_context (entryHandle), entryHandle, rgba);
+		//Note, we can't get to the GtkToggleButton inside GtkComboBoxText, as it's in a private stuct.
+		//We thus rely on global theme to style it via: GtkToggleButton { background: red}
 	}
-	setBackgroundColorGradient (OS.gtk_widget_get_style_context (entryHandle), handle, rgba);
+
+	//Set the background color of the text of the drop down menu.
+	OS.g_object_set (textRenderer, OS.background_rgba, rgba, 0);
+	//NOTE: We can't get to the actual menu background, beacuse it is in a private struct in GtkComboBoxText.
+	//Thus we rely for the underlying theme to theme the menu via : GtkComboBoxText * { background: xzy }
 }
 
+@Override
 void setBackgroundColor (GdkColor color) {
+	//Note: This function is reached by Gtk2 and Gtk3.
 	super.setBackgroundColor (color);
 	if (!OS.GTK3) {
 		if (entryHandle != 0) OS.gtk_widget_modify_base (entryHandle, 0, color);
 		if (cellHandle != 0) OS.g_object_set (cellHandle, OS.background_gdk, color, 0);
 		OS.g_object_set (textRenderer, OS.background_gdk, color, 0);
 	}
+
+	if (entryHandle != 0) setBackgroundColor(entryHandle, color);
+	setBackgroundColor (fixedHandle, color);
 }
 
+@Override
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	int newHeight = height;
 	if (resize) newHeight = Math.max (getTextHeight (), height);
@@ -1790,6 +1929,7 @@ void setMenuHandle (int /*long*/ widget) {
 	}
 }
 
+@Override
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	if (entryHandle != 0) setFontDescription (entryHandle, font);
@@ -1808,10 +1948,32 @@ void setFontDescription (int /*long*/ font) {
 	}
 }
 
+@Override
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (handle, color, false);
-	if (entryHandle != 0) setForegroundColor (entryHandle, color, false);
-	OS.g_object_set (textRenderer, OS.foreground_gdk, color, 0);
+	if (entryHandle != 0) {
+		setForegroundColor (entryHandle, color, false);
+	}
+    if (OS.GTK3) {
+    	GdkRGBA rgba = gdk_color_to_rgba (color);
+    	OS.g_object_set (textRenderer, OS.foreground_rgba, rgba, 0);
+    } else  {
+    	OS.g_object_set (textRenderer, OS.foreground_gdk, color, 0);
+    }
+}
+
+GdkRGBA gdk_color_to_rgba (GdkColor color) {
+	GdkRGBA rgba = null;
+	if (color != null) {
+		rgba = new GdkRGBA();
+		rgba.alpha = 1;  //TODO, we are loosing Alpha in Control:setForeground(Color color),
+		                 //as alpha is only defined in Color and not GtkColor.
+		                 //This function should ideally be factored out to Control, and convert Color to GdkRGBA.
+		rgba.red = (color.red & 0xFFFF) / (float)0xFFFF;
+		rgba.green = (color.green & 0xFFFF) / (float)0xFFFF;
+		rgba.blue = (color.blue & 0xFFFF) / (float)0xFFFF;
+	}
+	return rgba;
 }
 
 /**
@@ -1846,7 +2008,7 @@ public void setItem (int index, String string) {
 		OS.gtk_combo_box_insert_text (handle, index, buffer);
 	}
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 && popupHandle != 0) {
-		OS.gtk_container_forall (popupHandle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);    
+		OS.gtk_container_forall (popupHandle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);
 	}
 }
 
@@ -1890,7 +2052,7 @@ public void setItems (String [] items) {
 			OS.gtk_combo_box_insert_text (handle, i, buffer);
 		}
 		if ((style & SWT.RIGHT_TO_LEFT) != 0 && popupHandle != 0) {
-			OS.gtk_container_forall (popupHandle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);    
+			OS.gtk_container_forall (popupHandle, display.setDirectionProc, OS.GTK_TEXT_DIR_RTL);
 		}
 	}
 }
@@ -1910,7 +2072,7 @@ public void setItems (String [] items) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public void setListVisible (boolean visible) {
@@ -1922,6 +2084,7 @@ public void setListVisible (boolean visible) {
 	}
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
@@ -1940,14 +2103,15 @@ void setOrientation (boolean create) {
  * <p>
  *
  * @param orientation new orientation style
- * 
+ *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.1.2
  */
+@Override
 public void setOrientation (int orientation) {
 	super.setOrientation (orientation);
 }
@@ -1956,7 +2120,7 @@ public void setOrientation (int orientation) {
  * Sets the selection in the receiver's text field to the
  * range specified by the argument whose x coordinate is the
  * start of the selection and whose y coordinate is the end
- * of the selection. 
+ * of the selection.
  *
  * @param selection a point representing the new selection start and end
  *
@@ -1985,15 +2149,18 @@ public void setSelection (Point selection) {
  * Sets the contents of the receiver's text field to the
  * given string.
  * <p>
- * This call is ignored when the receiver is read only and 
+ * This call is ignored when the receiver is read only and
  * the given string is not in the receiver's list.
  * </p>
  * <p>
  * Note: The text field in a <code>Combo</code> is typically
  * only capable of displaying a single line of text. Thus,
  * setting the text to a string containing line breaks or
- * other special characters will probably cause it to 
+ * other special characters will probably cause it to
  * display incorrectly.
+ * </p><p>
+ * Also note, if control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
  * </p>
  *
  * @param string the new text
@@ -2016,9 +2183,9 @@ public void setText (String string) {
 		return;
 	}
 	/*
-	* Feature in gtk.  When text is set in gtk, separate events are fired for the deletion and 
+	* Feature in gtk.  When text is set in gtk, separate events are fired for the deletion and
 	* insertion of the text.  This is not wrong, but is inconsistent with other platforms.  The
-	* fix is to block the firing of these events and fire them ourselves in a consistent manner. 
+	* fix is to block the firing of these events and fire them ourselves in a consistent manner.
 	*/
 	if (hooks (SWT.Verify) || filters (SWT.Verify)) {
 		int /*long*/ ptr = OS.gtk_entry_get_text (entryHandle);
@@ -2055,7 +2222,7 @@ public void setText (String string) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #LIMIT
  */
 public void setTextLimit (int limit) {
@@ -2064,6 +2231,7 @@ public void setTextLimit (int limit) {
 	if (entryHandle != 0) OS.gtk_entry_set_max_length (entryHandle, limit);
 }
 
+@Override
 void setToolTipText (Shell shell, String newString) {
 	if (entryHandle != 0) shell.setToolTipText (entryHandle, newString);
 	if (buttonHandle != 0) shell.setToolTipText (buttonHandle, newString);
@@ -2083,7 +2251,7 @@ void setToolTipText (Shell shell, String newString) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void setVisibleItemCount (int count) {
@@ -2092,16 +2260,18 @@ public void setVisibleItemCount (int count) {
 	visibleCount = count;
 }
 
+@Override
 boolean checkSubwindow () {
 	return false;
 }
 
+@Override
 boolean translateTraversal (GdkEventKey keyEvent) {
 	int key = keyEvent.keyval;
 	switch (key) {
 		case OS.GDK_KP_Enter:
 		case OS.GDK_Return: {
-			int /*long*/ imContext = imContext (); 
+			int /*long*/ imContext = imContext ();
 			if (imContext != 0) {
 				int /*long*/ [] preeditString = new int /*long*/ [1];
 				OS.gtk_im_context_get_preedit_string (imContext, preeditString, null, null);

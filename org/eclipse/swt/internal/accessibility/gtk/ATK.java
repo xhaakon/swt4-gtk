@@ -289,34 +289,11 @@ public static final int /*long*/ ATK_VALUE_GET_IFACE (int /*long*/ handle) {
 		lock.unlock();
 	}
 }
-/** @param object cast=(AtkObject *) */
-public static final native void _atk_focus_tracker_notify (int /*long*/ object);
-public static final void atk_focus_tracker_notify (int /*long*/ object) {
-	lock.lock();
-	try {
-		_atk_focus_tracker_notify(object);
-	} finally {
-		lock.unlock();
-	}
-}
 public static final native int /*long*/ _atk_get_default_registry ();
 public static final int /*long*/ atk_get_default_registry () {
 	lock.lock();
 	try {
 		return _atk_get_default_registry();
-	} finally {
-		lock.unlock();
-	}
-}
-/**
- * @param factory cast=(AtkObjectFactory *)
- * @param obj cast=(GObject *)
- */
-public static final native int /*long*/ _atk_object_factory_create_accessible (int /*long*/ factory, int /*long*/ obj);
-public static final int /*long*/ atk_object_factory_create_accessible (int /*long*/ factory, int /*long*/ obj) {
-	lock.lock();
-	try {
-		return _atk_object_factory_create_accessible(factory, obj);
 	} finally {
 		lock.unlock();
 	}
@@ -354,16 +331,6 @@ public static final void atk_object_notify_state_change (int /*long*/ accessible
 		lock.unlock();
 	}
 }
-/** @param accessible cast=(AtkObject *) */
-public static final native int /*long*/ _atk_object_ref_relation_set (int /*long*/ accessible);
-public static final int /*long*/ atk_object_ref_relation_set (int /*long*/ accessible) {
-	lock.lock();
-	try {
-		return _atk_object_ref_relation_set(accessible);
-	} finally {
-		lock.unlock();
-	}
-}
 /**
  * @param name cast=(const gchar *)
  */
@@ -372,18 +339,6 @@ public static final int atk_role_register (byte[] name) {
 	lock.lock();
 	try {
 		return _atk_role_register(name);
-	} finally {
-		lock.unlock();
-	}
-}
-/**
- * @param name cast=(const gchar *)
- */
-public static final native int _atk_text_attribute_register (byte[] name);
-public static final int atk_text_attribute_register (byte[] name) {
-	lock.lock();
-	try {
-		return _atk_text_attribute_register(name);
 	} finally {
 		lock.unlock();
 	}
@@ -415,39 +370,6 @@ public static final void atk_registry_set_factory_type (int /*long*/ registry, i
 		lock.unlock();
 	}
 }
-/** @param set cast=(AtkRelationSet *) */
-public static final native int _atk_relation_set_get_n_relations (int /*long*/ set);
-public static final int atk_relation_set_get_n_relations (int /*long*/ set) {
-	lock.lock();
-	try {
-		return _atk_relation_set_get_n_relations(set);
-	} finally {
-		lock.unlock();
-	}
-}
-/** @param set cast=(AtkRelationSet *) */
-public static final native int /*long*/ _atk_relation_set_get_relation (int /*long*/ set, int i);
-public static final int /*long*/ atk_relation_set_get_relation (int /*long*/ set, int i) {
-	lock.lock();
-	try {
-		return _atk_relation_set_get_relation (set, i);
-	} finally {
-		lock.unlock();
-	}
-}
-/**
- * @param set cast=(AtkRelationSet *)
- * @param relation cast=(AtkRelation *)
- */
-public static final native void _atk_relation_set_remove (int /*long*/ set, int /*long*/ relation);
-public static final void atk_relation_set_remove (int /*long*/ set, int /*long*/ relation) {
-	lock.lock();
-	try {
-		_atk_relation_set_remove (set, relation);
-	} finally {
-		lock.unlock();
-	}
-}
 /**
  * @param set cast=(AtkStateSet *)
  * @param type cast=(AtkStateType)
@@ -457,15 +379,6 @@ public static final boolean atk_state_set_add_state (int /*long*/ set, int type)
 	lock.lock();
 	try {
 		return _atk_state_set_add_state(set, type);
-	} finally {
-		lock.unlock();
-	}
-}
-public static final native int /*long*/ _atk_state_set_new ();
-public static final int /*long*/ atk_state_set_new () {
-	lock.lock();
-	try {
-		return _atk_state_set_new();
 	} finally {
 		lock.unlock();
 	}

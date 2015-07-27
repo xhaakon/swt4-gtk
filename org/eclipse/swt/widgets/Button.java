@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,15 +11,15 @@
 package org.eclipse.swt.widgets;
 
 
+import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.events.*;
 
 /**
  * Instances of this class represent a selectable user interface object that
- * issues notification when pressed and released. 
+ * issues notification when pressed and released.
  * <dl>
  * <dt><b>Styles:</b></dt>
  * <dd>ARROW, CHECK, PUSH, RADIO, TOGGLE, FLAT, WRAP</dd>
@@ -28,7 +28,7 @@ import org.eclipse.swt.events.*;
  * <dd>Selection</dd>
  * </dl>
  * <p>
- * Note: Only one of the styles ARROW, CHECK, PUSH, RADIO, and TOGGLE 
+ * Note: Only one of the styles ARROW, CHECK, PUSH, RADIO, and TOGGLE
  * may be specified.
  * </p><p>
  * Note: Only one of the styles LEFT, RIGHT, and CENTER may be specified.
@@ -38,7 +38,7 @@ import org.eclipse.swt.events.*;
  * </p><p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
  * </p>
- * 
+ *
  * @see <a href="http://www.eclipse.org/swt/snippets/#button">Button snippets</a>
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
@@ -60,7 +60,7 @@ public class Button extends Control {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -138,7 +138,7 @@ static GtkBorder getBorder (byte[] border, int /*long*/ handle, int defaultBorde
  * </p>
  * <p>
  * When the <code>SWT.RADIO</code> style bit is set, the <code>widgetSelected</code> method is
- * also called when the receiver loses selection because another item in the same radio group 
+ * also called when the receiver loses selection because another item in the same radio group
  * was selected by the user. During <code>widgetSelected</code> the application can use
  * <code>getSelection()</code> to determine the current selected state of the receiver.
  * </p>
@@ -165,6 +165,7 @@ public void addSelectionListener (SelectionListener listener) {
 	addListener (SWT.DefaultSelection,typedListener);
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
@@ -184,7 +185,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 		OS.gtk_widget_set_size_request (boxHandle, -1, -1);
 	}
 	Point size;
-	boolean wrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && gtk_widget_get_visible (labelHandle);
+	boolean wrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && OS.gtk_widget_get_visible (labelHandle);
 	if (wrap) {
 		int borderWidth = OS.gtk_container_get_border_width (handle);
 		int[] focusWidth = new int[1];
@@ -207,14 +208,14 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 			GtkBorder innerBorder = getBorder (OS.inner_border, handle, INNER_BORDER);
 			trimWidth += innerBorder.left + innerBorder.right;
 			trimHeight += innerBorder.top + innerBorder.bottom;
-			if (gtk_widget_get_can_default (handle)) {
+			if (OS.gtk_widget_get_can_default (handle)) {
 				GtkBorder defaultBorder = getBorder (OS.default_border, handle, DEFAULT_BORDER);
 				trimWidth += defaultBorder.left + defaultBorder.right;
 				trimHeight += defaultBorder.top + defaultBorder.bottom;
 			}
 		}
 		int imageWidth = 0, imageHeight = 0;
-		if (gtk_widget_get_visible (imageHandle)) {
+		if (OS.gtk_widget_get_visible (imageHandle)) {
 			GtkRequisition requisition = new GtkRequisition ();
 			gtk_widget_get_preferred_size (imageHandle, requisition);
 			imageWidth = requisition.width;
@@ -243,7 +244,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 		OS.gtk_widget_set_size_request (boxHandle, reqWidth [0], reqHeight [0]);
 	}
 	if (wHint != SWT.DEFAULT || hHint != SWT.DEFAULT) {
-		if (gtk_widget_get_can_default (handle)) {
+		if (OS.gtk_widget_get_can_default (handle)) {
 			GtkBorder border = getBorder (OS.default_border, handle, DEFAULT_BORDER);
 			if (wHint != SWT.DEFAULT) size.x += border.left + border.right;
 			if (hHint != SWT.DEFAULT) size.y += border.top + border.bottom;
@@ -252,24 +253,35 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	return size;
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
-	if ((style & (SWT.PUSH | SWT.TOGGLE)) == 0) state |= THEME_BACKGROUND; 	
+	if ((style & (SWT.PUSH | SWT.TOGGLE)) == 0) state |= THEME_BACKGROUND;
 	int bits = SWT.ARROW | SWT.TOGGLE | SWT.CHECK | SWT.RADIO | SWT.PUSH;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	switch (style & bits) {
 		case SWT.ARROW:
-			int arrow_type = OS.GTK_ARROW_UP;
-			if ((style & SWT.UP) != 0) arrow_type = OS.GTK_ARROW_UP;
-			if ((style & SWT.DOWN) != 0) arrow_type = OS.GTK_ARROW_DOWN;
-            if ((style & SWT.LEFT) != 0) arrow_type = OS.GTK_ARROW_LEFT;
-            if ((style & SWT.RIGHT) != 0) arrow_type = OS.GTK_ARROW_RIGHT;
+			if (OS.GTK3) {
+				byte arrowType [] = OS.GTK_NAMED_ICON_GO_UP;
+				if ((style & SWT.UP) != 0) arrowType = OS.GTK_NAMED_ICON_GO_UP;
+				if ((style & SWT.DOWN) != 0) arrowType = OS.GTK_NAMED_ICON_GO_DOWN;
+				if ((style & SWT.LEFT) != 0) arrowType = OS.GTK_NAMED_ICON_GO_PREVIOUS;
+				if ((style & SWT.RIGHT) != 0) arrowType = OS.GTK_NAMED_ICON_GO_NEXT;
+				arrowHandle = OS.gtk_image_new_from_icon_name (arrowType, OS.GTK_ICON_SIZE_MENU);
+			} else { //GTK2
+				int arrowType = OS.GTK_ARROW_UP;
+				if ((style & SWT.UP) != 0) arrowType = OS.GTK_ARROW_UP;
+				if ((style & SWT.DOWN) != 0) arrowType = OS.GTK_ARROW_DOWN;
+	            if ((style & SWT.LEFT) != 0) arrowType = OS.GTK_ARROW_LEFT;
+	            if ((style & SWT.RIGHT) != 0) arrowType = OS.GTK_ARROW_RIGHT;
+	            arrowHandle = OS.gtk_arrow_new (arrowType, OS.GTK_SHADOW_OUT);
+			}
+			if (arrowHandle == 0) error (SWT.ERROR_NO_HANDLES);
+
 			handle = OS.gtk_button_new ();
 			if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-			arrowHandle = OS.gtk_arrow_new (arrow_type, OS.GTK_SHADOW_OUT);
-			if (arrowHandle == 0) error (SWT.ERROR_NO_HANDLES);
 			break;
 		case SWT.TOGGLE:
 			handle = OS.gtk_toggle_button_new ();
@@ -294,7 +306,7 @@ void createHandle (int index) {
 			groupHandle = OS.gtk_radio_button_new (0);
 			if (groupHandle == 0) error (SWT.ERROR_NO_HANDLES);
 			OS.g_object_ref (groupHandle);
-			g_object_ref_sink (groupHandle);
+			OS.g_object_ref_sink (groupHandle);
 			handle = OS.gtk_radio_button_new (OS.gtk_radio_button_get_group (groupHandle));
 			if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 			break;
@@ -302,7 +314,7 @@ void createHandle (int index) {
 		default:
 			handle = OS.gtk_button_new ();
 			if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-			gtk_widget_set_can_default (handle, true);
+			OS.gtk_widget_set_can_default (handle, true);
 			break;
 	}
 	if ((style & SWT.ARROW) != 0) {
@@ -319,22 +331,27 @@ void createHandle (int index) {
 		OS.gtk_container_add (boxHandle, labelHandle);
 		if ((style & SWT.WRAP) != 0) {
 			OS.gtk_label_set_line_wrap (labelHandle, true);
-			if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-				OS.gtk_label_set_line_wrap_mode (labelHandle, OS.PANGO_WRAP_WORD_CHAR);
-			}
+			OS.gtk_label_set_line_wrap_mode (labelHandle, OS.PANGO_WRAP_WORD_CHAR);
 		}
 	}
 	OS.gtk_container_add (fixedHandle, handle);
-	
+
 	if ((style & SWT.ARROW) != 0) return;
+	// In GTK 3 font description is inherited from parent widget which is not how SWT has always worked,
+	// reset to default font to get the usual behavior
+	if (OS.GTK3) {
+		setFontDescription(defaultFont().handle);
+	}
 	_setAlignment (style & (SWT.LEFT | SWT.CENTER | SWT.RIGHT));
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget (index);
 	text = "";
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	if (boxHandle != 0) display.removeWidget (boxHandle);
@@ -343,6 +360,7 @@ void deregister () {
 	if (arrowHandle != 0) display.removeWidget (arrowHandle);
 }
 
+@Override
 int /*long*/ fontHandle () {
 	if (labelHandle != 0) return labelHandle;
 	return super.fontHandle ();
@@ -352,12 +370,12 @@ int /*long*/ fontHandle () {
  * Returns a value which describes the position of the
  * text or image in the receiver. The value will be one of
  * <code>LEFT</code>, <code>RIGHT</code> or <code>CENTER</code>
- * unless the receiver is an <code>ARROW</code> button, in 
+ * unless the receiver is an <code>ARROW</code> button, in
  * which case, the alignment will indicate the direction of
- * the arrow (one of <code>LEFT</code>, <code>RIGHT</code>, 
+ * the arrow (one of <code>LEFT</code>, <code>RIGHT</code>,
  * <code>UP</code> or <code>DOWN</code>).
  *
- * @return the alignment 
+ * @return the alignment
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -390,7 +408,7 @@ public int getAlignment () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public boolean getGrayed () {
@@ -415,6 +433,7 @@ public Image getImage () {
 	return image;
 }
 
+@Override
 String getNameText () {
 	return getText ();
 }
@@ -459,6 +478,7 @@ public String getText () {
 	return text;
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_button_press_event (widget, event);
 	if (result != 0) return result;
@@ -466,6 +486,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_clicked (int /*long*/ widget) {
 	if ((style & SWT.RADIO) != 0) {
 		if ((parent.getStyle () & SWT.NO_RADIO_GROUP) != 0) {
@@ -488,24 +509,19 @@ int /*long*/ gtk_clicked (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_focus_in_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_focus_in_event (widget, event);
 	// widget could be disposed at this point
 	if (handle == 0) return 0;
-	if (OS.GTK_VERSION >= OS.VERSION (2, 18, 0)) { 
-		if ((style & SWT.PUSH) != 0 && OS.gtk_widget_has_default (handle)) {
-			Decorations menuShell = menuShell ();
-			menuShell.defaultButton = this;
-		}
-	} else {
-		if ((style & SWT.PUSH) != 0 && OS.GTK_WIDGET_HAS_DEFAULT (handle)) {
-			Decorations menuShell = menuShell ();
-			menuShell.defaultButton = this;
-		}
-	}	
+	if ((style & SWT.PUSH) != 0 && OS.gtk_widget_has_default (handle)) {
+		Decorations menuShell = menuShell ();
+		menuShell.defaultButton = this;
+	}
 	return result;
 }
 
+@Override
 int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_focus_out_event (widget, event);
 	// widget could be disposed at this point
@@ -519,6 +535,7 @@ int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_key_press_event (widget, event);
 	if (result != 0) return result;
@@ -526,18 +543,21 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents();
-	OS.g_signal_connect_closure (handle, OS.clicked, display.closures [CLICKED], false);
+	OS.g_signal_connect_closure (handle, OS.clicked, display.getClosure (CLICKED), false);
 	if (labelHandle != 0) {
-		OS.g_signal_connect_closure_by_id (labelHandle, display.signalIds [MNEMONIC_ACTIVATE], 0, display.closures [MNEMONIC_ACTIVATE], false);
+		OS.g_signal_connect_closure_by_id (labelHandle, display.signalIds [MNEMONIC_ACTIVATE], 0, display.getClosure (MNEMONIC_ACTIVATE), false);
 	}
 }
 
+@Override
 boolean isDescribedByLabel () {
 	return false;
 }
 
+@Override
 boolean mnemonicHit (char key) {
 	if (labelHandle == 0) return false;
 	boolean result = super.mnemonicHit (labelHandle, key);
@@ -545,11 +565,13 @@ boolean mnemonicHit (char key) {
 	return result;
 }
 
+@Override
 boolean mnemonicMatch (char key) {
 	if (labelHandle == 0) return false;
 	return mnemonicMatch (labelHandle, key);
 }
 
+@Override
 void register () {
 	super.register ();
 	if (boxHandle != 0) display.addWidget (boxHandle, this);
@@ -558,11 +580,13 @@ void register () {
 	if (arrowHandle != 0) display.addWidget (arrowHandle, this);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	boxHandle = imageHandle = labelHandle = arrowHandle = 0;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (groupHandle != 0) OS.g_object_unref (groupHandle);
@@ -595,9 +619,10 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
+@Override
 void resizeHandle (int width, int height) {
 	super.resizeHandle (width, height);
 	/*
@@ -642,12 +667,12 @@ void selectRadio () {
  * Controls how text, images and arrows will be displayed
  * in the receiver. The argument should be one of
  * <code>LEFT</code>, <code>RIGHT</code> or <code>CENTER</code>
- * unless the receiver is an <code>ARROW</code> button, in 
+ * unless the receiver is an <code>ARROW</code> button, in
  * which case, the argument indicates the direction of
- * the arrow (one of <code>LEFT</code>, <code>RIGHT</code>, 
+ * the arrow (one of <code>LEFT</code>, <code>RIGHT</code>,
  * <code>UP</code> or <code>DOWN</code>).
  *
- * @param alignment the new alignment 
+ * @param alignment the new alignment
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -661,25 +686,36 @@ public void setAlignment (int alignment) {
 
 void _setAlignment (int alignment) {
 	if ((style & SWT.ARROW) != 0) {
-		if ((style & (SWT.UP | SWT.DOWN | SWT.LEFT | SWT.RIGHT)) == 0) return; 
+		if ((style & (SWT.UP | SWT.DOWN | SWT.LEFT | SWT.RIGHT)) == 0) return;
 		style &= ~(SWT.UP | SWT.DOWN | SWT.LEFT | SWT.RIGHT);
 		style |= alignment & (SWT.UP | SWT.DOWN | SWT.LEFT | SWT.RIGHT);
-		int arrow_type = OS.GTK_ARROW_UP;
 		boolean isRTL = (style & SWT.RIGHT_TO_LEFT) != 0;
-		switch (alignment) {
-			case SWT.UP: arrow_type = OS.GTK_ARROW_UP; break;
-			case SWT.DOWN: arrow_type = OS.GTK_ARROW_DOWN; break;
-			case SWT.LEFT: arrow_type = isRTL ? OS.GTK_ARROW_RIGHT : OS.GTK_ARROW_LEFT; break;
-			case SWT.RIGHT: arrow_type = isRTL ? OS.GTK_ARROW_LEFT : OS.GTK_ARROW_RIGHT; break;
+		if (OS.GTK3) {
+			byte arrowType [] = OS.GTK_NAMED_ICON_GO_UP;
+			switch (alignment) {
+				case SWT.UP: arrowType = OS.GTK_NAMED_ICON_GO_UP; break;
+				case SWT.DOWN: arrowType = OS.GTK_NAMED_ICON_GO_DOWN; break;
+				case SWT.LEFT: arrowType = isRTL ? OS.GTK_NAMED_ICON_GO_NEXT : OS.GTK_NAMED_ICON_GO_PREVIOUS; break;
+				case SWT.RIGHT: arrowType = isRTL ? OS.GTK_NAMED_ICON_GO_PREVIOUS : OS.GTK_NAMED_ICON_GO_NEXT; break;
+			}
+			OS.gtk_image_set_from_icon_name (arrowHandle, arrowType, OS.GTK_ICON_SIZE_MENU);
+		} else { //GTK2
+			int arrowType = OS.GTK_ARROW_UP;
+			switch (alignment) {
+				case SWT.UP: arrowType = OS.GTK_ARROW_UP; break;
+				case SWT.DOWN: arrowType = OS.GTK_ARROW_DOWN; break;
+				case SWT.LEFT: arrowType = isRTL ? OS.GTK_ARROW_RIGHT : OS.GTK_ARROW_LEFT; break;
+				case SWT.RIGHT: arrowType = isRTL ? OS.GTK_ARROW_LEFT : OS.GTK_ARROW_RIGHT; break;
+			}
+			OS.gtk_arrow_set (arrowHandle, arrowType, OS.GTK_SHADOW_OUT);
 		}
-		OS.gtk_arrow_set (arrowHandle, arrow_type, OS.GTK_SHADOW_OUT);
 		return;
 	}
 	if ((alignment & (SWT.LEFT | SWT.RIGHT | SWT.CENTER)) == 0) return;
 	style &= ~(SWT.LEFT | SWT.RIGHT | SWT.CENTER);
 	style |= alignment & (SWT.LEFT | SWT.RIGHT | SWT.CENTER);
 	/* Alignment not honoured when image and text are visible */
-	boolean bothVisible = gtk_widget_get_visible (labelHandle) && gtk_widget_get_visible (imageHandle);
+	boolean bothVisible = OS.gtk_widget_get_visible (labelHandle) && OS.gtk_widget_get_visible (imageHandle);
 	if (bothVisible) {
 		if ((style & (SWT.RADIO | SWT.CHECK)) != 0) alignment = SWT.LEFT;
 		if ((style & (SWT.PUSH | SWT.TOGGLE)) != 0) alignment = SWT.CENTER;
@@ -694,25 +730,45 @@ void _setAlignment (int alignment) {
 				OS.gtk_box_set_child_packing (boxHandle, imageHandle, true, true, 0, OS.GTK_PACK_START);
 			}
 		}
-		OS.gtk_misc_set_alignment (labelHandle, 0.0f, 0.5f);
+
+		if (OS.GTK3) {
+			gtk_widget_set_align(labelHandle,OS.GTK_ALIGN_START, OS.GTK_ALIGN_CENTER);
+			gtk_widget_set_align(imageHandle,OS.GTK_ALIGN_START, OS.GTK_ALIGN_CENTER);
+		} else {
+			OS.gtk_misc_set_alignment (labelHandle, 0.0f, 0.5f);
+			OS.gtk_misc_set_alignment (imageHandle, 0.0f, 0.5f);
+		}
+
 		OS.gtk_label_set_justify (labelHandle, OS.GTK_JUSTIFY_LEFT);
-		OS.gtk_misc_set_alignment (imageHandle, 0.0f, 0.5f);
 		return;
 	}
 	if ((alignment & SWT.CENTER) != 0) {
 		if (bothVisible) {
 			OS.gtk_box_set_child_packing (boxHandle, labelHandle, true, true, 0, OS.GTK_PACK_END);
 			OS.gtk_box_set_child_packing (boxHandle, imageHandle, true, true, 0, OS.GTK_PACK_START);
-			OS.gtk_misc_set_alignment (labelHandle, 0f, 0.5f);
-			OS.gtk_misc_set_alignment (imageHandle, 1f, 0.5f);
+
+			if (OS.GTK3) {
+				gtk_widget_set_align(labelHandle,OS.GTK_ALIGN_START, OS.GTK_ALIGN_CENTER);
+				gtk_widget_set_align(imageHandle,OS.GTK_ALIGN_END, OS.GTK_ALIGN_CENTER);
+			} else  {
+				OS.gtk_misc_set_alignment (labelHandle, 0f, 0.5f);
+				OS.gtk_misc_set_alignment (imageHandle, 1f, 0.5f);
+			}
+
 		} else {
 			if (OS.GTK3) {
 				OS.gtk_box_set_child_packing (boxHandle, labelHandle, true, true, 0, OS.GTK_PACK_END);
 				OS.gtk_box_set_child_packing (boxHandle, imageHandle, true, true, 0, OS.GTK_PACK_START);
 			}
-			OS.gtk_misc_set_alignment (labelHandle, 0.5f, 0.5f);
+
+			if (OS.GTK3) {
+				gtk_widget_set_align(labelHandle,OS.GTK_ALIGN_CENTER, OS.GTK_ALIGN_CENTER);
+				gtk_widget_set_align(imageHandle,OS.GTK_ALIGN_CENTER, OS.GTK_ALIGN_CENTER);
+			} else {
+				OS.gtk_misc_set_alignment (labelHandle, 0.5f, 0.5f);
+				OS.gtk_misc_set_alignment (imageHandle, 0.5f, 0.5f);
+			}
 			OS.gtk_label_set_justify (labelHandle, OS.GTK_JUSTIFY_CENTER);
-			OS.gtk_misc_set_alignment (imageHandle, 0.5f, 0.5f);
 		}
 		return;
 	}
@@ -726,20 +782,50 @@ void _setAlignment (int alignment) {
 				OS.gtk_box_set_child_packing (boxHandle, imageHandle, true, true, 0, OS.GTK_PACK_START);
 			}
 		}
-		OS.gtk_misc_set_alignment (labelHandle, 1.0f, 0.5f);
+
+		if (OS.GTK3) {
+			gtk_widget_set_align(labelHandle,OS.GTK_ALIGN_END, OS.GTK_ALIGN_CENTER);
+			gtk_widget_set_align(imageHandle,OS.GTK_ALIGN_END, OS.GTK_ALIGN_CENTER);
+		} else {
+			OS.gtk_misc_set_alignment (labelHandle, 1.0f, 0.5f);
+			OS.gtk_misc_set_alignment (imageHandle, 1.0f, 0.5f);
+		}
 		OS.gtk_label_set_justify (labelHandle, OS.GTK_JUSTIFY_RIGHT);
-		OS.gtk_misc_set_alignment (imageHandle, 1.0f, 0.5f);
 		return;
 	}
 }
 
+@Override
+void setBackgroundColor (int /*long*/ context, int /*long*/ handle, GdkRGBA rgba) {
+	/* Note: this function is called on Gtk3 only */
+
+	//Pre Gtk 3.10 doesn't handle CSS background color very well for Gtk Check/Radio button.
+	// 3.10.3 as it was the latest to affect themeing in button.
+	if (OS.GTK_VERSION < OS.VERSION(3, 10, 3) && (style & (SWT.CHECK | SWT.RADIO)) != 0) {
+		super.setBackgroundColor (context, handle, rgba);
+		return;
+	}
+
+	String css ="* {\n";
+	if (rgba != null) {
+		String color = gtk_rgba_to_css_string (rgba);
+		css += "background: " + color + ";\n";
+	}
+	css += "}\n";
+	gtk_css_provider_load_from_css (context, css);
+}
+
+@Override
 void setBackgroundColor (GdkColor color) {
 	super.setBackgroundColor (color);
 	setBackgroundColor(fixedHandle, color);
-	if (labelHandle != 0) setBackgroundColor(labelHandle, color);
-	if (imageHandle != 0) setBackgroundColor(imageHandle, color);
+	if (!OS.GTK3) {
+		if (labelHandle != 0) setBackgroundColor(labelHandle, color);
+		if (imageHandle != 0) setBackgroundColor(imageHandle, color);
+	}
 }
 
+@Override
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	/*
 	* Bug in GTK.  For some reason, when the label is
@@ -748,12 +834,12 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	* determine the size that will wrap the label
 	* and expilictly set that size to force the label
 	* to wrap.
-	* 
+	*
 	* This part of the fix causes the label to be
 	* resized to the preferred size but it still
 	* won't draw properly.
 	*/
-	boolean wrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && gtk_widget_get_visible (labelHandle);
+	boolean wrap = labelHandle != 0 && (style & SWT.WRAP) != 0 && OS.gtk_widget_get_visible (labelHandle);
 	if (wrap) OS.gtk_widget_set_size_request (boxHandle, -1, -1);
 	int result = super.setBounds (x, y, width, height, move, resize);
 	/*
@@ -763,13 +849,13 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	* determine the size that will wrap the label
 	* and expilictly set that size to force the label
 	* to wrap.
-	* 
+	*
 	* This part of the fix forces the label to be
 	* resized so that it will draw wrapped.
 	*/
 	if (wrap) {
 		GtkAllocation allocation = new GtkAllocation();
-		gtk_widget_get_allocation (boxHandle, allocation);
+		OS.gtk_widget_get_allocation (boxHandle, allocation);
 		int boxWidth = allocation.width;
 		int boxHeight = allocation.height;
 		int /*long*/ labelLayout = OS.gtk_label_get_layout (labelHandle);
@@ -779,7 +865,7 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 		OS.pango_layout_get_pixel_size (labelLayout, w, h);
 		OS.pango_layout_set_width (labelLayout, pangoWidth);
 		int imageWidth = 0;
-		if (gtk_widget_get_visible (imageHandle)) {
+		if (OS.gtk_widget_get_visible (imageHandle)) {
 			GtkRequisition requisition = new GtkRequisition ();
 			gtk_widget_get_preferred_size (imageHandle, requisition);
 			imageWidth = requisition.width;
@@ -790,7 +876,7 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 		OS.gtk_widget_set_size_request (labelHandle, Math.min(w [0], boxWidth - imageWidth), -1);
 		/*
 		* Bug in GTK.  Setting the size request should invalidate the label's
-		* layout, but it does not.  The fix is to resize the label directly. 
+		* layout, but it does not.  The fix is to resize the label directly.
 		*/
 		GtkRequisition requisition = new GtkRequisition ();
 		gtk_widget_get_preferred_size (boxHandle, requisition);
@@ -801,12 +887,14 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	return result;
 }
 
+@Override
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	if (labelHandle != 0) setFontDescription (labelHandle, font);
 	if (imageHandle != 0) setFontDescription (imageHandle, font);
 }
 
+@Override
 boolean setRadioSelection (boolean value) {
 	if ((style & SWT.RADIO) == 0) return false;
 	if (getSelection () != value) {
@@ -816,15 +904,54 @@ boolean setRadioSelection (boolean value) {
 	return true;
 }
 
+@Override
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (color);
 	setForegroundColor (fixedHandle, color);
 	if (labelHandle != 0) setForegroundColor (labelHandle, color);
 	if (imageHandle != 0) setForegroundColor (imageHandle, color);
+
+	//Pre 3.10 CSS didn't work. In 3.16 everything will be CSS controlled
+	//and themes should control check/radio border color then.
+	if (OS.GTK_VERSION >= OS.VERSION(3, 10, 0) && OS.GTK_VERSION < OS.VERSION (3, 16, 0) &&
+			(style & (SWT.CHECK | SWT.RADIO)) != 0) {
+		gtk_swt_set_border_color (color);
+	}
+}
+
+//GtkCheckButton & it's descendant GtkRadioButton are often invisible or
+// very hard to see with certain themes that don't define an icon for Check/Radio buttons.
+// Giving them a border color that matches the text color ensures consistent visibility across most themes.
+private void gtk_swt_set_border_color (GdkColor color) {
+	//Convert GtkColor to GdkRGBA
+	//TODO : Reactor in future commit. This and widget:setForegroundColor have duplicate code.
+	GdkRGBA rgba = null;
+	if (color != null) {
+		rgba = new GdkRGBA ();
+		rgba.alpha = 1;
+		rgba.red = (color.red & 0xFFFF) / (float) 0xFFFF;
+		rgba.green = (color.green & 0xFFFF) / (float) 0xFFFF;
+		rgba.blue = (color.blue & 0xFFFF) / (float) 0xFFFF;
+	}
+
+	//Construct CSS String
+	//TODO : Reactor in future commit.
+	// This and Control:setBackgroundColorGradient(..). as there is similar code.
+	// ideally we should have a 'constructCssString(..) that accepts attribute-value pairs.
+	String css_string = "* {\n";
+	if (rgba != null) {
+		String css_color = gtk_rgba_to_css_string (rgba);
+		css_string += "border-color: " + css_color + ";\n";
+	}
+		css_string += "}\n";
+
+	//Apply CSS to widget.
+	int /*long*/context = OS.gtk_widget_get_style_context (handle);
+	gtk_css_provider_load_from_css (context, css_string);
 }
 
 /**
- * Sets the grayed state of the receiver.  This state change 
+ * Sets the grayed state of the receiver.  This state change
  * only applies if the control was created with the SWT.CHECK
  * style.
  *
@@ -834,7 +961,7 @@ void setForegroundColor (GdkColor color) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public void setGrayed (boolean grayed) {
@@ -861,7 +988,7 @@ public void setGrayed (boolean grayed) {
  *
  * @exception IllegalArgumentException <ul>
  *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li>
- * </ul> 
+ * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -878,17 +1005,15 @@ public void setImage (Image image) {
 		int imageIndex = imageList.add (image);
 		int /*long*/ pixbuf = imageList.getPixbuf (imageIndex);
 		gtk_image_set_from_pixbuf(imageHandle, pixbuf);
-		if (text.length () == 0) OS.gtk_widget_hide (labelHandle);
-		OS.gtk_widget_show (imageHandle);
 	} else {
 		gtk_image_set_from_pixbuf (imageHandle, 0);
-		OS.gtk_widget_show (labelHandle);
-		OS.gtk_widget_hide (imageHandle);
 	}
 	this.image = image;
+	updateWidgetsVisibility();
 	_setAlignment (style);
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
@@ -897,17 +1022,26 @@ void setOrientation (boolean create) {
 		if (labelHandle != 0) OS.gtk_widget_set_direction (labelHandle, dir);
 		if (imageHandle != 0) OS.gtk_widget_set_direction (imageHandle, dir);
 		if (arrowHandle != 0) {
-			dir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_ARROW_RIGHT : OS.GTK_ARROW_LEFT;
-			switch (style & (SWT.LEFT | SWT.RIGHT)) {
-				case SWT.LEFT: OS.gtk_arrow_set (arrowHandle, dir, OS.GTK_SHADOW_OUT); break;
-				case SWT.RIGHT: OS.gtk_arrow_set (arrowHandle, dir, OS.GTK_SHADOW_OUT); break;
+			if (OS.GTK3) {
+				byte arrowType [] = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_NAMED_ICON_GO_NEXT : OS.GTK_NAMED_ICON_GO_PREVIOUS;
+				switch (style & (SWT.LEFT | SWT.RIGHT)) {
+					case SWT.LEFT: OS.gtk_image_set_from_icon_name (arrowHandle, arrowType, OS.GTK_ICON_SIZE_MENU); break;
+					case SWT.RIGHT: OS.gtk_image_set_from_icon_name (arrowHandle, arrowType, OS.GTK_ICON_SIZE_MENU); break;
+				}
+			} else { //GTK2
+				int arrowDir = (style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_ARROW_RIGHT : OS.GTK_ARROW_LEFT;
+				switch (style & (SWT.LEFT | SWT.RIGHT)) {
+					case SWT.LEFT: OS.gtk_arrow_set (arrowHandle, arrowDir, OS.GTK_SHADOW_OUT); break;
+					case SWT.RIGHT: OS.gtk_arrow_set (arrowHandle, arrowDir, OS.GTK_SHADOW_OUT); break;
+				}
+
 			}
 		}
 	}
 }
 
 /**
- * Sets the selection state of the receiver, if it is of type <code>CHECK</code>, 
+ * Sets the selection state of the receiver, if it is of type <code>CHECK</code>,
  * <code>RADIO</code>, or <code>TOGGLE</code>.
  *
  * <p>
@@ -958,6 +1092,9 @@ public void setSelection (boolean selected) {
  * on Windows (starting with XP), GTK+ and OSX.  On other platforms,
  * a Button that has an image and text set into it will display the
  * image or text that was set most recently.
+ * </p><p>
+ * Also note, if control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
  * </p>
  * @param string the new text
  *
@@ -977,18 +1114,37 @@ public void setText (String string) {
 	char [] chars = fixMnemonic (string);
 	byte [] buffer = Converter.wcsToMbcs (null, chars, true);
 	OS.gtk_label_set_text_with_mnemonic (labelHandle, buffer);
-	if (image == null) OS.gtk_widget_hide (imageHandle);
-	OS.gtk_widget_show (labelHandle);
+	updateWidgetsVisibility();
 	_setAlignment (style);
 }
 
+private void updateWidgetsVisibility() {
+	if (text.length() == 0 && image == null) {
+		OS.gtk_widget_hide (boxHandle);
+		OS.gtk_widget_hide (labelHandle);
+		OS.gtk_widget_hide (imageHandle);
+	} else {
+		OS.gtk_widget_show (boxHandle);
+		if (text.length() == 0)
+			OS.gtk_widget_hide (labelHandle);
+		else
+			OS.gtk_widget_show (labelHandle);
+		if (image == null)
+			OS.gtk_widget_hide (imageHandle);
+		else
+			OS.gtk_widget_show (imageHandle);
+	}
+}
+
+@Override
 void showWidget () {
 	super.showWidget ();
-	if (boxHandle != 0) OS.gtk_widget_show (boxHandle);
-	if (labelHandle != 0) OS.gtk_widget_show (labelHandle);
+	if (boxHandle != 0 && ((text != null && text.length() != 0) || image != null)) OS.gtk_widget_show (boxHandle);
+	if (labelHandle != 0  && text != null && text.length() != 0) OS.gtk_widget_show (labelHandle);
 	if (arrowHandle != 0) OS.gtk_widget_show (arrowHandle);
 }
 
+@Override
 int traversalCode (int key, GdkEventKey event) {
 	int code = super.traversalCode (key, event);
 	if ((style & SWT.ARROW) != 0) code &= ~(SWT.TRAVERSE_TAB_NEXT | SWT.TRAVERSE_TAB_PREVIOUS);

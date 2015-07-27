@@ -27,49 +27,26 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIX509CertValidity extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 8;
 
-	public static final String NS_IX509CERTVALIDITY_IID_STR =
-		"e701dfd8-1dd1-11b2-a172-ffa6cc6156ad";
+	static final String NS_IX509CERTVALIDITY_IID_STR = "e701dfd8-1dd1-11b2-a172-ffa6cc6156ad";
 
-	public static final nsID NS_IX509CERTVALIDITY_IID =
-		new nsID(NS_IX509CERTVALIDITY_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIX509CertValidity.class, MozillaVersion.VERSION_BASE, new nsID(NS_IX509CERTVALIDITY_IID_STR));
+	}
 
 	public nsIX509CertValidity(int /*long*/ address) {
 		super(address);
 	}
 
-	public int GetNotBefore(int /*long*/ aNotBefore) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aNotBefore);
-	}
-
-	public int GetNotBeforeLocalTime(int /*long*/ aNotBeforeLocalTime) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aNotBeforeLocalTime);
-	}
-
-	public int GetNotBeforeLocalDay(int /*long*/ aNotBeforeLocalDay) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aNotBeforeLocalDay);
-	}
-
 	public int GetNotBeforeGMT(int /*long*/ aNotBeforeGMT) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aNotBeforeGMT);
-	}
-
-	public int GetNotAfter(int /*long*/ aNotAfter) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aNotAfter);
-	}
-
-	public int GetNotAfterLocalTime(int /*long*/ aNotAfterLocalTime) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), aNotAfterLocalTime);
-	}
-
-	public int GetNotAfterLocalDay(int /*long*/ aNotAfterLocalDay) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aNotAfterLocalDay);
+		return XPCOM.VtblCall(this.getGetterIndex("NotBeforeGMT"), getAddress(), aNotBeforeGMT);
 	}
 
 	public int GetNotAfterGMT(int /*long*/ aNotAfterGMT) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aNotAfterGMT);
+		return XPCOM.VtblCall(this.getGetterIndex("NotAfterGMT"), getAddress(), aNotAfterGMT);
 	}
 }

@@ -31,7 +31,7 @@ public abstract class FileFormat {
 	int compression;
 
 static FileFormat getFileFormat (LEDataInputStream stream, String format) throws Exception {
-	Class clazz = Class.forName(FORMAT_PACKAGE + '.' + format + FORMAT_SUFFIX);
+	Class<?> clazz = Class.forName(FORMAT_PACKAGE + '.' + format + FORMAT_SUFFIX);
 	FileFormat fileFormat = (FileFormat) clazz.newInstance();
 	if (fileFormat.isFileFormat(stream)) return fileFormat;
 	return null;
@@ -98,7 +98,7 @@ public static void save(OutputStream os, int format, ImageLoader loader) {
 	LEDataOutputStream stream = new LEDataOutputStream(os);
 	FileFormat fileFormat = null;
 	try {
-		Class clazz = Class.forName(FORMAT_PACKAGE + '.' + FORMATS[format] + FORMAT_SUFFIX);
+		Class<?> clazz = Class.forName(FORMAT_PACKAGE + '.' + FORMATS[format] + FORMAT_SUFFIX);
 		fileFormat = (FileFormat) clazz.newInstance();
 	} catch (Exception e) {
 		SWT.error(SWT.ERROR_UNSUPPORTED_FORMAT);

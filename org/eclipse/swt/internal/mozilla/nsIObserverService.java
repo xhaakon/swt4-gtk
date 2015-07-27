@@ -27,33 +27,22 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIObserverService extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 4;
 
-	public static final String NS_IOBSERVERSERVICE_IID_STR =
-		"d07f5192-e3d1-11d2-8acd-00105a1b8860";
+	static final String NS_IOBSERVERSERVICE_IID_STR = "d07f5192-e3d1-11d2-8acd-00105a1b8860";
 
-	public static final nsID NS_IOBSERVERSERVICE_IID =
-		new nsID(NS_IOBSERVERSERVICE_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIObserverService.class, MozillaVersion.VERSION_BASE, new nsID(NS_IOBSERVERSERVICE_IID_STR));
+	}
 
 	public nsIObserverService(int /*long*/ address) {
 		super(address);
 	}
 
-	public int AddObserver(int /*long*/ anObserver, byte[] aTopic, int ownsWeak) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), anObserver, aTopic, ownsWeak);
-	}
-
-	public int RemoveObserver(int /*long*/ anObserver, byte[] aTopic) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), anObserver, aTopic);
-	}
-
 	public int NotifyObservers(int /*long*/ aSubject, byte[] aTopic, char[] someData) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aSubject, aTopic, someData);
-	}
-
-	public int EnumerateObservers(byte[] aTopic, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aTopic, _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("notifyObservers"), getAddress(), aSubject, aTopic, someData);
 	}
 }

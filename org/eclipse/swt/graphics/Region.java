@@ -20,11 +20,11 @@ import org.eclipse.swt.*;
  * system that are aggregates of the areas covered by a number
  * of polygons.
  * <p>
- * Application code must explicitly invoke the <code>Region.dispose()</code> 
+ * Application code must explicitly invoke the <code>Region.dispose()</code>
  * method to release the operating system resources managed by each instance
  * when those instances are no longer required.
  * </p>
- * 
+ *
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: GraphicsExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
  */
@@ -38,17 +38,22 @@ public final class Region extends Resource {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
-	 * 
+	 *
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ handle;
 
 /**
  * Constructs a new empty region.
+ * <p>
+ * You must dispose the region when it is no longer required.
+ * </p>
  * 
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for region creation</li>
  * </ul>
+ *
+ * @see #dispose()
  */
 public Region() {
 	this(null);
@@ -57,7 +62,7 @@ public Region() {
 /**
  * Constructs a new empty region.
  * <p>
- * You must dispose the region when it is no longer required. 
+ * You must dispose the region when it is no longer required.
  * </p>
  *
  * @param device the device on which to allocate the region
@@ -69,8 +74,8 @@ public Region() {
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for region creation</li>
  * </ul>
  *
- * @see #dispose
- * 
+ * @see #dispose()
+ *
  * @since 3.0
  */
 public Region(Device device) {
@@ -100,7 +105,7 @@ static int /*long*/ gdk_region_polygon(int[] pointArray, int npoints, int fill_r
 		if (y < minY) minY = y;
 		if (y > maxY) maxY = y;
 	}
-	int /*long*/ surface = Cairo.cairo_image_surface_create(Cairo.CAIRO_FORMAT_A1, maxX - minX, maxY - minY);
+	int /*long*/ surface = Cairo.cairo_image_surface_create(Cairo.CAIRO_FORMAT_ARGB32, maxX - minX, maxY - minY);
 	if (surface == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	int /*long*/ cairo = Cairo.cairo_create(surface);
 	if (cairo == 0) SWT.error(SWT.ERROR_NO_HANDLES);
@@ -157,7 +162,7 @@ public void add (int[] pointArray) {
 	if (pointArray == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	/*
 	* Bug in GTK. If gdk_region_polygon() is called with one point,
-	* it segment faults. The fix is to make sure that it is called 
+	* it segment faults. The fix is to make sure that it is called
 	* with enough points for a polygon.
 	*/
 	if (pointArray.length < 6) return;
@@ -201,7 +206,7 @@ public void add(Rectangle rect) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public void add(int x, int y, int width, int height) {
@@ -275,6 +280,7 @@ public boolean contains(Point pt) {
 	return contains(pt.x, pt.y);
 }
 
+@Override
 void destroy() {
 	OS.gdk_region_destroy(handle);
 	handle = 0;
@@ -290,6 +296,7 @@ void destroy() {
  *
  * @see #hashCode
  */
+@Override
 public boolean equals(Object object) {
 	if (this == object) return true;
 	if (!(object instanceof Region)) return false;
@@ -317,7 +324,7 @@ public Rectangle getBounds() {
 	return new Rectangle(gdkRect.x, gdkRect.y, gdkRect.width, gdkRect.height);
 }
 
-/**	 
+/**
  * Invokes platform specific functionality to allocate a new region.
  * <p>
  * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
@@ -330,7 +337,7 @@ public Rectangle getBounds() {
  * @param device the device on which to allocate the region
  * @param handle the handle for the region
  * @return a new region object containing the specified device and handle
- * 
+ *
  * @noreference This method is not intended to be referenced by clients.
  */
 public static Region gtk_new(Device device, int /*long*/ handle) {
@@ -338,8 +345,8 @@ public static Region gtk_new(Device device, int /*long*/ handle) {
 }
 
 /**
- * Returns an integer hash code for the receiver. Any two 
- * objects that return <code>true</code> when passed to 
+ * Returns an integer hash code for the receiver. Any two
+ * objects that return <code>true</code> when passed to
  * <code>equals</code> must return the same value for this
  * method.
  *
@@ -347,6 +354,7 @@ public static Region gtk_new(Device device, int /*long*/ handle) {
  *
  * @see #equals
  */
+@Override
 public int hashCode() {
 	return (int)/*64*/handle;
 }
@@ -364,7 +372,7 @@ public int hashCode() {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void intersect(Rectangle rect) {
@@ -388,7 +396,7 @@ public void intersect(Rectangle rect) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public void intersect(int x, int y, int width, int height) {
@@ -418,7 +426,7 @@ public void intersect(int x, int y, int width, int height) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void intersect(Region region) {
@@ -486,6 +494,7 @@ public boolean intersects(Rectangle rect) {
  *
  * @return <code>true</code> when the region is disposed, and <code>false</code> otherwise
  */
+@Override
 public boolean isDisposed() {
 	return handle == 0;
 }
@@ -518,7 +527,7 @@ public boolean isEmpty() {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void subtract (int[] pointArray) {
@@ -526,7 +535,7 @@ public void subtract (int[] pointArray) {
 	if (pointArray == null) SWT.error(SWT.ERROR_NULL_ARGUMENT);
 	/*
 	* Bug in GTK. If gdk_region_polygon() is called with one point,
-	* it segment faults. The fix is to make sure that it is called 
+	* it segment faults. The fix is to make sure that it is called
 	* with enough points for a polygon.
 	*/
 	if (pointArray.length < 6) return;
@@ -548,7 +557,7 @@ public void subtract (int[] pointArray) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void subtract(Rectangle rect) {
@@ -572,7 +581,7 @@ public void subtract(Rectangle rect) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public void subtract(int x, int y, int width, int height) {
@@ -602,7 +611,7 @@ public void subtract(int x, int y, int width, int height) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void subtract(Region region) {
@@ -622,7 +631,7 @@ public void subtract(Region region) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public void translate (int x, int y) {
@@ -642,7 +651,7 @@ public void translate (int x, int y) {
  * @exception SWTException <ul>
  *    <li>ERROR_GRAPHIC_DISPOSED - if the receiver has been disposed</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public void translate (Point pt) {
@@ -657,6 +666,7 @@ public void translate (Point pt) {
  *
  * @return a string representation of the receiver
  */
+@Override
 public String toString () {
 	if (isDisposed()) return "Region {*DISPOSED*}";
 	return "Region {" + handle + "}";

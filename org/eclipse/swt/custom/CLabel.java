@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -149,6 +149,7 @@ private static int checkStyle (int style) {
 	return style |= SWT.NO_FOCUS | SWT.DOUBLE_BUFFERED;
 }
 
+@Override
 public Point computeSize(int wHint, int hHint, boolean changed) {
 	checkWidget();
 	Point e = getTotalSize(image, text);
@@ -270,6 +271,7 @@ private Point getTotalSize(Image image, String text) {
 	
 	return size;
 }
+@Override
 public int getStyle () {
 	int style = super.getStyle();
 	switch (align) {
@@ -289,6 +291,7 @@ public String getText() {
 	//checkWidget();
 	return text;
 }
+@Override
 public String getToolTipText () {
 	checkWidget();
 	return appToolTipText;
@@ -307,14 +310,17 @@ public int getTopMargin() {
 private void initAccessible() {
 	Accessible accessible = getAccessible();
 	accessible.addAccessibleListener(new AccessibleAdapter() {
+		@Override
 		public void getName(AccessibleEvent e) {
 			e.result = getText();
 		}
 		
+		@Override
 		public void getHelp(AccessibleEvent e) {
 			e.result = getToolTipText();
 		}
 		
+		@Override
 		public void getKeyboardShortcut(AccessibleEvent e) {
 			char mnemonic = _findMnemonic(CLabel.this.text);	
 			if (mnemonic != '\0') {
@@ -324,10 +330,12 @@ private void initAccessible() {
 	});
 		
 	accessible.addAccessibleControlListener(new AccessibleControlAdapter() {
+		@Override
 		public void getChildAtPoint(AccessibleControlEvent e) {
 			e.childID = ACC.CHILDID_SELF;
 		}
 		
+		@Override
 		public void getLocation(AccessibleControlEvent e) {
 			Rectangle rect = getDisplay().map(getParent(), null, getBounds());
 			e.x = rect.x;
@@ -336,14 +344,17 @@ private void initAccessible() {
 			e.height = rect.height;
 		}
 		
+		@Override
 		public void getChildCount(AccessibleControlEvent e) {
 			e.detail = 0;
 		}
 		
+		@Override
 		public void getRole(AccessibleControlEvent e) {
 			e.detail = ACC.ROLE_LABEL;
 		}
 		
+		@Override
 		public void getState(AccessibleControlEvent e) {
 			e.detail = ACC.STATE_READONLY;
 		}
@@ -492,7 +503,7 @@ void onPaint(PaintEvent event) {
 			}
 			gc.setBackground(oldBackground);
 		} else {
-			if (background != null || (getStyle() & SWT.DOUBLE_BUFFERED) == 0) {
+			if ((background != null || (getStyle() & SWT.DOUBLE_BUFFERED) == 0) && background.getAlpha() > 0) {
 				gc.setBackground(getBackground());
 				gc.fillRectangle(rect);
 			}
@@ -616,6 +627,7 @@ public void setAlignment(int align) {
 	}
 }
 
+@Override
 public void setBackground (Color color) {
 	super.setBackground (color);
 	// Are these settings the same as before?
@@ -793,6 +805,7 @@ public void setBottomMargin(int bottomMargin) {
     this.bottomMargin = bottomMargin;
     redraw();
 }
+@Override
 public void setFont(Font font) {
 	super.setFont(font);
 	redraw();
@@ -885,6 +898,9 @@ public void setRightMargin(int rightMargin) {
  * platform specific manner.  The mnemonic indicator character
  * '&amp;' can be escaped by doubling it in the string, causing
  * a single '&amp;' to be displayed.
+ * </p><p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
  * </p>
  * 
  * @param text the text to be displayed in the label or null
@@ -902,6 +918,7 @@ public void setText(String text) {
 		redraw();
 	}
 }
+@Override
 public void setToolTipText (String string) {
 	super.setToolTipText (string);
 	appToolTipText = super.getToolTipText();

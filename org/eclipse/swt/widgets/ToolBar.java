@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,9 +12,9 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 
 /**
  * Instances of this class support the layout of selectable
@@ -54,14 +54,14 @@ public class ToolBar extends Composite {
 		menuItemSelectedFunc = new Callback(ToolBar.class, "MenuItemSelectedProc", 2);
 		if (menuItemSelectedFunc.getAddress() == 0) SWT.error(SWT.ERROR_NO_MORE_CALLBACKS);
 	}
-	
+
 /**
  * Constructs a new instance of this class given its parent
  * and a style value describing its behavior and appearance.
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -104,11 +104,7 @@ public ToolBar (Composite parent, int style) {
 		this.style |= SWT.HORIZONTAL;
 	}
 	int orientation = (style & SWT.VERTICAL) != 0 ? OS.GTK_ORIENTATION_VERTICAL : OS.GTK_ORIENTATION_HORIZONTAL;
-	if (OS.GTK_VERSION < OS.VERSION (2, 16, 0)) {
-		OS.gtk_toolbar_set_orientation (handle, orientation);
-	} else {
-		OS.gtk_orientable_set_orientation(handle, orientation);
-	}
+	OS.gtk_orientable_set_orientation(handle, orientation);
 }
 
 static int checkStyle (int style) {
@@ -122,15 +118,17 @@ static int checkStyle (int style) {
 	return style & ~(SWT.H_SCROLL | SWT.V_SCROLL);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE | THEME_BACKGROUND;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	handle = OS.gtk_toolbar_new ();
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
@@ -143,26 +141,38 @@ void createHandle (int index) {
 	* Bug in GTK. For some reason, the toolbar style context does not read
 	* the CSS style sheet until the window containing the toolbar is shown.
 	* The fix is to call gtk_style_context_invalidate() which it seems to
-	* force the style sheet to be read. 
+	* force the style sheet to be read.
 	*/
-	if (OS.GTK3) { 
+	if (OS.GTK3) {
 		int /*long*/ context = OS.gtk_widget_get_style_context (handle);
 		OS.gtk_style_context_invalidate (context);
 	}
-	
+
 	/*
 	* Bug in GTK.  GTK will segment fault if gtk_widget_reparent() is called
 	* on a tool bar or on a widget hierarchy containing a tool bar when the icon
 	* size is not GTK_ICON_SIZE_LARGE_TOOLBAR.  The fix is to set the icon
 	* size to GTK_ICON_SIZE_LARGE_TOOLBAR.
-	* 
-	* Note that the segmentation fault does not happen on GTK 3, but the 
+	*
+	* Note that the segmentation fault does not happen on GTK 3, but the
 	* tool bar preferred size is too big with GTK_ICON_SIZE_LARGE_TOOLBAR
 	* when the tool bar item has no image or text.
 	*/
 	OS.gtk_toolbar_set_icon_size (handle, OS.GTK3 ? OS.GTK_ICON_SIZE_SMALL_TOOLBAR : OS.GTK_ICON_SIZE_LARGE_TOOLBAR);
+
+	// In GTK 3 font description is inherited from parent widget which is not how SWT has always worked,
+	// reset to default font to get the usual behavior
+	if (OS.GTK3) {
+		setFontDescription(defaultFont().handle);
+	}
 }
 
+@Override
+int applyThemeBackground () {
+	return -1; /* No Change */
+}
+
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
@@ -179,12 +189,13 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	return size;
 }
 
+@Override
 Widget computeTabGroup () {
 	ToolItem [] items = _getItems ();
 	if (tabItemList == null) {
 		int i = 0;
 		while (i < items.length && items [i].control == null) i++;
-		if (i == items.length) return super.computeTabGroup (); 
+		if (i == items.length) return super.computeTabGroup ();
 	}
 	int index = indexOf(currentFocusItem);
 	if (index == -1) index = items.length - 1;
@@ -196,12 +207,13 @@ Widget computeTabGroup () {
 	return super.computeTabGroup ();
 }
 
+@Override
 Widget [] computeTabList () {
 	ToolItem [] items = _getItems ();
 	if (tabItemList == null) {
 		int i = 0;
 		while (i < items.length && items [i].control == null) i++;
-		if (i == items.length) return super.computeTabList (); 
+		if (i == items.length) return super.computeTabList ();
 	}
 	Widget result [] = {};
 	if (!isTabGroup () || !isEnabled () || !isVisible ()) return result;
@@ -216,18 +228,21 @@ Widget [] computeTabList () {
 			result = newResult;
 		}
 	}
-	if (result.length == 0) result = new Widget [] {this}; 
+	if (result.length == 0) result = new Widget [] {this};
 	return result;
 }
 
+@Override
 int /*long*/ eventHandle () {
 	return fixedHandle;
 }
 
+@Override
 int /*long*/ enterExitHandle() {
 	return handle;
 }
 
+@Override
 void fixChildren (Shell newShell, Shell oldShell, Decorations newDecorations, Decorations oldDecorations, Menu [] menus) {
 	super.fixChildren (newShell, oldShell, newDecorations, oldDecorations, menus);
 	ToolItem [] items = getItems ();
@@ -242,6 +257,7 @@ void fixChildren (Shell newShell, Shell oldShell, Decorations newDecorations, De
 	}
 }
 
+@Override
 boolean forceFocus (int /*long*/ focusHandle) {
 	int dir = OS.GTK_DIR_TAB_FORWARD;
 	if ((style & SWT.MIRRORED) != 0) dir = OS.GTK_DIR_TAB_BACKWARD;
@@ -323,11 +339,11 @@ public int getItemCount () {
 
 /**
  * Returns an array of <code>ToolItem</code>s which are the items
- * in the receiver. 
+ * in the receiver.
  * <p>
  * Note: This is not the actual structure used by the receiver
  * to maintain its list of items, so modifying the array will
- * not affect the receiver. 
+ * not affect the receiver.
  * </p>
  *
  * @return the items in the receiver
@@ -347,13 +363,15 @@ ToolItem [] _getItems () {
 	if (list == 0) return new ToolItem [0];
 	int count = OS.g_list_length (list);
 	ToolItem [] items = new ToolItem [count];
+	int /*long*/ originalList = list;
 	int index = 0;
 	for (int i=0; i<count; i++) {
-		int /*long*/ data = OS.g_list_nth_data (list, i);
+		int /*long*/ data = OS.g_list_data (list);
 		Widget widget = display.getWidget (data);
 		if (widget != null) items [index++] = (ToolItem) widget;
+		list = OS.g_list_next (list);
 	}
-	OS.g_list_free (list);
+	OS.g_list_free (originalList);
 	if (index != items.length) {
 		ToolItem [] newItems = new ToolItem [index];
 		System.arraycopy (items, 0, newItems, 0, index);
@@ -399,16 +417,19 @@ ToolItem [] _getTabItemList () {
 	return tabItemList;
 }
 
+@Override
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	if (!hasFocus ()) return 0;
 	int /*long*/ result = super.gtk_key_press_event (widget, eventPtr);
 	return result;
 }
 
+@Override
 int /*long*/ gtk_focus (int /*long*/ widget, int /*long*/ directionType) {
 	return 0;
 }
 
+@Override
 boolean hasFocus () {
 	if (hasChildFocus) return true;
 	return super.hasFocus();
@@ -416,7 +437,7 @@ boolean hasFocus () {
 
 /**
  * Searches the receiver's list starting at the first item
- * (index 0) until an item is found that is equal to the 
+ * (index 0) until an item is found that is equal to the
  * argument, and returns the index of that item. If no item
  * is found, returns -1.
  *
@@ -456,15 +477,15 @@ int /*long*/ menuItemSelected (int /*long*/ widget, ToolItem item) {
 	switch (item.style) {
 		case SWT.DROP_DOWN :
 			/*
-			 * Feature in GTK. The DROP_DOWN item does not 
+			 * Feature in GTK. The DROP_DOWN item does not
 			 * contain arrow button in the overflow menu. So, it
 			 * is impossible to select the menu of that item.
-			 * The fix is to consider the item selection  
-			 * as Arrow click, in order to popup the drop-down. 
+			 * The fix is to consider the item selection
+			 * as Arrow click, in order to popup the drop-down.
 			 */
 			event.detail = SWT.ARROW;
 			GtkAllocation allocation = new GtkAllocation ();
-			gtk_widget_get_allocation (widget, allocation);
+			OS.gtk_widget_get_allocation (widget, allocation);
 			event.x = allocation.x;
 			if ((style & SWT.MIRRORED) != 0) event.x = getClientWidth () - allocation.width - event.x;
 			event.y = allocation.y + allocation.height;
@@ -480,6 +501,7 @@ int /*long*/ menuItemSelected (int /*long*/ widget, ToolItem item) {
 	return 0;
 }
 
+@Override
 boolean mnemonicHit (char key) {
 	ToolItem [] items = getItems ();
 	for (int i=0; i<items.length; i++) {
@@ -489,6 +511,7 @@ boolean mnemonicHit (char key) {
 	return false;
 }
 
+@Override
 boolean mnemonicMatch (char key) {
 	ToolItem [] items = getItems ();
 	for (int i=0; i<items.length; i++) {
@@ -511,7 +534,7 @@ void relayout () {
 	}
 	int type = OS.GTK_TOOLBAR_ICONS;
 	if (hasText && hasImage) {
-		if ((style & SWT.RIGHT) != 0) { 
+		if ((style & SWT.RIGHT) != 0) {
 			type = OS.GTK_TOOLBAR_BOTH_HORIZ;
 		} else {
 			type = OS.GTK_TOOLBAR_BOTH;
@@ -524,6 +547,7 @@ void relayout () {
 	OS.gtk_toolbar_set_style (handle, type);
 }
 
+@Override
 void releaseChildren (boolean destroy) {
 	ToolItem [] items = getItems ();
 	for (int i=0; i<items.length; i++) {
@@ -535,12 +559,14 @@ void releaseChildren (boolean destroy) {
 	super.releaseChildren (destroy);
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (imageList != null) imageList.dispose ();
 	imageList = null;
 }
 
+@Override
 void removeControl (Control control) {
 	super.removeControl (control);
 	ToolItem [] items = getItems ();
@@ -550,6 +576,7 @@ void removeControl (Control control) {
 	}
 }
 
+@Override
 void reskinChildren (int flags) {
 	ToolItem[] items = _getItems();
 	if (items != null) {
@@ -561,6 +588,7 @@ void reskinChildren (int flags) {
 	super.reskinChildren (flags);
 }
 
+@Override
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	OS.gtk_toolbar_set_show_arrow (handle, false);
 	int result = super.setBounds (x, y, width, height, move, resize);
@@ -569,6 +597,7 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	return result;
 }
 
+@Override
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	ToolItem [] items = getItems ();
@@ -578,6 +607,7 @@ void setFontDescription (int /*long*/ font) {
 	relayout ();
 }
 
+@Override
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (color);
 	ToolItem [] items = getItems ();
@@ -586,6 +616,7 @@ void setForegroundColor (GdkColor color) {
 	}
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	ToolItem [] items = _getItems ();
@@ -606,10 +637,11 @@ void setOrientation (boolean create) {
 		ToolItem [] newList = new ToolItem [tabList.length];
 		System.arraycopy (tabList, 0, newList, 0, tabList.length);
 		tabList = newList;
-	} 
+	}
 	this.tabItemList = tabList;
 }
 
+@Override
 public void setToolTipText (String string) {
 	checkWidget();
 	super.setToolTipText (string);

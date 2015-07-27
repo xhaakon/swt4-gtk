@@ -12,14 +12,14 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.events.*;
 
 /**
  * Instances of this class represent a selectable user interface object
- * that issues notification when pressed and released. 
+ * that issues notification when pressed and released.
  * <dl>
  * <dt><b>Styles:</b></dt>
  * <dd>CHECK, CASCADE, PUSH, RADIO, SEPARATOR</dd>
@@ -40,7 +40,8 @@ public class MenuItem extends Item {
 	Menu parent, menu;
 	int /*long*/ groupHandle;
 	int accelerator, userId;
-	
+	String toolTipText;
+
 /**
  * Constructs a new instance of this class given its parent
  * (which must be a <code>Menu</code>) and a style value
@@ -49,7 +50,7 @@ public class MenuItem extends Item {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -89,7 +90,7 @@ public MenuItem (Menu parent, int style) {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -199,11 +200,11 @@ public void addHelpListener (HelpListener listener) {
  * </p>
  * <p>
  * When the <code>SWT.RADIO</code> style bit is set, the <code>widgetSelected</code> method is
- * also called when the receiver loses selection because another item in the same radio group 
+ * also called when the receiver loses selection because another item in the same radio group
  * was selected by the user. During <code>widgetSelected</code> the application can use
  * <code>getSelection()</code> to determine the current selected state of the receiver.
  * </p>
- * 
+ *
  * @param listener the listener which should be notified when the menu item is selected by the user
  *
  * @exception IllegalArgumentException <ul>
@@ -230,10 +231,12 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.PUSH, SWT.CHECK, SWT.RADIO, SWT.SEPARATOR, SWT.CASCADE, 0);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
 	byte [] buffer = new byte [1];
@@ -257,7 +260,7 @@ void createHandle (int index) {
 			groupHandle = OS.gtk_radio_menu_item_new (0);
 			if (groupHandle == 0) error (SWT.ERROR_NO_HANDLES);
 			OS.g_object_ref (groupHandle);
-			g_object_ref_sink (groupHandle);
+			OS.g_object_ref_sink (groupHandle);
 			int /*long*/ group = OS.gtk_radio_menu_item_get_group (groupHandle);
 			handle = OS.gtk_radio_menu_item_new_with_label (group, buffer);
 			break;
@@ -275,7 +278,7 @@ void createHandle (int index) {
 		OS.gtk_accel_label_set_accel_widget (label, 0);
 	}
 	int /*long*/ parentHandle = parent.handle;
-	boolean enabled = gtk_widget_get_sensitive (parentHandle);
+	boolean enabled = OS.gtk_widget_get_sensitive (parentHandle);
 	if (!enabled) OS.gtk_widget_set_sensitive (parentHandle, true);
 	OS.gtk_menu_shell_insert (parentHandle, handle, index);
 	if (!enabled) OS.gtk_widget_set_sensitive (parentHandle, false);
@@ -323,7 +326,7 @@ int /*long*/ getAccelGroup () {
 		return new Rectangle (0, 0, 0, 0);
 	}
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	int x = allocation.x;
 	int y = allocation.y;
 	int width = allocation.width;
@@ -343,12 +346,12 @@ int /*long*/ getAccelGroup () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #isEnabled
  */
 public boolean getEnabled () {
 	checkWidget();
-	return gtk_widget_get_sensitive (handle);
+	return OS.gtk_widget_get_sensitive (handle);
 }
 
 /**
@@ -360,7 +363,7 @@ public boolean getEnabled () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.7
  */
 public int getID () {
@@ -371,7 +374,7 @@ public int getID () {
 /**
  * Returns the receiver's cascade menu if it has one or null
  * if it does not. Only <code>CASCADE</code> menu items can have
- * a pull down menu. The sequence of key strokes, button presses 
+ * a pull down menu. The sequence of key strokes, button presses
  * and/or button releases that are used to request a pull down
  * menu is platform specific.
  *
@@ -387,6 +390,7 @@ public Menu getMenu () {
 	return menu;
 }
 
+@Override
 String getNameText () {
 	if ((style & SWT.SEPARATOR) != 0) return "|";
 	return super.getNameText ();
@@ -427,6 +431,24 @@ public boolean getSelection () {
 	return OS.gtk_check_menu_item_get_active(handle);
 }
 
+/**
+ * Returns the receiver's tool tip text, or null if it has not been set.
+ *
+ * @return the receiver's tool tip text
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @since 3.104
+ */
+public String getToolTipText () {
+	checkWidget();
+	return toolTipText;
+}
+
+@Override
 int /*long*/ gtk_activate (int /*long*/ widget) {
 	if ((style & SWT.CASCADE) != 0 && menu != null) return 0;
 	/*
@@ -446,12 +468,14 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_select (int /*long*/ item) {
 	parent.selectedItem = this;
 	sendEvent (SWT.Arm);
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_show_help (int /*long*/ widget, int /*long*/ helpType) {
 	boolean handled = hooks (SWT.Help);
 	if (handled) {
@@ -466,11 +490,12 @@ int /*long*/ gtk_show_help (int /*long*/ widget, int /*long*/ helpType) {
 	return 0;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
-	OS.g_signal_connect_closure (handle, OS.activate, display.closures [ACTIVATE], false);
-	OS.g_signal_connect_closure (handle, OS.select, display.closures [SELECT], false);
-	OS.g_signal_connect_closure_by_id (handle, display.signalIds [SHOW_HELP], 0, display.closures [SHOW_HELP], false);
+	OS.g_signal_connect_closure (handle, OS.activate, display.getClosure (ACTIVATE), false);
+	OS.g_signal_connect_closure (handle, OS.select, display.getClosure (SELECT), false);
+	OS.g_signal_connect_closure_by_id (handle, display.signalIds [SHOW_HELP], 0, display.getClosure (SHOW_HELP), false);
 }
 
 /**
@@ -485,13 +510,14 @@ void hookEvents () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #getEnabled
  */
 public boolean isEnabled () {
 	return getEnabled () && parent.isEnabled ();
 }
 
+@Override
 void releaseChildren (boolean destroy) {
 	if (menu != null) {
 		menu.release (false);
@@ -500,6 +526,7 @@ void releaseChildren (boolean destroy) {
 	super.releaseChildren (destroy);
 }
 
+@Override
 void releaseParent () {
 	super.releaseParent ();
 	if (menu != null) {
@@ -509,6 +536,7 @@ void releaseParent () {
 	menu = null;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	int /*long*/ accelGroup = getAccelGroup ();
@@ -598,8 +626,9 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
+@Override
 void reskinChildren (int flags) {
 	if (menu != null) {
 		menu.reskin (flags);
@@ -656,7 +685,7 @@ public void setAccelerator (int accelerator) {
  */
 public void setEnabled (boolean enabled) {
 	checkWidget();
-	if (gtk_widget_get_sensitive (handle) == enabled) return;
+	if (OS.gtk_widget_get_sensitive (handle) == enabled) return;
 	int /*long*/ accelGroup = getAccelGroup ();
 	if (accelGroup != 0) removeAccelerator (accelGroup);
 	OS.gtk_widget_set_sensitive (handle, enabled);
@@ -673,7 +702,7 @@ public void setEnabled (boolean enabled) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  *    <li>ERROR_INVALID_ARGUMENT - if called with an negative-valued argument.</li>
  * </ul>
- * 
+ *
  * @since 3.7
  */
 public void setID (int id) {
@@ -699,6 +728,7 @@ public void setID (int id) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+@Override
 public void setImage (Image image) {
 	checkWidget();
 	if ((style & SWT.SEPARATOR) != 0) return;
@@ -775,11 +805,7 @@ public void setMenu (Menu menu) {
 		* to replace or GTK will destroy it.
 		*/
 		OS.g_object_ref (oldMenu.handle);
-		if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
-			OS.gtk_menu_item_set_submenu (handle, 0);
-		} else {
-		    OS.gtk_menu_item_remove_submenu (handle);
-		}
+		OS.gtk_menu_item_set_submenu (handle, 0);
 	}
 	if ((this.menu = menu) != null) {
 		menu.cascade = this;
@@ -788,6 +814,7 @@ public void setMenu (Menu menu) {
 	if (accelGroup != 0) addAccelerators (accelGroup);
 }
 
+@Override
 void setOrientation (boolean create) {
     super.setOrientation (create);
     if ((parent.style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
@@ -853,7 +880,7 @@ public void setSelection (boolean selected) {
  * accelerator key sequence. The accelerator key sequence
  * is installed using #setAccelerator.
  * </p>
- * 
+ *
  * @param string the new text
  *
  * @exception IllegalArgumentException <ul>
@@ -863,9 +890,10 @@ public void setSelection (boolean selected) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #setAccelerator
  */
+@Override
 public void setText (String string) {
 	checkWidget();
 	if (string == null) error (SWT.ERROR_NULL_ARGUMENT);
@@ -884,17 +912,66 @@ public void setText (String string) {
 	int /*long*/ label = OS.gtk_bin_get_child (handle);
 	if (label != 0 && OS.GTK_IS_LABEL(label)) {
 		OS.gtk_label_set_text_with_mnemonic (label, buffer);
-		if (!OS.GTK3) {
-			if (OS.GTK_IS_ACCEL_LABEL(label)) {
-				buffer = Converter.wcsToMbcs (null, accelString, true);
-				int /*long*/ ptr = OS.g_malloc (buffer.length);
-				OS.memmove (ptr, buffer, buffer.length);
-				int /*long*/ oldPtr = OS.GTK_ACCEL_LABEL_GET_ACCEL_STRING (label);
-				OS.GTK_ACCEL_LABEL_SET_ACCEL_STRING (label, ptr);
-				if (oldPtr != 0) OS.g_free (oldPtr);
+		if (OS.GTK_IS_ACCEL_LABEL(label)) {
+			if (OS.GTK3) {
+				OS.gtk_accel_label_set_accel_widget(label, handle);
+				if (OS.GTK_VERSION >= OS.VERSION(3, 6, 0)) {
+					MaskKeysym maskKeysym = getMaskKeysym();
+					if (maskKeysym != null) {
+						OS.gtk_accel_label_set_accel(label,
+							maskKeysym.keysym, maskKeysym.mask);
+					}
+				} else {
+					setAccelLabel(label, accelString);
+				}
+			} else {
+				setAccelLabel(label, accelString);
 			}
+			// A workaround for Ubuntu Unity global menu
+			OS.g_signal_emit_by_name(handle, OS.accel_closures_changed);
 		}
 	}
+}
+
+private void setAccelLabel(int /*long*/ label, String accelString) {
+	byte[] buffer = Converter.wcsToMbcs (null, accelString, true);
+	int /*long*/ ptr = OS.g_malloc (buffer.length);
+	OS.memmove (ptr, buffer, buffer.length);
+	int /*long*/ oldPtr = OS.GTK_ACCEL_LABEL_GET_ACCEL_STRING (label);
+	OS.GTK_ACCEL_LABEL_SET_ACCEL_STRING (label, ptr);
+	if (oldPtr != 0) OS.g_free (oldPtr);
+}
+
+/**
+ * Sets the receiver's tool tip text to the argument, which
+ * may be null indicating that the default tool tip for the
+ * control will be shown. For a menu item that has a default
+ * tool tip, setting
+ * the tool tip text to an empty string replaces the default,
+ * causing no tool tip text to be shown.
+ * <p>
+ * The mnemonic indicator (character '&amp;') is not displayed in a tool tip.
+ * To display a single '&amp;' in the tool tip, the character '&amp;' can be
+ * escaped by doubling it in the string.
+ * </p>
+ * <p>
+ * NOTE: Tooltips are currently not shown for top-level menu items in the
+ * {@link Shell#setMenuBar(Menu) shell menubar} on Windows, Mac, and Ubuntu Unity desktop.
+ * </p>
+ * @param toolTip the new tool tip text (or null)
+ *
+ * @exception SWTException <ul>
+ *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
+ *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
+ * </ul>
+ *
+ * @since 3.104
+ */
+public void setToolTipText (String toolTip) {
+	checkWidget();
+	if (toolTip != null && (toolTip.trim().length() == 0 || toolTip.equals (toolTipText))) return;
+
+	this.parent.getShell().setToolTipText (handle, (toolTipText = toolTip));
 }
 
 void updateAccelerator (int /*long*/ accelGroup, boolean add) {
@@ -924,65 +1001,80 @@ void updateAccelerator (int /*long*/ accelGroup, boolean add) {
 	}
 }
 
+private class MaskKeysym {
+	int mask = 0;
+	int keysym = 0;
+}
+
+private MaskKeysym getMaskKeysym() {
+	if (text == null) return null;
+	MaskKeysym maskKeysym = new MaskKeysym();
+	int accelIndex = text.indexOf ('\t');
+	if (accelIndex == -1) return null;
+	int start = accelIndex + 1;
+	int plusIndex = text.indexOf('+', start);
+	while (plusIndex != -1) {
+		String maskStr = text.substring(start, plusIndex);
+		if (maskStr.equals("Ctrl")) maskKeysym.mask |= OS.GDK_CONTROL_MASK;
+		if (maskStr.equals("Shift")) maskKeysym.mask |= OS.GDK_SHIFT_MASK;
+		if (maskStr.equals("Alt")) maskKeysym.mask |= OS.GDK_MOD1_MASK;
+		start = plusIndex + 1;
+		plusIndex = text.indexOf('+', start);
+	}
+	if ("Enter".equals(text.substring(start))) {
+		maskKeysym.keysym = OS.GDK_ISO_Enter;
+	}
+	switch (text.length() - start) {
+		case 1:
+			maskKeysym.keysym = text.charAt(start);
+			maskKeysym.keysym = Display.wcsToMbcs ((char) maskKeysym.keysym);
+			break;
+		case 2:
+			if (text.charAt(start) == 'F') {
+				switch (text.charAt(start + 1)) {
+					case '1': maskKeysym.keysym = OS.GDK_F1; break;
+					case '2': maskKeysym.keysym = OS.GDK_F2; break;
+					case '3': maskKeysym.keysym = OS.GDK_F3; break;
+					case '4': maskKeysym.keysym = OS.GDK_F4; break;
+					case '5': maskKeysym.keysym = OS.GDK_F5; break;
+					case '6': maskKeysym.keysym = OS.GDK_F6; break;
+					case '7': maskKeysym.keysym = OS.GDK_F7; break;
+					case '8': maskKeysym.keysym = OS.GDK_F8; break;
+					case '9': maskKeysym.keysym = OS.GDK_F9; break;
+				}
+			}
+			break;
+		case 3:
+			if (text.charAt(start) == 'F' && text.charAt(start + 1) == '1') {
+				switch (text.charAt(start + 2)) {
+					case '0': maskKeysym.keysym = OS.GDK_F10; break;
+					case '1': maskKeysym.keysym = OS.GDK_F11; break;
+					case '2': maskKeysym.keysym = OS.GDK_F12; break;
+					case '3': maskKeysym.keysym = OS.GDK_F13; break;
+					case '4': maskKeysym.keysym = OS.GDK_F14; break;
+					case '5': maskKeysym.keysym = OS.GDK_F15; break;
+				}
+			}
+			break;
+	}
+	return maskKeysym;
+}
 boolean updateAcceleratorText (boolean show) {
 	if (accelerator != 0) return false;
-	int mask = 0, keysym = 0;
+	MaskKeysym maskKeysym = null;
 	if (show) {
-		int accelIndex = text.indexOf ('\t');
-		if (accelIndex == -1) return true;
-		int start = accelIndex + 1;
-		int plusIndex = text.indexOf('+', start);
-		while (plusIndex != -1) {
-			String maskStr = text.substring(start, plusIndex);
-			if (maskStr.equals("Ctrl")) mask |= OS.GDK_CONTROL_MASK;
-			if (maskStr.equals("Shift")) mask |= OS.GDK_SHIFT_MASK;
-			if (maskStr.equals("Alt")) mask |= OS.GDK_MOD1_MASK;
-			start = plusIndex + 1;
-			plusIndex = text.indexOf('+', start);
-		}
-		switch (text.length() - start) {
-			case 1:
-				keysym = text.charAt(start);
-				keysym = Display.wcsToMbcs ((char) keysym);
-				break;
-			case 2:
-				if (text.charAt(start) == 'F') {
-					switch (text.charAt(start + 1)) {
-						case '1': keysym = OS.GDK_F1; break;
-						case '2': keysym = OS.GDK_F2; break;
-						case '3': keysym = OS.GDK_F3; break;
-						case '4': keysym = OS.GDK_F4; break;
-						case '5': keysym = OS.GDK_F5; break;
-						case '6': keysym = OS.GDK_F6; break;
-						case '7': keysym = OS.GDK_F7; break;
-						case '8': keysym = OS.GDK_F8; break;
-						case '9': keysym = OS.GDK_F9; break;
-					}
-				}
-				break;
-			case 3:
-				if (text.charAt(start) == 'F' && text.charAt(start + 1) == '1') {
-					switch (text.charAt(start + 2)) {
-						case '0': keysym = OS.GDK_F10; break;
-						case '1': keysym = OS.GDK_F11; break;
-						case '2': keysym = OS.GDK_F12; break;
-						case '3': keysym = OS.GDK_F13; break;
-						case '4': keysym = OS.GDK_F14; break;
-						case '5': keysym = OS.GDK_F15; break;
-					}
-				}
-				break;
-		}
+		maskKeysym = getMaskKeysym();
 	}
-	if (keysym != 0) {
+	if (maskKeysym == null) return true;
+	if (maskKeysym.keysym != 0) {
 		int /*long*/ accelGroup = getAccelGroup ();
 		if (show) {
-			OS.gtk_widget_add_accelerator (handle, OS.activate, accelGroup, keysym, mask, OS.GTK_ACCEL_VISIBLE);
+			OS.gtk_widget_add_accelerator (handle, OS.activate, accelGroup, maskKeysym.keysym, maskKeysym.mask, OS.GTK_ACCEL_VISIBLE);
 		} else {
-			OS.gtk_widget_remove_accelerator (handle, accelGroup, keysym, mask);
+			OS.gtk_widget_remove_accelerator (handle, accelGroup, maskKeysym.keysym, maskKeysym.mask);
 		}
 	}
-	return keysym != 0;
+	return maskKeysym.keysym != 0;
 }
 
 }

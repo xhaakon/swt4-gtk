@@ -27,25 +27,26 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsISimpleEnumerator extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 2;
 
-	public static final String NS_ISIMPLEENUMERATOR_IID_STR =
-		"d1899240-f9d2-11d2-bdd6-000064657374";
+	static final String NS_ISIMPLEENUMERATOR_IID_STR = "d1899240-f9d2-11d2-bdd6-000064657374";
 
-	public static final nsID NS_ISIMPLEENUMERATOR_IID =
-		new nsID(NS_ISIMPLEENUMERATOR_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsISimpleEnumerator.class, MozillaVersion.VERSION_BASE, new nsID(NS_ISIMPLEENUMERATOR_IID_STR));
+	}
 
 	public nsISimpleEnumerator(int /*long*/ address) {
 		super(address);
 	}
 
 	public int HasMoreElements(int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("hasMoreElements"), getAddress(), _retval);
 	}
 
 	public int GetNext(int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("getNext"), getAddress(), _retval);
 	}
 }

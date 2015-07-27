@@ -12,15 +12,15 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class are selectable user interface
- * objects that represent a range of positive, numeric values. 
+ * objects that represent a range of positive, numeric values.
  * <p>
- * At any given moment, a given scroll bar will have a 
+ * At any given moment, a given scroll bar will have a
  * single 'selection' that is considered to be its
  * value, which is constrained to be within the range of
  * values the scroll bar represents (that is, between its
@@ -60,7 +60,7 @@ import org.eclipse.swt.events.*;
  * have no operating system resources and are not children of the control.
  * For this reason, scroll bars are treated specially.  To create a control
  * that looks like a scroll bar but has operating system resources, use
- * <code>Slider</code>. 
+ * <code>Slider</code>.
  * </p>
  * <dl>
  * <dt><b>Styles:</b></dt>
@@ -87,7 +87,7 @@ public class ScrollBar extends Widget {
 	int /*long*/ adjustmentHandle;
 	int detail;
 	boolean dragSent;
-	
+
 ScrollBar () {
 }
 
@@ -144,6 +144,7 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.HORIZONTAL, SWT.VERTICAL, 0, 0, 0, 0);
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	if (adjustmentHandle != 0) display.removeWidget (adjustmentHandle);
@@ -153,6 +154,7 @@ void destroyHandle () {
 	super.destroyWidget ();
 }
 
+@Override
 void destroyWidget () {
 	parent.destroyScrollBar (this);
 	releaseHandle ();
@@ -171,12 +173,12 @@ void destroyWidget () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #isEnabled
  */
 public boolean getEnabled () {
 	checkWidget ();
-	if (handle != 0) return gtk_widget_get_sensitive (handle);
+	if (handle != 0) return OS.gtk_widget_get_sensitive (handle);
 	return true;
 }
 
@@ -194,7 +196,7 @@ public boolean getEnabled () {
  */
 public int getIncrement () {
 	checkWidget ();
-	return (int) gtk_adjustment_get_step_increment (adjustmentHandle);
+	return (int) OS.gtk_adjustment_get_step_increment (adjustmentHandle);
 }
 
 /**
@@ -209,7 +211,7 @@ public int getIncrement () {
  */
 public int getMaximum () {
 	checkWidget ();
-	return (int) gtk_adjustment_get_upper (adjustmentHandle);
+	return (int) OS.gtk_adjustment_get_upper (adjustmentHandle);
 }
 
 /**
@@ -224,7 +226,7 @@ public int getMaximum () {
  */
 public int getMinimum () {
 	checkWidget ();
-	return (int) gtk_adjustment_get_lower (adjustmentHandle);
+	return (int) OS.gtk_adjustment_get_lower (adjustmentHandle);
 }
 
 /**
@@ -241,7 +243,7 @@ public int getMinimum () {
  */
 public int getPageIncrement () {
 	checkWidget ();
-	return (int) gtk_adjustment_get_page_increment (adjustmentHandle);
+	return (int) OS.gtk_adjustment_get_page_increment (adjustmentHandle);
 }
 
 /**
@@ -271,7 +273,7 @@ public Scrollable getParent () {
  */
 public int getSelection () {
 	checkWidget ();
-	return (int) gtk_adjustment_get_value (adjustmentHandle);
+	return (int) OS.gtk_adjustment_get_value (adjustmentHandle);
 }
 
 /**
@@ -309,20 +311,20 @@ public Point getSize () {
  */
 public int getThumb () {
 	checkWidget ();
-	return (int) gtk_adjustment_get_page_size (adjustmentHandle);
+	return (int) OS.gtk_adjustment_get_page_size (adjustmentHandle);
 }
 
 /**
  * Returns a rectangle describing the size and location of the
  * receiver's thumb relative to its parent.
- * 
+ *
  * @return the thumb bounds, relative to the {@link #getParent() parent}
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.6
  */
 public Rectangle getThumbBounds () {
@@ -331,7 +333,7 @@ public Rectangle getThumbBounds () {
 	gtk_range_get_slider_range (handle, slider_start, slider_end);
 	int x, y, width, height;
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	if ((style & SWT.VERTICAL) != 0) {
 		x = allocation.x;
 		y = slider_start [0];
@@ -360,14 +362,14 @@ public Rectangle getThumbBounds () {
  * Returns a rectangle describing the size and location of the
  * receiver's thumb track relative to its parent. This rectangle
  * comprises the areas 2, 3, and 4 as described in {@link ScrollBar}.
- * 
+ *
  * @return the thumb track bounds, relative to the {@link #getParent() parent}
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.6
  */
 public Rectangle getThumbTrackBounds () {
@@ -375,24 +377,24 @@ public Rectangle getThumbTrackBounds () {
 	int x = 0, y = 0, width, height;
 	int[] has_stepper = new int[1];
 	OS.gtk_widget_style_get (handle, OS.has_backward_stepper, has_stepper, 0);
-	boolean hasA = has_stepper[0] != 0;
-	OS.gtk_widget_style_get (handle, OS.has_secondary_backward_stepper, has_stepper, 0);
 	boolean hasB = has_stepper[0] != 0;
+	OS.gtk_widget_style_get (handle, OS.has_secondary_backward_stepper, has_stepper, 0);
+	boolean hasB2 = has_stepper[0] != 0;
 	OS.gtk_widget_style_get (handle, OS.has_forward_stepper, has_stepper, 0);
-	boolean hasC = has_stepper[0] != 0;
+	boolean hasF = has_stepper[0] != 0;
 	OS.gtk_widget_style_get (handle, OS.has_secondary_forward_stepper, has_stepper, 0);
-	boolean hasD = has_stepper[0] != 0;
+	boolean hasF2 = has_stepper[0] != 0;
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	if ((style & SWT.VERTICAL) != 0) {
 		int stepperSize = allocation.width;
 		x = allocation.x;
-		if (hasA) y += stepperSize;
 		if (hasB) y += stepperSize;
+		if (hasF2) y += stepperSize;
 		width = allocation.width;
-		height = allocation.height - y;	
-		if (hasC) height -= stepperSize;
-		if (hasD) height -= stepperSize;
+		height = allocation.height - y;
+		if (hasB2) height -= stepperSize;
+		if (hasF) height -= stepperSize;
 		if (height < 0) {
 			int [] slider_start = new int [1], slider_end = new int [1];
 			gtk_range_get_slider_range (handle, slider_start, slider_end);
@@ -401,12 +403,12 @@ public Rectangle getThumbTrackBounds () {
 		}
 	} else {
 		int stepperSize = allocation.height;
-		if (hasA) x += stepperSize;
 		if (hasB) x += stepperSize;
+		if (hasF2) x += stepperSize;
 		y = allocation.y;
 		width = allocation.width -x;
-		if (hasC) width -= stepperSize;
-		if (hasD) width -= stepperSize;
+		if (hasB2) width -= stepperSize;
+		if (hasF) width -= stepperSize;
 		height = allocation.height;
 		if (width < 0) {
 			int [] slider_start = new int [1], slider_end = new int [1];
@@ -451,20 +453,22 @@ public boolean getVisible () {
 	int [] hsp = new int [1], vsp = new int [1];
 	OS.gtk_scrolled_window_get_policy (scrolledHandle, hsp, vsp);
 	if ((style & SWT.HORIZONTAL) != 0) {
-		return hsp [0] != OS.GTK_POLICY_NEVER && gtk_widget_get_visible (handle);
+		return hsp [0] != OS.GTK_POLICY_NEVER && OS.gtk_widget_get_visible (handle);
 	} else {
-		return vsp [0] != OS.GTK_POLICY_NEVER && gtk_widget_get_visible (handle);
+		return vsp [0] != OS.GTK_POLICY_NEVER && OS.gtk_widget_get_visible (handle);
 	}
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_button_press_event (widget, eventPtr);
 	if (result != 0) return result;
 	detail = OS.GTK_SCROLL_NONE;
-	dragSent = false;	
+	dragSent = false;
 	return result;
 }
 
+@Override
 int /*long*/ gtk_change_value (int /*long*/ widget, int /*long*/ scroll, int /*long*/ value1, int /*long*/ value2) {
 	detail = (int)/*64*/scroll;
 	return 0;
@@ -479,6 +483,7 @@ void gtk_range_get_slider_range (int /*long*/ widget, int [] slider_start, int [
 	}
 }
 
+@Override
 int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 	Event event = new Event ();
 	dragSent = detail == OS.GTK_SCROLL_JUMP;
@@ -506,6 +511,7 @@ int /*long*/ gtk_value_changed (int /*long*/ adjustment) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	GdkEvent gtkEvent = new GdkEvent ();
 	OS.memmove (gtkEvent, gdkEvent, GdkEvent.sizeof);
@@ -529,12 +535,13 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	return super.gtk_event_after (widget, gdkEvent);
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
-	OS.g_signal_connect_closure (handle, OS.change_value, display.closures [CHANGE_VALUE], false);
-	OS.g_signal_connect_closure (adjustmentHandle, OS.value_changed, display.closures [VALUE_CHANGED], false);
-	OS.g_signal_connect_closure_by_id (handle, display.signalIds [EVENT_AFTER], 0, display.closures [EVENT_AFTER], false);
-	OS.g_signal_connect_closure_by_id (handle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.closures [BUTTON_PRESS_EVENT], false);	
+	OS.g_signal_connect_closure (handle, OS.change_value, display.getClosure (CHANGE_VALUE), false);
+	OS.g_signal_connect_closure (adjustmentHandle, OS.value_changed, display.getClosure (VALUE_CHANGED), false);
+	OS.g_signal_connect_closure_by_id (handle, display.signalIds [EVENT_AFTER], 0, display.getClosure (EVENT_AFTER), false);
+	OS.g_signal_connect_closure_by_id (handle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.getClosure (BUTTON_PRESS_EVENT), false);
 }
 
 /**
@@ -549,7 +556,7 @@ void hookEvents () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #getEnabled
  */
 public boolean isEnabled () {
@@ -576,25 +583,23 @@ public boolean isVisible () {
 	return getVisible () && getParent ().isVisible ();
 }
 
+@Override
 void register () {
 	super.register ();
 	if (adjustmentHandle != 0) display.addWidget (adjustmentHandle, this);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	parent = null;
 }
 
+@Override
 void releaseParent () {
 	super.releaseParent ();
 	if (parent.horizontalBar == this) parent.horizontalBar = null;
 	if (parent.verticalBar == this) parent.verticalBar = null;
-}
-
-void releaseWidget () {
-	super.releaseWidget ();
-	//parent = null;
 }
 
 /**
@@ -619,7 +624,7 @@ public void removeSelectionListener (SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
 /**
@@ -643,7 +648,7 @@ public void setEnabled (boolean enabled) {
 /**
  * Sets the amount that the receiver's value will be
  * modified by when the up/down (or right/left) arrows
- * are pressed to the argument, which must be at least 
+ * are pressed to the argument, which must be at least
  * one.
  *
  * @param value the new increment (must be greater than zero)
@@ -657,15 +662,7 @@ public void setIncrement (int value) {
 	checkWidget ();
 	if (value < 1) return;
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		OS.gtk_adjustment_set_step_increment (adjustmentHandle, value);
-	} else {
-		GtkAdjustment adjustment = new GtkAdjustment ();
-		OS.memmove (adjustment, adjustmentHandle);
-		adjustment.step_increment = (float) value;
-		OS.memmove (adjustmentHandle, adjustment);
-		OS.gtk_adjustment_changed (adjustmentHandle);
-	}
+	OS.gtk_adjustment_set_step_increment (adjustmentHandle, value);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -692,10 +689,11 @@ public void setMaximum (int value) {
 	adjustment.page_size = Math.min ((int)adjustment.page_size, value - minimum);
 	adjustment.value = Math.min ((int)adjustment.value, (int)(value - adjustment.page_size));
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (adjustmentHandle, adjustment);
+	OS.gtk_adjustment_configure(adjustmentHandle, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
-	
+
 /**
  * Sets the minimum value. If this value is negative or greater
  * than or equal to the maximum, the value is ignored. If necessary,
@@ -720,10 +718,12 @@ public void setMinimum (int value) {
 	adjustment.page_size = Math.min ((int)adjustment.page_size, maximum - value);
 	adjustment.value = Math.max ((int)adjustment.value, value);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (adjustmentHandle, adjustment);
+	OS.gtk_adjustment_configure(adjustmentHandle, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if ((parent.style & SWT.MIRRORED) != 0 || !create) {
@@ -752,15 +752,7 @@ public void setPageIncrement (int value) {
 	checkWidget ();
 	if (value < 1) return;
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0)) {
-		OS.gtk_adjustment_set_page_increment (adjustmentHandle, value);
-	} else {
-		GtkAdjustment adjustment = new GtkAdjustment ();
-		OS.memmove (adjustment, adjustmentHandle);
-		adjustment.page_increment = (float) value;
-		OS.memmove (adjustmentHandle, adjustment);
-		OS.gtk_adjustment_changed (adjustmentHandle);
-	}
+	OS.gtk_adjustment_set_page_increment (adjustmentHandle, value);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -785,11 +777,11 @@ public void setSelection (int selection) {
 }
 
 /**
- * Sets the thumb value. The thumb value should be used to represent 
+ * Sets the thumb value. The thumb value should be used to represent
  * the size of the visual portion of the current range. This value is
  * usually the same as the page increment value.
  * <p>
- * This new value will be ignored if it is less than one, and will be 
+ * This new value will be ignored if it is less than one, and will be
  * clamped if it exceeds the receiver's current range.
  * </p>
  *
@@ -806,11 +798,12 @@ public void setThumb (int value) {
 	if (value < 1) return;
 	GtkAdjustment adjustment = new GtkAdjustment ();
 	gtk_adjustment_get (adjustmentHandle, adjustment);
-	value = (int) Math.min (value, (int)(adjustment.upper - adjustment.lower)); 
+	value = (int) Math.min (value, (int)(adjustment.upper - adjustment.lower));
 	adjustment.page_size = (double) value;
 	adjustment.value = Math.min ((int)adjustment.value, (int)(adjustment.upper - value));
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (adjustmentHandle, adjustment);
+	OS.gtk_adjustment_configure(adjustmentHandle, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
@@ -819,7 +812,7 @@ public void setThumb (int value) {
  * value, thumb, increment and page increment all at once.
  * <p>
  * Note: This is similar to setting the values individually
- * using the appropriate methods, but may be implemented in a 
+ * using the appropriate methods, but may be implemented in a
  * more efficient fashion on some platforms.
  * </p>
  *
@@ -851,14 +844,15 @@ public void setValues (int selection, int minimum, int maximum, int thumb, int i
 	adjustment.page_size = thumb;
 	adjustment.value = Math.min (Math.max (selection, minimum), maximum - thumb);
 	OS.g_signal_handlers_block_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
-	gtk_adjustment_configure (adjustmentHandle, adjustment);
+	OS.gtk_adjustment_configure(adjustmentHandle, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.gtk_adjustment_value_changed (adjustmentHandle);
 	OS.g_signal_handlers_unblock_matched (adjustmentHandle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
 /**
  * Marks the receiver as visible if the argument is <code>true</code>,
- * and marks it invisible otherwise. 
+ * and marks it invisible otherwise.
  * <p>
  * If one of the receiver's ancestors is not visible or some
  * other condition makes the receiver not visible, marking
