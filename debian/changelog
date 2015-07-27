@@ -1,6 +1,8 @@
 swt4-gtk (4.5.0-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Removed Niels Thykier from Uploaders (Closes: #770583). Thanks for
+    your contributions.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 27 Jul 2015 18:14:47 +0200
 
