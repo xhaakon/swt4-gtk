@@ -29,6 +29,14 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#if GTK_CHECK_VERSION(2,14,0)
+#include <gtk/gtkunixprint.h>
+#else
+#include <gtk/gtkpagesetupunixdialog.h>
+#include <gtk/gtkprinter.h>
+#include <gtk/gtkprintjob.h>
+#include <gtk/gtkprintunixdialog.h>
+#endif
 #if GTK_CHECK_VERSION(3,0,0)
 #include <gtk/gtkx.h>
 #include <gdk/gdkx.h>
@@ -46,11 +54,9 @@
 
 /* X Structures */
 #define NO_XClientMessageEvent
-#define NO_XCrossingEvent
 #define NO_XExposeEvent
 #define NO_XFocusChangeEvent
 #define NO_XVisibilityEvent
-#define NO_XWindowChanges
 
 /* X functions */
 #define NO__1XCheckMaskEvent
@@ -80,10 +86,8 @@
 #define NO__1gdk_window_lookup
 #define NO__1gdk_window_add_filter
 #define NO_memmove__ILorg_eclipse_swt_internal_gtk_XClientMessageEvent_2I
-#define NO_memmove__ILorg_eclipse_swt_internal_gtk_XCrossingEvent_2I
 #define NO_memmove__ILorg_eclipse_swt_internal_gtk_XExposeEvent_2I
 #define NO_memmove__ILorg_eclipse_swt_internal_gtk_XFocusChangeEvent_2I
-#define NO_memmove__Lorg_eclipse_swt_internal_gtk_XCrossingEvent_2II
 #define NO_memmove__Lorg_eclipse_swt_internal_gtk_XExposeEvent_2II
 #define NO_memmove__Lorg_eclipse_swt_internal_gtk_XFocusChangeEvent_2II
 #define NO_memmove__Lorg_eclipse_swt_internal_gtk_XVisibilityEvent_2II
@@ -116,9 +120,6 @@
 #define NO_GdkDragContext
 #define NO_memmove__Lorg_eclipse_swt_internal_gtk_GdkDragContext_2II
 #define NO_memmove__Lorg_eclipse_swt_internal_gtk_GdkDragContext_2JJ
-#define NO_GtkSelectionData
-#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GtkSelectionData_2II
-#define NO_memmove__Lorg_eclipse_swt_internal_gtk_GtkSelectionData_2JJ
 #define NO__1gtk_1style_1get_1bg_1gc
 #define NO__1gtk_1style_1get_1black_1gc
 #define NO__1gtk_1style_1get_1dark_1gc
@@ -141,7 +142,6 @@
 #define NO__1GDK_1PIXMAP_1XID
 #define NO_GdkImage
 #define NO_GdkVisual
-#define NO_GtkColorSelectionDialog
 #define NO_GdkGCValues
 #define NO_GtkAccessible
 #define NO_GTK_1ENTRY_1IM_1CONTEXT
@@ -184,6 +184,9 @@
 #define NO__1gtk_1style_1context_1set_1state
 #define NO__1gtk_1color_1chooser_1get_1rgba
 #define NO__1gtk_1color_1chooser_1set_1rgba
+
+#define NO__1g_1object_1set__I_3BLorg_eclipse_swt_internal_gtk_GdkRGBA_2I
+#define NO__1g_1object_1set__J_3BLorg_eclipse_swt_internal_gtk_GdkRGBA_2J
 
 #endif
 

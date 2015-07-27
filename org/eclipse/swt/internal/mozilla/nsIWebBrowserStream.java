@@ -27,29 +27,30 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIWebBrowserStream extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 3;
 
-	public static final String NS_IWEBBROWSERSTREAM_IID_STR =
-		"86d02f0e-219b-4cfc-9c88-bd98d2cce0b8";
+	static final String NS_IWEBBROWSERSTREAM_IID_STR = "86d02f0e-219b-4cfc-9c88-bd98d2cce0b8";
 
-	public static final nsID NS_IWEBBROWSERSTREAM_IID =
-		new nsID(NS_IWEBBROWSERSTREAM_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIWebBrowserStream.class, MozillaVersion.VERSION_BASE, new nsID(NS_IWEBBROWSERSTREAM_IID_STR));
+	}
 
 	public nsIWebBrowserStream(int /*long*/ address) {
 		super(address);
 	}
 
 	public int OpenStream(int /*long*/ aBaseURI, int /*long*/ aContentType) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aBaseURI, aContentType);
+		return XPCOM.VtblCall(this.getMethodIndex("openStream"), getAddress(), aBaseURI, aContentType);
 	}
 
 	public int AppendToStream(int /*long*/ aData, int aLen) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aData, aLen);
+		return XPCOM.VtblCall(this.getMethodIndex("appendToStream"), getAddress(), aData, aLen);
 	}
 
 	public int CloseStream() {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress());
+		return XPCOM.VtblCall(this.getMethodIndex("closeStream"), getAddress());
 	}
 }

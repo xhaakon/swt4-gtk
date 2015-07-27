@@ -12,9 +12,9 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 
 /**
  * Instances of this class represent a selectable user interface object
@@ -38,7 +38,7 @@ public class TableItem extends Item {
 	Font font;
 	Font[] cellFont;
 	boolean cached, grayed;
-	
+
 /**
  * Constructs a new instance of this class given its parent
  * (which must be a <code>Table</code>), a style value
@@ -47,7 +47,7 @@ public class TableItem extends Item {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -83,7 +83,7 @@ public TableItem (Table parent, int style, int index) {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -206,6 +206,7 @@ String _getText (int index) {
 	return new String (Converter.mbcsToWcs (null, buffer));
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
@@ -221,22 +222,13 @@ void clear () {
 		for (int i=Table.FOREGROUND_COLUMN; i<columnCount; i++) {
 			OS.gtk_list_store_set (parent.modelHandle, handle, i, (int /*long*/)0, -1);
 		}
-		/*
-		* Bug in GTK.  When using fixed-height-mode,
-		* row changes do not cause the row to be repainted.  The fix is to
-		* invalidate the row when it is cleared.
-		*/
-		if ((parent.style & SWT.VIRTUAL) != 0) {
-			if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-				redraw ();
-			}
-		}
 	}
 	cached = false;
 	font = null;
 	cellFont = null;
 }
 
+@Override
 void destroyWidget () {
 	parent.destroyItem (this);
 	releaseHandle ();
@@ -251,7 +243,7 @@ void destroyWidget () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.0
  */
 public Color getBackground () {
@@ -270,7 +262,7 @@ public Color getBackground () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.2
  */
 public Rectangle getBounds () {
@@ -287,11 +279,11 @@ public Rectangle getBounds () {
 
 	int /*long*/ path = OS.gtk_tree_model_get_path (parent.modelHandle, handle);
 	OS.gtk_widget_realize (parentHandle);
-	
+
 	boolean isExpander = OS.gtk_tree_model_iter_n_children (parent.modelHandle, handle) > 0;
 	boolean isExpanded = OS.gtk_tree_view_row_expanded (parentHandle, path);
 	OS.gtk_tree_view_column_cell_set_cell_data (column, parent.modelHandle, handle, isExpander, isExpanded);
-	
+
 	GdkRectangle rect = new GdkRectangle ();
 	OS.gtk_tree_view_get_cell_area (parentHandle, path, column, rect);
 	OS.gtk_tree_path_free (path);
@@ -311,10 +303,10 @@ public Rectangle getBounds () {
 	OS.gtk_widget_style_get (parentHandle, OS.horizontal_separator, buffer, 0);
 	int horizontalSeparator = buffer[0];
 	rect.x += horizontalSeparator;
-	
+
 	OS.gtk_tree_view_column_cell_get_position (column, textRenderer, x, null);
 	rect.x += x [0];
-		
+
 	if (parent.columnCount > 0) {
 		if (rect.x + rect.width > right) {
 			rect.width = Math.max (0, right - rect.x);
@@ -334,7 +326,7 @@ public Rectangle getBounds () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public Color getBackground (int index) {
@@ -372,7 +364,7 @@ public Rectangle getBounds (int index) {
 	OS.gtk_tree_view_get_cell_area (parentHandle, path, column, rect);
 	OS.gtk_tree_path_free (path);
 	if ((parent.getStyle () & SWT.MIRRORED) != 0) rect.x = parent.getClientWidth () - rect.width - rect.x;
-	
+
 	if (index == 0 && (parent.style & SWT.CHECK) != 0) {
 		int [] x = new int [1], w = new int [1];
 		OS.gtk_tree_view_column_cell_get_position (column, parent.checkRenderer, x, w);
@@ -380,7 +372,11 @@ public Rectangle getBounds (int index) {
 		rect.width -= x [0] + w [0];
 	}
 	int width = OS.gtk_tree_view_column_get_visible (column) ? rect.width + 1 : 0;
-	return new Rectangle (rect.x, rect.y, width, rect.height + 1);
+	Rectangle r = new Rectangle (rect.x, rect.y, width, rect.height + 1);
+	if (parent.getHeaderVisible() && OS.GTK_VERSION > OS.VERSION(3, 9, 0)) {
+		r.y += parent.getHeaderHeight();
+	}
+	return r;
 }
 
 /**
@@ -452,7 +448,7 @@ public Font getFont (int index) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.0
  */
 public Color getForeground () {
@@ -462,7 +458,7 @@ public Color getForeground () {
 }
 
 /**
- * 
+ *
  * Returns the foreground color at the given column index in the receiver.
  *
  * @param index the column index
@@ -472,7 +468,7 @@ public Color getForeground () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public Color getForeground (int index) {
@@ -500,6 +496,7 @@ public boolean getGrayed () {
 	return grayed;
 }
 
+@Override
 public Image getImage () {
 	checkWidget ();
 	if (!parent.checkData (this)) error (SWT.ERROR_WIDGET_DISPOSED);
@@ -582,6 +579,7 @@ public int getImageIndent () {
 	return 0;
 }
 
+@Override
 String getNameText () {
 	if ((parent.style & SWT.VIRTUAL) != 0) {
 		if (!cached) return "*virtual*"; //$NON-NLS-1$
@@ -604,6 +602,7 @@ public Table getParent () {
 	return parent;
 }
 
+@Override
 public String getText () {
 	checkWidget ();
 	if (!parent.checkData (this)) error (SWT.ERROR_WIDGET_DISPOSED);
@@ -641,7 +640,7 @@ public String getText (int index) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.3
  */
 public Rectangle getTextBounds (int index) {
@@ -665,11 +664,11 @@ public Rectangle getTextBounds (int index) {
 
 	int /*long*/ path = OS.gtk_tree_model_get_path (parent.modelHandle, handle);
 	OS.gtk_widget_realize (parentHandle);
-	
+
 	boolean isExpander = OS.gtk_tree_model_iter_n_children (parent.modelHandle, handle) > 0;
 	boolean isExpanded = OS.gtk_tree_view_row_expanded (parentHandle, path);
 	OS.gtk_tree_view_column_cell_set_cell_data (column, parent.modelHandle, handle, isExpander, isExpanded);
-	
+
 	GdkRectangle rect = new GdkRectangle ();
 	OS.gtk_tree_view_get_cell_area (parentHandle, path, column, rect);
 	OS.gtk_tree_path_free (path);
@@ -688,7 +687,7 @@ public Rectangle getTextBounds (int index) {
 	OS.gtk_widget_style_get (parentHandle, OS.horizontal_separator, buffer, 0);
 	int horizontalSeparator = buffer[0];
 	rect.x += horizontalSeparator;
-	
+
 	OS.gtk_tree_view_column_cell_get_position (column, textRenderer, x, null);
 	rect.x += x [0];
 	if (parent.columnCount > 0) {
@@ -700,22 +699,7 @@ public Rectangle getTextBounds (int index) {
 	return new Rectangle (rect.x, rect.y, width, rect.height + 1);
 }
 
-void redraw () {
-	if (gtk_widget_get_realized (parent.handle)) {
-		int /*long*/ parentHandle = parent.handle;
-		int /*long*/ path = OS.gtk_tree_model_get_path (parent.modelHandle, handle);
-		GdkRectangle rect = new GdkRectangle ();
-		OS.gtk_tree_view_get_cell_area (parentHandle, path, 0, rect);
-		OS.gtk_tree_path_free (path);
-		int /*long*/ window = OS.gtk_tree_view_get_bin_window (parentHandle);
-		rect.x = 0;
-		int [] w = new int [1], h = new int [1];
-		gdk_window_get_size (window, w, h);
-		rect.width = w [0];
-		OS.gdk_window_invalidate_rect (window, rect, false);
-	}
-}
-
+@Override
 void releaseHandle () {
 	if (handle != 0) OS.g_free (handle);
 	handle = 0;
@@ -723,6 +707,7 @@ void releaseHandle () {
 	parent = null;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	font = null;
@@ -737,13 +722,13 @@ void releaseWidget () {
  * @param color the new color (or null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.0
  */
 public void setBackground (Color color) {
@@ -754,21 +739,11 @@ public void setBackground (Color color) {
 	if (_getBackground ().equals (color)) return;
 	GdkColor gdkColor = color != null ? color.handle : null;
 	OS.gtk_list_store_set (parent.modelHandle, handle, Table.BACKGROUND_COLUMN, gdkColor, -1);
-	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
 	cached = true;
 }
 
 /**
- * Sets the background color at the given column index in the receiver 
+ * Sets the background color at the given column index in the receiver
  * to the color specified by the argument, or to the default system color for the item
  * if the argument is null.
  *
@@ -776,13 +751,13 @@ public void setBackground (Color color) {
  * @param color the new color (or null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void setBackground (int index, Color color) {
@@ -796,18 +771,8 @@ public void setBackground (int index, Color color) {
 	int modelIndex = parent.columnCount == 0 ? Table.FIRST_COLUMN : parent.columns [index].modelIndex;
 	GdkColor gdkColor = color != null ? color.handle : null;
 	OS.gtk_list_store_set (parent.modelHandle, handle, modelIndex + Table.CELL_BACKGROUND, gdkColor, -1);
-	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
 	cached = true;
-	
+
 	if (color != null) {
 		boolean customDraw = (parent.columnCount == 0)  ? parent.firstCustomDraw : parent.columns [index].customDraw;
 		if (!customDraw) {
@@ -835,7 +800,7 @@ public void setBackground (int index, Color color) {
 }
 
 /**
- * Sets the checked state of the checkbox for this item.  This state change 
+ * Sets the checked state of the checkbox for this item.  This state change
  * only applies if the Table was created with the SWT.CHECK style.
  *
  * @param checked the new checked state of the checkbox
@@ -853,7 +818,7 @@ public void setChecked (boolean checked) {
 	/*
 	* GTK+'s "inconsistent" state does not match SWT's concept of grayed.  To
 	* show checked+grayed differently from unchecked+grayed, we must toggle the
-	* grayed state on check and uncheck. 
+	* grayed state on check and uncheck.
 	*/
 	OS.gtk_list_store_set (parent.modelHandle, handle, Table.GRAYED_COLUMN, !checked ? false : grayed, -1);
 	cached = true;
@@ -867,13 +832,13 @@ public void setChecked (boolean checked) {
  * @param font the new font (or null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void setFont (Font font){
@@ -887,36 +852,26 @@ public void setFont (Font font){
 	if (oldFont != null && oldFont.equals (font)) return;
 	int /*long*/ fontHandle = font != null ? font.handle : 0;
 	OS.gtk_list_store_set (parent.modelHandle, handle, Table.FONT_COLUMN, fontHandle, -1);
-	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
 	cached = true;
 }
 
 /**
  * Sets the font that the receiver will use to paint textual information
- * for the specified cell in this item to the font specified by the 
- * argument, or to the default font for that kind of control if the 
+ * for the specified cell in this item to the font specified by the
+ * argument, or to the default font for that kind of control if the
  * argument is null.
  *
  * @param index the column index
  * @param font the new font (or null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void setFont (int index, Font font) {
@@ -938,18 +893,8 @@ public void setFont (int index, Font font) {
 	int modelIndex = parent.columnCount == 0 ? Table.FIRST_COLUMN : parent.columns [index].modelIndex;
 	int /*long*/ fontHandle  = font != null ? font.handle : 0;
 	OS.gtk_list_store_set (parent.modelHandle, handle, modelIndex + Table.CELL_FONT, fontHandle, -1);
-	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
-	cached = true;	
-	
+	cached = true;
+
 	if (font != null) {
 		boolean customDraw = (parent.columnCount == 0)  ? parent.firstCustomDraw : parent.columns [index].customDraw;
 		if (!customDraw) {
@@ -984,13 +929,13 @@ public void setFont (int index, Font font) {
  * @param color the new color (or null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 2.0
  */
 public void setForeground (Color color){
@@ -1001,21 +946,11 @@ public void setForeground (Color color){
 	if (_getForeground ().equals (color)) return;
 	GdkColor gdkColor = color != null ? color.handle : null;
 	OS.gtk_list_store_set (parent.modelHandle, handle, Table.FOREGROUND_COLUMN, gdkColor, -1);
-	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
 	cached = true;
 }
 
 /**
- * Sets the foreground color at the given column index in the receiver 
+ * Sets the foreground color at the given column index in the receiver
  * to the color specified by the argument, or to the default system color for the item
  * if the argument is null.
  *
@@ -1023,13 +958,13 @@ public void setForeground (Color color){
  * @param color the new color (or null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the argument has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.0
  */
 public void setForeground (int index, Color color){
@@ -1043,18 +978,8 @@ public void setForeground (int index, Color color){
 	int modelIndex = parent.columnCount == 0 ? Table.FIRST_COLUMN : parent.columns [index].modelIndex;
 	GdkColor gdkColor = color != null ? color.handle : null;
 	OS.gtk_list_store_set (parent.modelHandle, handle, modelIndex + Table.CELL_FOREGROUND, gdkColor, -1);
-	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
 	cached = true;
-	
+
 	if (color != null) {
 		boolean customDraw = (parent.columnCount == 0)  ? parent.firstCustomDraw : parent.columns [index].customDraw;
 		if (!customDraw) {
@@ -1082,10 +1007,10 @@ public void setForeground (int index, Color color){
 }
 
 /**
- * Sets the grayed state of the checkbox for this item.  This state change 
+ * Sets the grayed state of the checkbox for this item.  This state change
  * only applies if the Table was created with the SWT.CHECK style.
  *
- * @param grayed the new grayed state of the checkbox; 
+ * @param grayed the new grayed state of the checkbox;
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -1142,16 +1067,6 @@ public void setImage (int index, Image image) {
 	int modelIndex = parent.columnCount == 0 ? Table.FIRST_COLUMN : parent.columns [index].modelIndex;
 	OS.gtk_list_store_set (parent.modelHandle, handle, modelIndex + Table.CELL_PIXBUF, pixbuf, -1);
 	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
-	/*
 	 * Bug in GTK.  When in fixed height mode, GTK does not recalculate the cell renderer width
 	 * when the image is changed in the model.  The fix is to force it to recalculate the width if
 	 * more space is required.
@@ -1174,19 +1089,20 @@ public void setImage (int index, Image image) {
 					parent.modifyStyle (parentHandle, style);
 				}
 			}
-		} 
+		}
 	}
 	cached = true;
 }
 
+@Override
 public void setImage (Image image) {
 	checkWidget ();
 	setImage (0, image);
 }
 
 /**
- * Sets the image for multiple columns in the table. 
- * 
+ * Sets the image for multiple columns in the table.
+ *
  * @param images the array of new images
  *
  * @exception IllegalArgumentException <ul>
@@ -1216,9 +1132,10 @@ public void setImage (Image [] images) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @deprecated this functionality is not supported on most platforms
  */
+@Deprecated
 public void setImageIndent (int indent) {
 	checkWidget ();
 	if (indent < 0) return;
@@ -1228,7 +1145,10 @@ public void setImageIndent (int indent) {
 
 /**
  * Sets the receiver's text at a column
- *
+ * <p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
+ * </p>
  * @param index the column index
  * @param string the new text
  *
@@ -1249,27 +1169,21 @@ public void setText (int index, String string) {
 	byte[] buffer = Converter.wcsToMbcs (null, string, true);
 	int modelIndex = parent.columnCount == 0 ? Table.FIRST_COLUMN : parent.columns [index].modelIndex;
 	OS.gtk_list_store_set (parent.modelHandle, handle, modelIndex + Table.CELL_TEXT, buffer, -1);
-	/*
-	* Bug in GTK.  When using fixed-height-mode,
-	* row changes do not cause the row to be repainted.  The fix is to
-	* invalidate the row when it is cleared.
-	*/
-	if ((parent.style & SWT.VIRTUAL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 3)) {
-			redraw ();
-		}
-	}
 	cached = true;
 }
 
+@Override
 public void setText (String string) {
 	checkWidget ();
 	setText (0, string);
 }
 
 /**
- * Sets the text for multiple columns in the table. 
- * 
+ * Sets the text for multiple columns in the table.
+ * <p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
+ * </p>
  * @param strings the array of new strings
  *
  * @exception IllegalArgumentException <ul>

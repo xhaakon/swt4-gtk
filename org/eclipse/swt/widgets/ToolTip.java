@@ -12,11 +12,11 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.*;
-import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.internal.cairo.Cairo;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.*;
+import org.eclipse.swt.internal.cairo.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class represent popup windows that are used
@@ -38,7 +38,7 @@ import org.eclipse.swt.internal.cairo.Cairo;
  * @see <a href="http://www.eclipse.org/swt/snippets/#tooltips">Tool Tips snippets</a>
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
- * 
+ *
  * @since 3.2
  * @noextend This class is not intended to be subclassed by clients.
  */
@@ -50,7 +50,7 @@ public class ToolTip extends Widget {
 	int /*long*/ layoutText = 0, layoutMessage = 0;
 	int [] borderPolygon;
 	boolean spikeAbove, autohide;
-	
+
 	static final int BORDER = 5;
 	static final int PADDING = 5;
 	static final int INSET = 4;
@@ -64,7 +64,7 @@ public class ToolTip extends Widget {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -153,42 +153,42 @@ void configure () {
 		if (dest.height >= y + h + TIP_HEIGHT) {
 			int t = TIP_HEIGHT;
 			polyline = new int[] {
-				0, 5+t, 1, 5+t, 1, 3+t, 3, 1+t,  5, 1+t, 5, t, 
+				0, 5+t, 1, 5+t, 1, 3+t, 3, 1+t,  5, 1+t, 5, t,
 				16, t, 16, 0, 35, t,
 				w-5, t, w-5, 1+t, w-3, 1+t, w-1, 3+t, w-1, 5+t, w, 5+t,
 				w, h-5+t, w-1, h-5+t, w-1, h-3+t, w-2, h-3+t, w-2, h-2+t, w-3, h-2+t, w-3, h-1+t, w-5, h-1+t, w-5, h+t,
-				5, h+t, 5, h-1+t, 3, h-1+t, 3, h-2+t, 2, h-2+t, 2, h-3+t, 1, h-3+t, 1, h-5+t, 0, h-5+t, 
+				5, h+t, 5, h-1+t, 3, h-1+t, 3, h-2+t, 2, h-2+t, 2, h-3+t, 1, h-3+t, 1, h-5+t, 0, h-5+t,
 				0, 5+t};
 			borderPolygon = new int[] {
-				0, 5+t, 1, 4+t, 1, 3+t, 3, 1+t,  4, 1+t, 5, t, 
+				0, 5+t, 1, 4+t, 1, 3+t, 3, 1+t,  4, 1+t, 5, t,
 				16, t, 16, 1, 35, t,
 				w-6, 0+t, w-5, 1+t, w-4, 1+t, w-2, 3+t, w-2, 4+t, w-1, 5+t,
 				w-1, h-6+t, w-2, h-5+t, w-2, h-4+t, w-4, h-2+t, w-5, h-2+t, w-6, h-1+t,
-				5, h-1+t, 4, h-2+t, 3, h-2+t, 1, h-4+t, 1, h-5+t, 0, h-6+t, 
+				5, h-1+t, 4, h-2+t, 3, h-2+t, 1, h-4+t, 1, h-5+t, 0, h-6+t,
 				0, 5+t};
 			if ((parent.style & SWT.MIRRORED) != 0) {
 				x -= w - 36;
-				polyline[12] = w-36; 
-				polyline[14] = w-16; 
-				polyline[16] = w-15; 
+				polyline[12] = w-36;
+				polyline[14] = w-16;
+				polyline[16] = w-15;
 				borderPolygon[12] = w-35;
 				borderPolygon[14] = borderPolygon[16]  = w-16;
 			}
 			OS.gtk_window_move (handle, Math.max(0, x - 17), y);
 		} else {
 			polyline = new int[] {
-				0, 5, 1, 5, 1, 3, 3, 1,  5, 1, 5, 0, 
+				0, 5, 1, 5, 1, 3, 3, 1,  5, 1, 5, 0,
 				w-5, 0, w-5, 1, w-3, 1, w-1, 3, w-1, 5, w, 5,
 				w, h-5, w-1, h-5, w-1, h-3, w-2, h-3, w-2, h-2, w-3, h-2, w-3, h-1, w-5, h-1, w-5, h,
 				35, h, 16, h+TIP_HEIGHT, 16, h,
-				5, h, 5, h-1, 3, h-1, 3, h-2, 2, h-2, 2, h-3, 1, h-3, 1, h-5, 0, h-5, 
+				5, h, 5, h-1, 3, h-1, 3, h-2, 2, h-2, 2, h-3, 1, h-3, 1, h-5, 0, h-5,
 				0, 5};
 			borderPolygon = new int[] {
-				0, 5, 1, 4, 1, 3, 3, 1,  4, 1, 5, 0, 
+				0, 5, 1, 4, 1, 3, 3, 1,  4, 1, 5, 0,
 				w-6, 0, w-5, 1, w-4, 1, w-2, 3, w-2, 4, w-1, 5,
 				w-1, h-6, w-2, h-5, w-2, h-4, w-4, h-2, w-5, h-2, w-6, h-1,
 				35, h-1, 17, h+TIP_HEIGHT-2, 17, h-1,
-				5, h-1, 4, h-2, 3, h-2, 1, h-4, 1, h-5, 0, h-6, 
+				5, h-1, 4, h-2, 3, h-2, 1, h-4, 1, h-5, 0, h-6,
 				0, 5};
 			if ((parent.style & SWT.MIRRORED) != 0) {
 				x -= w - 36;
@@ -203,18 +203,18 @@ void configure () {
 		if (dest.height >= y + h + TIP_HEIGHT) {
 			int t = TIP_HEIGHT;
 			polyline = new int[] {
-				0, 5+t, 1, 5+t, 1, 3+t, 3, 1+t,  5, 1+t, 5, t, 
+				0, 5+t, 1, 5+t, 1, 3+t, 3, 1+t,  5, 1+t, 5, t,
 				w-35, t, w-16, 0, w-16, t,
 				w-5, t, w-5, 1+t, w-3, 1+t, w-1, 3+t, w-1, 5+t, w, 5+t,
 				w, h-5+t, w-1, h-5+t, w-1, h-3+t, w-2, h-3+t, w-2, h-2+t, w-3, h-2+t, w-3, h-1+t, w-5, h-1+t, w-5, h+t,
-				5, h+t, 5, h-1+t, 3, h-1+t, 3, h-2+t, 2, h-2+t, 2, h-3+t, 1, h-3+t, 1, h-5+t, 0, h-5+t, 
+				5, h+t, 5, h-1+t, 3, h-1+t, 3, h-2+t, 2, h-2+t, 2, h-3+t, 1, h-3+t, 1, h-5+t, 0, h-5+t,
 				0, 5+t};
 			borderPolygon = new int[] {
-				0, 5+t, 1, 4+t, 1, 3+t, 3, 1+t,  4, 1+t, 5, t, 
+				0, 5+t, 1, 4+t, 1, 3+t, 3, 1+t,  4, 1+t, 5, t,
 				w-35, t, w-17, 2, w-17, t,
 				w-6, t, w-5, 1+t, w-4, 1+t, w-2, 3+t, w-2, 4+t, w-1, 5+t,
 				w-1, h-6+t, w-2, h-5+t, w-2, h-4+t, w-4, h-2+t, w-5, h-2+t, w-6, h-1+t,
-				5, h-1+t, 4, h-2+t, 3, h-2+t, 1, h-4+t, 1, h-5+t, 0, h-6+t, 
+				5, h-1+t, 4, h-2+t, 3, h-2+t, 1, h-4+t, 1, h-5+t, 0, h-6+t,
 				0, 5+t};
 			if ((parent.style & SWT.MIRRORED) != 0) {
 				x += w - 35;
@@ -226,18 +226,18 @@ void configure () {
 			OS.gtk_window_move (handle, Math.min(dest.width - w, x - w + 17), y);
 		} else {
 			polyline = new int[] {
-				0, 5, 1, 5, 1, 3, 3, 1,  5, 1, 5, 0, 
+				0, 5, 1, 5, 1, 3, 3, 1,  5, 1, 5, 0,
 				w-5, 0, w-5, 1, w-3, 1, w-1, 3, w-1, 5, w, 5,
 				w, h-5, w-1, h-5, w-1, h-3, w-2, h-3, w-2, h-2, w-3, h-2, w-3, h-1, w-5, h-1, w-5, h,
 				w-16, h, w-16, h+TIP_HEIGHT, w-35, h,
-				5, h, 5, h-1, 3, h-1, 3, h-2, 2, h-2, 2, h-3, 1, h-3, 1, h-5, 0, h-5, 
+				5, h, 5, h-1, 3, h-1, 3, h-2, 2, h-2, 2, h-3, 1, h-3, 1, h-5, 0, h-5,
 				0, 5};
 			borderPolygon = new int[] {
-				0, 5, 1, 4, 1, 3, 3, 1,  4, 1, 5, 0, 
+				0, 5, 1, 4, 1, 3, 3, 1,  4, 1, 5, 0,
 				w-6, 0, w-5, 1, w-4, 1, w-2, 3, w-2, 4, w-1, 5,
 				w-1, h-6, w-2, h-5, w-2, h-4, w-4, h-2, w-5, h-2, w-6, h-1,
 				w-17, h-1, w-17, h+TIP_HEIGHT-2, w-36, h-1,
-				5, h-1, 4, h-2, 3, h-2, 1, h-4, 1, h-5, 0, h-6, 
+				5, h-1, 4, h-2, 3, h-2, 1, h-4, 1, h-5, 0, h-6,
 				0, 5};
 			if ((parent.style & SWT.MIRRORED) != 0) {
 				x += w - 35;
@@ -261,6 +261,7 @@ void configure () {
 	region.dispose ();
 }
 
+@Override
 void createHandle (int index) {
 	if ((style & SWT.BALLOON) != 0) {
 		state |= HANDLE;
@@ -279,18 +280,10 @@ void createHandle (int index) {
 		}
 		OS.gtk_widget_set_app_paintable (handle, true);
 		OS.gtk_window_set_type_hint (handle, OS.GDK_WINDOW_TYPE_HINT_TOOLTIP);
-	} else {
-		if (OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-			state |= HANDLE;
-			handle = OS.gtk_tooltips_new ();
-			if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-			OS.gtk_tooltips_force_window (handle);
-			OS.g_object_ref (handle);
-			g_object_ref_sink (handle);
-		}
 	}
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget (index);
 	text = "";
@@ -299,16 +292,7 @@ void createWidget (int index) {
 	autohide = true;
 }
 
-void deregister () {
-	super.deregister ();
-	if ((style & SWT.BALLOON) == 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-			int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (handle);
-			if (tipWindow != 0) display.removeWidget (tipWindow);
-		}
-	}
-}
-
+@Override
 void destroyWidget () {
 	int /*long*/ topHandle = topHandle ();
 	if (parent != null) parent.removeTooTip (this);
@@ -332,7 +316,7 @@ void destroyWidget () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  */
 public boolean getAutoHide () {
 	checkWidget ();
@@ -343,22 +327,11 @@ Point getLocation () {
 	int x = this.x;
 	int y = this.y;
 	if (item != null) {
-		int /*long*/ itemHandle = item.handle; 
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			GdkRectangle area = new GdkRectangle ();
-			OS.gtk_status_icon_get_geometry (itemHandle, 0, area, 0);
-			x = area.x + area.width / 2;
-			y = area.y + area.height / 2;
-		} else {
-			OS.gtk_widget_realize (itemHandle);
-			int /*long*/ window = gtk_widget_get_window (itemHandle);
-			int [] px = new int [1], py = new int [1];
-			OS.gdk_window_get_origin (window, px, py);
-			GtkAllocation allocation = new GtkAllocation ();
-			gtk_widget_get_allocation (itemHandle, allocation);
-			x = px [0] + allocation.width / 2;
-			y = py [0] + allocation.height / 2;
-		}
+		int /*long*/ itemHandle = item.handle;
+		GdkRectangle area = new GdkRectangle ();
+		OS.gtk_status_icon_get_geometry (itemHandle, 0, area, 0);
+		x = area.x + area.width / 2;
+		y = area.y + area.height / 2;
 	}
 	if (x == -1 || y == -1) {
 		int [] px = new int [1], py = new int [1];
@@ -385,6 +358,7 @@ public String getMessage () {
 	return message;
 }
 
+@Override
 String getNameText () {
 	return getText ();
 }
@@ -419,7 +393,7 @@ Point getSize (int maxWidth) {
 	}
 	int messageTrim = 2 * INSET + 2 * BORDER + 2 * PADDING;
 	boolean hasImage = layoutText != 0 && (style & (SWT.ICON_ERROR | SWT.ICON_INFORMATION | SWT.ICON_WARNING)) != 0;
-	int textTrim = messageTrim + (hasImage ? IMAGE_SIZE : 0);  
+	int textTrim = messageTrim + (hasImage ? IMAGE_SIZE : 0);
 	int width = Math.min (maxWidth, Math.max (textWidth + textTrim, messageWidth + messageTrim));
 	int textHeight = 0, messageHeight = 0;
 	if (layoutText != 0) {
@@ -472,14 +446,11 @@ public String getText () {
  */
 public boolean getVisible () {
 	checkWidget ();
-	if ((style & SWT.BALLOON) != 0) return gtk_widget_get_visible (handle);
-	if (OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-		int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (handle);
-		return OS.GTK_WIDGET_VISIBLE (tipWindow);
-	}
+	if ((style & SWT.BALLOON) != 0) return OS.gtk_widget_get_visible (handle);
 	return false;
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	sendSelectionEvent (SWT.Selection, null, true);
 	setVisible (false);
@@ -508,7 +479,7 @@ void drawTooltip (int /*long*/ cr) {
 			byte[] buffer = null;
 			int id = style & (SWT.ICON_ERROR | SWT.ICON_INFORMATION | SWT.ICON_WARNING);
 			switch (id) {
-				case SWT.ICON_ERROR: buffer = Converter.wcsToMbcs (null, "gtk-dialog-error", true); break; 
+				case SWT.ICON_ERROR: buffer = Converter.wcsToMbcs (null, "gtk-dialog-error", true); break;
 				case SWT.ICON_INFORMATION: buffer = Converter.wcsToMbcs (null, "gtk-dialog-info", true); break;
 				case SWT.ICON_WARNING: buffer = Converter.wcsToMbcs (null, "gtk-dialog-warning", true); break;
 			}
@@ -551,19 +522,19 @@ void drawTooltip (int /*long*/ cr) {
 		byte[] buffer = null;
 		int id = style & (SWT.ICON_ERROR | SWT.ICON_INFORMATION | SWT.ICON_WARNING);
 		switch (id) {
-			case SWT.ICON_ERROR: buffer = Converter.wcsToMbcs (null, "gtk-dialog-error", true); break; 
+			case SWT.ICON_ERROR: buffer = Converter.wcsToMbcs (null, "gtk-dialog-error", true); break;
 			case SWT.ICON_INFORMATION: buffer = Converter.wcsToMbcs (null, "gtk-dialog-info", true); break;
 			case SWT.ICON_WARNING: buffer = Converter.wcsToMbcs (null, "gtk-dialog-warning", true); break;
 		}
 		if (buffer != null) {
 			int /*long*/ style = OS.gtk_widget_get_default_style ();
 			int /*long*/ pixbuf = OS.gtk_icon_set_render_icon (
-				OS.gtk_icon_factory_lookup_default (buffer), 
+				OS.gtk_icon_factory_lookup_default (buffer),
 				style,
-				OS.GTK_TEXT_DIR_NONE, 
-				OS.GTK_STATE_NORMAL, 
+				OS.GTK_TEXT_DIR_NONE,
+				OS.GTK_STATE_NORMAL,
 				OS.GTK_ICON_SIZE_MENU,
-				0, 
+				0,
 				0);
 			OS.gdk_draw_pixbuf (window, gdkGC, pixbuf, 0, 0, x, y, IMAGE_SIZE, IMAGE_SIZE, OS.GDK_RGB_DITHER_NORMAL, 0, 0);
 			OS.g_object_unref (pixbuf);
@@ -586,20 +557,23 @@ void drawTooltip (int /*long*/ cr) {
 	OS.g_object_unref (gdkGC);
 }
 
+@Override
 int /*long*/ gtk_draw (int /*long*/ widget, int /*long*/ cairo) {
 	if ((state & OBSCURED) != 0) return 0;
 	drawTooltip (cairo);
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	if ((state & OBSCURED) != 0) return 0;
 	drawTooltip (0);
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
-	Point point = getLocation (); 
+	Point point = getLocation ();
 	int x = point.x;
 	int y = point.y;
 	int /*long*/ screen = OS.gdk_screen_get_default ();
@@ -608,7 +582,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	GdkRectangle dest = new GdkRectangle ();
 	OS.gdk_screen_get_monitor_geometry (screen, monitorNumber, dest);
 	GtkAllocation widgetAllocation = new GtkAllocation ();
-	gtk_widget_get_allocation (widget, widgetAllocation);
+	OS.gtk_widget_get_allocation (widget, widgetAllocation);
 	int w = widgetAllocation.width;
 	int h = widgetAllocation.height;
 	if (dest.height < y + h) y -= h;
@@ -617,20 +591,12 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	return 0;
 }
 
+@Override
 void hookEvents () {
 	if ((style & SWT.BALLOON) != 0) {
-		OS.g_signal_connect_closure_by_id (handle, display.signalIds [EXPOSE_EVENT], 0, display.closures [EXPOSE_EVENT], true);
+		OS.g_signal_connect_closure_by_id (handle, display.signalIds [EXPOSE_EVENT], 0, display.getClosure (EXPOSE_EVENT), true);
 		OS.gtk_widget_add_events (handle, OS.GDK_BUTTON_PRESS_MASK);
-		OS.g_signal_connect_closure (handle, OS.button_press_event, display.closures [BUTTON_PRESS_EVENT], false);
-	} else {
-		if (OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-			int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (handle);
-			if (tipWindow != 0) {
-				OS.g_signal_connect_closure (tipWindow, OS.size_allocate, display.closures [SIZE_ALLOCATE], false);
-				OS.gtk_widget_add_events (tipWindow, OS.GDK_BUTTON_PRESS_MASK);
-				OS.g_signal_connect_closure (tipWindow, OS.button_press_event, display.closures [BUTTON_PRESS_EVENT], false);
-			}
-		}
+		OS.g_signal_connect_closure (handle, OS.button_press_event, display.getClosure (BUTTON_PRESS_EVENT), false);
 	}
 }
 
@@ -653,16 +619,7 @@ public boolean isVisible () {
 	return getVisible ();
 }
 
-void register () {
-	super.register ();
-	if ((style & SWT.BALLOON) == 0) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-			int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (handle);
-			if (tipWindow != 0) display.addWidget (tipWindow, this);
-		}
-	}
-}
-
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	setVisible(false);
@@ -712,7 +669,7 @@ public void removeSelectionListener (SelectionListener listener) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #getVisible
  * @see #setVisible
  */
@@ -744,14 +701,7 @@ public void setLocation (int x, int y) {
 	this.x = x;
 	this.y = y;
 	if ((style & SWT.BALLOON) != 0) {
-		if (gtk_widget_get_visible (handle)) configure ();
-	} else {
-		if (OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-			int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (handle);
-			if (gtk_widget_get_visible (tipWindow)) {
-				OS.gtk_window_move (tipWindow, x, y);
-			}
-		}
+		if (OS.gtk_widget_get_visible (handle)) configure ();
 	}
 }
 
@@ -809,7 +759,7 @@ public void setMessage (String string) {
 		OS.pango_layout_set_auto_dir (layoutMessage, false);
 		OS.pango_layout_set_wrap (layoutMessage, OS.PANGO_WRAP_WORD_CHAR);
 	}
-	if (gtk_widget_get_visible (handle)) configure ();
+	if (OS.gtk_widget_get_visible (handle)) configure ();
 }
 
 /**
@@ -848,12 +798,12 @@ public void setText (String string) {
 		OS.pango_attr_list_unref (attrList);
 		OS.pango_layout_set_wrap (layoutText, OS.PANGO_WRAP_WORD_CHAR);
 	}
-	if (gtk_widget_get_visible (handle)) configure ();
+	if (OS.gtk_widget_get_visible (handle)) configure ();
 }
 
 /**
  * Marks the receiver as visible if the argument is <code>true</code>,
- * and marks it invisible otherwise. 
+ * and marks it invisible otherwise.
  * <p>
  * If one of the receiver's ancestors is not visible or some
  * other condition makes the receiver not visible, marking
@@ -881,15 +831,8 @@ public void setVisible (boolean visible) {
 			if (text.length () > 0) string.append ("\n\n");
 			string.append (message);
 			byte [] buffer = Converter.wcsToMbcs (null, string.toString(), true);
-			if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
-				OS.gtk_widget_set_tooltip_text(vboxHandle, buffer);
-			} else {
-				OS.gtk_tooltips_set_tip (handle, vboxHandle, buffer, null);
-				int /*long*/ data = OS.gtk_tooltips_data_get (vboxHandle);
-				OS.GTK_TOOLTIPS_SET_ACTIVE (handle, data);
-				OS.gtk_tooltips_set_tip (handle, vboxHandle, buffer, null);
-			}
-		}		
+			OS.gtk_widget_set_tooltip_text(vboxHandle, buffer);
+		}
 		if (autohide) timerId = OS.g_timeout_add (DELAY, display.windowTimerProc, handle);
 	} else {
 		if ((style & SWT.BALLOON) != 0) {
@@ -897,23 +840,15 @@ public void setVisible (boolean visible) {
 		} else {
 			int /*long*/ vboxHandle = parent.vboxHandle;
 			byte[] buffer = Converter.wcsToMbcs(null, "", true);
-			if (OS.GTK_VERSION >= OS.VERSION(2, 12, 0)) {
-				OS.gtk_widget_set_tooltip_text(vboxHandle, buffer);
-			} else {
-				OS.gtk_tooltips_set_tip(handle, vboxHandle, buffer, null);
-			}
+			OS.gtk_widget_set_tooltip_text(vboxHandle, buffer);
 		}
 	}
 }
 
+@Override
 int /*long*/ timerProc (int /*long*/ widget) {
 	if ((style & SWT.BALLOON) != 0) {
 		OS.gtk_widget_hide (handle);
-	} else {
-		if (OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-			int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (handle);
-			OS.gtk_widget_hide (tipWindow);
-		}
 	}
 	return 0;
 }

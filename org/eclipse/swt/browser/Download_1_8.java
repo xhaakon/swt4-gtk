@@ -48,20 +48,32 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 
 	download = new XPCOMObject (new int[] {2, 0, 0, 4, 6, 3, 4, 3, is32 ? 10 : 6, is32 ? 8 : 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return OnStateChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return OnProgressChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3], (int)/*64*/args[4], (int)/*64*/args[5]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return OnLocationChange (args[0], args[1], args[2]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return OnStatusChange (args[0], args[1], (int)/*64*/args[2], args[3]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return OnSecurityChange (args[0], args[1], (int)/*64*/args[2]);}
+		@Override
 		public int /*long*/ method8 (int /*long*/[] args) {
 			if (args.length == 10) {
 				return OnProgressChange64_32 (args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
@@ -69,6 +81,7 @@ void createCOMInterfaces () {
 				return OnProgressChange64 (args[0], args[1], args[2], args[3], args[4], args[5]);
 			}
 		}
+		@Override
 		public int /*long*/ method9 (int /*long*/[] args) {
 			if (args.length == 8) {
 				return Init_32 (args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
@@ -76,27 +89,46 @@ void createCOMInterfaces () {
 				return Init (args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
 			}
 		}
+		@Override
 		public int /*long*/ method10 (int /*long*/[] args) {return GetTargetFile (args[0]);}
+		@Override
 		public int /*long*/ method11 (int /*long*/[] args) {return GetPercentComplete (args[0]);}
+		@Override
 		public int /*long*/ method12 (int /*long*/[] args) {return GetAmountTransferred (args[0]);}
+		@Override
 		public int /*long*/ method13 (int /*long*/[] args) {return GetSize (args[0]);}
+		@Override
 		public int /*long*/ method14 (int /*long*/[] args) {return GetSource (args[0]);}
+		@Override
 		public int /*long*/ method15 (int /*long*/[] args) {return GetTarget (args[0]);}
+		@Override
 		public int /*long*/ method16 (int /*long*/[] args) {return GetCancelable (args[0]);}
+		@Override
 		public int /*long*/ method17 (int /*long*/[] args) {return GetDisplayName (args[0]);}
+		@Override
 		public int /*long*/ method18 (int /*long*/[] args) {return GetStartTime (args[0]);}
+		@Override
 		public int /*long*/ method19 (int /*long*/[] args) {return GetMIMEInfo (args[0]);}
 	};
 
 	progressDialog = new XPCOMObject (new int[] {2, 0, 0, 4, 6, 3, 4, 3, is32 ? 10 : 6, is32 ? 8 : 7, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return OnStateChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return OnProgressChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3], (int)/*64*/args[4], (int)/*64*/args[5]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return OnLocationChange (args[0], args[1], args[2]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return OnStatusChange (args[0], args[1], (int)/*64*/args[2], args[3]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return OnSecurityChange (args[0], args[1], (int)/*64*/args[2]);}
+		@Override
 		public int /*long*/ method8 (int /*long*/[] args) {
 			if (args.length == 10) {
 				return OnProgressChange64_32 (args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]);
@@ -104,6 +136,7 @@ void createCOMInterfaces () {
 				return OnProgressChange64 (args[0], args[1], args[2], args[3], args[4], args[5]);
 			}
 		}
+		@Override
 		public int /*long*/ method9 (int /*long*/[] args) {
 			if (args.length == 8) {
 				return Init_32 (args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
@@ -111,33 +144,58 @@ void createCOMInterfaces () {
 				return Init (args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
 			}
 		}
+		@Override
 		public int /*long*/ method10 (int /*long*/[] args) {return GetTargetFile (args[0]);}
+		@Override
 		public int /*long*/ method11 (int /*long*/[] args) {return GetPercentComplete (args[0]);}
+		@Override
 		public int /*long*/ method12 (int /*long*/[] args) {return GetAmountTransferred (args[0]);}
+		@Override
 		public int /*long*/ method13 (int /*long*/[] args) {return GetSize (args[0]);}
+		@Override
 		public int /*long*/ method14 (int /*long*/[] args) {return GetSource (args[0]);}
+		@Override
 		public int /*long*/ method15 (int /*long*/[] args) {return GetTarget (args[0]);}
+		@Override
 		public int /*long*/ method16 (int /*long*/[] args) {return GetCancelable (args[0]);}
+		@Override
 		public int /*long*/ method17 (int /*long*/[] args) {return GetDisplayName (args[0]);}
+		@Override
 		public int /*long*/ method18 (int /*long*/[] args) {return GetStartTime (args[0]);}
+		@Override
 		public int /*long*/ method19 (int /*long*/[] args) {return GetMIMEInfo (args[0]);}
+		@Override
 		public int /*long*/ method20 (int /*long*/[] args) {return Open (args[0]);}
+		@Override
 		public int /*long*/ method21 (int /*long*/[] args) {return GetCancelDownloadOnClose (args[0]);}
+		@Override
 		public int /*long*/ method22 (int /*long*/[] args) {return SetCancelDownloadOnClose ((int)/*64*/args[0]);}
+		@Override
 		public int /*long*/ method23 (int /*long*/[] args) {return GetObserver (args[0]);}
+		@Override
 		public int /*long*/ method24 (int /*long*/[] args) {return SetObserver (args[0]);}
+		@Override
 		public int /*long*/ method25 (int /*long*/[] args) {return GetDialog (args[0]);}
+		@Override
 		public int /*long*/ method26 (int /*long*/[] args) {return SetDialog (args[0]);}
 	};
 
 	webProgressListener = new XPCOMObject (new int[] {2, 0, 0, 4, 6, 3, 4, 3}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return OnStateChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return OnProgressChange (args[0], args[1], (int)/*64*/args[2], (int)/*64*/args[3], (int)/*64*/args[4], (int)/*64*/args[5]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return OnLocationChange (args[0], args[1], args[2]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return OnStatusChange (args[0], args[1], (int)/*64*/args[2], args[3]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return OnSecurityChange (args[0], args[1], (int)/*64*/args[2]);}
 	};
 }
@@ -170,22 +228,22 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIDownload_1_8.NS_IDOWNLOAD_IID)) {
+	if (guid.Equals (XPCOM.NS_IDOWNLOAD_1_8_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {download.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIProgressDialog_1_8.NS_IPROGRESSDIALOG_IID)) {
+	if (guid.Equals (XPCOM.NS_IPROGRESSDIALOG_1_8_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {progressDialog.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIWebProgressListener.NS_IWEBPROGRESSLISTENER_IID)) {
+	if (guid.Equals (IIDStore.GetIID (nsIWebProgressListener.class))) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {webProgressListener.getAddress ()}, C.PTR_SIZEOF);
 		AddRef();
 		return XPCOM.NS_OK;

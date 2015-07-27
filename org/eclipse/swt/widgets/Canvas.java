@@ -11,10 +11,10 @@
 package org.eclipse.swt.widgets;
 
 
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.cairo.Cairo;
-import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.cairo.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class provide a surface for drawing
@@ -50,7 +50,7 @@ Canvas () {}
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -74,9 +74,9 @@ public Canvas (Composite parent, int style) {
 	super (parent, checkStyle (style));
 }
 
-/** 
+/**
  * Fills the interior of the rectangle specified by the arguments,
- * with the receiver's background. 
+ * with the receiver's background.
  *
  * @param gc the gc where the rectangle is to be filled
  * @param x the x coordinate of the rectangle to be filled
@@ -92,7 +92,7 @@ public Canvas (Composite parent, int style) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.2
  */
 public void drawBackground (GC gc, int x, int y, int width, int height) {
@@ -122,6 +122,7 @@ public Caret getCaret () {
 	return caret;
 }
 
+@Override
 Point getIMCaretPos () {
 	if (caret == null) return super.getIMCaretPos ();
 	return new Point (caret.x, caret.y);
@@ -136,7 +137,7 @@ Point getIMCaretPos () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public IME getIME () {
@@ -144,6 +145,7 @@ public IME getIME () {
 	return ime;
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	if (ime != null) {
 		int /*long*/ result = ime.gtk_button_press_event (widget, event);
@@ -152,6 +154,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	return  super.gtk_button_press_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_commit (int /*long*/ imcontext, int /*long*/ text) {
 	if (ime != null) {
 		int /*long*/ result = ime.gtk_commit (imcontext, text);
@@ -160,6 +163,7 @@ int /*long*/ gtk_commit (int /*long*/ imcontext, int /*long*/ text) {
 	return super.gtk_commit (imcontext, text);
 }
 
+@Override
 int /*long*/ gtk_draw (int /*long*/ widget, int /*long*/ cairo) {
 	if ((state & OBSCURED) != 0) return 0;
 	boolean isFocus = caret != null && caret.isFocusCaret ();
@@ -169,6 +173,7 @@ int /*long*/ gtk_draw (int /*long*/ widget, int /*long*/ cairo) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
 	if ((state & OBSCURED) != 0) return 0;
 	boolean isFocus = caret != null && caret.isFocusCaret ();
@@ -178,18 +183,21 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_focus_in_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_focus_in_event (widget, event);
 	if (caret != null) caret.setFocus ();
 	return result;
 }
 
+@Override
 int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_focus_out_event (widget, event);
 	if (caret != null) caret.killFocus ();
 	return result;
 }
 
+@Override
 int /*long*/ gtk_preedit_changed (int /*long*/ imcontext) {
 	if (ime != null) {
 		int /*long*/ result = ime.gtk_preedit_changed (imcontext);
@@ -198,6 +206,7 @@ int /*long*/ gtk_preedit_changed (int /*long*/ imcontext) {
 	return super.gtk_preedit_changed (imcontext);
 }
 
+@Override
 void redrawWidget (int x, int y, int width, int height, boolean redrawAll, boolean all, boolean trim) {
 	boolean isFocus = caret != null && caret.isFocusCaret ();
 	if (isFocus) caret.killFocus ();
@@ -205,6 +214,7 @@ void redrawWidget (int x, int y, int width, int height, boolean redrawAll, boole
 	if (isFocus) caret.setFocus ();
 }
 
+@Override
 void releaseChildren (boolean destroy) {
 	if (caret != null) {
 		caret.release (false);
@@ -217,6 +227,7 @@ void releaseChildren (boolean destroy) {
 	super.releaseChildren (destroy);
 }
 
+@Override
 void reskinChildren (int flags) {
 	if (caret != null) caret.reskin (flags);
 	if (ime != null)  ime.reskin (flags);
@@ -224,7 +235,7 @@ void reskinChildren (int flags) {
 }
 
 /**
- * Scrolls a rectangular area of the receiver by first copying 
+ * Scrolls a rectangular area of the receiver by first copying
  * the source area to the destination and then causing the area
  * of the source which is not covered by the destination to
  * be repainted. Children that intersect the rectangle are
@@ -272,7 +283,7 @@ public void scroll (int destX, int destY, int x, int y, int width, int height, b
 	srcRect.height = height;
 	int /*long*/ copyRegion = OS.gdk_region_rectangle (srcRect);
 	OS.gdk_region_intersect(copyRegion, visibleRegion);
-	int /*long*/ invalidateRegion = OS.gdk_region_rectangle (srcRect);	
+	int /*long*/ invalidateRegion = OS.gdk_region_rectangle (srcRect);
 	OS.gdk_region_subtract (invalidateRegion, visibleRegion);
 	OS.gdk_region_offset (invalidateRegion, deltaX, deltaY);
 	GdkRectangle copyRect = new GdkRectangle();
@@ -336,7 +347,7 @@ public void scroll (int destX, int destY, int x, int y, int width, int height, b
 				rect.height = Math.abs(deltaY);
 				OS.gdk_region_union_with_rect (invalidateRegion, rect);
 			}
-		}	
+		}
 		OS.gdk_window_invalidate_region(window, invalidateRegion, all);
 	}
 	OS.gdk_region_destroy (visibleRegion);
@@ -347,15 +358,23 @@ public void scroll (int destX, int destY, int x, int y, int width, int height, b
 		for (int i=0; i<children.length; i++) {
 			Control child = children [i];
 			Rectangle rect = child.getBounds ();
-			if (Math.min(x + width, rect.x + rect.width) >= Math.max (x, rect.x) && 
+			if (Math.min(x + width, rect.x + rect.width) >= Math.max (x, rect.x) &&
 				Math.min(y + height, rect.y + rect.height) >= Math.max (y, rect.y)) {
-					child.setLocation (rect.x + deltaX, rect.y + deltaY);					
+					child.setLocation (rect.x + deltaX, rect.y + deltaY);
 			}
 		}
-	}	
+	}
 	if (isFocus) caret.setFocus ();
+	/*
+	 * Due to overlay drawing of scrollbars current method of scrolling leaves scrollbar and notifiers for them inside the canvas
+	 * after scroll. Fix is to redraw once done.
+	 */
+	if (OS.GTK_VERSION >= OS.VERSION(3, 16, 0)) {
+		redraw(false);
+	}
 }
 
+@Override
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	boolean isFocus = caret != null && caret.isFocusCaret ();
 	if (isFocus) caret.killFocus ();
@@ -398,6 +417,7 @@ public void setCaret (Caret caret) {
 	}
 }
 
+@Override
 public void setFont (Font font) {
 	checkWidget();
 	if (caret != null) caret.setFont (font);
@@ -406,7 +426,7 @@ public void setFont (Font font) {
 
 /**
  * Sets the receiver's IME.
- * 
+ *
  * @param ime the new IME for the receiver, may be null
  *
  * @exception IllegalArgumentException <ul>
@@ -416,7 +436,7 @@ public void setFont (Font font) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public void setIME (IME ime) {
@@ -424,7 +444,7 @@ public void setIME (IME ime) {
 	if (ime != null && ime.isDisposed()) error(SWT.ERROR_INVALID_ARGUMENT);
 	this.ime = ime;
 }
-	
+
 void updateCaret () {
 	int /*long*/ imHandle = imHandle ();
 	if (imHandle == 0) return;

@@ -27,56 +27,36 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsISSLStatus extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + ((IsXULRunner10 || IsXULRunner17) ? 8 : 7);
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + ((IsXULRunner10() || IsXULRunner24() || IsXULRunner31()) ? 8 : 7);
 
-	public static final String NS_ISSLSTATUS_IID_STR =
-		"cfede939-def1-49be-81ed-d401b3a07d1c";
+	static final String NS_ISSLSTATUS_IID_STR = "cfede939-def1-49be-81ed-d401b3a07d1c";
+	static final String NS_ISSLSTATUS_10_IID_STR = "3f1fcd83-c5a9-4cd1-a250-7676ca7c7e34";
 
-	public static final String NS_ISSLSTATUS_10_IID_STR =
-		"3f1fcd83-c5a9-4cd1-a250-7676ca7c7e34";
-	
-	public static final nsID NS_ISSLSTATUS_IID =
-		new nsID(NS_ISSLSTATUS_IID_STR);
-
-	public static final nsID NS_ISSLSTATUS_10_IID =
-		new nsID(NS_ISSLSTATUS_10_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsISSLStatus.class, MozillaVersion.VERSION_BASE, new nsID(NS_ISSLSTATUS_IID_STR));
+		IIDStore.RegisterIID(nsISSLStatus.class, MozillaVersion.VERSION_XR10, new nsID(NS_ISSLSTATUS_10_IID_STR));
+	}
 
 	public nsISSLStatus(int /*long*/ address) {
 		super(address);
 	}
 
 	public int GetServerCert(int /*long*/[] aServerCert) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aServerCert);
-	}
-
-	public int GetCipherName(int /*long*/[] aCipherName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aCipherName);
-	}
-
-	public int GetKeyLength(int[] aKeyLength) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aKeyLength);
-	}
-
-	public int GetSecretKeyLength(int[] aSecretKeyLength) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aSecretKeyLength);
+		return XPCOM.VtblCall(this.getGetterIndex("serverCert"), getAddress(), aServerCert);
 	}
 
 	public int GetIsDomainMismatch(int[] aIsDomainMismatch) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aIsDomainMismatch);
+		return XPCOM.VtblCall(this.getGetterIndex("isDomainMismatch"), getAddress(), aIsDomainMismatch);
 	}
 
 	public int GetIsNotValidAtThisTime(int[] aIsNotValidAtThisTime) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), aIsNotValidAtThisTime);
+		return XPCOM.VtblCall(this.getGetterIndex("isNotValidAtThisTime"), getAddress(), aIsNotValidAtThisTime);
 	}
 
 	public int GetIsUntrusted(int[] aIsUntrusted) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aIsUntrusted);
-	}
-	
-	public int GetIsExtendedValidation(int[] aIsExtendedValidation) {
-		if (!(IsXULRunner10 || IsXULRunner17)) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aIsExtendedValidation);
+		return XPCOM.VtblCall(this.getGetterIndex("isUntrusted"), getAddress(), aIsUntrusted);
 	}
 }

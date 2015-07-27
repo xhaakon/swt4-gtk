@@ -18,8 +18,8 @@ import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.*;
 
 class AccessibleFactory {
-	static final Hashtable Accessibles = new Hashtable (9);
-	static final Hashtable Factories = new Hashtable (9);	
+	static final Hashtable<LONG, Accessible> Accessibles = new Hashtable<LONG, Accessible> (9);
+	static final Hashtable<LONG, LONG> Factories = new Hashtable<LONG, LONG> (9);	
 	static final String SWT_TYPE_PREFIX = "SWTAccessible"; //$NON-NLS-1$
 	static final String CHILD_TYPENAME = "Child"; //$NON-NLS-1$
 	static final String FACTORY_TYPENAME = "SWTFactory"; //$NON-NLS-1$
@@ -311,15 +311,15 @@ class AccessibleFactory {
 	
 	static int /*long*/ getParentType (int /*long*/ widgetType) {
 		LONG type = null;
-		while (widgetType != 0 && (type = (LONG)Factories.get(new LONG(widgetType))) == null) {
+		while (widgetType != 0 && (type = Factories.get(new LONG(widgetType))) == null) {
 			widgetType = OS.g_type_parent (widgetType);
 		}
 		if (type == null) return 0;
-		return ((LONG)type).value;
+		return type.value;
 	}
 
 	static int /*long*/ atkObjectFactory_create_accessible (int /*long*/ widget) {
-		Accessible accessible = (Accessible) Accessibles.get (new LONG (widget));
+		Accessible accessible = Accessibles.get (new LONG (widget));
 		if (accessible == null) {
 			/*
 			* we don't care about this control, so create it with the parent's
@@ -356,9 +356,9 @@ class AccessibleFactory {
 	static int /*long*/ getType (String widgetTypeName, Accessible accessible, int /*long*/ parentType, int childId) {
 		AccessibleControlEvent event = new AccessibleControlEvent (accessible);
 		event.childID = childId;
-		Vector listeners = accessible.accessibleControlListeners;
+		List<AccessibleControlListener> listeners = accessible.accessibleControlListeners;
 		for (int i = 0, length = listeners == null ? 0 : listeners.size(); i < length; i++) {
-			AccessibleControlListener listener = (AccessibleControlListener)listeners.elementAt (i);
+			AccessibleControlListener listener = listeners.get (i);
 			listener.getRole (event);
 		}
 		boolean action = false, editableText = false, hypertext = false, selection = false, table = false, text = false, value = false;

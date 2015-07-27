@@ -32,7 +32,7 @@ import org.eclipse.swt.internal.gtk.*;
  *
  * @see <a href="http://www.eclipse.org/swt/snippets/#tray">Tray, TrayItem snippets</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
- * 
+ *
  * @since 3.0
  * @noextend This class is not intended to be subclassed by clients.
  */
@@ -53,7 +53,7 @@ public class TrayItem extends Item {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -141,64 +141,33 @@ public void addSelectionListener(SelectionListener listener) {
 	addListener (SWT.DefaultSelection, typedListener);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget (index);
 	parent.createItem (this, index);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
-	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-		handle = OS.gtk_status_icon_new ();
-		if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-		imageHandle = OS.gtk_image_new ();
-		OS.gtk_status_icon_set_visible (handle,true);
-	} else {
-		handle = OS.gtk_plug_new (0);
-		if (handle == 0) error (SWT.ERROR_NO_HANDLES);
-		imageHandle = OS.gtk_image_new ();
-		if (imageHandle == 0) error (SWT.ERROR_NO_HANDLES);
-		OS.gtk_container_add (handle, imageHandle);
-		OS.gtk_widget_show (handle);
-		OS.gtk_widget_show (imageHandle);
-		int /*long*/ id = OS.gtk_plug_get_id (handle);
-		int monitor = 0;
-		int /*long*/ screen = OS.gdk_screen_get_default ();
-		if (screen != 0) {
-			monitor = OS.gdk_screen_get_number (screen);
-		}
-		byte [] trayBuffer = Converter.wcsToMbcs (null, "_NET_SYSTEM_TRAY_S" + monitor, true);
-		int /*long*/ trayAtom = OS.gdk_atom_intern (trayBuffer, true);
-		int /*long*/ xTrayAtom = OS.gdk_x11_atom_to_xatom (trayAtom);
-		int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
-		int /*long*/ trayWindow = OS.XGetSelectionOwner (xDisplay, xTrayAtom);
-		byte [] messageBuffer = Converter.wcsToMbcs (null, "_NET_SYSTEM_TRAY_OPCODE", true);
-		int /*long*/ messageAtom = OS.gdk_atom_intern (messageBuffer, true);
-		int /*long*/ xMessageAtom = OS.gdk_x11_atom_to_xatom (messageAtom);
-		XClientMessageEvent event = new XClientMessageEvent ();
-		event.type = OS.ClientMessage;
-		event.window = trayWindow;
-		event.message_type = xMessageAtom;
-		event.format = 32;
-		event.data [0] = OS.GDK_CURRENT_TIME;
-		event.data [1] = OS.SYSTEM_TRAY_REQUEST_DOCK;
-		event.data [2] = id;
-		int /*long*/ clientEvent = OS.g_malloc (XClientMessageEvent.sizeof);
-		OS.memmove (clientEvent, event, XClientMessageEvent.sizeof);
-		OS.XSendEvent (xDisplay, trayWindow, false, OS.NoEventMask, clientEvent);
-		OS.g_free (clientEvent);
-	}
+	handle = OS.gtk_status_icon_new ();
+	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
+	imageHandle = OS.gtk_image_new ();
+	OS.gtk_status_icon_set_visible (handle,true);
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	display.removeWidget (imageHandle);
 }
 
+@Override
 void destroyWidget () {
 	parent.destroyItem (this);
 	releaseHandle ();
@@ -213,7 +182,7 @@ void destroyWidget () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.2
  */
 public Tray getParent () {
@@ -231,7 +200,7 @@ public Tray getParent () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.8
  */
 public Image getHighlightImage () {
@@ -249,7 +218,7 @@ public Image getHighlightImage () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.2
  */
 public ToolTip getToolTip () {
@@ -273,11 +242,12 @@ public String getToolTipText () {
 	return toolTipText;
 }
 
+@Override
 int /*long*/ gtk_activate (int /*long*/ widget) {
 	sendSelectionEvent (SWT.Selection);
 	/*
-	* Feature in GTK. GTK will generate a single-click event before sending 
-	* a double-click event. To know when to send a DefaultSelection, look for 
+	* Feature in GTK. GTK will generate a single-click event before sending
+	* a double-click event. To know when to send a DefaultSelection, look for
 	* the single-click as the current event and for the double-click in the
 	* event queue.
 	*/
@@ -298,6 +268,7 @@ int /*long*/ gtk_activate (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	GdkEventButton gdkEvent = new GdkEventButton ();
 	OS.memmove (gdkEvent, eventPtr, GdkEventButton.sizeof);
@@ -314,11 +285,12 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ eventPtr)
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	if (image != null && image.mask != 0) {
 		if (OS.gdk_drawable_get_depth (image.mask) == 1) {
 			GtkAllocation widgetAllocation = new GtkAllocation ();
-			gtk_widget_get_allocation (widget, widgetAllocation);
+			OS.gtk_widget_get_allocation (widget, widgetAllocation);
 			int xoffset = (int) Math.floor (widgetAllocation.x + ((widgetAllocation.width -OS.GTK_WIDGET_REQUISITION_WIDTH (widget)) * 0.5) + 0.5);
 			int yoffset = (int) Math.floor (widgetAllocation.y + ((widgetAllocation.height - OS.GTK_WIDGET_REQUISITION_HEIGHT (widget)) * 0.5) + 0.5);
 			Rectangle b = image.getBounds();
@@ -349,6 +321,7 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_status_icon_popup_menu (int /*long*/ widget, int /*long*/ button, int /*long*/ activate_time) {
 	/*
 	* GTK provides a MenuPositionFunc for GtkStatusIcon in order
@@ -362,20 +335,14 @@ int /*long*/ gtk_status_icon_popup_menu (int /*long*/ widget, int /*long*/ butto
 	return 0;
 }
 
+@Override
 void hookEvents () {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-		OS.g_signal_connect_closure (handle, OS.activate, display.closures [ACTIVATE], false);
-		OS.g_signal_connect_closure (handle, OS.popup_menu, display.closures [STATUS_ICON_POPUP_MENU], false);
-	} else {
-		int eventMask = OS.GDK_BUTTON_PRESS_MASK;
-		OS.gtk_widget_add_events (handle, eventMask);
-		OS.g_signal_connect_closure_by_id (handle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.closures [BUTTON_PRESS_EVENT], false);
-		OS.g_signal_connect_closure_by_id (imageHandle, display.signalIds [SIZE_ALLOCATE], 0, display.closures [SIZE_ALLOCATE], false);
-	}
+	OS.g_signal_connect_closure (handle, OS.activate, display.getClosure (ACTIVATE), false);
+	OS.g_signal_connect_closure (handle, OS.popup_menu, display.getClosure (STATUS_ICON_POPUP_MENU), false);
 }
 
 /**
- * Returns <code>true</code> if the receiver is visible and 
+ * Returns <code>true</code> if the receiver is visible and
  * <code>false</code> otherwise.
  *
  * @return the receiver's visibility
@@ -387,30 +354,26 @@ void hookEvents () {
  */
 public boolean getVisible () {
 	checkWidget ();
-	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-		return OS.gtk_status_icon_get_visible (handle);
-	}
-	return gtk_widget_get_visible (handle);
+	return OS.gtk_status_icon_get_visible (handle);
 }
 
+@Override
 void register () {
 	super.register ();
 	display.addWidget (imageHandle, this);
 }
 
+@Override
 void releaseHandle () {
 	if (handle != 0) {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			OS.g_object_unref (handle);
-		} else {
-			OS.gtk_widget_destroy (handle);
-		}
+		OS.g_object_unref (handle);
 	}
 	handle = imageHandle = 0;
 	super.releaseHandle ();
 	parent = null;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (tooltipsHandle != 0) OS.g_object_unref (tooltipsHandle);
@@ -485,7 +448,7 @@ public void removeSelectionListener (SelectionListener listener) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.8
  */
 public void setHighlightImage (Image image) {
@@ -507,6 +470,7 @@ public void setHighlightImage (Image image) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+@Override
 public void setImage (Image image) {
 	checkWidget ();
 	if (image != null && image.isDisposed ()) error (SWT.ERROR_INVALID_ARGUMENT);
@@ -520,24 +484,12 @@ public void setImage (Image image) {
 			imageList.put (imageIndex, image);
 		}
 		int /*long*/ pixbuf = imageList.getPixbuf (imageIndex);
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			OS.gtk_status_icon_set_from_pixbuf (handle, pixbuf);
-			OS.gtk_status_icon_set_visible (handle, true);
-		} else {
-			Rectangle rect = image.getBounds ();
-			OS.gtk_widget_set_size_request (handle, rect.width, rect.height);
-			OS.gtk_image_set_from_pixbuf (imageHandle, pixbuf);
-			OS.gtk_widget_show (imageHandle);
-		}
+		OS.gtk_status_icon_set_from_pixbuf (handle, pixbuf);
+		OS.gtk_status_icon_set_visible (handle, true);
 	} else {
 		OS.gtk_widget_set_size_request (handle, 1, 1);
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			OS.gtk_status_icon_set_from_pixbuf (handle, 0);
-			OS.gtk_status_icon_set_visible (handle, false);
-		} else {
-			OS.gtk_image_set_from_pixbuf (imageHandle, 0);
-			OS.gtk_widget_hide (imageHandle);
-		}
+		OS.gtk_status_icon_set_from_pixbuf (handle, 0);
+		OS.gtk_status_icon_set_visible (handle, false);
 	}
 }
 
@@ -551,7 +503,7 @@ public void setImage (Image image) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.2
  */
 public void setToolTip (ToolTip toolTip) {
@@ -564,17 +516,17 @@ public void setToolTip (ToolTip toolTip) {
 
 /**
  * Sets the receiver's tool tip text to the argument, which
- * may be null indicating that the default tool tip for the 
+ * may be null indicating that the default tool tip for the
  * control will be shown. For a control that has a default
  * tool tip, such as the Tree control on Windows, setting
  * the tool tip text to an empty string replaces the default,
  * causing no tool tip text to be shown.
  * <p>
  * The mnemonic indicator (character '&amp;') is not displayed in a tool tip.
- * To display a single '&amp;' in the tool tip, the character '&amp;' can be 
+ * To display a single '&amp;' in the tool tip, the character '&amp;' can be
  * escaped by doubling it in the string.
  * </p>
- * 
+ *
  * @param string the new tool tip text (or null)
  *
  * @exception SWTException <ul>
@@ -589,22 +541,12 @@ public void setToolTipText (String string) {
 	if (string != null && string.length () > 0) {
 		buffer = Converter.wcsToMbcs (null, string, true);
 	}
-	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-		OS.gtk_status_icon_set_tooltip (handle, buffer);
-	} else {
-		if (tooltipsHandle == 0) {
-			tooltipsHandle = OS.gtk_tooltips_new ();
-			if (tooltipsHandle == 0) error (SWT.ERROR_NO_HANDLES);
-			OS.g_object_ref (tooltipsHandle);
-			g_object_ref_sink (tooltipsHandle);
-		}
-		OS.gtk_tooltips_set_tip (tooltipsHandle, handle, buffer, null);
-	}
+	OS.gtk_status_icon_set_tooltip (handle, buffer);
 }
 
 /**
  * Makes the receiver visible if the argument is <code>true</code>,
- * and makes it invisible otherwise. 
+ * and makes it invisible otherwise.
  *
  * @param visible the new visibility state
  *
@@ -615,11 +557,7 @@ public void setToolTipText (String string) {
  */
 public void setVisible (boolean visible) {
 	checkWidget ();
-	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-		if(OS.gtk_status_icon_get_visible (handle) == visible) return;	
-	} else {
-		if (gtk_widget_get_visible (handle) == visible) return;
-	}
+	if(OS.gtk_status_icon_get_visible (handle) == visible) return;
 	if (visible) {
 		/*
 		* It is possible (but unlikely), that application
@@ -628,15 +566,9 @@ public void setVisible (boolean visible) {
 		*/
 		sendEvent (SWT.Show);
 		if (isDisposed ()) return;
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			OS.gtk_status_icon_set_visible (handle, visible);
-		} else
-			OS.gtk_widget_show (handle);
+		OS.gtk_status_icon_set_visible (handle, visible);
 	} else {
-		if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0)) {
-			OS.gtk_status_icon_set_visible (handle, visible);
-		} else
-			OS.gtk_widget_hide (handle);
+		OS.gtk_status_icon_set_visible (handle, visible);
 		sendEvent (SWT.Hide);
 	}
 }

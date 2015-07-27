@@ -1,8 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
- * All rights reserved.  This source file is made available under the terms contained in the README file
- * accompanying this program.  The README file should be located in the about_files directory of the
- * plug-in that contains this source file.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * This source file is based in part on the work of the Independent JPEG Group (IJG)
+ * and is made available under the terms contained in the about_files/IJG_README
+ * file accompanying this program.
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
@@ -1356,6 +1361,7 @@ void inverseDCT(int[] dataUnit) {
 		}
 	}
 }
+@Override
 boolean isFileFormat(LEDataInputStream stream) {
 	try {
 		JPEGStartOfImage soi = new JPEGStartOfImage(stream);
@@ -1377,6 +1383,7 @@ boolean isZeroInRow(int[] dataUnit, int rIndex) {
 			&& dataUnit[rIndex + 5] == 0 && dataUnit[rIndex + 6] == 0
 			&& dataUnit[rIndex + 7] == 0;
 }
+@Override
 ImageData[] loadFromByteStream() {
 	//TEMPORARY CODE
 	if (System.getProperty("org.eclipse.swt.internal.image.JPEGFileFormat_3.2") == null) {
@@ -1757,6 +1764,7 @@ void storeData(int[] dataUnit, int iComp, int xmcu, int ymcu, int hi, int ihi, i
 		destIndex += compWidth;
 	}
 }
+@Override
 void unloadIntoByteStream(ImageLoader loader) {
 	ImageData image = loader.data[0];
 	if (!new JPEGStartOfImage().writeToStream(outputStream)) {

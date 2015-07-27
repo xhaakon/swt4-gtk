@@ -12,10 +12,10 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.events.*;
 
 /**
  * Instances of this class represent a selectable user interface object
@@ -27,7 +27,7 @@ import org.eclipse.swt.events.*;
  * <dd>Selection</dd>
  * </dl>
  * <p>
- * Note: Only one of the styles CHECK, PUSH, RADIO, SEPARATOR and DROP_DOWN 
+ * Note: Only one of the styles CHECK, PUSH, RADIO, SEPARATOR and DROP_DOWN
  * may be specified.
  * </p><p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
@@ -39,7 +39,7 @@ import org.eclipse.swt.events.*;
  */
 public class ToolItem extends Item {
 	int /*long*/ arrowHandle, labelHandle, imageHandle;
-	int /*long*/ eventHandle, proxyMenuItem;
+	int /*long*/ eventHandle, proxyMenuItem, provider;
 	ToolBar parent;
 	Control control;
 	Image hotImage, disabledImage;
@@ -54,7 +54,7 @@ public class ToolItem extends Item {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -94,7 +94,7 @@ public ToolItem (ToolBar parent, int style) {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -144,7 +144,7 @@ public ToolItem (ToolBar parent, int style, int index) {
  * </p>
  * <p>
  * When the <code>SWT.RADIO</code> style bit is set, the <code>widgetSelected</code> method is
- * also called when the receiver loses selection because another item in the same radio group 
+ * also called when the receiver loses selection because another item in the same radio group
  * was selected by the user. During <code>widgetSelected</code> the application can use
  * <code>getSelection()</code> to determine the current selected state of the receiver.
  * </p>
@@ -175,10 +175,12 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.PUSH, SWT.CHECK, SWT.RADIO, SWT.SEPARATOR, SWT.DROP_DOWN, 0);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
 	int bits = SWT.SEPARATOR | SWT.RADIO | SWT.CHECK | SWT.PUSH | SWT.DROP_DOWN;
@@ -198,7 +200,7 @@ void createHandle (int index) {
 			handle = OS.gtk_menu_tool_button_new (0, null);
 			if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 			/*
-			 * Feature in GTK. The arrow button of DropDown tool-item is 
+			 * Feature in GTK. The arrow button of DropDown tool-item is
 			 * disabled when it does not contain menu. The fix is to
 			 * find the arrow button handle and enable it.
 			 */
@@ -206,11 +208,28 @@ void createHandle (int index) {
 			int /*long*/ list = OS.gtk_container_get_children (child);
 			arrowHandle = OS.g_list_nth_data (list, 1);
 			OS.gtk_widget_set_sensitive (arrowHandle, true);
-			OS.gtk_widget_set_size_request(OS.gtk_bin_get_child(arrowHandle), 8, 6);
+			if (!OS.GTK3) {
+				OS.gtk_widget_set_size_request(OS.gtk_bin_get_child(arrowHandle), 8, 6);
+			} else {
+				//Disable left and right padding to not have so wide toolbars	
+				String css ="GtkMenuButton.button {\n"+
+						"padding-left: 0px;\n"+
+						"padding-right: 0px;\n"+
+						"}\n";
+				if (provider == 0) {
+					//If provider is initialized the style has already been applied application wide so no need to repeat.
+					provider = OS.gtk_css_provider_new ();
+					int /*long*/ context = OS.gtk_widget_get_style_context(arrowHandle);
+					OS.gtk_style_context_add_provider (context, provider, OS.GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+					OS.g_object_unref (provider);
+					OS.gtk_css_provider_load_from_data (provider, Converter.wcsToMbcs (null, css, true), -1, null);
+					OS.gtk_style_context_invalidate (context);
+				}
+			}
 			break;
 		case SWT.RADIO:
 			/*
-			* Because GTK enforces radio behavior in a button group 
+			* Because GTK enforces radio behavior in a button group
 			* a radio group is not created for each set of contiguous
 			* buttons, each radio button will not draw unpressed.
 			* The fix is to use toggle buttons instead.
@@ -238,14 +257,15 @@ void createHandle (int index) {
 		setFontDescription (parent.getFontDescription());
 	}
 	/*
-	 * Feature in GTK. GtkToolButton class uses this property to 
-	 * determine whether to show or hide its label when the toolbar 
+	 * Feature in GTK. GtkToolButton class uses this property to
+	 * determine whether to show or hide its label when the toolbar
 	 * style is GTK_TOOLBAR_BOTH_HORIZ (or SWT.RIGHT).
 	 */
 	if ((parent.style & SWT.RIGHT) != 0) OS.gtk_tool_item_set_is_important (handle, true);
 	if ((style & SWT.SEPARATOR) == 0) OS.gtk_tool_button_set_use_underline (handle, true);
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget (index);
 	showWidget (index);
@@ -265,12 +285,14 @@ Widget [] computeTabList () {
 	return new Widget [0];
 }
 
+@Override
 void deregister() {
 	super.deregister ();
 	if (eventHandle != 0) display.removeWidget (eventHandle);
 	if (arrowHandle != 0) display.removeWidget (arrowHandle);
 }
 
+@Override
 public void dispose () {
 	if (isDisposed ()) return;
 	ToolBar parent = this.parent;
@@ -294,7 +316,7 @@ public Rectangle getBounds () {
 	parent.forceResize ();
 	int /*long*/ topHandle = topHandle ();
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (topHandle, allocation);
+	OS.gtk_widget_get_allocation (topHandle, allocation);
 	int x = allocation.x;
 	int y = allocation.y;
 	int width = allocation.width;
@@ -351,13 +373,13 @@ public Image getDisabledImage () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #isEnabled
  */
 public boolean getEnabled () {
 	checkWidget();
 	int /*long*/ topHandle = topHandle ();
-	return gtk_widget_get_sensitive (topHandle);
+	return OS.gtk_widget_get_sensitive (topHandle);
 }
 
 /**
@@ -448,15 +470,16 @@ public int getWidth () {
 	parent.forceResize ();
 	int /*long*/ topHandle = topHandle ();
 	GtkAllocation allocation = new GtkAllocation();
-	gtk_widget_get_allocation (topHandle, allocation);
+	OS.gtk_widget_get_allocation (topHandle, allocation);
 	return allocation.width;
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	GdkEventButton gdkEvent = new GdkEventButton ();
 	OS.memmove (gdkEvent, event, GdkEventButton.sizeof);
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	double x = gdkEvent.x + allocation.x;
 	double y = gdkEvent.y + allocation.y;
 	OS.memmove (event, gdkEvent, GdkEventButton.sizeof);
@@ -467,11 +490,12 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ event) {
 	GdkEventButton gdkEvent = new GdkEventButton ();
 	OS.memmove (gdkEvent, event, GdkEventButton.sizeof);
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	double x = gdkEvent.x + allocation.x;
 	double y = gdkEvent.y + allocation.y;
 	OS.memmove (event, gdkEvent, GdkEventButton.sizeof);
@@ -482,6 +506,7 @@ int /*long*/ gtk_button_release_event (int /*long*/ widget, int /*long*/ event) 
 	return result;
 }
 
+@Override
 int /*long*/ gtk_clicked (int /*long*/ widget) {
 	Event event = new Event ();
 	if ((style & SWT.DROP_DOWN) != 0) {
@@ -493,7 +518,7 @@ int /*long*/ gtk_clicked (int /*long*/ widget) {
 			switch (gdkEvent.type) {
 				case OS.GDK_KEY_RELEASE: //Fall Through..
 				case OS.GDK_BUTTON_PRESS:
-				case OS.GDK_2BUTTON_PRESS: 
+				case OS.GDK_2BUTTON_PRESS:
 				case OS.GDK_BUTTON_RELEASE: {
 					boolean isArrow = false;
 					if (widget == arrowHandle) {
@@ -510,7 +535,7 @@ int /*long*/ gtk_clicked (int /*long*/ widget) {
 					if (isArrow) {
 						event.detail = SWT.ARROW;
 						GtkAllocation allocation = new GtkAllocation ();
-						gtk_widget_get_allocation (topHandle, allocation);
+						OS.gtk_widget_get_allocation (topHandle, allocation);
 						event.x = allocation.x;
 						if ((parent.style & SWT.MIRRORED) != 0) event.x = parent.getClientWidth () - allocation.width - event.x;
 						event.y = allocation.y + allocation.height;
@@ -530,10 +555,11 @@ int /*long*/ gtk_clicked (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_create_menu_proxy (int /*long*/ widget) {
 	/*
-	 * Feature in GTK. If the item is a radio/check button 
-	 * with only image, then that image does not appear in 
+	 * Feature in GTK. If the item is a radio/check button
+	 * with only image, then that image does not appear in
 	 * the overflow menu.
 	 * The fix is to create and use the proxy menu for the
 	 * items appearing in the overflow menu.
@@ -541,14 +567,14 @@ int /*long*/ gtk_create_menu_proxy (int /*long*/ widget) {
 	byte [] buffer = Converter.wcsToMbcs (null, "menu-id", true); //$NON-NLS-1$
 	if (proxyMenuItem != 0) {
 		/*
-		 * The menuItem to appear in the overflow menu is cached 
-		 * for the tool-item. If the text/image of the item changes, 
+		 * The menuItem to appear in the overflow menu is cached
+		 * for the tool-item. If the text/image of the item changes,
 		 * then the proxyMenu is reset.
 		 */
 		OS.gtk_tool_item_set_proxy_menu_item (widget, buffer, proxyMenuItem);
 		return 1;
 	}
-	
+
 	if (image != null) {
 		ImageList imageList = parent.imageList;
 		if (imageList != null) {
@@ -562,13 +588,13 @@ int /*long*/ gtk_create_menu_proxy (int /*long*/ widget) {
 					int /*long*/ property = OS.g_object_class_find_property(OS.G_OBJECT_GET_CLASS(settings), OS.gtk_menu_images);
 					if (property != 0) OS.g_object_get (settings, OS.gtk_menu_images, showImages, 0);
 				}
-				
-				/* 
-				 * GTK tool items with only image appear as blank items 
+
+				/*
+				 * GTK tool items with only image appear as blank items
 				 * in overflow menu when the system property "gtk-menu-images"
 				 * is set to false. To avoid that, display the tooltip text
-				 * if available, in the overflow menu. 
-				 * Feature in GTK. When the menuItem is initialised only 
+				 * if available, in the overflow menu.
+				 * Feature in GTK. When the menuItem is initialised only
 				 * with the image, the overflow menu appears very sloppy.
 				 * The fix is to initialise menu item with empty string.
 				 */
@@ -580,15 +606,15 @@ int /*long*/ gtk_create_menu_proxy (int /*long*/ widget) {
 				}
 				else {
 					label = Converter.wcsToMbcs(null, text, true);
-				}					
+				}
 				int /*long*/ menuItem = OS.gtk_image_menu_item_new_with_label (label);
 				int /*long*/ menuImage = OS.gtk_image_new_from_pixbuf (pixbuf);
 				OS.gtk_image_menu_item_set_image (menuItem, menuImage);
 				OS.gtk_tool_item_set_proxy_menu_item (widget, buffer, menuItem);
 				/*
 				 * Since the arrow button does not appear in the drop_down
-				 * item, we request the menu-item and then, hook the 
-				 * activate signal to send the Arrow selection signal. 
+				 * item, we request the menu-item and then, hook the
+				 * activate signal to send the Arrow selection signal.
 				 */
 				proxyMenuItem = OS.gtk_tool_item_get_proxy_menu_item (widget, buffer);
 				OS.g_signal_connect(menuItem, OS.activate, ToolBar.menuItemSelectedFunc.getAddress(), handle);
@@ -599,6 +625,7 @@ int /*long*/ gtk_create_menu_proxy (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_enter_notify_event (int /*long*/ widget, int /*long*/ event) {
 	parent.gtk_enter_notify_event (widget, event);
 	drawHotImage = (parent.style & SWT.FLAT) != 0 && hotImage != null;
@@ -615,6 +642,7 @@ int /*long*/ gtk_enter_notify_event (int /*long*/ widget, int /*long*/ event) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	GdkEvent event = new GdkEvent ();
 	OS.memmove (event, gdkEvent, GdkEvent.sizeof);
@@ -627,21 +655,24 @@ int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 			}
 			break;
 		}
-	}	
+	}
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_focus_in_event (int /*long*/ widget, int /*long*/ event) {
 	parent.hasChildFocus = true;
 	parent.currentFocusItem = this;
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	parent.hasChildFocus = false;
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_leave_notify_event (int /*long*/ widget, int /*long*/ event) {
 	parent.gtk_leave_notify_event (widget, event);
 	if (drawHotImage) {
@@ -655,41 +686,44 @@ int /*long*/ gtk_leave_notify_event (int /*long*/ widget, int /*long*/ event) {
 					gtk_image_set_from_pixbuf(imageHandle, pixbuf);
 				}
 			}
-		}	
+		}
 	}
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_map (int /*long*/ widget) {
 	parent.fixZOrder ();
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_mnemonic_activate (int /*long*/ widget, int /*long*/ arg1) {
 	return parent.gtk_mnemonic_activate (widget, arg1);
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
 	if ((style & SWT.SEPARATOR) != 0) return;
-	OS.g_signal_connect_closure (handle, OS.clicked, display.closures [CLICKED], false);
+	OS.g_signal_connect_closure (handle, OS.clicked, display.getClosure (CLICKED), false);
 	/*
-	 * Feature in GTK. GtkToolItem does not respond to basic listeners 
-	 * such as button-press, enter-notify to it. The fix is to assign 
+	 * Feature in GTK. GtkToolItem does not respond to basic listeners
+	 * such as button-press, enter-notify to it. The fix is to assign
 	 * the listener to child (GtkButton) of the tool-item.
 	 */
 	eventHandle = OS.gtk_bin_get_child(handle);
 	if ((style & SWT.DROP_DOWN) != 0) {
 		int /*long*/ list = OS.gtk_container_get_children(eventHandle);
 		eventHandle = OS.g_list_nth_data(list, 0);
-		if (arrowHandle != 0) OS.g_signal_connect_closure (arrowHandle, OS.clicked, display.closures [CLICKED], false);
+		if (arrowHandle != 0) OS.g_signal_connect_closure (arrowHandle, OS.clicked, display.getClosure (CLICKED), false);
 	}
-	OS.g_signal_connect_closure (handle, OS.create_menu_proxy, display.closures [CREATE_MENU_PROXY], false);
-	
-	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [ENTER_NOTIFY_EVENT], 0, display.closures [ENTER_NOTIFY_EVENT], false);
-	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [LEAVE_NOTIFY_EVENT], 0, display.closures [LEAVE_NOTIFY_EVENT], false);
-	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [FOCUS_IN_EVENT], 0, display.closures [FOCUS_IN_EVENT], false);
-	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [FOCUS_OUT_EVENT], 0, display.closures [FOCUS_OUT_EVENT], false);
+	OS.g_signal_connect_closure (handle, OS.create_menu_proxy, display.getClosure (CREATE_MENU_PROXY), false);
+
+	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [ENTER_NOTIFY_EVENT], 0, display.getClosure (ENTER_NOTIFY_EVENT), false);
+	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [LEAVE_NOTIFY_EVENT], 0, display.getClosure (LEAVE_NOTIFY_EVENT), false);
+	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [FOCUS_IN_EVENT], 0, display.getClosure (FOCUS_IN_EVENT), false);
+	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [FOCUS_OUT_EVENT], 0, display.getClosure (FOCUS_OUT_EVENT), false);
 	/*
 	* Feature in GTK.  Usually, GTK widgets propagate all events to their
 	* parent when they are done their own processing.  However, in contrast
@@ -700,17 +734,17 @@ void hookEvents () {
 	*/
 	int mask =
 		OS.GDK_EXPOSURE_MASK | OS.GDK_POINTER_MOTION_MASK |
-		OS.GDK_BUTTON_PRESS_MASK | OS.GDK_BUTTON_RELEASE_MASK | 
-		OS.GDK_ENTER_NOTIFY_MASK | OS.GDK_LEAVE_NOTIFY_MASK | 
+		OS.GDK_BUTTON_PRESS_MASK | OS.GDK_BUTTON_RELEASE_MASK |
+		OS.GDK_ENTER_NOTIFY_MASK | OS.GDK_LEAVE_NOTIFY_MASK |
 		OS.GDK_KEY_PRESS_MASK | OS.GDK_KEY_RELEASE_MASK |
 		OS.GDK_FOCUS_CHANGE_MASK;
 	OS.gtk_widget_add_events (eventHandle, mask);
-	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.closures [BUTTON_PRESS_EVENT], false);
-	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_RELEASE_EVENT], 0, display.closures [BUTTON_RELEASE_EVENT], false);
-	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [EVENT_AFTER], 0, display.closures[EVENT_AFTER], false);
+	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.getClosure (BUTTON_PRESS_EVENT), false);
+	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [BUTTON_RELEASE_EVENT], 0, display.getClosure (BUTTON_RELEASE_EVENT), false);
+	OS.g_signal_connect_closure_by_id (eventHandle, display.signalIds [EVENT_AFTER], 0, display.getClosure (EVENT_AFTER), false);
 
 	int /*long*/ topHandle = topHandle ();
-	OS.g_signal_connect_closure_by_id (topHandle, display.signalIds [MAP], 0, display.closures [MAP], true);
+	OS.g_signal_connect_closure_by_id (topHandle, display.signalIds [MAP], 0, display.getClosure (MAP), true);
 }
 
 /**
@@ -725,7 +759,7 @@ void hookEvents () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #getEnabled
  */
 public boolean isEnabled () {
@@ -747,17 +781,20 @@ boolean isTabGroup () {
 	return (previous.getStyle () & SWT.SEPARATOR) != 0;
 }
 
+@Override
 void register () {
 	super.register ();
 	if (eventHandle != 0) display.addWidget (eventHandle, this);
 	if (arrowHandle != 0) display.addWidget (arrowHandle, this);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	arrowHandle = labelHandle = imageHandle = eventHandle = 0;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (parent.currentFocusItem == this) parent.currentFocusItem = null;
@@ -789,7 +826,7 @@ public void removeSelectionListener(SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook (SWT.Selection, listener);
-	eventTable.unhook (SWT.DefaultSelection,listener);	
+	eventTable.unhook (SWT.DefaultSelection,listener);
 }
 
 void resizeControl () {
@@ -822,7 +859,7 @@ void resizeHandle(int width, int height) {
 	GtkRequisition requisition = new GtkRequisition ();
 	parent.gtk_widget_size_request (handle, requisition);
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (handle, allocation);
+	OS.gtk_widget_get_allocation (handle, allocation);
 	allocation.width = width;
 	allocation.height = height;
 	OS.gtk_widget_size_allocate (handle, allocation);
@@ -846,7 +883,7 @@ void selectRadio () {
  * @param control the new control
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the control has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the control has been disposed</li>
  *    <li>ERROR_INVALID_PARENT - if the control is not in the same widget tree</li>
  * </ul>
  * @exception SWTException <ul>
@@ -876,7 +913,7 @@ public void setControl (Control control) {
  * @param image the disabled image to display on the receiver (may be null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -908,32 +945,31 @@ public void setDisabledImage (Image image) {
 public void setEnabled (boolean enabled) {
 	checkWidget();
 	int /*long*/ topHandle = topHandle ();
-	if (gtk_widget_get_sensitive (topHandle) == enabled) return;
+	if (OS.gtk_widget_get_sensitive (topHandle) == enabled) return;
 	OS.gtk_widget_set_sensitive (topHandle, enabled);
-	if (enabled) {
-		/*
-		* Bug in GTK.  GtkButton requires an enter notify before it
-		* allows the button to be pressed, but events are dropped when
-		* widgets are insensitive.  The fix is to hide and show the
-		* button if the pointer is within its bounds.
-		*/
-		int [] x = new int [1], y = new int [1];
-		gdk_window_get_device_position (parent.paintWindow (), x, y, null);
-		if (getBounds ().contains (x [0], y [0])) {
-			OS.gtk_widget_hide (handle);
-			OS.gtk_widget_show (handle);
-		}
-	} else {
-		/*
-		* Bug in GTK. Starting with 2.14, if a button is disabled 
-		* through on a button press, the field which keeps track 
-		* whether the pointer is currently in the button is never updated.
-		* As a result, when it is re-enabled it automatically enters
-		* a PRELIGHT state. The fix is to set a NORMAL state.
-		* 
-		* Note that on GTK 3 this code causes the item to be re-enabled.
-		*/
-		if (OS.GTK_VERSION >= OS.VERSION (2, 14, 0) && !OS.GTK3) {
+
+	if (!OS.GTK3) {
+		if (enabled) {
+			/*
+			* Bug in GTK (see Eclipse bug 82169). GtkButton requires an enter notify before it
+			* allows the button to be pressed, but events are dropped when
+			* widgets are insensitive.  The fix is to hide and show the
+			* button if the pointer is within its bounds.
+			*/
+			int [] x = new int [1], y = new int [1];
+			gdk_window_get_device_position (parent.paintWindow (), x, y, null);
+			if (getBounds ().contains (x [0], y [0])) {
+				OS.gtk_widget_hide (handle);
+				OS.gtk_widget_show (handle);
+			}
+		} else {
+			/*
+			* Bug in GTK. Starting with 2.14, if a button is disabled
+			* through on a button press, the field which keeps track
+			* whether the pointer is currently in the button is never updated.
+			* As a result, when it is re-enabled it automatically enters
+			* a PRELIGHT state. The fix is to set a NORMAL state.
+			*/
 			OS.gtk_widget_set_state (topHandle, OS.GTK_STATE_NORMAL);
 		}
 	}
@@ -961,7 +997,7 @@ void setForegroundColor (GdkColor color) {
  * @param image the hot image to display on the receiver (may be null)
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the image has been disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -984,6 +1020,7 @@ public void setHotImage (Image image) {
 	}
 }
 
+@Override
 public void setImage (Image image) {
 	checkWidget();
 	if ((style & SWT.SEPARATOR) != 0) return;
@@ -1003,8 +1040,8 @@ public void setImage (Image image) {
 		gtk_image_set_from_pixbuf(imageHandle, 0);
 	}
 	/*
-	* If Text/Image of a tool-item changes, then it is 
-	* required to reset the proxy menu. Otherwise, the 
+	* If Text/Image of a tool-item changes, then it is
+	* required to reset the proxy menu. Otherwise, the
 	* old menuItem appears in the overflow menu.
 	*/
 	if ((style & SWT.DROP_DOWN) != 0) {
@@ -1015,6 +1052,7 @@ public void setImage (Image image) {
 	parent.relayout ();
 }
 
+@Override
 void setOrientation (boolean create) {
 	if ((parent.style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
 		int dir = (parent.style & SWT.RIGHT_TO_LEFT) != 0 ? OS.GTK_TEXT_DIR_RTL : OS.GTK_TEXT_DIR_LTR;
@@ -1054,6 +1092,7 @@ public void setSelection (boolean selected) {
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, CLICKED);
 }
 
+@Override
 boolean setTabItemFocus (boolean next) {
 	return setFocus ();
 }
@@ -1071,8 +1110,11 @@ boolean setTabItemFocus (boolean next) {
  * manner.  The mnemonic indicator character '&amp;' can be
  * escaped by doubling it in the string, causing a single
  * '&amp;' to be displayed.
+ * </p><p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
  * </p>
- * 
+ *
  * @param string the new text
  *
  * @exception IllegalArgumentException <ul>
@@ -1083,6 +1125,7 @@ boolean setTabItemFocus (boolean next) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+@Override
 public void setText (String string) {
 	checkWidget();
 	if (string == null) error (SWT.ERROR_NULL_ARGUMENT);
@@ -1094,8 +1137,8 @@ public void setText (String string) {
 	byte [] buffer = Converter.wcsToMbcs (null, chars, true);
 	OS.gtk_label_set_text_with_mnemonic (labelHandle, buffer);
 	/*
-	* If Text/Image of a tool-item changes, then it is 
-	* required to reset the proxy menu. Otherwise, the 
+	* If Text/Image of a tool-item changes, then it is
+	* required to reset the proxy menu. Otherwise, the
 	* old menuItem appears in the overflow menu.
 	*/
 	if ((style & SWT.DROP_DOWN) != 0) {
@@ -1108,17 +1151,17 @@ public void setText (String string) {
 
 /**
  * Sets the receiver's tool tip text to the argument, which
- * may be null indicating that the default tool tip for the 
+ * may be null indicating that the default tool tip for the
  * control will be shown. For a control that has a default
  * tool tip, such as the Tree control on Windows, setting
  * the tool tip text to an empty string replaces the default,
  * causing no tool tip text to be shown.
  * <p>
  * The mnemonic indicator (character '&amp;') is not displayed in a tool tip.
- * To display a single '&amp;' in the tool tip, the character '&amp;' can be 
+ * To display a single '&amp;' in the tool tip, the character '&amp;' can be
  * escaped by doubling it in the string.
  * </p>
- * 
+ *
  * @param string the new tool tip text (or null)
  *
  * @exception SWTException <ul>
@@ -1135,10 +1178,10 @@ public void setToolTipText (String string) {
 	}
 	toolTipText = string;
 	/*
-	* Since tooltip text of a tool-item is used in overflow 
-	* menu when images are not shown, it is required to 
+	* Since tooltip text of a tool-item is used in overflow
+	* menu when images are not shown, it is required to
 	* reset the proxy menu when the tooltip text changes.
-	* Otherwise, the old menuItem appears in the overflow 
+	* Otherwise, the old menuItem appears in the overflow
 	* menu as a blank item.
 	*/
 	if ((style & SWT.DROP_DOWN) != 0) {
@@ -1164,11 +1207,11 @@ void setToolTipText (Shell shell, String newString) {
  * @param width the new width. If the new value is <code>SWT.DEFAULT</code>,
  * the width is a fixed-width area whose amount is determined by the platform.
  * If the new value is 0 a vertical or horizontal line will be drawn, depending
- * on the setting of the corresponding style bit (<code>SWT.VERTICAL</code> or 
+ * on the setting of the corresponding style bit (<code>SWT.VERTICAL</code> or
  * <code>SWT.HORIZONTAL</code>). If the new value is <code>SWT.SEPARATOR_FILL</code>
  * a variable-width space is inserted that acts as a spring between the two adjoining
  * items which will push them out to the extent of the containing ToolBar.
- * 
+ *
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>

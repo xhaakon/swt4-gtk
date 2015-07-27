@@ -27,61 +27,40 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIWebBrowser extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + ((IsXULRunner10 || IsXULRunner17) ? 9 : 7);
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + ((IsXULRunner10() || IsXULRunner24() || IsXULRunner31()) ? 9 : 7);
 
-	public static final String NS_IWEBBROWSER_IID_STR =
-		"69e5df00-7b8b-11d3-af61-00a024ffc08c";
+	static final String NS_IWEBBROWSER_IID_STR = "69e5df00-7b8b-11d3-af61-00a024ffc08c";
+	static final String NS_IWEBBROWSER_10_IID_STR = "33e9d001-caab-4ba9-8961-54902f197202";
 
-	public static final String NS_IWEBBROWSER_10_IID_STR =
-		"33e9d001-caab-4ba9-8961-54902f197202";
-	
-	public static final nsID NS_IWEBBROWSER_IID =
-		new nsID(NS_IWEBBROWSER_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIWebBrowser.class, MozillaVersion.VERSION_BASE, new nsID(NS_IWEBBROWSER_IID_STR));
+		IIDStore.RegisterIID(nsIWebBrowser.class, MozillaVersion.VERSION_XR10, new nsID(NS_IWEBBROWSER_10_IID_STR));
+	}
 
-	public static final nsID NS_IWEBBROWSER_10_IID =
-		new nsID(NS_IWEBBROWSER_10_IID_STR);
-	
 	public nsIWebBrowser(int /*long*/ address) {
 		super(address);
 	}
 
 	public int AddWebBrowserListener(int /*long*/ aListener, nsID aIID) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aListener, aIID);
+		return XPCOM.VtblCall(this.getMethodIndex("addWebBrowserListener"), getAddress(), aListener, aIID);
 	}
 
 	public int RemoveWebBrowserListener(int /*long*/ aListener, nsID aIID) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aListener, aIID);
-	}
-
-	public int GetContainerWindow(int /*long*/[] aContainerWindow) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aContainerWindow);
+		return XPCOM.VtblCall(this.getMethodIndex("removeWebBrowserListener"), getAddress(), aListener, aIID);
 	}
 
 	public int SetContainerWindow(int /*long*/ aContainerWindow) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aContainerWindow);
-	}
-
-	public int GetParentURIContentListener(int /*long*/[] aParentURIContentListener) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aParentURIContentListener);
+		return XPCOM.VtblCall(this.getSetterIndex("containerWindow"), getAddress(), aContainerWindow);
 	}
 
 	public int SetParentURIContentListener(int /*long*/ aParentURIContentListener) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), aParentURIContentListener);
+		return XPCOM.VtblCall(this.getSetterIndex("parentURIContentListener"), getAddress(), aParentURIContentListener);
 	}
 
 	public int GetContentDOMWindow(int /*long*/[] aContentDOMWindow) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aContentDOMWindow);
-	}
-
-	public int GetIsActive(int[] aIsActive) {
-		if (!(IsXULRunner10 || IsXULRunner17)) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aIsActive);
-	}
-
-	public int SetIsActive(int aIsActive) {
-		if (!(IsXULRunner10 || IsXULRunner17)) return XPCOM.NS_COMFALSE;
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 9, getAddress(), aIsActive);
+		return XPCOM.VtblCall(this.getGetterIndex("contentDOMWindow"), getAddress(), aContentDOMWindow);
 	}
 }

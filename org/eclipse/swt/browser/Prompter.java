@@ -33,23 +33,38 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 	
 	prompt = new XPCOMObject (new int[] {2, 0, 0, 2, 4, 3, 5, 9, 6, 6, 7, 6}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return Alert (args[0], args[1] );}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return AlertCheck (args[0], args[1], args[2], args[3]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return Confirm (args[0], args[1], args[2]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return ConfirmCheck (args[0], args[1], args[2], args[3], args[4]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return ConfirmEx (args[0], args[1], (int)/*64*/args[2], args[3], args[4], args[5], args[6], args[7], args[8]);}
+		@Override
 		public int /*long*/ method8 (int /*long*/[] args) {return Prompt (args[0], args[1], args[2], args[3], args[4], args[5]);}
+		@Override
 		public int /*long*/ method9 (int /*long*/[] args) {return PromptPassword (args[0], args[1], args[2], args[3], args[4], args[5]);}
+		@Override
 		public int /*long*/ method10 (int /*long*/[] args) {return PromptUsernameAndPassword (args[0], args[1], args[2], args[3], args[4], args[5], args[6]);}
+		@Override
 		public int /*long*/ method11 (int /*long*/[] args) {return Select (args[0], args[1], (int)/*64*/args[2], args[3], args[4], args[5]);}
 	};
 }
@@ -74,12 +89,12 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 	
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIPrompt.NS_IPROMPT_IID)) {
+	if (guid.Equals (IIDStore.GetIID (nsIPrompt.class))) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {prompt.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -313,7 +328,7 @@ int Prompt (int /*long*/ aDialogTitle, int /*long*/ aText, int /*long*/ aValue, 
 			nsIServiceManager serviceManager = new nsIServiceManager (result2[0]);
 			result2[0] = 0;
 			byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_MEMORY_CONTRACTID, true);
-			rc = serviceManager.GetServiceByContractID (aContractID, nsIMemory.NS_IMEMORY_IID, result2);
+			rc = serviceManager.GetServiceByContractID (aContractID, IIDStore.GetIID (nsIMemory.class), result2);
 			if (rc != XPCOM.NS_OK) SWT.error (rc);
 			if (result2[0] == 0) SWT.error (XPCOM.NS_NOINTERFACE);		
 			serviceManager.Release ();
@@ -385,37 +400,25 @@ int PromptAuth(int /*long*/ aChannel, int level, int /*long*/ authInfo, int /*lo
 
 	/* get initial username and password values */
 
-	int /*long*/ ptr = XPCOM.nsEmbedString_new ();
-	int rc = auth.GetUsername (ptr);
+	nsEmbedString ptr = new nsEmbedString ();
+	int rc = auth.GetUsername (ptr.getAddress());
 	if (rc != XPCOM.NS_OK) SWT.error (rc);
-	int length = XPCOM.nsEmbedString_Length (ptr);
-	int /*long*/ buffer = XPCOM.nsEmbedString_get (ptr);
-	char[] chars = new char[length];
-	XPCOM.memmove (chars, buffer, length * 2);
-	userLabel[0] = new String (chars);
-	XPCOM.nsEmbedString_delete (ptr);
+	userLabel[0] = ptr.toString ();
+	ptr.dispose ();
 
-	ptr = XPCOM.nsEmbedString_new ();
-	rc = auth.GetPassword (ptr);
+	ptr = new nsEmbedString ();
+	rc = auth.GetPassword (ptr.getAddress());
 	if (rc != XPCOM.NS_OK) SWT.error (rc);
-	length = XPCOM.nsEmbedString_Length (ptr);
-	buffer = XPCOM.nsEmbedString_get (ptr);
-	chars = new char[length];
-	XPCOM.memmove (chars, buffer, length * 2);
-	passLabel[0] = new String (chars);
-	XPCOM.nsEmbedString_delete (ptr);
+	passLabel[0] = ptr.toString ();
+	ptr.dispose ();
 
 	/* compute the message text */
 
-	ptr = XPCOM.nsEmbedString_new ();
-	rc = auth.GetRealm (ptr);
+	ptr = new nsEmbedString ();
+	rc = auth.GetRealm (ptr.getAddress());
 	if (rc != XPCOM.NS_OK) SWT.error (rc);
-	length = XPCOM.nsEmbedString_Length (ptr);
-	buffer = XPCOM.nsEmbedString_get (ptr);
-	chars = new char[length];
-	XPCOM.memmove (chars, buffer, length * 2);
-	String realm = new String (chars);
-	XPCOM.nsEmbedString_delete (ptr);
+	String realm = ptr.toString ();
+	ptr.dispose ();
 
 	nsIChannel channel = new nsIChannel (aChannel);
 	int /*long*/[] uri = new int /*long*/[1];
@@ -427,8 +430,8 @@ int PromptAuth(int /*long*/ aChannel, int level, int /*long*/ authInfo, int /*lo
 	int /*long*/ host = XPCOM.nsEmbedCString_new ();
 	rc = nsURI.GetHost (host);
 	if (rc != XPCOM.NS_OK) SWT.error (rc);
-	length = XPCOM.nsEmbedCString_Length (host);
-	buffer = XPCOM.nsEmbedCString_get (host);
+	int length = XPCOM.nsEmbedCString_Length (host);
+	int /*long*/ buffer = XPCOM.nsEmbedCString_get (host);
 	byte[] bytes = new byte[length];
 	XPCOM.memmove (bytes, buffer, length);
 	String hostString = new String (bytes);
@@ -575,7 +578,7 @@ int PromptUsernameAndPassword (int /*long*/ aDialogTitle, int /*long*/ aText, in
 		nsIServiceManager serviceManager = new nsIServiceManager (result[0]);
 		result[0] = 0;
 		byte[] aContractID = MozillaDelegate.wcsToMbcs (null, XPCOM.NS_MEMORY_CONTRACTID, true);
-		rc = serviceManager.GetServiceByContractID (aContractID, nsIMemory.NS_IMEMORY_IID, result);
+		rc = serviceManager.GetServiceByContractID (aContractID, IIDStore.GetIID (nsIMemory.class), result);
 		if (rc != XPCOM.NS_OK) SWT.error (rc);
 		if (result[0] == 0) SWT.error (XPCOM.NS_NOINTERFACE);		
 		serviceManager.Release ();

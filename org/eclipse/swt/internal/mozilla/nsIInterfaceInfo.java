@@ -27,37 +27,24 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
-public class nsIProgressDialog extends nsIDownload {
 
-	static final int LAST_METHOD_ID = nsIDownload.LAST_METHOD_ID + 5;
+public class nsIInterfaceInfo extends nsISupports {
 
-	public static final String NS_IPROGRESSDIALOG_IID_STR =
-		"88a478b3-af65-440a-94dc-ed9b154d2990";
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + ((IsXULRVersionOrLater (MozillaVersion.VERSION_XR10)) ? 21 : 20);
+	
+	static final String NS_IINTERFACEINFO_IID_STR = "215dbe04-94a7-11d2-ba58-00805f8a5dd7";
+	static final String NS_IINTERFACEINFO_10_IID_STR = "1affa260-8965-4612-869a-78af4ccfb287";
 
-	public static final nsID NS_IPROGRESSDIALOG_IID =
-		new nsID(NS_IPROGRESSDIALOG_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_BASE, new nsID(NS_IINTERFACEINFO_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR10, new nsID(NS_IINTERFACEINFO_10_IID_STR));
+	}
 
-	public nsIProgressDialog(int /*long*/ address) {
+	public nsIInterfaceInfo(int /*long*/ address) {
 		super(address);
 	}
 
-	public int Open(int /*long*/ aParent) {
-		return XPCOM.VtblCall(nsIDownload.LAST_METHOD_ID + 1, getAddress(), aParent);
-	}
-
-	public int GetCancelDownloadOnClose(int[] aCancelDownloadOnClose) {
-		return XPCOM.VtblCall(nsIDownload.LAST_METHOD_ID + 2, getAddress(), aCancelDownloadOnClose);
-	}
-
-	public int SetCancelDownloadOnClose(int aCancelDownloadOnClose) {
-		return XPCOM.VtblCall(nsIDownload.LAST_METHOD_ID + 3, getAddress(), aCancelDownloadOnClose);
-	}
-
-	public int GetDialog(int /*long*/[] aDialog) {
-		return XPCOM.VtblCall(nsIDownload.LAST_METHOD_ID + 4, getAddress(), aDialog);
-	}
-
-	public int SetDialog(int /*long*/ aDialog) {
-		return XPCOM.VtblCall(nsIDownload.LAST_METHOD_ID + 5, getAddress(), aDialog);
+	public int GetMethodInfoForName(byte[] methodName, int [] index, int /*long*/[] result) {
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + ((IsXULRVersionOrLater (MozillaVersion.VERSION_XR10)) ? 9 : 8), getAddress(), methodName, index, result);
 	}
 }

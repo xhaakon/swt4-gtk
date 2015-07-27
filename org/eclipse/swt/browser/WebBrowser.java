@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.*;
 
 abstract class WebBrowser {
 	Browser browser;
-	Hashtable functions = new Hashtable ();
+	Hashtable<Integer, BrowserFunction> functions = new Hashtable<Integer, BrowserFunction> ();
 	AuthenticationListener[] authenticationListeners = new AuthenticationListener[0];
 	CloseWindowListener[] closeWindowListeners = new CloseWindowListener[0];
 	LocationListener[] locationListeners = new LocationListener[0];
@@ -33,8 +33,8 @@ abstract class WebBrowser {
 	static final String ERROR_ID = "org.eclipse.swt.browser.error"; // $NON-NLS-1$
 	static final String EXECUTE_ID = "SWTExecuteTemporaryFunction"; // $NON-NLS-1$
 
-	static Vector NativePendingCookies = new Vector ();
-	static Vector MozillaPendingCookies = new Vector ();
+	static Vector<String[]> NativePendingCookies = new Vector<String[]> ();
+	static Vector<String[]> MozillaPendingCookies = new Vector<String[]> ();
 	static String CookieName, CookieValue, CookieUrl;
 	static boolean CookieResult;
 	static Runnable MozillaClearSessions, NativeClearSessions;
@@ -181,6 +181,7 @@ public class EvaluateFunction extends BrowserFunction {
 	public EvaluateFunction (Browser browser, String name) {
 		super (browser, name, true, new String[0], false);
 	}
+	@Override
 	public Object function (Object[] arguments) {
 		if (arguments[0] instanceof String) {
 			String string = (String)arguments[0];
@@ -292,10 +293,8 @@ public static boolean SetCookie (String value, String url, boolean addToPending)
 	return CookieResult;
 }
 
-static void SetPendingCookies (Vector pendingCookies) {
-	Enumeration elements = pendingCookies.elements ();
-	while (elements.hasMoreElements ()) {
-		String[] current = (String[])elements.nextElement ();
+static void SetPendingCookies (Vector<String[]> pendingCookies) {
+	for (String[] current : pendingCookies) {
 		SetCookie (current[0], current[1], false);
 	}
 }
@@ -315,15 +314,15 @@ public boolean close () {
 }
 
 public void createFunction (BrowserFunction function) {
-	/* 
+	/*
 	 * If an existing function with the same name is found then
 	 * remove it so that it is not recreated on subsequent pages
 	 * (the new function overwrites the old one).
 	 */
-	Enumeration keys = functions.keys ();
+	Enumeration<Integer> keys = functions.keys ();
 	while (keys.hasMoreElements ()) {
-		Object key = keys.nextElement ();
-		BrowserFunction current = (BrowserFunction)functions.get (key);
+		Integer key = keys.nextElement ();
+		BrowserFunction current = functions.get (key);
 		if (current.name.equals (function.name)) {
 			deregisterFunction (current);
 			break;
@@ -380,7 +379,7 @@ void deregisterFunction (BrowserFunction function) {
 }
 
 public void destroyFunction (BrowserFunction function) {
-	String deleteString = getDeleteFunctionString (function.name); 
+	String deleteString = getDeleteFunctionString (function.name);
 	StringBuffer buffer = new StringBuffer ("for (var i = 0; i < frames.length; i++) {try {frames[i].eval(\""); //$NON-NLS-1$
 	buffer.append (deleteString);
 	buffer.append ("\");} catch (e) {}}"); //$NON-NLS-1$
@@ -390,6 +389,10 @@ public void destroyFunction (BrowserFunction function) {
 }
 
 public abstract boolean execute (String script);
+
+public Object evaluate (String script, boolean trusted) throws SWTException {
+	return evaluate(script);
+}
 
 public Object evaluate (String script) throws SWTException {
 	BrowserFunction function = new EvaluateFunction (browser, ""); // $NON-NLS-1$
@@ -692,13 +695,13 @@ boolean sendKeyEvent (Event event) {
 	boolean doit = true;
 	if (traversal != SWT.TRAVERSE_NONE) {
 		boolean oldEventDoit = event.doit;
-		event.doit = traverseDoit;	
+		event.doit = traverseDoit;
 		doit = !browser.traverse (traversal, event);
 		event.doit = oldEventDoit;
 	}
 	if (doit) {
 		browser.notifyListeners (event.type, event);
-		doit = event.doit; 
+		doit = event.doit;
 	}
 	return doit;
 }

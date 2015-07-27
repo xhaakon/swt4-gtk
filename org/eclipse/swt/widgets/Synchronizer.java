@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2011 IBM Corporation and others.
+ * Copyright (c) 2000, 2014 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -13,8 +13,8 @@ package org.eclipse.swt.widgets;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.Compatibility;
- 
+import org.eclipse.swt.internal.*;
+
 /**
  * Instances of this class provide synchronization support
  * for displays. A default instance is created automatically
@@ -25,7 +25,7 @@ import org.eclipse.swt.internal.Compatibility;
  * needs to deal with this class. It is provided only to
  * allow applications which require non-standard
  * synchronization behavior to plug in the support they
- * require. <em>Subclasses which override the methods in 
+ * require. <em>Subclasses which override the methods in
  * this class must ensure that the superclass methods are
  * invoked in their implementations</em>
  * </p>
@@ -43,19 +43,18 @@ public class Synchronizer {
 	static final int MESSAGE_LIMIT = 64;
 
 	//TEMPORARY CODE
-	static final boolean IS_CARBON = "carbon".equals (SWT.getPlatform ());
 	static final boolean IS_COCOA = "cocoa".equals (SWT.getPlatform ());
 	static final boolean IS_GTK = "gtk".equals (SWT.getPlatform ());
 
 /**
  * Constructs a new instance of this class.
- * 
+ *
  * @param display the display to create the synchronizer on
  */
 public Synchronizer (Display display) {
 	this.display = display;
 }
-	
+
 void addLast (RunnableLock lock) {
 	boolean wake = false;
 	synchronized (messageLock) {
@@ -67,14 +66,14 @@ void addLast (RunnableLock lock) {
 		}
 		messages [messageCount++] = lock;
 		wake = messageCount == 1;
-	}	
+	}
 	if (wake) display.wakeThread ();
 }
 
 /**
  * Causes the <code>run()</code> method of the runnable to
- * be invoked by the user-interface thread at the next 
- * reasonable opportunity. The caller of this method continues 
+ * be invoked by the user-interface thread at the next
+ * reasonable opportunity. The caller of this method continues
  * to run in parallel, and is not notified when the
  * runnable has completed.
  *
@@ -85,7 +84,7 @@ void addLast (RunnableLock lock) {
 protected void asyncExec (Runnable runnable) {
 	if (runnable == null) {
 		//TEMPORARY CODE
-		if (!(IS_CARBON || IS_GTK || IS_COCOA)) {
+		if (!(IS_GTK || IS_COCOA)) {
 			display.wake ();
 			return;
 		}
@@ -131,12 +130,16 @@ boolean runAsyncMessages (boolean all) {
 		run = true;
 		synchronized (lock) {
 			syncThread = lock.thread;
+			display.sendPreEvent(SWT.None);
 			try {
-				lock.run ();
+				lock.run();
 			} catch (Throwable t) {
 				lock.throwable = t;
 				SWT.error (SWT.ERROR_FAILED_EXEC, t);
 			} finally {
+				if (display != null && !display.isDisposed()) {
+					display.sendPostEvent(SWT.None);
+				}
 				syncThread = null;
 				lock.notifyAll ();
 			}
@@ -147,7 +150,7 @@ boolean runAsyncMessages (boolean all) {
 
 /**
  * Causes the <code>run()</code> method of the runnable to
- * be invoked by the user-interface thread at the next 
+ * be invoked by the user-interface thread at the next
  * reasonable opportunity. The thread which calls this method
  * is suspended until the runnable completes.
  *
@@ -177,7 +180,16 @@ protected void syncExec (Runnable runnable) {
 		}
 	}
 	if (lock == null) {
-		if (runnable != null) runnable.run ();
+		if (runnable != null) {
+			display.sendPreEvent(SWT.None);
+			try {
+				runnable.run();
+			} finally {
+				if (display != null && !display.isDisposed()) {
+					display.sendPostEvent(SWT.None);
+				}
+			}
+		}
 		return;
 	}
 	synchronized (lock) {

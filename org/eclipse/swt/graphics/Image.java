@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,14 +10,14 @@
  *******************************************************************************/
 package org.eclipse.swt.graphics;
 
- 
+
+import java.io.*;
+
+import org.eclipse.swt.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.cairo.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.*;
 
-import java.io.*;
- 
 /**
  * Instances of this class are graphics which have been prepared
  * for display on a specific device. That is, they are ready
@@ -29,7 +29,7 @@ import java.io.*;
  * pixels are specified as being transparent when drawn. Examples
  * of file formats that support transparency are GIF and PNG.
  * </p><p>
- * There are two primary ways to use <code>Images</code>. 
+ * There are two primary ways to use <code>Images</code>.
  * The first is to load a graphic file from disk and create an
  * <code>Image</code> from it. This is done using an <code>Image</code>
  * constructor, for example:
@@ -42,8 +42,8 @@ import java.io.*;
  * SWT. It is possible to get more control over the mapping of
  * colors as the image is being created, using code of the form:
  * <pre>
- *    ImageData data = new ImageData("C:\\graphic.bmp"); 
- *    RGB[] rgbs = data.getRGBs(); 
+ *    ImageData data = new ImageData("C:\\graphic.bmp");
+ *    RGB[] rgbs = data.getRGBs();
  *    // At this point, rgbs contains specifications of all
  *    // the colors contained within this image. You may
  *    // allocate as many of these colors as you wish by
@@ -56,7 +56,7 @@ import java.io.*;
  * loading process should use the support provided in class
  * <code>ImageLoader</code>.
  * </p><p>
- * Application code must explicitly invoke the <code>Image.dispose()</code> 
+ * Application code must explicitly invoke the <code>Image.dispose()</code>
  * method to release the operating system resources managed by each instance
  * when those instances are no longer required.
  * </p>
@@ -79,11 +79,11 @@ public final class Image extends Resource implements Drawable {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
-	 * 
+	 *
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int type;
-	
+
 	/**
 	 * The handle to the OS pixmap resource.
 	 * (Warning: This field is platform dependent)
@@ -93,11 +93,11 @@ public final class Image extends Resource implements Drawable {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
-	 * 
+	 *
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ pixmap;
-	
+
 	/**
 	 * The handle to the OS mask resource.
 	 * (Warning: This field is platform dependent)
@@ -107,7 +107,7 @@ public final class Image extends Resource implements Drawable {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
-	 * 
+	 *
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ mask;
@@ -121,16 +121,16 @@ public final class Image extends Resource implements Drawable {
 	 * within the packages provided by SWT. It is not available on all
 	 * platforms and should never be accessed from application code.
 	 * </p>
-	 * 
+	 *
 	 * @noreference This field is not intended to be referenced by clients.
 	 */
 	public int /*long*/ surface;
-	
+
 	/**
 	 * specifies the transparent pixel
 	 */
 	int transparentPixel = -1;
-	
+
 	/**
 	 * The GC the image is currently selected in.
 	 */
@@ -140,26 +140,41 @@ public final class Image extends Resource implements Drawable {
 	 * The alpha data of the image.
 	 */
 	byte[] alphaData;
-	
+
 	/**
 	 * The global alpha value to be used for every pixel.
 	 */
 	int alpha = -1;
-	
+
 	/**
 	 * The width of the image.
 	 */
 	int width = -1;
-	
+
 	/**
 	 * The height of the image.
 	 */
 	int height = -1;
-	
+
 	/**
 	 * Specifies the default scanline padding.
 	 */
 	static final int DEFAULT_SCANLINE_PAD = 4;
+
+	/**
+	 * ImageFileNameProvider to provide file names at various Zoom levels
+	 */
+	ImageFileNameProvider imageFileNameProvider;
+
+	/**
+	 * ImageDataProvider to provide ImageData at various Zoom levels
+	 */
+	ImageDataProvider imageDataProvider;
+
+	/**
+	 * Attribute to cache current device zoom level
+	 */
+	int currentDeviceZoom = 100;
 
 Image(Device device) {
 	super(device);
@@ -182,6 +197,9 @@ Image(Device device) {
  * and depth). For example, Windows 95, 98, and ME do not allow
  * images larger than 16M.
  * </p>
+ * <p>
+ * You must dispose the image when it is no longer required.
+ * </p>
  *
  * @param device the device on which to create the image
  * @param width the width of the new image
@@ -194,6 +212,8 @@ Image(Device device) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
  * </ul>
+ * 
+ * @see #dispose()
  */
 public Image(Device device, int width, int height) {
 	super(device);
@@ -213,6 +233,9 @@ public Image(Device device, int width, int height) {
  * <dt><b>{@link SWT#IMAGE_GRAY}</b></dt>
  * <dd>the result is a copy of srcImage which has a <em>gray scale</em> look</dd>
  * </dl>
+ * <p>
+ * You must dispose the image when it is no longer required.
+ * </p>
  *
  * @param device the device on which to create the image
  * @param srcImage the image to use as the source
@@ -231,6 +254,8 @@ public Image(Device device, int width, int height) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
  * </ul>
+ *
+ * @see #dispose()
  */
 public Image(Device device, Image srcImage, int flag) {
 	super(device);
@@ -246,7 +271,7 @@ public Image(Device device, Image srcImage, int flag) {
 	}
 	device = this.device;
 	this.type = srcImage.type;
-	
+
 	if (OS.USE_CAIRO) {
 		if (flag != SWT.IMAGE_DISABLE) transparentPixel = srcImage.transparentPixel;
 		alpha = srcImage.alpha;
@@ -254,7 +279,7 @@ public Image(Device device, Image srcImage, int flag) {
 			alphaData = new byte[srcImage.alphaData.length];
 			System.arraycopy(srcImage.alphaData, 0, alphaData, 0, alphaData.length);
 		}
-	
+
 		int /*long*/ imageSurface = srcImage.surface;
 		int width = this.width = srcImage.width;
 		int height = this.height = srcImage.height;
@@ -329,7 +354,7 @@ public Image(Device device, Image srcImage, int flag) {
 					}
 					break;
 				}
-				case SWT.IMAGE_GRAY: {			
+				case SWT.IMAGE_GRAY: {
 					byte[] line = new byte[stride];
 					for (int y=0; y<height; y++) {
 						OS.memmove(line, data + (y * stride), stride);
@@ -370,7 +395,7 @@ public Image(Device device, Image srcImage, int flag) {
 	}
  	int width = w[0];
  	int height = h[0];
- 	
+
  	/* Copy the mask */
 	if ((srcImage.type == SWT.ICON && srcImage.mask != 0) || srcImage.transparentPixel != -1) {
 		/* Generate the mask if necessary. */
@@ -401,12 +426,12 @@ public Image(Device device, Image srcImage, int flag) {
 	int /*long*/ gdkGC = OS.gdk_gc_new(pixmap);
 	if (gdkGC == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	this.pixmap = pixmap;
-	
+
 	if (flag == SWT.IMAGE_COPY) {
 		OS.gdk_draw_drawable(pixmap, gdkGC, srcImage.pixmap, 0, 0, 0, 0, width, height);
 		OS.g_object_unref(gdkGC);
 	} else {
-		
+
 		/* Retrieve the source pixmap data */
 		int /*long*/ pixbuf = OS.gdk_pixbuf_new(OS.GDK_COLORSPACE_RGB, false, 8, width, height);
 		if (pixbuf == 0) SWT.error(SWT.ERROR_NO_HANDLES);
@@ -414,7 +439,7 @@ public Image(Device device, Image srcImage, int flag) {
 		OS.gdk_pixbuf_get_from_drawable(pixbuf, srcImage.pixmap, colormap, 0, 0, 0, 0, width, height);
 		int stride = OS.gdk_pixbuf_get_rowstride(pixbuf);
 		int /*long*/ pixels = OS.gdk_pixbuf_get_pixels(pixbuf);
-	
+
 		/* Apply transformation */
 		switch (flag) {
 			case SWT.IMAGE_DISABLE: {
@@ -451,7 +476,7 @@ public Image(Device device, Image srcImage, int flag) {
 				}
 				break;
 			}
-			case SWT.IMAGE_GRAY: {			
+			case SWT.IMAGE_GRAY: {
 				byte[] line = new byte[stride];
 				for (int y=0; y<height; y++) {
 					OS.memmove(line, pixels + (y * stride), stride);
@@ -468,10 +493,10 @@ public Image(Device device, Image srcImage, int flag) {
 				break;
 			}
 		}
-	
+
 		/* Copy data back to destination pixmap */
 		OS.gdk_pixbuf_render_to_drawable(pixbuf, pixmap, gdkGC, 0, 0, 0, 0, width, height, OS.GDK_RGB_DITHER_NORMAL, 0, 0);
-		
+
 		/* Free resources */
 		OS.g_object_unref(pixbuf);
 		OS.g_object_unref(gdkGC);
@@ -496,6 +521,9 @@ public Image(Device device, Image srcImage, int flag) {
  * and depth). For example, Windows 95, 98, and ME do not allow
  * images larger than 16M.
  * </p>
+ * <p>
+ * You must dispose the image when it is no longer required.
+ * </p>
  *
  * @param device the device on which to create the image
  * @param bounds a rectangle specifying the image's width and height (must not be null)
@@ -508,6 +536,8 @@ public Image(Device device, Image srcImage, int flag) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
  * </ul>
+ *
+ * @see #dispose()
  */
 public Image(Device device, Rectangle bounds) {
 	super(device);
@@ -519,6 +549,9 @@ public Image(Device device, Rectangle bounds) {
 /**
  * Constructs an instance of this class from the given
  * <code>ImageData</code>.
+ * <p>
+ * You must dispose the image when it is no longer required.
+ * </p>
  *
  * @param device the device on which to create the image
  * @param data the image data to create the image from (must not be null)
@@ -533,6 +566,8 @@ public Image(Device device, Rectangle bounds) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
  * </ul>
+ *
+ * @see #dispose()
  */
 public Image(Device device, ImageData data) {
 	super(device);
@@ -541,7 +576,7 @@ public Image(Device device, ImageData data) {
 }
 
 /**
- * Constructs an instance of this class, whose type is 
+ * Constructs an instance of this class, whose type is
  * <code>SWT.ICON</code>, from the two given <code>ImageData</code>
  * objects. The two images must be the same size. Pixel transparency
  * in either image will be ignored.
@@ -550,6 +585,9 @@ public Image(Device device, ImageData data) {
  * and black wherever the icon is to be transparent. In addition,
  * the source image should contain black wherever the icon is to be
  * transparent.
+ * </p>
+ * <p>
+ * You must dispose the image when it is no longer required.
  * </p>
  *
  * @param device the device on which to create the icon
@@ -564,6 +602,8 @@ public Image(Device device, ImageData data) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
  * </ul>
+ *
+ * @see #dispose()
  */
 public Image(Device device, ImageData source, ImageData mask) {
 	super(device);
@@ -589,7 +629,7 @@ public Image(Device device, ImageData source, ImageData mask) {
  * <p>
  * This constructor is provided for convenience when loading a single
  * image only. If the stream contains multiple images, only the first
- * one will be loaded. To load multiple images, use 
+ * one will be loaded. To load multiple images, use
  * <code>ImageLoader.load()</code>.
  * </p><p>
  * This constructor may be used to load a resource as follows:
@@ -610,6 +650,9 @@ public Image(Device device, ImageData source, ImageData mask) {
  *          return image;
  *     }
  * </pre>
+ * <p>
+ * You must dispose the image when it is no longer required.
+ * </p>
  *
  * @param device the device on which to create the image
  * @param stream the input stream to load the image from
@@ -627,6 +670,8 @@ public Image(Device device, ImageData source, ImageData mask) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
  * </ul>
+ *
+ * @see #dispose()
  */
 public Image(Device device, InputStream stream) {
 	super(device);
@@ -643,6 +688,9 @@ public Image(Device device, InputStream stream) {
  * This constructor is provided for convenience when loading
  * a single image only. If the specified file contains
  * multiple images, only the first one will be used.
+ * <p>
+ * You must dispose the image when it is no longer required.
+ * </p>
  *
  * @param device the device on which to create the image
  * @param filename the name of the file to load the image from
@@ -660,6 +708,8 @@ public Image(Device device, InputStream stream) {
  * @exception SWTError <ul>
  *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
  * </ul>
+ *
+ * @see #dispose()
  */
 public Image(Device device, String filename) {
 	super(device);
@@ -667,6 +717,129 @@ public Image(Device device, String filename) {
 	initNative(filename);
 	if (this.pixmap == 0 && this.surface == 0) init(new ImageData(filename));
 	init();
+}
+
+/**
+ * Constructs an instance of this class by loading its representation
+ * from the file retrieved from the ImageFileNameProvider. Throws an
+ * error if an error occurs while loading the image, or if the result
+ * is an image of an unsupported type.
+ * <p>
+ * This constructor is provided for convenience for loading image as
+ * per DPI level.
+ *
+ * @param device the device on which to create the image
+ * @param imageFileNameProvider the ImageFileNameProvider object that is
+ * to be used to get the file name
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if device is null and there is no current device</li>
+ *    <li>ERROR_NULL_ARGUMENT - if the ImageFileNameProvider is null</li>
+ *    <li>ERROR_INVALID_ARGUMENT - if the fileName provided by ImageFileNameProvider is null at 100% zoom</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_IO - if an IO error occurs while reading from the file</li>
+ *    <li>ERROR_INVALID_IMAGE - if the image file contains invalid data </li>
+ *    <li>ERROR_UNSUPPORTED_DEPTH - if the image file describes an image with an unsupported depth</li>
+ *    <li>ERROR_UNSUPPORTED_FORMAT - if the image file contains an unrecognized format</li>
+ * </ul>
+ * @exception SWTError <ul>
+ *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
+ * </ul>
+ * @since 3.104
+ */
+public Image(Device device, ImageFileNameProvider imageFileNameProvider) {
+	super(device);
+	this.imageFileNameProvider = imageFileNameProvider;
+	currentDeviceZoom = getDeviceZoom ();
+	String filename = DPIUtil.validateAndGetImagePathAtZoom (imageFileNameProvider, currentDeviceZoom, new boolean[1]);
+	initNative (filename);
+	if (this.pixmap == 0 && this.surface == 0) init(new ImageData(filename));
+	init ();
+}
+
+/**
+ * Constructs an instance of this class by loading its representation
+ * from the ImageData retrieved from the ImageDataProvider. Throws an
+ * error if an error occurs while loading the image, or if the result
+ * is an image of an unsupported type.
+ * <p>
+ * This constructor is provided for convenience for loading image as
+ * per DPI level.
+ *
+ * @param device the device on which to create the image
+ * @param imageDataProvider the ImageDataProvider object that is
+ * to be used to get the ImageData
+ *
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_NULL_ARGUMENT - if device is null and there is no current device</li>
+ *    <li>ERROR_NULL_ARGUMENT - if the ImageDataProvider is null</li>
+ *    <li>ERROR_INVALID_ARGUMENT - if the ImageData provided by ImageDataProvider is null at 100% zoom</li>
+ * </ul>
+ * @exception SWTException <ul>
+ *    <li>ERROR_IO - if an IO error occurs while reading from the file</li>
+ *    <li>ERROR_INVALID_IMAGE - if the image file contains invalid data </li>
+ *    <li>ERROR_UNSUPPORTED_DEPTH - if the image file describes an image with an unsupported depth</li>
+ *    <li>ERROR_UNSUPPORTED_FORMAT - if the image file contains an unrecognized format</li>
+ * </ul>
+ * @exception SWTError <ul>
+ *    <li>ERROR_NO_HANDLES if a handle could not be obtained for image creation</li>
+ * </ul>
+ * @since 3.104
+ */
+public Image(Device device, ImageDataProvider imageDataProvider) {
+	super(device);
+	this.imageDataProvider = imageDataProvider;
+	currentDeviceZoom = getDeviceZoom ();
+	ImageData data =  DPIUtil.validateAndGetImageDataAtZoom(imageDataProvider, currentDeviceZoom, new boolean[1]);
+	init (data);
+	init ();
+}
+
+int getDeviceZoom () {
+	return DPIUtil.mapDPIToZoom (device._getDPIx ());
+}
+
+/**
+ * Refresh the Image based on the zoom level, if required.
+ *
+ * @return true if image is refreshed
+ */
+boolean refreshImageForZoom () {
+	boolean refreshed = false;
+	if (imageFileNameProvider != null) {
+		int deviceZoomLevel = getDeviceZoom();
+		if (deviceZoomLevel != currentDeviceZoom) {
+			boolean[] found = new boolean[1];
+			String filename = DPIUtil.validateAndGetImagePathAtZoom (imageFileNameProvider, deviceZoomLevel, found);
+			/* Avoid re-creating the fall-back image, when current zoom is already 100% */
+			if (found[0] || currentDeviceZoom != 100) {
+				/* Release current native resources */
+				destroy ();
+				initNative(filename);
+				if (this.pixmap == 0 && this.surface == 0) init(new ImageData(filename));
+				init ();
+				refreshed = true;
+			}
+			currentDeviceZoom = deviceZoomLevel;
+		}
+	} else if (imageDataProvider != null) {
+		int deviceZoomLevel = getDeviceZoom();
+		if (deviceZoomLevel != currentDeviceZoom) {
+			boolean[] found = new boolean[1];
+			ImageData data = DPIUtil.validateAndGetImageDataAtZoom (imageDataProvider, deviceZoomLevel, found);
+			/* Avoid re-creating the fall-back image, when current zoom is already 100% */
+			if (found[0] || currentDeviceZoom != 100) {
+				/* Release current native resources */
+				destroy ();
+				init(data);
+				init();
+				refreshed = true;
+			}
+			currentDeviceZoom = deviceZoomLevel;
+		}
+	}
+	return refreshed;
 }
 
 void initNative(String filename) {
@@ -712,7 +885,7 @@ void createAlphaMask (int width, int height) {
 			}
 			OS.gdk_draw_image(mask, gc, imagePtr, 0, 0, 0, 0, width, height);
 			OS.g_object_unref(imagePtr);
-		}		
+		}
 		OS.g_object_unref(gc);
 	}
 }
@@ -779,8 +952,8 @@ void createFromPixbuf(int type, int /*long*/ pixbuf) {
 			* Bug in GTK. Depending on the image (seems to affect images that have
 			* some degree of transparency all over the image), gdk_pixbuff_render_pixmap_and_mask()
 			* will return a corrupt pixmap. To avoid this, read in and store the alpha channel data
-			* for the image and then set it to 0xFF to prevent any possible corruption from 
-			* gdk_pixbuff_render_pixmap_and_mask(). 
+			* for the image and then set it to 0xFF to prevent any possible corruption from
+			* gdk_pixbuff_render_pixmap_and_mask().
 			*/
 			int width = OS.gdk_pixbuf_get_width(pixbuf);
 			int height = OS.gdk_pixbuf_get_height(pixbuf);
@@ -889,7 +1062,7 @@ void createSurface() {
 		int /*long*/ colormap = OS.gdk_colormap_get_system();
 		OS.gdk_pixbuf_get_from_drawable(pixbuf, pixmap, colormap, 0, 0, 0, 0, width, height);
 		int stride = OS.gdk_pixbuf_get_rowstride(pixbuf);
-		int /*long*/ pixels = OS.gdk_pixbuf_get_pixels(pixbuf);		
+		int /*long*/ pixels = OS.gdk_pixbuf_get_pixels(pixbuf);
 		byte[] line = new byte[stride];
 		int oa, or, og, ob;
 		if (OS.BIG_ENDIAN) {
@@ -1008,6 +1181,7 @@ void destroyMask() {
 	mask = 0;
 }
 
+@Override
 void destroy() {
 	if (memGC != null) memGC.dispose();
 	if (pixmap != 0) OS.g_object_unref(pixmap);
@@ -1027,14 +1201,20 @@ void destroy() {
  *
  * @see #hashCode
  */
+@Override
 public boolean equals (Object object) {
 	if (object == this) return true;
 	if (!(object instanceof Image)) return false;
 	Image image = (Image)object;
-	if (OS.USE_CAIRO) {
-		return device == image.device && surface == image.surface;
+	if (device != image.device || transparentPixel != image.transparentPixel) return false;
+	if (imageDataProvider != null && image.imageDataProvider != null) {
+		return imageDataProvider.equals (image.imageDataProvider);
+	} else if (imageFileNameProvider != null && image.imageFileNameProvider != null) {
+		return imageFileNameProvider.equals (image.imageFileNameProvider);
+	} else if (OS.USE_CAIRO) {
+		return surface == image.surface;
 	} else {
-		return device == image.device && pixmap == image.pixmap;
+		return pixmap == image.pixmap;
 	}
 }
 
@@ -1163,7 +1343,7 @@ public ImageData getImageData() {
 	} else {
 		OS.gdk_drawable_get_size(pixmap, w, h);
 	}
- 	int width = w[0], height = h[0]; 	
+ 	int width = w[0], height = h[0];
  	int /*long*/ pixbuf = OS.gdk_pixbuf_new(OS.GDK_COLORSPACE_RGB, false, 8, width, height);
 	if (pixbuf == 0) SWT.error(SWT.ERROR_NO_HANDLES);
 	int /*long*/ colormap = OS.gdk_colormap_get_system();
@@ -1199,8 +1379,8 @@ public ImageData getImageData() {
 		if (gdkImage.byte_order == OS.GDK_LSB_FIRST) {
 			for (int i = 0; i < maskData.length; i++) {
 				byte b = maskData[i];
-				maskData[i] = (byte)(((b & 0x01) << 7) | ((b & 0x02) << 5) | 
-					((b & 0x04) << 3) |	((b & 0x08) << 1) | ((b & 0x10) >> 1) | 
+				maskData[i] = (byte)(((b & 0x01) << 7) | ((b & 0x02) << 5) |
+					((b & 0x04) << 3) |	((b & 0x08) << 1) | ((b & 0x10) >> 1) |
 					((b & 0x20) >> 3) |	((b & 0x40) >> 5) | ((b & 0x80) >> 7));
 			}
 		}
@@ -1215,7 +1395,7 @@ public ImageData getImageData() {
 	return data;
 }
 
-/**	 
+/**
  * Invokes platform specific functionality to allocate a new image.
  * <p>
  * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
@@ -1245,7 +1425,7 @@ public static Image gtk_new(Device device, int type, int /*long*/ imageHandle, i
 	return image;
 }
 
-/**	 
+/**
  * Invokes platform specific functionality to allocate a new image.
  * <p>
  * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
@@ -1269,8 +1449,8 @@ public static Image gtk_new_from_pixbuf(Device device, int type, int /*long*/ pi
 }
 
 /**
- * Returns an integer hash code for the receiver. Any two 
- * objects that return <code>true</code> when passed to 
+ * Returns an integer hash code for the receiver. Any two
+ * objects that return <code>true</code> when passed to
  * <code>equals</code> must return the same value for this
  * method.
  *
@@ -1278,8 +1458,13 @@ public static Image gtk_new_from_pixbuf(Device device, int type, int /*long*/ pi
  *
  * @see #equals
  */
+@Override
 public int hashCode () {
-	if (OS.USE_CAIRO) {
+	if (imageDataProvider != null) {
+		return imageDataProvider.hashCode();
+	} else if (imageFileNameProvider != null) {
+		 return imageFileNameProvider.hashCode();
+	} else if (OS.USE_CAIRO) {
 		return (int)/*64*/surface;
 	} else {
 		return (int)/*64*/pixmap;
@@ -1368,7 +1553,7 @@ void init(ImageData image) {
 			if (palette.isDirect) {
 				ImageData.blit(ImageData.BLIT_SRC,
 					image.data, image.depth, image.bytesPerLine, image.getByteOrder(), 0, 0, width, height, palette.redMask, palette.greenMask, palette.blueMask,
-					ImageData.ALPHA_OPAQUE, null, 0, 0, 0, 
+					ImageData.ALPHA_OPAQUE, null, 0, 0, 0,
 					buffer, destDepth, stride, destOrder, 0, 0, width, height, redMask, greenMask, blueMask,
 					false, false);
 			} else {
@@ -1481,7 +1666,7 @@ void init(ImageData image) {
 		if (palette.isDirect) {
 			ImageData.blit(ImageData.BLIT_SRC,
 				image.data, image.depth, image.bytesPerLine, image.getByteOrder(), 0, 0, width, height, palette.redMask, palette.greenMask, palette.blueMask,
-				ImageData.ALPHA_OPAQUE, null, 0, 0, 0, 
+				ImageData.ALPHA_OPAQUE, null, 0, 0, 0,
 				buffer, 24, stride, ImageData.MSB_FIRST, 0, 0, width, height, 0xFF0000, 0xFF00, 0xFF,
 				false, false);
 		} else {
@@ -1512,7 +1697,7 @@ void init(ImageData image) {
 	OS.gdk_pixbuf_render_to_drawable(pixbuf, pixmap, gdkGC, 0, 0, 0, 0, width, height, OS.GDK_RGB_DITHER_NORMAL, 0, 0);
 	OS.g_object_unref(gdkGC);
 	OS.g_object_unref(pixbuf);
-	
+
 	boolean isIcon = image.getTransparencyType() == SWT.TRANSPARENCY_MASK;
 	if (isIcon || image.transparentPixel != -1) {
 		if (image.transparentPixel != -1) {
@@ -1549,7 +1734,7 @@ void init(ImageData image) {
 	this.pixmap = pixmap;
 }
 
-/**	 
+/**
  * Invokes platform specific functionality to allocate a new GC handle.
  * <p>
  * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
@@ -1559,9 +1744,9 @@ void init(ImageData image) {
  * application code.
  * </p>
  *
- * @param data the platform specific GC data 
+ * @param data the platform specific GC data
  * @return the platform specific GC handle
- * 
+ *
  * @noreference This method is not intended to be referenced by clients.
  */
 public int /*long*/ internal_new_GC (GCData data) {
@@ -1594,7 +1779,7 @@ public int /*long*/ internal_new_GC (GCData data) {
 	return gc;
 }
 
-/**	 
+/**
  * Invokes platform specific functionality to dispose a GC handle.
  * <p>
  * <b>IMPORTANT:</b> This method is <em>not</em> part of the public
@@ -1606,7 +1791,7 @@ public int /*long*/ internal_new_GC (GCData data) {
  *
  * @param hDC the platform specific GC handle
  * @param data the platform specific GC data
- * 
+ *
  * @noreference This method is not intended to be referenced by clients.
  */
 public void internal_dispose_GC (int /*long*/ hDC, GCData data) {
@@ -1628,6 +1813,7 @@ public void internal_dispose_GC (int /*long*/ hDC, GCData data) {
  *
  * @return <code>true</code> when the image is disposed and <code>false</code> otherwise
  */
+@Override
 public boolean isDisposed() {
 	if (OS.USE_CAIRO) {
 		return surface == 0;
@@ -1684,6 +1870,7 @@ public void setBackground(Color color) {
  *
  * @return a string representation of the receiver
  */
+@Override
 public String toString () {
 	if (isDisposed()) return "Image {*DISPOSED*}";
 	if (OS.USE_CAIRO) {

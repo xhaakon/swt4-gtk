@@ -12,10 +12,10 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.events.*;
 
 /**
  * Instances of this class implement the notebook user interface
@@ -97,10 +97,12 @@ static int checkStyle (int style) {
 	return style & ~(SWT.H_SCROLL | SWT.V_SCROLL);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 int /*long*/ childStyle () {
 	int /*long*/ rcStyle = OS.gtk_widget_get_modifier_style (handle);
 	if ((OS.gtk_rc_style_get_color_flags (rcStyle, 0) & OS.GTK_RC_BG) != 0) return 0;
@@ -140,6 +142,7 @@ public void addSelectionListener(SelectionListener listener) {
 	addListener(SWT.DefaultSelection,typedListener);
 }
 
+@Override
 int /*long*/ clientHandle () {
 	int index = OS.gtk_notebook_get_current_page (handle);
 	if (index != -1 && items [index] != null) {
@@ -148,6 +151,7 @@ int /*long*/ clientHandle () {
 	return handle;
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	Point size = super.computeSize (wHint, hHint, changed);
@@ -157,17 +161,23 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	OS.gtk_notebook_set_scrollable (handle, false);
 	Point notebookSize = computeNativeSize (handle, wHint, hHint, changed);
 	OS.gtk_notebook_set_scrollable (handle, scrollable);
+	if (OS.GTK_VERSION >= OS.VERSION (3, 2, 0)) {
+		int[] initialGap = new int[1];
+		OS.gtk_widget_style_get (handle, OS.initial_gap, initialGap, 0);
+		notebookSize.x += initialGap[0]*2;
+	}
 	size.x = Math.max (notebookSize.x, size.x);
 	size.y = Math.max (notebookSize.y, size.y);
 	return size;
 }
 
+@Override
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget();
 	forceResize ();
 	int /*long*/ clientHandle = clientHandle ();
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (clientHandle, allocation);
+	OS.gtk_widget_get_allocation (clientHandle, allocation);
 	int clientX = allocation.x;
 	int clientY = allocation.y;
 	x -= clientX;
@@ -175,7 +185,7 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	width +=  clientX + clientX;
 	if ((style & SWT.BOTTOM) != 0) {
 		int clientHeight = allocation.height;
-		gtk_widget_get_allocation (handle, allocation);
+		OS.gtk_widget_get_allocation (handle, allocation);
 		int parentHeight = allocation.height;
 		height += parentHeight - clientHeight;
 	} else {
@@ -184,21 +194,50 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	return new Rectangle (x, y, width, height);
 }
 
+@Override
+public Rectangle getClientArea () {
+	Rectangle clientRectangle = super.getClientArea ();
+
+	if (OS.GTK3) {
+		/*
+		* Bug 454936 (see also other 454936 references)
+		* SWT's calls to gtk_widget_size_allocate and gtk_widget_set_allocation
+		* causes GTK+ to move the clientHandle's SwtFixed down by the size of the labels.
+		* These calls can come up from 'shell' and TabFolder has no control over these calls.
+		*
+		* This is an undesired side-effect. Client handle's x & y positions should never
+		* be incremented as this is an internal sub-container.
+		*
+		* Note: 0 by 0 was chosen as 1 by 1 shifts controls beyond their original pos.
+		* The long term fix would be to not use widget_*_allocation from higher containers,
+		* but this would require removal of swtFixed.
+		*
+		* This is Gtk3-specific for Tabfolder as the architecture is changed in gtk3 only.
+		*/
+		clientRectangle.x = 0;
+		clientRectangle.y = 0;
+	}
+	return clientRectangle;
+}
+
+
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	handle = OS.gtk_notebook_new ();
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
-	OS.gtk_notebook_set_scrollable (handle, true);
 	OS.gtk_notebook_set_show_tabs (handle, true);
+	OS.gtk_notebook_set_scrollable (handle, true);
 	if ((style & SWT.BOTTOM) != 0) {
 		OS.gtk_notebook_set_tab_pos (handle, OS.GTK_POS_BOTTOM);
 	}
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget(index);
 	items = new TabItem [4];
@@ -227,12 +266,6 @@ void createItem (TabItem item, int index) {
 	OS.gtk_container_add (boxHandle, labelHandle);
 	int /*long*/ pageHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (pageHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	if (OS.GTK3) {
-		OS.gtk_widget_override_background_color (pageHandle, OS.GTK_STATE_FLAG_NORMAL, new GdkRGBA ());
-		int /*long*/ region = OS.gdk_region_new ();
-		OS.gtk_widget_input_shape_combine_region (pageHandle, region);
-		OS.gdk_region_destroy (region);
-	}
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, SWITCH_PAGE);
 	OS.gtk_notebook_insert_page (handle, pageHandle, boxHandle, index);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, SWITCH_PAGE);
@@ -293,6 +326,7 @@ void destroyItem (TabItem item) {
 	}
 }
 
+@Override
 int /*long*/ eventHandle () {
 	return handle;
 }
@@ -438,10 +472,12 @@ public int getSelectionIndex () {
 	return OS.gtk_notebook_get_current_page (handle);
 }
 
+@Override
 int /*long*/ gtk_focus (int /*long*/ widget, int /*long*/ directionType) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_switch_page (int /*long*/ widget, int /*long*/ page, int /*long*/ page_num) {
 	int index = OS.gtk_notebook_get_current_page (handle);
 	if (index != -1) {
@@ -462,9 +498,10 @@ int /*long*/ gtk_switch_page (int /*long*/ widget, int /*long*/ page, int /*long
 	return 0;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
-	OS.g_signal_connect_closure (handle, OS.switch_page, display.closures [SWITCH_PAGE], false);
+	OS.g_signal_connect_closure (handle, OS.switch_page, display.getClosure (SWITCH_PAGE), false);
 }
 
 /**
@@ -497,8 +534,16 @@ public int indexOf (TabItem item) {
 	return -1;
 }
 
+@Override
 Point minimumSize (int wHint, int hHint, boolean flushCache) {
-	Control [] children = _getChildren ();
+	Control [] children;
+	if (OS.GTK3) {
+		//We want the 'Tabcontents' rather than
+		//what's nested under the main swtFixed.
+		children = _getChildren (clientHandle ());
+	} else {
+		children = _getChildren ();
+	}
 	int width = 0, height = 0;
 	for (int i=0; i<children.length; i++) {
 		Control child = children [i];
@@ -526,6 +571,7 @@ Point minimumSize (int wHint, int hHint, boolean flushCache) {
 	return new Point (width, height);
 }
 
+@Override
 boolean mnemonicHit (char key) {
 	int itemCount = getItemCount ();
 	for (int i=0; i<itemCount; i++) {
@@ -535,6 +581,7 @@ boolean mnemonicHit (char key) {
 	return false;
 }
 
+@Override
 boolean mnemonicMatch (char key) {
 	int itemCount = getItemCount ();
 	for (int i=0; i<itemCount; i++) {
@@ -544,6 +591,7 @@ boolean mnemonicMatch (char key) {
 	return false;
 }
 
+@Override
 void releaseChildren (boolean destroy) {
 	if (items != null) {
 		for (int i=0; i<items.length; i++) {
@@ -557,12 +605,14 @@ void releaseChildren (boolean destroy) {
 	super.releaseChildren (destroy);
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (imageList != null) imageList.dispose ();
 	imageList = null;
 }
 
+@Override
 void removeControl (Control control) {
 	super.removeControl (control);
 	int count = getItemCount ();
@@ -597,6 +647,7 @@ public void removeSelectionListener (SelectionListener listener) {
 	eventTable.unhook (SWT.DefaultSelection,listener);	
 }
 
+@Override
 void reskinChildren (int flags) {
 	if (items != null) {
 		int /*long*/ list = OS.gtk_container_get_children (handle);
@@ -612,6 +663,7 @@ void reskinChildren (int flags) {
 	super.reskinChildren (flags);
 }
 
+@Override
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	int result = super.setBounds (x, y, width, height, move, resize);
 	if ((result & RESIZED) != 0) {
@@ -627,6 +679,7 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	return result;
 }
 
+@Override
 void setFontDescription (int /*long*/ font) {
 	super.setFontDescription (font);
 	TabItem [] items = getItems ();
@@ -637,6 +690,7 @@ void setFontDescription (int /*long*/ font) {
 	}
 }
 
+@Override
 void setForegroundColor (GdkColor color) {
 	super.setForegroundColor (color);
 	TabItem [] items = getItems ();
@@ -647,6 +701,7 @@ void setForegroundColor (GdkColor color) {
 	}
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if (items != null) {
@@ -755,6 +810,7 @@ public void setSelection (TabItem [] items) {
 	}
 }
 
+@Override
 boolean traversePage (final boolean next) {
 	if (next) {
 		OS.gtk_notebook_next_page (handle);

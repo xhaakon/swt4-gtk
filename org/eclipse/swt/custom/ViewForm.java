@@ -78,6 +78,7 @@ public class ViewForm extends Composite {
 	 * 
 	 * @deprecated
 	 */
+	@Deprecated
 	public static RGB borderInsideRGB  = new RGB (132, 130, 132);
 	/**
 	 * Color of middle line of drop shadow border.
@@ -87,6 +88,7 @@ public class ViewForm extends Composite {
 	 * 
 	 * @deprecated
 	 */
+	@Deprecated
 	public static RGB borderMiddleRGB  = new RGB (143, 141, 138);
 	/**
 	 * Color of outermost line of drop shadow border.
@@ -96,6 +98,7 @@ public class ViewForm extends Composite {
 	 * 
 	 * @deprecated
 	 */
+	@Deprecated
 	public static RGB borderOutsideRGB = new RGB (171, 168, 165);
 	
 	// SWT widgets
@@ -185,6 +188,7 @@ static int checkStyle (int style) {
 //	}
 //}
 
+@Override
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget ();
 	int trimX = x - borderLeft - highlight;
@@ -193,6 +197,7 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	int trimHeight = height + borderTop + borderBottom + 2*highlight;
 	return new Rectangle(trimX, trimY, trimWidth, trimHeight);
 }
+@Override
 public Rectangle getClientArea() {
 	checkWidget();
 	Rectangle clientArea = super.getClientArea();
@@ -342,6 +347,7 @@ public void setContent(Control content) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+@Override
 public void setLayout (Layout layout) {
 	checkWidget();
 	return;

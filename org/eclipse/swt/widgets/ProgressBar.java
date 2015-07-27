@@ -45,7 +45,7 @@ public class ProgressBar extends Control {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -79,11 +79,12 @@ static int checkStyle (int style) {
 	return checkBits (style, SWT.HORIZONTAL, SWT.VERTICAL, 0, 0, 0, 0);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	handle = OS.gtk_progress_bar_new ();
 	if (handle == 0) error (SWT.ERROR_NO_HANDLES);
 	OS.gtk_container_add (fixedHandle, handle);
@@ -94,6 +95,7 @@ void createHandle (int index) {
 	}
 }
 
+@Override
 int /*long*/ eventHandle () {
 	return OS.GTK3 ? fixedHandle : super.eventHandle ();
 }
@@ -151,13 +153,13 @@ public int getSelection () {
  * 	<li>{@link SWT#PAUSED}</li>
  * </ul>
  *
- * @return the state 
+ * @return the state
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public int getState () {
@@ -165,6 +167,7 @@ public int getState () {
 	return SWT.NORMAL;
 }
 
+@Override
 int /*long*/ gtk_realize (int /*long*/ widget) {
 	int /*long*/ result = super.gtk_realize (widget);
 	if (result != 0) return result;
@@ -178,18 +181,20 @@ int /*long*/ gtk_realize (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	if (timerId != 0) OS.g_source_remove (timerId);
 	timerId = 0;
 }
 
+@Override
 void setParentBackground () {
 	/*
 	* Bug in GTK.  For some reason, some theme managers will crash
 	* when the progress bar is inheriting the background from a parent.
 	* The fix is to stop inheriting the background. This is acceptable
-	* since progress bars do not use the inherited background. 
+	* since progress bars do not use the inherited background.
 	*/
 }
 
@@ -264,14 +269,14 @@ public void setSelection (int value) {
  * Note: This operation is a hint and is not supported on
  * platforms that do not have this concept.
  * </p>
- * 
+ *
  * @param state the new state
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public void setState (int state) {
@@ -279,6 +284,7 @@ public void setState (int state) {
 	//NOT IMPLEMENTED
 }
 
+@Override
 int /*long*/ timerProc (int /*long*/ widget) {
 	if (isVisible ()) OS.gtk_progress_bar_pulse (handle);
 	return 1;

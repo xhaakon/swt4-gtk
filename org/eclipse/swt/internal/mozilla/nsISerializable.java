@@ -27,25 +27,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsISerializable extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 2;
 
-	public static final String NS_ISERIALIZABLE_IID_STR =
-		"91cca981-c26d-44a8-bebe-d9ed4891503a";
+	static final String NS_ISERIALIZABLE_IID_STR = "91cca981-c26d-44a8-bebe-d9ed4891503a";
 
-	public static final nsID NS_ISERIALIZABLE_IID =
-		new nsID(NS_ISERIALIZABLE_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsISerializable.class, MozillaVersion.VERSION_BASE, new nsID(NS_ISERIALIZABLE_IID_STR));
+	}
 
 	public nsISerializable(int /*long*/ address) {
 		super(address);
-	}
-
-	public int Read(int /*long*/ aInputStream) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aInputStream);
-	}
-
-	public int Write(int /*long*/ aOutputStream) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aOutputStream);
 	}
 }

@@ -22,26 +22,32 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2011, 2012 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2012 IBM Corp.  All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
-public class nsIHttpHeaderVisitor extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 1;
+public class nsIInterfaceInfoManager extends nsISupports {
 
-	public static final String NS_IHTTPHEADERVISITOR_IID_STR =
-		"0cf40717-d7c1-4a94-8c1e-d6c9734101bb";
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 6;
+	static final String NS_IINTERFACEINFOMANAGER_IID_STR = "8B161900-BE2B-11d2-9831-006008962422";
+	static final String NS_IINTERFACEINFOMANAGER_24_IID_STR = "1d53d8d9-1d92-428f-b5cc-198b55e897d7";
 
-	public static final nsID NS_IHTTPHEADERVISITOR_IID =
-		new nsID(NS_IHTTPHEADERVISITOR_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIInterfaceInfoManager.class, MozillaVersion.VERSION_BASE, new nsID(NS_IINTERFACEINFOMANAGER_IID_STR));
+		IIDStore.RegisterIID(nsIInterfaceInfoManager.class, MozillaVersion.VERSION_XR24, new nsID(NS_IINTERFACEINFOMANAGER_24_IID_STR));
+	}
 
-	public nsIHttpHeaderVisitor(int /*long*/ address) {
+	public nsIInterfaceInfoManager(int /*long*/ address) {
 		super(address);
 	}
 
-	public int VisitHeader(int /*long*/ aHeader, int /*long*/ aValue) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aHeader, aValue);
+	public int GetInfoForIID(nsID iid, int /*long*/[] result) {
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), iid, result);
+	}
+
+	public int GetInfoForName(byte[] aName, int /*long*/[] result) {
+		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aName, result);
 	}
 }

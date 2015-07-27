@@ -36,16 +36,24 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 
 	simpleEnumerator = new XPCOMObject (new int[] {2, 0, 0, 1, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return HasMoreElements (args[0]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return GetNext (args[0]);}
 	};
 }
@@ -76,12 +84,12 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsISimpleEnumerator.NS_ISIMPLEENUMERATOR_IID)) {
+	if (guid.Equals (IIDStore.GetIID (nsISimpleEnumerator.class))) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {simpleEnumerator.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;

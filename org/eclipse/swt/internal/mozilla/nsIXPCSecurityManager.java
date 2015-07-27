@@ -27,53 +27,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIXPCSecurityManager extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 4;
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRunner31 () ? 3 : 4);
 
-	public static final String NS_IXPCSECURITYMANAGER_IID_STR =
-		"31431440-f1ce-11d2-985a-006008962422";
+	static final String NS_IXPCSECURITYMANAGER_IID_STR = "31431440-f1ce-11d2-985a-006008962422";
+	static final String NS_IXPCSECURITYMANAGER_31_IID_STR = "d4d21714-116b-4851-a785-098c5dfea523";
 
-	public static final nsID NS_IXPCSECURITYMANAGER_IID =
-		new nsID(NS_IXPCSECURITYMANAGER_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIXPCSecurityManager.class, MozillaVersion.VERSION_BASE, new nsID(NS_IXPCSECURITYMANAGER_IID_STR));
+		IIDStore.RegisterIID(nsIXPCSecurityManager.class, MozillaVersion.VERSION_XR31, new nsID(NS_IXPCSECURITYMANAGER_31_IID_STR));
+	}
 
 	public nsIXPCSecurityManager(int /*long*/ address) {
 		super(address);
-	}
-
-	public static final int HOOK_CREATE_WRAPPER = 1;
-
-	public static final int HOOK_CREATE_INSTANCE = 2;
-
-	public static final int HOOK_GET_SERVICE = 4;
-
-	public static final int HOOK_CALL_METHOD = 8;
-
-	public static final int HOOK_GET_PROPERTY = 16;
-
-	public static final int HOOK_SET_PROPERTY = 32;
-
-	public static final int HOOK_ALL = 63;
-
-	public int CanCreateWrapper(int /*long*/ aJSContext, nsID aIID, int /*long*/ aObj, int /*long*/ aClassInfo, int /*long*/[] aPolicy) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aJSContext, aIID, aObj, aClassInfo, aPolicy);
-	}
-
-	public int CanCreateInstance(int /*long*/ aJSContext, nsID aCID) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aJSContext, aCID);
-	}
-
-	public int CanGetService(int /*long*/ aJSContext, nsID aCID) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aJSContext, aCID);
-	}
-
-	public static final int ACCESS_CALL_METHOD = 0;
-
-	public static final int ACCESS_GET_PROPERTY = 1;
-
-	public static final int ACCESS_SET_PROPERTY = 2;
-
-	public int CanAccess(int aAction, int /*long*/ aCallContext, int /*long*/ aJSContext, int /*long*/ aJSObject, int /*long*/ aObj, int /*long*/ aClassInfo, int /*long*/ aName, int /*long*/[] aPolicy) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aAction, aCallContext, aJSContext, aJSObject, aObj, aClassInfo, aName, aPolicy);
 	}
 }

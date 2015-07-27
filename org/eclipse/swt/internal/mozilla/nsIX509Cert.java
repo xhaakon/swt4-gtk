@@ -27,98 +27,35 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIX509Cert extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 27;
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRunner31 () ? 27 : (IsXULRunner24() ? 26 : 27));
 
-	public static final String NS_IX509CERT_IID_STR =
-		"f0980f60-ee3d-11d4-998b-00b0d02354a0";
+	static final String NS_IX509CERT_IID_STR = "f0980f60-ee3d-11d4-998b-00b0d02354a0";
+	static final String NS_IX509CERT_24_IID_STR = "45b24b0a-6189-4b05-af0b-8d4d66d57c59";
+	static final String NS_IX509CERT_31_IID_STR = "6286dd8c-c1a1-11e3-941d-180373d97f24";
 
-	public static final nsID NS_IX509CERT_IID =
-		new nsID(NS_IX509CERT_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIX509Cert.class, MozillaVersion.VERSION_BASE, new nsID(NS_IX509CERT_IID_STR));
+		IIDStore.RegisterIID(nsIX509Cert.class, MozillaVersion.VERSION_XR24, new nsID(NS_IX509CERT_24_IID_STR));
+		IIDStore.RegisterIID(nsIX509Cert.class, MozillaVersion.VERSION_XR31, new nsID(NS_IX509CERT_31_IID_STR));
+	}
 
 	public nsIX509Cert(int /*long*/ address) {
 		super(address);
 	}
 
-	public int GetNickname(int /*long*/ aNickname) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aNickname);
-	}
-
-	public int GetEmailAddress(int /*long*/ aEmailAddress) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aEmailAddress);
-	}
-
-	public int GetEmailAddresses(int[] length, int /*long*/[] addresses) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), length, addresses);
-	}
-
-	public int ContainsEmailAddress(int /*long*/ aEmailAddress, int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aEmailAddress, _retval);
-	}
-
-	public int GetSubjectName(int /*long*/ aSubjectName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aSubjectName);
-	}
-
 	public int GetCommonName(int /*long*/ aCommonName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), aCommonName);
-	}
-
-	public int GetOrganization(int /*long*/ aOrganization) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aOrganization);
-	}
-
-	public int GetOrganizationalUnit(int /*long*/ aOrganizationalUnit) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aOrganizationalUnit);
-	}
-
-	public int GetSha1Fingerprint(int /*long*/ aSha1Fingerprint) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 9, getAddress(), aSha1Fingerprint);
-	}
-
-	public int GetMd5Fingerprint(int /*long*/ aMd5Fingerprint) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 10, getAddress(), aMd5Fingerprint);
-	}
-
-	public int GetTokenName(int /*long*/ aTokenName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 11, getAddress(), aTokenName);
-	}
-
-	public int GetIssuerName(int /*long*/ aIssuerName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 12, getAddress(), aIssuerName);
-	}
-
-	public int GetSerialNumber(int /*long*/ aSerialNumber) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 13, getAddress(), aSerialNumber);
+		return XPCOM.VtblCall(this.getGetterIndex("commonName"), getAddress(), aCommonName);
 	}
 
 	public int GetIssuerCommonName(int /*long*/ aIssuerCommonName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 14, getAddress(), aIssuerCommonName);
-	}
-
-	public int GetIssuerOrganization(int /*long*/ aIssuerOrganization) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 15, getAddress(), aIssuerOrganization);
-	}
-
-	public int GetIssuerOrganizationUnit(int /*long*/ aIssuerOrganizationUnit) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 16, getAddress(), aIssuerOrganizationUnit);
-	}
-
-	public int GetIssuer(int /*long*/[] aIssuer) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 17, getAddress(), aIssuer);
+		return XPCOM.VtblCall(this.getGetterIndex("issuerCommonName"), getAddress(), aIssuerCommonName);
 	}
 
 	public int GetValidity(int /*long*/[] aValidity) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 18, getAddress(), aValidity);
-	}
-
-	public int GetDbKey(int /*long*/[] aDbKey) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 19, getAddress(), aDbKey);
-	}
-
-	public int GetWindowTitle(int /*long*/[] aWindowTitle) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 20, getAddress(), aWindowTitle);
+		return XPCOM.VtblCall(this.getGetterIndex("validity"), getAddress(), aValidity);
 	}
 
 	public static final int UNKNOWN_CERT = 0;
@@ -147,32 +84,4 @@ public class nsIX509Cert extends nsISupports {
 	public static final int CERT_USAGE_ProtectedObjectSigner = 9;
 	public static final int CERT_USAGE_StatusResponder = 10;
 	public static final int CERT_USAGE_AnyCA = 11;
-
-	public int GetChain(int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 21, getAddress(), _retval);
-	}
-
-	public int GetUsagesArray(int ignoreOcsp, int[] verified, int[] count, int /*long*/[] usages) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 22, getAddress(), ignoreOcsp, verified, count, usages);
-	}
-
-	public int GetUsagesString(int ignoreOcsp, int[] verified, int /*long*/ usages) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 23, getAddress(), ignoreOcsp, verified, usages);
-	}
-
-	public int VerifyForUsage(int usage, int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 24, getAddress(), usage, _retval);
-	}
-
-	public int GetASN1Structure(int /*long*/[] aASN1Structure) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 25, getAddress(), aASN1Structure);
-	}
-
-	public int GetRawDER(int[] length, int /*long*/[] data) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 26, getAddress(), length, data);
-	}
-
-	public int Equals(int /*long*/ other, int[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 27, getAddress(), other, _retval);
-	}
 }

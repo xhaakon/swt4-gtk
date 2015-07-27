@@ -27,41 +27,26 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsICategoryManager extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 6;
 
-	public static final String NS_ICATEGORYMANAGER_IID_STR =
-		"3275b2cd-af6d-429a-80d7-f0c5120342ac";
+	static final String NS_ICATEGORYMANAGER_IID_STR = "3275b2cd-af6d-429a-80d7-f0c5120342ac";
 
-	public static final nsID NS_ICATEGORYMANAGER_IID =
-		new nsID(NS_ICATEGORYMANAGER_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsICategoryManager.class, MozillaVersion.VERSION_BASE, new nsID(NS_ICATEGORYMANAGER_IID_STR));
+	}
 
 	public nsICategoryManager(int /*long*/ address) {
 		super(address);
 	}
 
 	public int GetCategoryEntry(byte[] aCategory, byte[] aEntry, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aCategory, aEntry, _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("getCategoryEntry"), getAddress(), aCategory, aEntry, _retval);
 	}
 
 	public int AddCategoryEntry(byte[] aCategory, byte[] aEntry, byte[] aValue, int aPersist, int aReplace, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aCategory, aEntry, aValue, aPersist, aReplace, _retval);
-	}
-
-	public int DeleteCategoryEntry(byte[] aCategory, byte[] aEntry, int aPersist) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aCategory, aEntry, aPersist);
-	}
-
-	public int DeleteCategory(byte[] aCategory) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aCategory);
-	}
-
-	public int EnumerateCategory(byte[] aCategory, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aCategory, _retval);
-	}
-
-	public int EnumerateCategories(int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("addCategoryEntry"), getAddress(), aCategory, aEntry, aValue, aPersist, aReplace, _retval);
 	}
 }

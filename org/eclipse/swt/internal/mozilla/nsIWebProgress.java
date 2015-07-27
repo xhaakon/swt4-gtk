@@ -27,15 +27,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIWebProgress extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 4;
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRunner31 () ? 7 : (IsXULRunner24() ? 6 : 4));
 
-	public static final String NS_IWEBPROGRESS_IID_STR =
-		"570f39d0-efd0-11d3-b093-00a024ffc08c";
+	static final String NS_IWEBPROGRESS_IID_STR = "570f39d0-efd0-11d3-b093-00a024ffc08c";
+	static final String NS_IWEBPROGRESS_24_IID_STR = "1c3437b0-9e2c-11e2-9e96-0800200c9a66";
+	static final String NS_IWEBPROGRESS_31_IID_STR = "bd0efb3b-1c81-4fb0-b16d-576a2be48a95";
 
-	public static final nsID NS_IWEBPROGRESS_IID =
-		new nsID(NS_IWEBPROGRESS_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIWebProgress.class, MozillaVersion.VERSION_BASE, new nsID(NS_IWEBPROGRESS_IID_STR));
+		IIDStore.RegisterIID(nsIWebProgress.class, MozillaVersion.VERSION_XR24, new nsID(NS_IWEBPROGRESS_24_IID_STR));
+		IIDStore.RegisterIID(nsIWebProgress.class, MozillaVersion.VERSION_XR31, new nsID(NS_IWEBPROGRESS_31_IID_STR));
+	}
 
 	public nsIWebProgress(int /*long*/ address) {
 		super(address);
@@ -52,19 +57,7 @@ public class nsIWebProgress extends nsISupports {
 	public static final int NOTIFY_LOCATION = 128;
 	public static final int NOTIFY_ALL = 255;
 
-	public int AddProgressListener(int /*long*/ listener, int aNotifyMask) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), listener, aNotifyMask);
-	}
-
-	public int RemoveProgressListener(int /*long*/ listener) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), listener);
-	}
-
 	public int GetDOMWindow(int /*long*/[] aDOMWindow) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aDOMWindow);
-	}
-
-	public int GetIsLoadingDocument(int[] aIsLoadingDocument) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aIsLoadingDocument);
+		return XPCOM.VtblCall(this.getGetterIndex("DOMWindow"), getAddress(), aDOMWindow);
 	}
 }

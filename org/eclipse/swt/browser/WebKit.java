@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2010, 2013 IBM Corporation and others.
+ * Copyright (c) 2010, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,21 +7,45 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Red Hat Inc. - generification
  *******************************************************************************/
 package org.eclipse.swt.browser;
 
 
 import java.io.UnsupportedEncodingException;
-import java.net.*;
-import java.util.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
 
-import org.eclipse.swt.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.*;
-import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.internal.webkit.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.C;
+import org.eclipse.swt.internal.Callback;
+import org.eclipse.swt.internal.Compatibility;
+import org.eclipse.swt.internal.Converter;
+import org.eclipse.swt.internal.LONG;
+import org.eclipse.swt.internal.Library;
+import org.eclipse.swt.internal.gtk.GdkEventKey;
+import org.eclipse.swt.internal.gtk.OS;
+import org.eclipse.swt.internal.webkit.JSClassDefinition;
+import org.eclipse.swt.internal.webkit.WebKitGTK;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Monitor;
+import org.eclipse.swt.widgets.Shell;
 
 class WebKit extends WebBrowser {
 	int /*long*/ webView, webViewData, scrolledWindow;
@@ -35,7 +59,7 @@ class WebKit extends WebBrowser {
 	static int DisabledJSCount;
 	static int /*long*/ ExternalClass, PostString, WebViewType;
 	static boolean IsWebKit14orNewer, LibraryLoaded;
-	static Hashtable WindowMappings = new Hashtable ();
+	static Hashtable<LONG, LONG> WindowMappings = new Hashtable<LONG, LONG> ();
 
 	static final String ABOUT_BLANK = "about:blank"; //$NON-NLS-1$
 	static final String CHARSET_UTF8 = "UTF-8"; //$NON-NLS-1$
@@ -85,6 +109,11 @@ class WebKit extends WebBrowser {
 	static final int CLOSE_WEB_VIEW = 13;
 	static final int WINDOW_OBJECT_CLEARED = 14;
 	static final int CONSOLE_MESSAGE = 15;
+	static final int LOAD_CHANGED = 16;
+	static final int DECIDE_POLICY = 17;
+	static final int MOUSE_TARGET_CHANGED = 18;
+	static final int CONTEXT_MENU = 19;
+	static final int AUTHENTICATE = 20;
 
 	static final String KEY_CHECK_SUBWINDOW = "org.eclipse.swt.internal.control.checksubwindow"; //$NON-NLS-1$
 
@@ -92,6 +121,8 @@ class WebKit extends WebBrowser {
 	static Callback Proc2, Proc3, Proc4, Proc5, Proc6;
 	static Callback JSObjectHasPropertyProc, JSObjectGetPropertyProc, JSObjectCallAsFunctionProc;
 	static Callback JSDOMEventProc;
+
+	static boolean WEBKIT2;
 
 	static {
 		try {
@@ -101,6 +132,9 @@ class WebKit extends WebBrowser {
 		}
 
 		if (LibraryLoaded) {
+			String webkit2 = System.getenv("SWT_WEBKIT2"); // $NON-NLS-1$
+			WEBKIT2 = webkit2 != null && webkit2.equals("1") && OS.GTK3; // $NON-NLS-1$
+
 			WebViewType = WebKitGTK.webkit_web_view_get_type ();
 
 			Proc2 = new Callback (WebKit.class, "Proc", 2); //$NON-NLS-1$
@@ -213,10 +247,19 @@ class WebKit extends WebBrowser {
 		}
 	}
 
+static String getString (int /*long*/ strPtr) {
+	int length = OS.strlen (strPtr);
+	byte [] buffer = new byte [length];
+	OS.memmove (buffer, strPtr, length);
+	return new String (Converter.mbcsToWcs (null, buffer));
+}
+
 static Browser FindBrowser (int /*long*/ webView) {
 	if (webView == 0) return null;
 	int /*long*/ parent = OS.gtk_widget_get_parent (webView);
-	parent = OS.gtk_widget_get_parent (parent);
+	if (!WEBKIT2){
+		parent = OS.gtk_widget_get_parent (parent);
+	}
 	return (Browser)Display.getCurrent ().findWidget (parent);
 }
 
@@ -225,9 +268,16 @@ static boolean IsInstalled () {
 	// TODO webkit_check_version() should take care of the following, but for some
 	// reason this symbol is missing from the latest build.  If it is present in
 	// Linux distro-provided builds then replace the following with this call.
-	int major = WebKitGTK.webkit_major_version ();
-	int minor = WebKitGTK.webkit_minor_version ();
-	int micro = WebKitGTK.webkit_micro_version ();
+	int major, minor, micro;
+	if (WEBKIT2){
+		major = WebKitGTK.webkit_get_major_version ();
+		minor = WebKitGTK.webkit_get_minor_version ();
+		micro = WebKitGTK.webkit_get_micro_version ();
+	} else {
+		major = WebKitGTK.webkit_major_version ();
+		minor = WebKitGTK.webkit_minor_version ();
+		micro = WebKitGTK.webkit_micro_version ();
+	}
 	IsWebKit14orNewer = major > 1 ||
 		(major == 1 && minor > 4) ||
 		(major == 1 && minor == 4 && micro >= 0);
@@ -255,7 +305,7 @@ static int /*long*/ JSObjectGetPropertyProc (int /*long*/ ctx, int /*long*/ obje
 		bytes = (FUNCTIONNAME_CALLJAVA + '\0').getBytes (CHARSET_UTF8); //$NON-NLS-1$
 	} catch (UnsupportedEncodingException e) {
 		bytes = Converter.wcsToMbcs (null, FUNCTIONNAME_CALLJAVA, true);
-	} 
+	}
 	int /*long*/ name = WebKitGTK.JSStringCreateWithUTF8CString (bytes);
 	int /*long*/ function = WebKitGTK.JSObjectMakeFunctionWithCallback (ctx, name, JSObjectCallAsFunctionProc.getAddress ());
 	WebKitGTK.JSStringRelease (name);
@@ -334,7 +384,7 @@ static int /*long*/ JSDOMEventProc (int /*long*/ arg0, int /*long*/ event, int /
 		return 0;
 	}
 
-	LONG webViewHandle = (LONG)WindowMappings.get (new LONG (arg0));
+	LONG webViewHandle = WindowMappings.get (new LONG (arg0));
 	if (webViewHandle == null) return 0;
 	Browser browser = FindBrowser (webViewHandle.value);
 	if (browser == null) return 0;
@@ -351,11 +401,14 @@ static int /*long*/ Proc (int /*long*/ handle, int /*long*/ user_data) {
 
 static int /*long*/ Proc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	int /*long*/ webView;
-	if (OS.G_TYPE_CHECK_INSTANCE_TYPE (handle, WebKitGTK.webkit_web_frame_get_type ())) {
+	if (OS.G_TYPE_CHECK_INSTANCE_TYPE (handle, WebKitGTK.webkit_web_view_get_type ())) {
+        webView = handle;
+	} else if (OS.G_TYPE_CHECK_INSTANCE_TYPE (handle, WebKitGTK.webkit_web_frame_get_type ())) {
 		webView = WebKitGTK.webkit_web_frame_get_web_view (handle);
 	} else {
-		webView = handle;
+		return 0;
 	}
+
 	Browser browser = FindBrowser (webView); 
 	if (browser == null) return 0;
 	WebKit webkit = (WebKit)browser.webBrowser;
@@ -411,7 +464,7 @@ int /*long*/ sessionProc (int /*long*/ session, int /*long*/ msg, int /*long*/ a
 	byte[] bytes = new byte[length];
 	OS.memmove (bytes, uriString, length);
 	OS.g_free (uriString);
-	String location = new String (MozillaDelegate.mbcsToWcs (null, bytes));
+	String location = new String (Converter.mbcsToWcs (null, bytes));
 
 	for (int i = 0; i < authenticationListeners.length; i++) {
 		AuthenticationEvent event = new AuthenticationEvent (browser);
@@ -432,9 +485,41 @@ int /*long*/ sessionProc (int /*long*/ session, int /*long*/ msg, int /*long*/ a
 	return 0;
 }
 
+int /*long*/ webkit_authenticate (int /*long*/ web_view, int /*long*/ request){
+
+	/* authentication challenges are currently the only notification received from the session */
+	if (!WebKitGTK.webkit_authentication_request_is_retry(request)) {
+		failureCount = 0;
+	} else {
+		if (++failureCount >= 3) return 0;
+	}
+
+	String location = getUrl();
+
+	for (int i = 0; i < authenticationListeners.length; i++) {
+		AuthenticationEvent event = new AuthenticationEvent (browser);
+		event.location = location;
+		authenticationListeners[i].authenticate (event);
+		if (!event.doit) {
+			WebKitGTK.webkit_authentication_request_cancel (request);
+			return 0;
+		}
+		if (event.user != null && event.password != null) {
+			byte[] userBytes = Converter.wcsToMbcs (null, event.user, true);
+			byte[] passwordBytes = Converter.wcsToMbcs (null, event.password, true);
+			int /*long*/ credentials = WebKitGTK.webkit_credential_new (userBytes, passwordBytes, WebKitGTK.WEBKIT_CREDENTIAL_PERSISTENCE_NONE);
+			WebKitGTK.webkit_authentication_request_authenticate(request, credentials);
+			WebKitGTK.webkit_credential_free(credentials);
+			return 0;
+		}
+	}
+	return 0;
+}
+
 int /*long*/ webFrameProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	switch ((int)/*64*/user_data) {
 		case NOTIFY_LOAD_STATUS: return webframe_notify_load_status (handle, arg0);
+		case LOAD_CHANGED: return webkit_load_changed (handle, (int) arg0, user_data);
 		default: return 0;
 	}
 }
@@ -452,10 +537,12 @@ int /*long*/ webViewProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ u
 		case CREATE_WEB_VIEW: return webkit_create_web_view (handle, arg0);
 		case DOWNLOAD_REQUESTED: return webkit_download_requested (handle, arg0);
 		case NOTIFY_LOAD_STATUS: return webkit_notify_load_status (handle, arg0);
+		case LOAD_CHANGED: return webkit_load_changed (handle, (int) arg0, user_data);
 		case NOTIFY_PROGRESS: return webkit_notify_progress (handle, arg0);
 		case NOTIFY_TITLE: return webkit_notify_title (handle, arg0);
 		case POPULATE_POPUP: return webkit_populate_popup (handle, arg0);
 		case STATUS_BAR_TEXT_CHANGED: return webkit_status_bar_text_changed (handle, arg0);
+		case AUTHENTICATE: return webkit_authenticate (handle, arg0);
 		default: return 0;
 	}
 }
@@ -463,6 +550,8 @@ int /*long*/ webViewProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ u
 int /*long*/ webViewProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ arg1, int /*long*/ user_data) {
 	switch ((int)/*64*/user_data) {
 		case HOVERING_OVER_LINK: return webkit_hovering_over_link (handle, arg0, arg1);
+		case MOUSE_TARGET_CHANGED: return webkit_mouse_target_changed (handle, arg0, arg1);
+		case DECIDE_POLICY: return webkit_decide_policy(handle, arg0, (int)arg1, user_data);
 		default: return 0;
 	}
 }
@@ -471,6 +560,7 @@ int /*long*/ webViewProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ a
 	switch ((int)/*64*/user_data) {
 		case CONSOLE_MESSAGE: return webkit_console_message (handle, arg0, arg1, arg2);
 		case WINDOW_OBJECT_CLEARED: return webkit_window_object_cleared (handle, arg0, arg1, arg2);
+		case CONTEXT_MENU: return webkit_context_menu(handle, arg0, arg1, arg2);
 		default: return 0;
 	}
 }
@@ -484,12 +574,20 @@ int /*long*/ webViewProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ a
 	}
 }
 
+@Override
 public void create (Composite parent, int style) {
 	if (ExternalClass == 0) {
 		if (Device.DEBUG) {
-			int major = WebKitGTK.webkit_major_version ();
-			int minor = WebKitGTK.webkit_minor_version ();
-			int micro = WebKitGTK.webkit_micro_version ();
+			int major, minor, micro;
+			if (WEBKIT2){
+				major = WebKitGTK.webkit_get_major_version ();
+				minor = WebKitGTK.webkit_get_minor_version ();
+				micro = WebKitGTK.webkit_get_micro_version ();
+			} else {
+				major = WebKitGTK.webkit_major_version ();
+				minor = WebKitGTK.webkit_minor_version ();
+				micro = WebKitGTK.webkit_micro_version ();
+			}
 			System.out.println("WebKit version " + major + "." + minor + "." + micro); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 		JSClassDefinition jsClassDefinition = new JSClassDefinition ();
@@ -505,32 +603,72 @@ public void create (Composite parent, int style) {
 		bytes = Converter.wcsToMbcs (null, "POST", true); //$NON-NLS-1$
 		PostString = C.malloc (bytes.length);
 		C.memmove (PostString, bytes, bytes.length);
+
+		/*
+		* WebKitGTK version 1.8.x and newer can crash sporadically in
+		* webkitWebViewRegisterForIconNotification().  The root issue appears
+		* to be WebKitGTK accessing its icon database from a background
+		* thread.  Work around this crash by disabling the use of WebKitGTK's
+		* icon database, which should not affect the Browser in any way.
+		*/
+		if (WEBKIT2){
+			WebKitGTK.webkit_web_context_set_favicon_database_directory(WebKitGTK.webkit_web_context_get_default(), 0);
+		} else {
+			int /*long*/ database = WebKitGTK.webkit_get_favicon_database ();
+			if (database != 0) {
+				/* WebKitGTK version is >= 1.8.x */
+				WebKitGTK.webkit_favicon_database_set_path (database, 0);
+			}
+		}
 	}
 
-	scrolledWindow = OS.gtk_scrolled_window_new (0, 0);
-	OS.gtk_scrolled_window_set_policy (scrolledWindow, OS.GTK_POLICY_AUTOMATIC, OS.GTK_POLICY_AUTOMATIC);
+	if (!WEBKIT2){
+		scrolledWindow = OS.gtk_scrolled_window_new (0, 0);
+		OS.gtk_scrolled_window_set_policy (scrolledWindow, OS.GTK_POLICY_AUTOMATIC, OS.GTK_POLICY_AUTOMATIC);
+	}
+
 	webView = WebKitGTK.webkit_web_view_new ();
 	webViewData = C.malloc (C.PTR_SIZEOF);
 	C.memmove (webViewData, new int /*long*/[] {webView}, C.PTR_SIZEOF);
-	OS.gtk_container_add (scrolledWindow, webView);
-	OS.gtk_container_add (browser.handle, scrolledWindow);
-	OS.gtk_widget_show (scrolledWindow);
+
+	if (!WEBKIT2){
+		OS.gtk_container_add (scrolledWindow, webView);
+		OS.gtk_container_add (browser.handle, scrolledWindow);
+		OS.gtk_widget_show (scrolledWindow);
+
+		OS.g_signal_connect (webView, WebKitGTK.close_web_view, Proc2.getAddress (), CLOSE_WEB_VIEW);
+		OS.g_signal_connect (webView, WebKitGTK.console_message, Proc5.getAddress (), CONSOLE_MESSAGE);
+		OS.g_signal_connect (webView, WebKitGTK.create_web_view, Proc3.getAddress (), CREATE_WEB_VIEW);
+		OS.g_signal_connect (webView, WebKitGTK.notify_load_status, Proc3.getAddress (), NOTIFY_LOAD_STATUS);
+		OS.g_signal_connect (webView, WebKitGTK.web_view_ready, Proc2.getAddress (), WEB_VIEW_READY);
+		OS.g_signal_connect (webView, WebKitGTK.navigation_policy_decision_requested, Proc6.getAddress (), NAVIGATION_POLICY_DECISION_REQUESTED);
+		OS.g_signal_connect (webView, WebKitGTK.mime_type_policy_decision_requested, Proc6.getAddress (), MIME_TYPE_POLICY_DECISION_REQUESTED);
+		OS.g_signal_connect (webView, WebKitGTK.resource_request_starting, Proc6.getAddress (), RESOURCE_REQUEST_STARTING);
+		OS.g_signal_connect (webView, WebKitGTK.download_requested, Proc3.getAddress (), DOWNLOAD_REQUESTED);
+		OS.g_signal_connect (webView, WebKitGTK.hovering_over_link, Proc4.getAddress (), HOVERING_OVER_LINK);
+		OS.g_signal_connect (webView, WebKitGTK.populate_popup, Proc3.getAddress (), POPULATE_POPUP);
+		OS.g_signal_connect (webView, WebKitGTK.notify_progress, Proc3.getAddress (), NOTIFY_PROGRESS);
+		OS.g_signal_connect (webView, WebKitGTK.window_object_cleared, Proc5.getAddress (), WINDOW_OBJECT_CLEARED);
+		OS.g_signal_connect (webView, WebKitGTK.status_bar_text_changed, Proc3.getAddress (), STATUS_BAR_TEXT_CHANGED);
+	} else {
+		OS.gtk_container_add (browser.handle, webView);
+
+		OS.g_signal_connect (webView, WebKitGTK.close, Proc2.getAddress (), CLOSE_WEB_VIEW);
+		OS.g_signal_connect (webView, WebKitGTK.create, Proc3.getAddress (), CREATE_WEB_VIEW);
+		OS.g_signal_connect (webView, WebKitGTK.load_changed, Proc3.getAddress (), LOAD_CHANGED);
+		OS.g_signal_connect (webView, WebKitGTK.ready_to_show, Proc2.getAddress (), WEB_VIEW_READY);
+		OS.g_signal_connect (webView, WebKitGTK.decide_policy, Proc4.getAddress (), DECIDE_POLICY);
+		OS.g_signal_connect (WebKitGTK.webkit_web_context_get_default(), WebKitGTK.download_started, Proc3.getAddress (), DOWNLOAD_REQUESTED);
+		OS.g_signal_connect (webView, WebKitGTK.mouse_target_changed, Proc4.getAddress (), MOUSE_TARGET_CHANGED);
+		OS.g_signal_connect (webView, WebKitGTK.context_menu, Proc5.getAddress (), CONTEXT_MENU);
+		OS.g_signal_connect (webView, WebKitGTK.notify_estimated_load_progress, Proc3.getAddress (), NOTIFY_PROGRESS);
+		OS.g_signal_connect (webView, WebKitGTK.authenticate, Proc3.getAddress (), AUTHENTICATE);
+	}
+
 	OS.gtk_widget_show (webView);
-	OS.g_signal_connect (webView, WebKitGTK.close_web_view, Proc2.getAddress (), CLOSE_WEB_VIEW);
-	OS.g_signal_connect (webView, WebKitGTK.console_message, Proc5.getAddress (), CONSOLE_MESSAGE);
-	OS.g_signal_connect (webView, WebKitGTK.create_web_view, Proc3.getAddress (), CREATE_WEB_VIEW);
-	OS.g_signal_connect (webView, WebKitGTK.download_requested, Proc3.getAddress (), DOWNLOAD_REQUESTED);
-	OS.g_signal_connect (webView, WebKitGTK.hovering_over_link, Proc4.getAddress (), HOVERING_OVER_LINK);
-	OS.g_signal_connect (webView, WebKitGTK.mime_type_policy_decision_requested, Proc6.getAddress (), MIME_TYPE_POLICY_DECISION_REQUESTED);
-	OS.g_signal_connect (webView, WebKitGTK.navigation_policy_decision_requested, Proc6.getAddress (), NAVIGATION_POLICY_DECISION_REQUESTED);
-	OS.g_signal_connect (webView, WebKitGTK.notify_load_status, Proc3.getAddress (), NOTIFY_LOAD_STATUS);
-	OS.g_signal_connect (webView, WebKitGTK.notify_progress, Proc3.getAddress (), NOTIFY_PROGRESS);
+	OS.gtk_widget_show (browser.handle);
+
 	OS.g_signal_connect (webView, WebKitGTK.notify_title, Proc3.getAddress (), NOTIFY_TITLE);
-	OS.g_signal_connect (webView, WebKitGTK.populate_popup, Proc3.getAddress (), POPULATE_POPUP);
-	OS.g_signal_connect (webView, WebKitGTK.resource_request_starting, Proc6.getAddress (), RESOURCE_REQUEST_STARTING);
-	OS.g_signal_connect (webView, WebKitGTK.status_bar_text_changed, Proc3.getAddress (), STATUS_BAR_TEXT_CHANGED);
-	OS.g_signal_connect (webView, WebKitGTK.web_view_ready, Proc2.getAddress (), WEB_VIEW_READY);
-	OS.g_signal_connect (webView, WebKitGTK.window_object_cleared, Proc5.getAddress (), WINDOW_OBJECT_CLEARED);
 
 	/* Callback to get events before WebKit receives and consumes them */
 	OS.g_signal_connect (webView, OS.button_press_event, JSDOMEventProc.getAddress (), 0);
@@ -546,18 +684,26 @@ public void create (Composite parent, int style) {
 	* This hook is set after WebKit and is therefore called after WebKit's 
 	* handler because GTK dispatches events in their order of registration.
 	*/
-	OS.g_signal_connect (scrolledWindow, OS.button_press_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
-	OS.g_signal_connect (scrolledWindow, OS.button_release_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
-	OS.g_signal_connect (scrolledWindow, OS.key_press_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
-	OS.g_signal_connect (scrolledWindow, OS.key_release_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
-	OS.g_signal_connect (scrolledWindow, OS.scroll_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
-	OS.g_signal_connect (scrolledWindow, OS.motion_notify_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
+	if (!WEBKIT2){
+		OS.g_signal_connect (scrolledWindow, OS.button_press_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
+		OS.g_signal_connect (scrolledWindow, OS.button_release_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
+		OS.g_signal_connect (scrolledWindow, OS.key_press_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
+		OS.g_signal_connect (scrolledWindow, OS.key_release_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
+		OS.g_signal_connect (scrolledWindow, OS.scroll_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
+		OS.g_signal_connect (scrolledWindow, OS.motion_notify_event, JSDOMEventProc.getAddress (), STOP_PROPOGATE);
+	}
+
+	byte[] bytes = Converter.wcsToMbcs (null, "UTF-8", true); // $NON-NLS-1$
 
 	int /*long*/ settings = WebKitGTK.webkit_web_view_get_settings (webView);
 	OS.g_object_set (settings, WebKitGTK.javascript_can_open_windows_automatically, 1, 0);
-	OS.g_object_set (settings, WebKitGTK.enable_universal_access_from_file_uris, 1, 0);
-	byte[] bytes = Converter.wcsToMbcs (null, "UTF-8", true); // $NON-NLS-1$
-	OS.g_object_set (settings, WebKitGTK.default_encoding, bytes, 0);
+
+	if (WEBKIT2){
+		OS.g_object_set (settings, WebKitGTK.default_charset, bytes, 0);
+	} else {
+		OS.g_object_set (settings, WebKitGTK.default_encoding, bytes, 0);
+		OS.g_object_set (settings, WebKitGTK.enable_universal_access_from_file_uris, 1, 0);
+	}
 
 	Listener listener = new Listener () {
 		public void handleEvent (Event event) {
@@ -590,53 +736,56 @@ public void create (Composite parent, int style) {
 	browser.addListener (SWT.KeyDown, listener);
 	browser.addListener (SWT.Resize, listener);
 
-	/*
-	* Ensure that our Authenticate listener is at the front of the signal
-	* queue by removing the default Authenticate listener, adding ours,
-	* and then re-adding the default listener.
-	*/
-	int /*long*/ session = WebKitGTK.webkit_get_default_session ();
-	int /*long*/ originalAuth = WebKitGTK.soup_session_get_feature (session, WebKitGTK.webkit_soup_auth_dialog_get_type ());
-	if (originalAuth != 0) {
-		WebKitGTK.soup_session_feature_detach (originalAuth, session);
-	}
-	OS.g_signal_connect (session, WebKitGTK.authenticate, Proc5.getAddress (), webView);
-	if (originalAuth != 0) {
-		WebKitGTK.soup_session_feature_attach (originalAuth, session);
-	}
+	if (!WEBKIT2){
+		/*
+		* Ensure that our Authenticate listener is at the front of the signal
+		* queue by removing the default Authenticate listener, adding ours,
+		* and then re-adding the default listener.
+		*/
+		int /*long*/ session = WebKitGTK.webkit_get_default_session ();
+		int /*long*/ originalAuth = WebKitGTK.soup_session_get_feature (session, WebKitGTK.webkit_soup_auth_dialog_get_type ());
+		if (originalAuth != 0) {
+			WebKitGTK.soup_session_feature_detach (originalAuth, session);
+		}
+		OS.g_signal_connect (session, WebKitGTK.authenticate, Proc5.getAddress (), webView);
+		if (originalAuth != 0) {
+			WebKitGTK.soup_session_feature_attach (originalAuth, session);
+		}
 
-	/*
-	* Check for proxy values set as documented java properties and update the
-	* session to use these values if needed.
-	*/
-	String proxyHost = System.getProperty (PROPERTY_PROXYHOST);
-	String proxyPortString = System.getProperty (PROPERTY_PROXYPORT);
-	int port = -1;
-	if (proxyPortString != null) {
-		try {
-			int value = Integer.valueOf (proxyPortString).intValue ();
-			if (0 <= value && value <= MAX_PORT) port = value;
-		} catch (NumberFormatException e) {
-			/* do nothing, java property has non-integer value */
+		/*
+		* Check for proxy values set as documented java properties and update the
+		* session to use these values if needed.
+		*/
+		String proxyHost = System.getProperty (PROPERTY_PROXYHOST);
+		String proxyPortString = System.getProperty (PROPERTY_PROXYPORT);
+		int port = -1;
+		if (proxyPortString != null) {
+			try {
+				int value = Integer.valueOf (proxyPortString).intValue ();
+				if (0 <= value && value <= MAX_PORT) port = value;
+			} catch (NumberFormatException e) {
+				/* do nothing, java property has non-integer value */
+			}
 		}
-	}
-	if (proxyHost != null || port != -1) {
-		if (!proxyHost.startsWith (PROTOCOL_HTTP)) {
-			proxyHost = PROTOCOL_HTTP + proxyHost;
-		}
-		proxyHost += ":" + port; //$NON-NLS-1$
-		bytes = Converter.wcsToMbcs (null, proxyHost, true);
-		int /*long*/ uri = WebKitGTK.soup_uri_new (bytes);
-		if (uri != 0) {
-			OS.g_object_set (session, WebKitGTK.SOUP_SESSION_PROXY_URI, uri, 0);
-			WebKitGTK.soup_uri_free (uri);
+		if (proxyHost != null || port != -1) {
+			if (!proxyHost.startsWith (PROTOCOL_HTTP)) {
+				proxyHost = PROTOCOL_HTTP + proxyHost;
+			}
+			proxyHost += ":" + port; //$NON-NLS-1$
+			bytes = Converter.wcsToMbcs (null, proxyHost, true);
+			int /*long*/ uri = WebKitGTK.soup_uri_new (bytes);
+			if (uri != 0) {
+				OS.g_object_set (session, WebKitGTK.SOUP_SESSION_PROXY_URI, uri, 0);
+				WebKitGTK.soup_uri_free (uri);
+			}
 		}
 	}
 
 	eventFunction = new BrowserFunction (browser, "HandleWebKitEvent") { //$NON-NLS-1$
+		@Override
 		public Object function(Object[] arguments) {
 			return handleEventFromFunction (arguments) ? Boolean.TRUE : Boolean.FALSE;
-		};	
+		}
 	};
 
 	/*
@@ -655,8 +804,14 @@ public void create (Composite parent, int style) {
 	 * it.  The workaround is to temporarily give it a size that forces
 	 * the native resize events to fire.
 	 */
-	int major = WebKitGTK.webkit_major_version ();
-	int minor = WebKitGTK.webkit_minor_version ();
+	int major, minor;
+	if (WEBKIT2){
+		major = WebKitGTK.webkit_get_major_version ();
+		minor = WebKitGTK.webkit_get_minor_version ();
+	} else {
+		major = WebKitGTK.webkit_major_version ();
+		minor = WebKitGTK.webkit_minor_version ();
+	}
 	if (major == 1 && minor >= 10) {
 		Rectangle minSize = browser.computeTrim (0, 0, 2, 2);
 		Point size = browser.getSize ();
@@ -670,7 +825,7 @@ public void create (Composite parent, int style) {
 void addEventHandlers (int /*long*/ web_view, boolean top) {
 	/*
 	* If JS is disabled (causes DOM events to not be delivered) then do not add event
-	* listeners here, DOM events will be inferred from received GDK events instead. 
+	* listeners here, DOM events will be inferred from received GDK events instead.
 	*/
 	if (!jsEnabled) return;
 
@@ -691,7 +846,7 @@ void addEventHandlers (int /*long*/ web_view, boolean top) {
 			* The following two lines are intentionally commented because they cannot be used to
 			* consistently send MouseEnter/MouseExit events until https://bugs.webkit.org/show_bug.cgi?id=35246
 			* is fixed.
-			*/ 
+			*/
 			//WebKitGTK.webkit_dom_event_target_add_event_listener (domWindow, WebKitGTK.mouseover, JSDOMEventProc.getAddress (), 0, SWT.MouseEnter);
 			//WebKitGTK.webkit_dom_event_target_add_event_listener (domWindow, WebKitGTK.mouseout, JSDOMEventProc.getAddress (), 0, SWT.MouseExit);
 		}
@@ -721,7 +876,7 @@ void addEventHandlers (int /*long*/ web_view, boolean top) {
 		* The following two lines are intentionally commented because they cannot be used to
 		* consistently send MouseEnter/MouseExit events until https://bugs.webkit.org/show_bug.cgi?id=35246
 		* is fixed.
-		*/ 
+		*/
 		//buffer.append ("document.addEventListener('mouseover', SWTmousehandler, true);"); //$NON-NLS-1$
 		//buffer.append ("document.addEventListener('mouseout', SWTmousehandler, true);"); //$NON-NLS-1$
 
@@ -745,12 +900,14 @@ void addEventHandlers (int /*long*/ web_view, boolean top) {
 	execute (buffer.toString ());
 }
 
+@Override
 public boolean back () {
 	if (WebKitGTK.webkit_web_view_can_go_back (webView) == 0) return false;
 	WebKitGTK.webkit_web_view_go_back (webView);
 	return true;
 }
 
+@Override
 public boolean close () {
 	return close (true);
 }
@@ -773,7 +930,7 @@ boolean close (boolean showPrompters) {
 		buffer.append (message2);
 		buffer.append ("');"); // $NON-NLS-1$
 		buffer.append ("if (!result) return false;}"); // $NON-NLS-1$
-	}	
+	}
 	buffer.append ("} catch (e) {}}"); // $NON-NLS-1$
 	buffer.append ("try {for (var i = 0; i < win.frames.length; i++) {var result = "); // $NON-NLS-1$
 	buffer.append (functionName);
@@ -786,10 +943,8 @@ boolean close (boolean showPrompters) {
 	return result.booleanValue ();
 }
 
+@Override
 public boolean execute (String script) {
-	int /*long*/ frame = WebKitGTK.webkit_web_view_get_main_frame (webView);
-	int /*long*/ context = WebKitGTK.webkit_web_frame_get_global_context (frame);
-
 	byte[] bytes = null;
 	try {
 		bytes = (script + '\0').getBytes (CHARSET_UTF8); //$NON-NLS-1$
@@ -803,24 +958,37 @@ public boolean execute (String script) {
 	} catch (UnsupportedEncodingException e) {
 		bytes = Converter.wcsToMbcs (null, getUrl (), true);
 	}
-	int /*long*/ urlString = WebKitGTK.JSStringCreateWithUTF8CString (bytes);
+	int /*long*/ result = 0;
 
-	int /*long*/ result = WebKitGTK.JSEvaluateScript (context, scriptString, 0, urlString, 0, null);
-	WebKitGTK.JSStringRelease (urlString);
+	if (WEBKIT2){
+		WebKitGTK.webkit_web_view_run_javascript (webView, scriptString, 0, 0, 0);
+	} else {
+		int /*long*/ urlString = WebKitGTK.JSStringCreateWithUTF8CString (bytes);
+
+		int /*long*/ frame = WebKitGTK.webkit_web_view_get_main_frame (webView);
+		int /*long*/ context = WebKitGTK.webkit_web_frame_get_global_context (frame);
+		result = WebKitGTK.JSEvaluateScript (context, scriptString, 0, urlString, 0, null);
+
+		WebKitGTK.JSStringRelease (urlString);
+	}
+
 	WebKitGTK.JSStringRelease (scriptString);
 	return result != 0;
 }
 
+@Override
 public boolean forward () {
 	if (WebKitGTK.webkit_web_view_can_go_forward (webView) == 0) return false;
 	WebKitGTK.webkit_web_view_go_forward (webView);
 	return true;
 }
 
+@Override
 public String getBrowserType () {
 	return "webkit"; //$NON-NLS-1$
 }
 
+@Override
 public String getText () {
 	int /*long*/ frame = WebKitGTK.webkit_web_view_get_main_frame (webView);
 	int /*long*/ source = WebKitGTK.webkit_web_frame_get_data_source (frame);
@@ -846,6 +1014,7 @@ public String getText () {
 	return new String (Converter.mbcsToWcs (null, bytes));
 }
 
+@Override
 public String getUrl () {
 	int /*long*/ uri = WebKitGTK.webkit_web_view_get_uri (webView);
 
@@ -907,15 +1076,15 @@ boolean handleDOMEvent (int /*long*/ event, int type) {
 		}
 		case SWT.KeyDown: {
 			typeString = "keydown"; //$NON-NLS-1$
-			break;	
+			break;
 		}
 		case SWT.KeyUp: {
 			typeString = "keyup"; //$NON-NLS-1$
-			break;	
+			break;
 		}
 		case SENTINEL_KEYPRESS: {
 			typeString = "keypress"; //$NON-NLS-1$
-			break;	
+			break;
 		}
 	}
 
@@ -963,7 +1132,7 @@ boolean handleEventFromFunction (Object[] arguments) {
 	* handleKeyEvent()/handleMouseEvent() event handler methods.
 	*/
 
-	/* 
+	/*
 	* The arguments for key events are:
 	* 	argument 0: type (String)
 	* 	argument 1: keyCode (Double)
@@ -973,7 +1142,7 @@ boolean handleEventFromFunction (Object[] arguments) {
 	* 	argument 5: shiftKey (Boolean)
 	* 	argument 6: metaKey (Boolean)
 	* 	returns doit
-	* 
+	*
 	* The arguments for mouse events are:
 	* 	argument 0: type (String)
 	* 	argument 1: screenX (Double)
@@ -1153,7 +1322,7 @@ boolean handleMouseEvent (String type, int screenX, int screenY, int detail, int
 	/*
 	* The following is intentionally commented because MouseOver and MouseOut events
 	* are not being hooked until https://bugs.webkit.org/show_bug.cgi?id=35246 is fixed.
-	*/ 
+	*/
 	//if (type.equals (DOMEVENT_MOUSEOVER) || type.equals (DOMEVENT_MOUSEOUT)) {
 	//	if (((Boolean)arguments[9]).booleanValue ()) return true;
 	//}
@@ -1165,7 +1334,7 @@ boolean handleMouseEvent (String type, int screenX, int screenY, int detail, int
 	 * level page.  Convert screen-relative coordinates to be browser-relative.
 	 */
 	Point position = new Point (screenX, screenY);
-	position = browser.getDisplay ().map (null, browser, position); 
+	position = browser.getDisplay ().map (null, browser, position);
 
 	Event mouseEvent = new Event ();
 	mouseEvent.widget = browser;
@@ -1207,7 +1376,7 @@ boolean handleMouseEvent (String type, int screenX, int screenY, int detail, int
 	/*
 	* The following is intentionally commented because MouseOver and MouseOut events
 	* are not being hooked until https://bugs.webkit.org/show_bug.cgi?id=35246 is fixed.
-	*/ 
+	*/
 	//} else if (type.equals (DOMEVENT_MOUSEOVER)) {
 	//	mouseEvent.type = SWT.MouseEnter;
 	//} else if (type.equals (DOMEVENT_MOUSEOUT)) {
@@ -1262,7 +1431,7 @@ int /*long*/ handleLoadCommitted (int /*long*/ uri, boolean top) {
 	* twice, once for the initial navigate to about:blank, and once for the auto-navigate
 	* to about:blank that WebKit does when webkit_web_view_load_string is invoked.  If
 	* this is the first webkit_notify_load_status callback received for a setText()
-	* invocation then do not send any events or re-install registered BrowserFunctions. 
+	* invocation then do not send any events or re-install registered BrowserFunctions.
 	*/
 	if (top && url.startsWith(ABOUT_BLANK) && htmlBytes != null) return 0;
 
@@ -1275,6 +1444,27 @@ int /*long*/ handleLoadCommitted (int /*long*/ uri, boolean top) {
 		locationListeners[i].changed (event);
 	}
 	return 0;
+}
+
+private void fireNewTitleEvent(String title){
+	TitleEvent newEvent = new TitleEvent (browser);
+	newEvent.display = browser.getDisplay ();
+	newEvent.widget = browser;
+	newEvent.title = title;
+	for (int i = 0; i < titleListeners.length; i++) {
+		titleListeners[i].changed (newEvent);
+	}
+}
+
+private void fireProgressCompletedEvent(){
+	ProgressEvent progress = new ProgressEvent (browser);
+	progress.display = browser.getDisplay ();
+	progress.widget = browser;
+	progress.current = MAX_PROGRESS;
+	progress.total = MAX_PROGRESS;
+	for (int i = 0; i < progressListeners.length; i++) {
+		progressListeners[i].completed (progress);
+	}
 }
 
 int /*long*/ handleLoadFinished (int /*long*/ uri, boolean top) {
@@ -1297,7 +1487,7 @@ int /*long*/ handleLoadFinished (int /*long*/ uri, boolean top) {
 
 	/*
 	 * If htmlBytes is not null then there is html from a previous setText() call
-	 * waiting to be set into the about:blank page once it has completed loading. 
+	 * waiting to be set into the about:blank page once it has completed loading.
 	 */
 	if (top && htmlBytes != null) {
 		if (url.startsWith(ABOUT_BLANK)) {
@@ -1332,35 +1522,24 @@ int /*long*/ handleLoadFinished (int /*long*/ uri, boolean top) {
 			int /*long*/ frame = WebKitGTK.webkit_web_view_get_main_frame (webView);
 			int /*long*/ title = WebKitGTK.webkit_web_frame_get_title (frame);
 			if (title == 0) {
-				TitleEvent newEvent = new TitleEvent (browser);
-				newEvent.display = browser.getDisplay ();
-				newEvent.widget = browser;
-				newEvent.title = url;
-				for (int i = 0; i < titleListeners.length; i++) {
-					titleListeners[i].changed (newEvent);
-				}
+				fireNewTitleEvent(url);
 				if (browser.isDisposed ()) return 0;
 			}
 		}
 
-		ProgressEvent progress = new ProgressEvent (browser);
-		progress.display = browser.getDisplay ();
-		progress.widget = browser;
-		progress.current = MAX_PROGRESS;
-		progress.total = MAX_PROGRESS;
-		for (int i = 0; i < progressListeners.length; i++) {
-			progressListeners[i].completed (progress);
-		}
+		fireProgressCompletedEvent();
 	}
 	loadingText = false;
 
 	return 0;
 }
 
+@Override
 public boolean isBackEnabled () {
 	return WebKitGTK.webkit_web_view_can_go_back (webView) != 0;
 }
 
+@Override
 public boolean isForwardEnabled () {
 	return WebKitGTK.webkit_web_view_can_go_forward (webView) != 0;
 }
@@ -1374,12 +1553,12 @@ void onDispose (Event e) {
 		}
 	}
 
-	Enumeration elements = functions.elements ();
+	Enumeration<BrowserFunction> elements = functions.elements ();
 	while (elements.hasMoreElements ()) {
-		((BrowserFunction)elements.nextElement ()).dispose (false);
+		elements.nextElement ().dispose (false);
 	}
 	functions = null;
-	
+
 	if (eventFunction != null) {
 		eventFunction.dispose (false);
 		eventFunction = null;
@@ -1393,7 +1572,11 @@ void onDispose (Event e) {
 
 void onResize (Event e) {
 	Rectangle rect = browser.getClientArea ();
-	OS.gtk_widget_set_size_request (scrolledWindow, rect.width, rect.height);
+	if (WEBKIT2){
+		OS.gtk_widget_set_size_request (webView, rect.width, rect.height);
+	} else {
+		OS.gtk_widget_set_size_request (scrolledWindow, rect.width, rect.height);
+	}
 }
 
 void openDownloadWindow (final int /*long*/ webkitDownload) {
@@ -1482,10 +1665,12 @@ void openDownloadWindow (final int /*long*/ webkitDownload) {
 	shell.open ();
 }
 
+@Override
 public void refresh () {
 	WebKitGTK.webkit_web_view_reload (webView);
 }
 
+@Override
 public boolean setText (String html, boolean trusted) {
 	/* convert the String containing HTML to an array of bytes with UTF-8 data */
 	byte[] bytes = null;
@@ -1502,13 +1687,26 @@ public boolean setText (String html, boolean trusted) {
 	boolean blankLoading = htmlBytes != null;
 	htmlBytes = bytes;
 	untrustedText = !trusted;
-	if (blankLoading) return true;
 
-	byte[] uriBytes = Converter.wcsToMbcs (null, ABOUT_BLANK, true);
-	WebKitGTK.webkit_web_view_load_uri (webView, uriBytes);
+	if (WEBKIT2) {
+		byte[] uriBytes;
+		if (untrustedText) {
+			uriBytes = Converter.wcsToMbcs (null, ABOUT_BLANK, true);
+		} else {
+			uriBytes = Converter.wcsToMbcs (null, URI_FILEROOT, true);
+		}
+		WebKitGTK.webkit_web_view_load_html (webView, htmlBytes, uriBytes);
+	} else {
+		if (blankLoading) return true;
+
+		byte[] uriBytes = Converter.wcsToMbcs (null, ABOUT_BLANK, true);
+		WebKitGTK.webkit_web_view_load_uri (webView, uriBytes);
+	}
+
 	return true;
 }
 
+@Override
 public boolean setUrl (String url, String postData, String[] headers) {
 	this.postData = postData;
 	this.headers = headers;
@@ -1524,7 +1722,7 @@ public boolean setUrl (String url, String postData, String[] headers) {
 		String testUrl = null;
 		if (url.charAt (0) == SEPARATOR_FILE) {
 			/* appears to be a local file */
-			testUrl = PROTOCOL_FILE + url; 
+			testUrl = PROTOCOL_FILE + url;
 		} else {
 			testUrl = PROTOCOL_HTTP + url;
 		}
@@ -1562,12 +1760,24 @@ public boolean setUrl (String url, String postData, String[] headers) {
 			}
 		}
 	}
+
 	byte[] uriBytes = Converter.wcsToMbcs (null, url, true);
+
+	if (WEBKIT2 && headers != null){
+		int /*long*/ request = WebKitGTK.webkit_uri_request_new (uriBytes);
+		int /*long*/ requestHeaders = WebKitGTK.webkit_uri_request_get_http_headers (request);
+		addRequestHeaders(requestHeaders, headers);
+		WebKitGTK.webkit_web_view_load_request (webView, request);
+
+		return true;
+	}
+
 	WebKitGTK.webkit_web_view_load_uri (webView, uriBytes);
 	OS.g_object_set (settings, WebKitGTK.user_agent, 0, 0);
 	return true;
 }
 
+@Override
 public void stop () {
 	WebKitGTK.webkit_web_view_stop_loading (webView);
 }
@@ -1670,6 +1880,16 @@ int /*long*/ webkit_download_requested (int /*long*/ web_view, int /*long*/ down
 	return 1;
 }
 
+int /*long*/ webkit_mouse_target_changed (int /*long*/ web_view, int /*long*/ hit_test_result, int /*long*/ modifiers) {
+	if (WebKitGTK.webkit_hit_test_result_context_is_link(hit_test_result)){
+		int /*long*/ uri = WebKitGTK.webkit_hit_test_result_get_link_uri(hit_test_result);
+		int /*long*/ title = WebKitGTK.webkit_hit_test_result_get_link_title(hit_test_result);
+		return webkit_hovering_over_link(web_view, title, uri);
+	}
+
+	return 0;
+}
+
 int /*long*/ webkit_hovering_over_link (int /*long*/ web_view, int /*long*/ title, int /*long*/ uri) {
 	if (uri != 0) {
 		int length = OS.strlen (uri);
@@ -1698,7 +1918,7 @@ int /*long*/ webkit_mime_type_policy_decision_requested (int /*long*/ web_view, 
 
 int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view, int /*long*/ frame, int /*long*/ request, int /*long*/ navigation_action, int /*long*/ policy_decision) {
 	if (loadingText) {
-		/* 
+		/*
 		 * WebKit is auto-navigating to about:blank in response to a
 		 * webkit_web_view_load_string() invocation.  This navigate
 		 * should always proceed without sending an event since it is
@@ -1754,18 +1974,80 @@ int /*long*/ webkit_navigation_policy_decision_requested (int /*long*/ web_view,
 		}
 
 		/*
-		* The following line is intentionally commented.  For some reason, invoking 
+		* The following line is intentionally commented.  For some reason, invoking
 		* webkit_web_policy_decision_use(policy_decision) causes the Flash plug-in
 		* to crash when navigating to a page with Flash.  Since returning from this
 		* callback without invoking webkit_web_policy_decision_ignore(policy_decision)
 		* implies that the page should be loaded, it's fine to not invoke
-		* webkit_web_policy_decision_use(policy_decision) here. 
+		* webkit_web_policy_decision_use(policy_decision) here.
 		*/
 		//WebKitGTK.webkit_web_policy_decision_use (policy_decision);
 	} else {
 		WebKitGTK.webkit_web_policy_decision_ignore (policy_decision);
 	}
 	return 0;
+}
+
+int /*long*/ webkit_decide_policy (int /*long*/ web_view, int /*long*/ decision, int decision_type, int /*long*/ user_data) {
+    switch (decision_type) {
+    case WebKitGTK.WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION:
+       int /*long*/ request = WebKitGTK. webkit_navigation_policy_decision_get_request(decision);
+       if (request == 0){
+          return 0;
+       }
+       int /*long*/ uri = WebKitGTK.webkit_uri_request_get_uri (request);
+       String url = getString(uri);
+       /*
+        * If the URI indicates that the page is being rendered from memory
+        * (via setText()) then set it to about:blank to be consistent with IE.
+        */
+       if (url.equals (URI_FILEROOT)) {
+          url = ABOUT_BLANK;
+       } else {
+          int length = URI_FILEROOT.length ();
+          if (url.startsWith (URI_FILEROOT) && url.charAt (length) == '#') {
+             url = ABOUT_BLANK + url.substring (length);
+          }
+       }
+
+       LocationEvent newEvent = new LocationEvent (browser);
+       newEvent.display = browser.getDisplay ();
+       newEvent.widget = browser;
+       newEvent.location = url;
+       newEvent.doit = true;
+       if (locationListeners != null) {
+          for (int i = 0; i < locationListeners.length; i++) {
+             locationListeners[i].changing (newEvent);
+          }
+       }
+       if (newEvent.doit && !browser.isDisposed ()) {
+          if (jsEnabled != jsEnabledOnNextPage) {
+             jsEnabled = jsEnabledOnNextPage;
+             DisabledJSCount += !jsEnabled ? 1 : -1;
+             int /*long*/ settings = WebKitGTK.webkit_web_view_get_settings (webView);
+             OS.g_object_set (settings, WebKitGTK.enable_scripts, jsEnabled ? 1 : 0, 0);
+          }
+       }
+       if(!newEvent.doit){
+         WebKitGTK.webkit_policy_decision_ignore (decision);
+       }
+       break;
+    case WebKitGTK.WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION:
+        break;
+    case WebKitGTK.WEBKIT_POLICY_DECISION_TYPE_RESPONSE:
+       int /*long*/ response = WebKitGTK.webkit_response_policy_decision_get_response(decision);
+       int /*long*/ mime_type = WebKitGTK.webkit_uri_response_get_mime_type(response);
+       boolean canShow = WebKitGTK.webkit_web_view_can_show_mime_type (webView, mime_type) != 0;
+       if (!canShow) {
+         WebKitGTK.webkit_policy_decision_download (decision);
+         return 1;
+       }
+       break;
+    default:
+        /* Making no decision results in webkit_policy_decision_use(). */
+        return 0;
+    }
+    return 0;
 }
 
 int /*long*/ webkit_notify_load_status (int /*long*/ web_view, int /*long*/ pspec) {
@@ -1783,14 +2065,41 @@ int /*long*/ webkit_notify_load_status (int /*long*/ web_view, int /*long*/ pspe
 	return 0;
 }
 
+int /*long*/ webkit_load_changed (int /*long*/ web_view, int status, long user_data) {
+	switch (status) {
+		case WebKitGTK.WEBKIT2_LOAD_COMMITTED: {
+			int /*long*/ uri = WebKitGTK.webkit_web_view_get_uri (webView);
+			return handleLoadCommitted (uri, true);
+		}
+		case WebKitGTK.WEBKIT2_LOAD_FINISHED: {
+			int /*long*/ title = WebKitGTK.webkit_web_view_get_title (webView);
+			if (title == 0) {
+				int /*long*/ uri = WebKitGTK.webkit_web_view_get_uri (webView);
+				fireNewTitleEvent(getString(uri));
+			}
+
+			fireProgressCompletedEvent();
+
+			return 0;
+		}
+	}
+	return 0;
+}
+
 int /*long*/ webkit_notify_progress (int /*long*/ web_view, int /*long*/ pspec) {
 	ProgressEvent event = new ProgressEvent (browser);
 	event.display = browser.getDisplay ();
 	event.widget = browser;
-	event.current = (int)(WebKitGTK.webkit_web_view_get_progress (webView) * MAX_PROGRESS);
+	double progress = 0;
+	if (WEBKIT2){
+		progress = WebKitGTK.webkit_web_view_get_estimated_load_progress (webView);
+	} else {
+		progress = WebKitGTK.webkit_web_view_get_progress (webView);
+	}
+	event.current = (int) (progress * MAX_PROGRESS);
 	event.total = MAX_PROGRESS;
 	for (int i = 0; i < progressListeners.length; i++) {
-		progressListeners[i].changed (event);				
+		progressListeners[i].changed (event);
 	}
 	return 0;
 }
@@ -1812,6 +2121,29 @@ int /*long*/ webkit_notify_title (int /*long*/ web_view, int /*long*/ pspec) {
 	event.title = titleString;
 	for (int i = 0; i < titleListeners.length; i++) {
 		titleListeners[i].changed (event);
+	}
+	return 0;
+}
+
+int /*long*/ webkit_context_menu (int /*long*/ web_view, int /*long*/ context_menu, int /*long*/ eventXXX, int /*long*/ hit_test_result) {
+	Point pt = browser.getDisplay ().getCursorLocation ();
+	Event event = new Event ();
+	event.x = pt.x;
+	event.y = pt.y;
+	browser.notifyListeners (SWT.MenuDetect, event);
+	if (!event.doit) {
+		// Do not display the menu
+		return 1;
+	}
+
+	Menu menu = browser.getMenu ();
+	if (menu != null && !menu.isDisposed ()) {
+		if (pt.x != event.x || pt.y != event.y) {
+			menu.setLocation (event.x, event.y);
+		}
+		menu.setVisible (true);
+		// Do not display the webkit menu
+		return 1;
 	}
 	return 0;
 }
@@ -1853,6 +2185,25 @@ int /*long*/ webkit_populate_popup (int /*long*/ web_view, int /*long*/ webkit_m
 	return 0;
 }
 
+private void addRequestHeaders(int /*long*/ requestHeaders, String[] headers){
+	for (int i = 0; i < headers.length; i++) {
+		String current = headers[i];
+		if (current != null) {
+			int index = current.indexOf (':');
+			if (index != -1) {
+				String key = current.substring (0, index).trim ();
+				String value = current.substring (index + 1).trim ();
+				if (key.length () > 0 && value.length () > 0) {
+					byte[] nameBytes = Converter.wcsToMbcs (null, key, true);
+					byte[] valueBytes = Converter.wcsToMbcs (null, value, true);
+					WebKitGTK.soup_message_headers_append (requestHeaders, nameBytes, valueBytes);
+				}
+			}
+		}
+	}
+
+}
+
 int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long*/ web_frame, int /*long*/ web_resource, int /*long*/ request, int /*long*/ response) {
 	if (postData != null || headers != null) {
 		int /*long*/ message = WebKitGTK.webkit_network_request_get_message (request);
@@ -1861,6 +2212,7 @@ int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long
 			postData = null;
 		} else {
 			if (postData != null) {
+				// Set the message method type to POST
 				WebKitGTK.SoupMessage_method (message, PostString);
 				int /*long*/ body = WebKitGTK.SoupMessage_request_body (message);
 				byte[] bytes = Converter.wcsToMbcs (null, postData, false);
@@ -1892,21 +2244,7 @@ int /*long*/ webkit_resource_request_starting (int /*long*/ web_view, int /*long
 
 			/* headers */
 			int /*long*/ requestHeaders = WebKitGTK.SoupMessage_request_headers (message);
-			for (int i = 0; i < headers.length; i++) {
-				String current = headers[i];
-				if (current != null) {
-					int index = current.indexOf (':');
-					if (index != -1) {
-						String key = current.substring (0, index).trim ();
-						String value = current.substring (index + 1).trim ();
-						if (key.length () > 0 && value.length () > 0) {
-							byte[] nameBytes = Converter.wcsToMbcs (null, key, true);
-							byte[] valueBytes = Converter.wcsToMbcs (null, value, true);
-							WebKitGTK.soup_message_headers_append (requestHeaders, nameBytes, valueBytes);
-						}
-					}
-				}
-			}
+			addRequestHeaders(requestHeaders, headers);
 			headers = null;
 		}
 	}
@@ -1979,13 +2317,13 @@ int /*long*/ webkit_window_object_cleared (int /*long*/ web_view, int /*long*/ f
 		bytes = (OBJECTNAME_EXTERNAL + '\0').getBytes (CHARSET_UTF8);
 	} catch (UnsupportedEncodingException e) {
 		bytes = Converter.wcsToMbcs (null, OBJECTNAME_EXTERNAL, true);
-	} 
+	}
 	int /*long*/ name = WebKitGTK.JSStringCreateWithUTF8CString (bytes);
 	WebKitGTK.JSObjectSetProperty (context, globalObject, name, externalObject, 0, null);
 	WebKitGTK.JSStringRelease (name);
-	Enumeration elements = functions.elements ();
+	Enumeration<BrowserFunction> elements = functions.elements ();
 	while (elements.hasMoreElements ()) {
-		BrowserFunction current = (BrowserFunction)elements.nextElement ();
+		BrowserFunction current = elements.nextElement ();
 		execute (current.functionString);
 	}
 	int /*long*/ mainFrame = WebKitGTK.webkit_web_view_get_main_frame (webView);
@@ -2003,12 +2341,12 @@ int /*long*/ callJava (int /*long*/ ctx, int /*long*/ func, int /*long*/ thisObj
 		if (type == WebKitGTK.kJSTypeNumber) {
 			int index = ((Double)convertToJava (ctx, result[0])).intValue ();
 			result[0] = 0;
-			Object key = new Integer (index);
+			Integer key = new Integer (index);
 			C.memmove (result, arguments + C.PTR_SIZEOF, C.PTR_SIZEOF);
 			type = WebKitGTK.JSValueGetType (ctx, result[0]);
 			if (type == WebKitGTK.kJSTypeString) {
 				String token = (String)convertToJava (ctx, result[0]);
-				BrowserFunction function = (BrowserFunction)functions.get (key);
+				BrowserFunction function = functions.get (key);
 				if (function != null && token.equals (function.token)) {
 					try {
 						C.memmove (result, arguments + 2 * C.PTR_SIZEOF, C.PTR_SIZEOF);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2014 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -76,6 +76,7 @@ public class CTabFolder extends Composite {
 	 * 
 	 * @deprecated This field is no longer used.  See setMinimumCharacters(int)
 	 */
+	@Deprecated
 	public int MIN_TAB_WIDTH = 4;
 	
 	/**
@@ -86,6 +87,7 @@ public class CTabFolder extends Composite {
 	 * 
 	 * @deprecated drop shadow border is no longer drawn in 3.0
 	 */
+	@Deprecated
 	public static RGB borderInsideRGB  = new RGB (132, 130, 132);
 	/**
 	 * Color of middle line of drop shadow border.
@@ -95,6 +97,7 @@ public class CTabFolder extends Composite {
 	 * 
 	 * @deprecated drop shadow border is no longer drawn in 3.0
 	 */
+	@Deprecated
 	public static RGB borderMiddleRGB  = new RGB (143, 141, 138);
 	/**
 	 * Color of outermost line of drop shadow border.
@@ -104,6 +107,7 @@ public class CTabFolder extends Composite {
 	 * 
 	 * @deprecated drop shadow border is no longer drawn in 3.0
 	 */
+	@Deprecated
 	public static RGB borderOutsideRGB = new RGB (171, 168, 165); 
 
 	/* sizing, positioning */
@@ -118,8 +122,51 @@ public class CTabFolder extends Composite {
 	/* item management */
 	CTabFolderRenderer renderer;
 	CTabItem items[] = new CTabItem[0];
-	int firstIndex = -1; // index of the left most visible tab.
+	/** index of the left most visible tab. */
+	int firstIndex = -1;
 	int selectedIndex = -1;
+
+	/**
+	 * Indices of the elements in the {@link #items} array, used to manage tab
+	 * visibility and candidates to be hidden/shown next.
+	 * <p>
+	 * If there is not enough place for all tabs, tabs starting from the end of
+	 * the {@link #priority} array will be hidden first (independently from the
+	 * {@link #mru} flag!) => the right most elements have the highest priority
+	 * to be hidden.
+	 * <p>
+	 * If there is more place to show previously hidden tabs, tabs starting from
+	 * the beginning of the {@link #priority} array will be made visible first
+	 * (independently from the {@link #mru} flag!) => the left most elements
+	 * have the highest priority to be shown.
+	 * <p>
+	 * The update strategy of the {@link #priority} array however depends on the
+	 * {@link #mru} flag.
+	 * <p>
+	 * If {@link #mru} flag is set, the first index is always the index of the
+	 * currently selected tab, next one is the tab selected before current
+	 * etc...
+	 * <p>
+	 * Example: [4,2,5,1,3,0], just representing the last selection order.
+	 * <p>
+	 * If {@link #mru} flag is not set, the first index is always the index of
+	 * the left most visible tab ({@link #firstIndex} field), next indices are
+	 * incremented by one up to <code>priority.length-1</code>, and the rest
+	 * filled with indices starting with <code>firstIndex-1</code> and
+	 * decremented by one until 0 index is reached.
+	 * <p>
+	 * The tabs between first index and the index of the currently selected tab
+	 * are always visible.
+	 * <p>
+	 * Example: 6 tabs, 2 and 3 are indices of currently shown tabs:
+	 * [2,3,4,5,1,0]. The array consists of two blocks: sorted ascending from
+	 * first visible (2) to last available (5), and the rest sorted descending
+	 * (1,0). 4 and 5 are the hidden tabs on the right side, 0 and 1 are the
+	 * hidden tabs on the left side from the visible tabs 2 and 3.
+	 *
+	 * @see #updateItems(int)
+	 * @see #setItemLocation(GC)
+	 */
 	int[] priority = new int[0];
 	boolean mru = false;
 	Listener listener;
@@ -206,7 +253,11 @@ public class CTabFolder extends Composite {
 	
 	//TODO: add setter for spacing?
 	static final int SPACING = 3;
-	
+	static final boolean IS_GTK;
+	static {
+		String platform = SWT.getPlatform();
+		IS_GTK = "gtk".equals(platform);
+	}
 /**
  * Constructs a new instance of this class given its parent
  * and a style value describing its behavior and appearance.
@@ -390,6 +441,7 @@ public void addCTabFolder2Listener(CTabFolder2Listener listener) {
  * 
  * @deprecated use addCTabFolder2Listener(CTabFolder2Listener)
  */
+@Deprecated
 public void addCTabFolderListener(CTabFolderListener listener) {
 	checkWidget();
 	if (listener == null) SWT.error (SWT.ERROR_NULL_ARGUMENT);
@@ -630,6 +682,7 @@ int getControlHeight(Point ctrlSize) {
 //		SWT.error (SWT.ERROR_INVALID_SUBCLASS);
 //	}
 //}
+@Override
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget();
 	Rectangle trim =  renderer.computeTrim(CTabFolderRenderer.PART_BODY, SWT.NONE, x, y, width, height);
@@ -680,7 +733,7 @@ void createItem (CTabItem item, int index) {
 	int[] newPriority = new int[priority.length + 1];
 	int next = 0,  priorityIndex = priority.length;
 	for (int i = 0; i < priority.length; i++) {
-		if (!mru && (priority[i] == index || (priority[i] == 0 && index+1 == items.length))) {
+		if (!mru && priority[i] == index) {
 			priorityIndex = next++;
 		}
 		newPriority[next++] = priority[i] >= index ? priority[i] + 1 : priority[i];
@@ -791,6 +844,7 @@ ToolBar getChevron() {
 	checkWidget();
 	return chevronVisible;
 }
+@Override
 public Rectangle getClientArea() {
 	checkWidget();
 	//TODO: HACK - find a better way to get padding
@@ -1161,6 +1215,7 @@ public boolean getSingle() {
 	return single;
 }
 
+@Override
 public int getStyle() {
 	int style = super.getStyle();
 	style &= ~(SWT.TOP | SWT.BOTTOM);
@@ -1289,6 +1344,7 @@ public int indexOf(CTabItem item) {
 void initAccessible() {
 	final Accessible accessible = getAccessible();
 	accessible.addAccessibleListener(new AccessibleAdapter() {
+		@Override
 		public void getName(AccessibleEvent e) {
 			CTabItem item = null;
 			int childID = e.childID;
@@ -1302,6 +1358,7 @@ void initAccessible() {
 			e.result = item == null ? null : stripMnemonic(item.getText());
 		}
 
+		@Override
 		public void getHelp(AccessibleEvent e) {
 			String help = null;
 			int childID = e.childID;
@@ -1313,6 +1370,7 @@ void initAccessible() {
 			e.result = help;
 		}
 		
+		@Override
 		public void getKeyboardShortcut(AccessibleEvent e) {
 			String shortcut = null;
 			int childID = e.childID;
@@ -1333,6 +1391,7 @@ void initAccessible() {
 	});
 	
 	accessible.addAccessibleControlListener(new AccessibleControlAdapter() {
+		@Override
 		public void getChildAtPoint(AccessibleControlEvent e) {
 			Point testPoint = toControl(e.x, e.y);
 			int childID = ACC.CHILDID_NONE;
@@ -1353,6 +1412,7 @@ void initAccessible() {
 			e.childID = childID;
 		}
 
+		@Override
 		public void getLocation(AccessibleControlEvent e) {
 			Rectangle location = null;
 			Point pt = null;
@@ -1376,10 +1436,12 @@ void initAccessible() {
 			}
 		}
 		
+		@Override
 		public void getChildCount(AccessibleControlEvent e) {
 			e.detail = items.length;
 		}
 		
+		@Override
 		public void getDefaultAction(AccessibleControlEvent e) {
 			String action = null;
 			int childID = e.childID;
@@ -1389,6 +1451,7 @@ void initAccessible() {
 			e.result = action;
 		}
 
+		@Override
 		public void getFocus(AccessibleControlEvent e) {
 			int childID = ACC.CHILDID_NONE;
 			if (isFocusControl()) {
@@ -1401,6 +1464,7 @@ void initAccessible() {
 			e.childID = childID;
 		}
 
+		@Override
 		public void getRole(AccessibleControlEvent e) {
 			int role = 0;
 			int childID = e.childID;
@@ -1412,10 +1476,12 @@ void initAccessible() {
 			e.detail = role;
 		}
 		
+		@Override
 		public void getSelection(AccessibleControlEvent e) {
 			e.childID = (selectedIndex == -1) ? ACC.CHILDID_NONE : selectedIndex;
 		}
 		
+		@Override
 		public void getState(AccessibleControlEvent e) {
 			int state = 0;
 			int childID = e.childID;
@@ -1436,6 +1502,7 @@ void initAccessible() {
 			e.detail = state;
 		}
 		
+		@Override
 		public void getChildren(AccessibleControlEvent e) {
 			int childIdCount = items.length;
 			Object[] children = new Object[childIdCount];
@@ -1470,6 +1537,7 @@ void initAccessible() {
 }
 void initAccessibleMinMaxTb() {
 	minMaxTb.getAccessible().addAccessibleListener(new AccessibleAdapter() {
+		@Override
 		public void getName(AccessibleEvent e) {
 			if (e.childID != ACC.CHILDID_SELF) {
 				if (minItem != null && e.childID == minMaxTb.indexOf(minItem)) {
@@ -1483,6 +1551,7 @@ void initAccessibleMinMaxTb() {
 }
 void initAccessibleChevronTb() {
 	chevronTb.getAccessible().addAccessibleListener(new AccessibleAdapter() {
+		@Override
 		public void getName(AccessibleEvent e) {
 			if (e.childID != ACC.CHILDID_SELF) {
 				if (chevronItem != null && e.childID == chevronTb.indexOf(chevronItem)) {
@@ -2184,6 +2253,7 @@ public void removeCTabFolder2Listener(CTabFolder2Listener listener) {
  * 
  * @deprecated see removeCTabFolderCloseListener(CTabFolderListener)
  */
+@Deprecated
 public void removeCTabFolderListener(CTabFolderListener listener) {
 	checkWidget();
 	if (listener == null) SWT.error (SWT.ERROR_NULL_ARGUMENT);
@@ -2231,6 +2301,7 @@ public void removeSelectionListener(SelectionListener listener) {
 	removeListener(SWT.DefaultSelection, listener);	
 }
 
+@Override
 public void reskin(int flags) {
 	super.reskin(flags);
 	for (int i = 0; i < items.length; i++) {
@@ -2238,6 +2309,7 @@ public void reskin(int flags) {
 	}
 }
 
+@Override
 public void setBackground (Color color) {
 	super.setBackground(color);
 	renderer.createAntialiasColors(); //TODO: need better caching strategy
@@ -2366,6 +2438,7 @@ public void setBackground(Color[] colors, int[] percents, boolean vertical) {
 	// Refresh with the new settings
 	redraw();
 }
+@Override
 public void setBackgroundImage(Image image) {
     	super.setBackgroundImage(image);
     	renderer.createAntialiasColors(); //TODO: need better caching strategy
@@ -2508,6 +2581,7 @@ void setButtonBounds(GC gc) {
 	controlRects = rects;
 	if (changed || hovering) updateBkImages();
 }
+@Override
 public boolean setFocus () {
 	checkWidget ();
 	
@@ -2537,6 +2611,7 @@ boolean isAncestor (Control control) {
 	}
 	return control == this;
 }
+@Override
 public void setFont(Font font) {
 	checkWidget();
 	if (font != null && font.equals(getFont())) return;
@@ -2544,6 +2619,7 @@ public void setFont(Font font) {
 	oldFont = getFont();
 	updateFolder(REDRAW);
 }
+@Override
 public void setForeground (Color color) {
 	super.setForeground(color);
 	redraw();
@@ -2570,11 +2646,12 @@ public void setInsertMark(CTabItem item, boolean after) {
  * 
  * A value of -1 will clear the mark.
  * 
- * @param index the index of the item with which the mark is associated or null
+ * @param index the index of the item with which the mark is associated or -1
  * 
  * @param after true if the mark should be displayed after the specified item
  * 
- * @exception IllegalArgumentException<ul>
+ * @exception IllegalArgumentException <ul>
+ *    <li>ERROR_INVALID_ARGUMENT when the index is invalid</li>
  * </ul>
  * 
  * @exception SWTException <ul>
@@ -2841,6 +2918,7 @@ public void setMaximizeVisible(boolean visible) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+@Override
 public void setLayout (Layout layout) {
 	checkWidget();
 	return;
@@ -3563,6 +3641,7 @@ void showList (Rectangle rect) {
 		item.setImage(tab.getImage());
 		item.setData(id, tab);
 		item.addSelectionListener(new SelectionAdapter() {
+			@Override
 			public void widgetSelected(SelectionEvent e) {
 				MenuItem menuItem = (MenuItem)e.widget;
 				int index = indexOf((CTabItem)menuItem.getData(id));
@@ -3659,10 +3738,14 @@ boolean updateItems (int showIndex) {
 		}
 		if (firstIndex != priority[0]) {
 			int index = 0;
+			// enumerate tabs from first visible to the last existing one (sorted ascending)
 			for (int i = firstIndex; i < items.length; i++) {
 				priority[index++] = i;
 			}
-			for (int i = 0; i < firstIndex; i++) {
+			// enumerate hidden tabs on the left hand from first visible one
+			// in the inverse order (sorted descending) so that the originally
+			// first opened tab is always at the end of the list
+			for (int i = firstIndex - 1; i >= 0; i--) {
 				priority[index++] = i;
 			}
 		}
@@ -3718,8 +3801,11 @@ void runUpdate() {
 	int flags = updateFlags;
 	updateFlags = 0;
 	Rectangle rectBefore = getClientArea();
-	updateTabHeight(false);
-	updateItems(selectedIndex);
+	boolean updated = updateTabHeight(false);
+	updated |= updateItems(selectedIndex);
+	if (IS_GTK && updated && getParent() != null) {
+		getParent().layout(true, false);
+	}
 	if ((flags & REDRAW) != 0) {
 		redraw();
 	} else if ((flags & REDRAW_TABS) != 0) {

@@ -1,6 +1,6 @@
 #!/bin/sh
 #*******************************************************************************
-# Copyright (c) 2000, 2012 IBM Corporation and others.
+# Copyright (c) 2000, 2014 IBM Corporation and others.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
 # which accompanies this distribution, and is available at
@@ -15,22 +15,27 @@
 cd `dirname $0`
 
 MAKE_TYPE=make
-
-# Check if we have to compile external.xpt from external.idl
-COMPONENTS_DIR=`pwd`/../../components
-if test ! -f ${COMPONENTS_DIR}/external.xpt; then
-	if test ! -f ${COMPONENTS_DIR}/external.idl; then
-		echo "Can't find ${COMPONENTS_DIR}/external.idl"
-	else
-		IDLDIR=`pkg-config --variable=idldir libxul | sed 's@/stable$@@'`/unstable
-		if test ! -d ${IDLDIR}; then
-			IDLDIR=`pkg-config --variable=idldir libxul`
-		fi
-		XPIDL=`pkg-config --variable=sdkdir libxul`/bin/xpidl
-		echo "${XPIDL} -m typelib -I ${IDLDIR} -e ${COMPONENTS_DIR}/external.xpt ${COMPONENTS_DIR}/external.idl"
-		${XPIDL} -m typelib -I ${IDLDIR} -e ${COMPONENTS_DIR}/external.xpt ${COMPONENTS_DIR}/external.idl
-	fi
+if [ "${GTK_VERSION}" = "" ]; then
+	GTK_VERSION=2.0
+	export GTK_VERSION
 fi
+
+# No longer necessary, but may be useful in future if we want to compile swt.idl rather than using a static one
+#
+# COMPONENTS_DIR=`pwd`/../../components
+# if test ! -f ${COMPONENTS_DIR}/external.xpt; then
+#	if test ! -f ${COMPONENTS_DIR}/external.idl; then
+#		echo "Can't find ${COMPONENTS_DIR}/external.idl"
+#	else
+#		IDLDIR=`pkg-config --variable=idldir libxul | sed 's@/stable$@@'`/unstable
+#		if test ! -d ${IDLDIR}; then
+#			IDLDIR=`pkg-config --variable=idldir libxul`
+#		fi
+#		XPIDL=`pkg-config --variable=sdkdir libxul`/bin/xpidl
+#		echo "${XPIDL} -m typelib -I ${IDLDIR} -e ${COMPONENTS_DIR}/external.xpt ${COMPONENTS_DIR}/external.idl"
+#		${XPIDL} -m typelib -I ${IDLDIR} -e ${COMPONENTS_DIR}/external.xpt ${COMPONENTS_DIR}/external.idl
+#	fi
+# fi
 
 # Determine which OS we are on
 if [ "${OS}" = "" ]; then
@@ -131,6 +136,9 @@ case $SWT_OS.$SWT_ARCH in
 		if [ "${XULRUNNER_LIBS}" = "" ]; then
 			export XULRUNNER_LIBS="-L${XULRUNNER_SDK}/lib -lxpcomglue"
 		fi
+#		if [ "${XULRUNNER31_SDK}" = "" ]; then
+#			export XULRUNNER31_SDK="/bluebird/teamswt/swt-builddir/geckoSDK/31/x86"
+#		fi
 		;;
 	"linux.x86_64")
 		if [ "${CC}" = "" ]; then
@@ -145,14 +153,14 @@ case $SWT_OS.$SWT_ARCH in
 		if [ "${MOZILLA_SDK}" = "" ]; then
 			export MOZILLA_SDK="/bluebird/teamswt/swt-builddir/mozilla/1.7/amd64/mozilla/dist/sdk"
 		fi
-		if [ "${XULRUNNER_SDK}" = "" ]; then
-			export XULRUNNER_SDK="/bluebird/teamswt/swt-builddir/xulrunner/1.8.0.1/amd64/mozilla/dist/sdk/"
-		fi
 		if [ "${MOZILLA_INCLUDES}" = "" ]; then
 			export MOZILLA_INCLUDES="-include ${MOZILLA_SDK}/include/mozilla-config.h -I${MOZILLA_SDK}/include"
 		fi
 		if [ "${MOZILLA_LIBS}" = "" ]; then
 			export MOZILLA_LIBS="-L${MOZILLA_SDK}/lib -L${MOZILLA_SDK}/bin -lxpcom -lnspr4 -lplds4 -lplc4"
+		fi
+		if [ "${XULRUNNER_SDK}" = "" ]; then
+			export XULRUNNER_SDK="/bluebird/teamswt/swt-builddir/xulrunner/1.8.0.1/amd64/mozilla/dist/sdk"
 		fi
 		if [ "${XULRUNNER_INCLUDES}" = "" ]; then
 			export XULRUNNER_INCLUDES="-include ${XULRUNNER_SDK}/include/mozilla-config.h -I${XULRUNNER_SDK}/include"
@@ -160,6 +168,9 @@ case $SWT_OS.$SWT_ARCH in
 		if [ "${XULRUNNER_LIBS}" = "" ]; then
 			export XULRUNNER_LIBS="-L${XULRUNNER_SDK}/lib -lxpcomglue"
 		fi
+#		if [ "${XULRUNNER31_SDK}" = "" ]; then
+#			export XULRUNNER31_SDK="/bluebird/teamswt/swt-builddir/geckoSDK/31/x86_64"
+#		fi
 		;;
 	"linux.ppc")
 		if [ "${CC}" = "" ]; then
@@ -208,6 +219,35 @@ case $SWT_OS.$SWT_ARCH in
 		fi
 		if [ "${XULRUNNER_SDK}" = "" ]; then
 			export XULRUNNER_SDK="/bluebird/teamswt/swt-builddir/xulrunner/1.8.1.1/ppc64/mozilla/dist/sdk/"
+		fi
+		if [ "${XULRUNNER_INCLUDES}" = "" ]; then
+			export XULRUNNER_INCLUDES="-include ${XULRUNNER_SDK}/include/mozilla-config.h -I${XULRUNNER_SDK}/include"
+		fi
+		if [ "${XULRUNNER_LIBS}" = "" ]; then
+			export XULRUNNER_LIBS="-m64 -L${XULRUNNER_SDK}/lib -lxpcomglue"
+		fi
+		if [ "${PKG_CONFIG_PATH}" = "" ]; then
+			export PKG_CONFIG_PATH="/usr/lib64/pkgconfig/"
+		fi
+		;;
+	"linux.ppc64le")
+		if [ "${CC}" = "" ]; then
+			export CC=gcc
+		fi
+		if [ "${JAVA_HOME}" = "" ]; then
+			export JAVA_HOME="/bluebird/teamswt/swt-builddir/JDKs/PPC64LE/jre5u10"
+		fi
+		if [ "${MOZILLA_SDK}" = "" ]; then
+			export MOZILLA_SDK=" /bluebird/teamswt/swt-builddir/mozilla/1.7/ppc64le/mozilla/dist/sdk"
+		fi
+		if [ "${MOZILLA_LIBS}" = "" ]; then
+			export MOZILLA_LIBS="-m64 -L${MOZILLA_SDK}/lib -L${MOZILLA_SDK}/bin -lxpcom -lnspr4 -lplds4 -lplc4"
+		fi
+		if [ "${MOZILLA_INCLUDES}" = "" ]; then
+			export MOZILLA_INCLUDES="-include ${MOZILLA_SDK}/include/mozilla-config.h -I${MOZILLA_SDK}/include"
+		fi
+		if [ "${XULRUNNER_SDK}" = "" ]; then
+			export XULRUNNER_SDK="/bluebird/teamswt/swt-builddir/xulrunner/1.8.1.1/ppc64le/mozilla/dist/sdk/"
 		fi
 		if [ "${XULRUNNER_INCLUDES}" = "" ]; then
 			export XULRUNNER_INCLUDES="-include ${XULRUNNER_SDK}/include/mozilla-config.h -I${XULRUNNER_SDK}/include"
@@ -411,19 +451,19 @@ esac
 
 
 # For 64-bit CPUs, we have a switch
-if [ ${MODEL} = 'x86_64' -o ${MODEL} = 'ppc64' -o ${MODEL} = 'ia64' -o ${MODEL} = 'sparc64'  -o ${MODEL} = 's390x' ]; then
+if [ ${MODEL} = 'x86_64' -o ${MODEL} = 'ppc64' -o ${MODEL} = 'ia64' -o ${MODEL} = 'sparc64'  -o ${MODEL} = 's390x' -o ${MODEL} = 'ppc64le' -o ${MODEL} = 'aarch64' ]; then
 	SWT_PTR_CFLAGS=-DJNI64
 	if [ -d /lib64 ]; then
 		XLIB64=-L/usr/X11R6/lib64
 		export XLIB64
 	fi
-	if [ ${MODEL} = 'ppc64' ]; then
+	if [ ${MODEL} = 'ppc64' -o ${MODEL} = 'ppc64le' ]; then
 		if [ ${OS} = 'AIX' ]; then
 			SWT_PTR_CFLAGS="${SWT_PTR_CFLAGS} -maix64"
 			SWT_LFLAGS=-maix64
 			export SWT_LFLAGS
 		else
-			SWT_PTR_CFLAGS="${SWT_PTR_CFLAGS} -m64"	
+			SWT_PTR_CFLAGS="${SWT_PTR_CFLAGS} -m64"
 			XLIB64="${XLIB64} -L/usr/lib64"
 			SWT_LFLAGS=-m64
 			export SWT_LFLAGS
@@ -445,22 +485,24 @@ if [ ${MODEL} = 'x86_64' -o ${MODEL} = 'ppc64' -o ${MODEL} = 'ia64' -o ${MODEL} 
 	export SWT_PTR_CFLAGS
 fi
 if [ ${MODEL} = 's390' ]; then
-	SWT_PTR_CFLAGS="-m31"	
+	SWT_PTR_CFLAGS="-m31"
 	SWT_LFLAGS=-m31
 	export SWT_LFLAGS SWT_PTR_CFLAGS
 fi
 if [ ${MODEL} = 'x86' -a ${SWT_OS} = 'linux' ]; then
-	SWT_PTR_CFLAGS="-m32"	
+	SWT_PTR_CFLAGS="-m32"
 	SWT_LFLAGS=-m32
 	export SWT_LFLAGS SWT_PTR_CFLAGS
 fi
 
-if [ x`pkg-config --exists gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0 && echo YES` = "xYES"  -a ${MODEL} != "sparc64" -a ${MODEL} != 'ia64' ]; then
+if [ x`pkg-config --exists gnome-vfs-module-2.0 libgnome-2.0 libgnomeui-2.0 && echo YES` = "xYES"  -a ${MODEL} != "sparc64" -a ${MODEL} != 'ia64' -a ${GTK_VERSION} != '3.0' ]; then
 	echo "libgnomeui-2.0 found, compiling SWT program support using GNOME"
 	MAKE_GNOME=make_gnome
 else
-	echo "libgnome-2.0 and libgnomeui-2.0 not found:"
-	echo "    *** SWT Program support for GNOME will not be compiled."
+	if [ ${GTK_VERSION} != '3.0' ]; then
+		echo "libgnome-2.0 and libgnomeui-2.0 not found:"
+		echo "    *** SWT Program support for GNOME will not be compiled."
+	fi
 fi
 
 if [ x`pkg-config --exists cairo && echo YES` = "xYES" ]; then

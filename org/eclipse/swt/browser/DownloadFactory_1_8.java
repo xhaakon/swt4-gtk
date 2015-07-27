@@ -30,16 +30,24 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 	
 	factory = new XPCOMObject (new int[] {2, 0, 0, 3, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return CreateInstance (args[0], args[1], args[2]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return LockFactory ((int)/*64*/args[0]);}
 	};
 }
@@ -64,7 +72,7 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 	
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;

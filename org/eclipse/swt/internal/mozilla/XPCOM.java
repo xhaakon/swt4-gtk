@@ -22,7 +22,8 @@
  *
  * IBM
  * -  Binding to permit interfacing between Mozilla and SWT
- * -  Copyright (C) 2003, 2013 IBM Corp.  All Rights Reserved.
+ * -  Copyright (C) 2003, 2014 IBM Corp.  All Rights Reserved.
+ *    Neil Rashbrook <neil@parkwaycc.co.uk> - Bug 429739
  *
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
@@ -31,8 +32,6 @@ import org.eclipse.swt.internal.*;
 
 /** @jniclass flags=cpp */
 public class XPCOM extends C {
-	public static final String MOZILLA_FIVE_HOME = "MOZILLA_FIVE_HOME"; //$NON-NLS-1$
-	public static final String MOZILLA_PLUGIN_PATH = "MOZ_PLUGIN_PATH"; //$NON-NLS-1$
 	public static final String CONTENT_MAYBETEXT = "application/x-vnd.mozilla.maybe-text"; //$NON-NLS-1$
 	public static final String CONTENT_MULTIPART = "multipart/x-mixed-replace"; //$NON-NLS-1$
 	public static final String DOMEVENT_FOCUS = "focus"; //$NON-NLS-1$
@@ -62,6 +61,7 @@ public class XPCOM extends C {
 	public static final nsID NS_PROMPTER_CID = new nsID("f2112d6a-0e28-421f-b46a-25c0b308cbd0"); //$NON-NLS-1$
 	public static final nsID NS_PROMPTSERVICE_CID = new nsID("a2112d6a-0e28-421f-b46a-25c0b308cbd0"); //$NON-NLS-1$
 	public static final nsID NS_IWEBBROWSER_CID = new nsID ("F1EAC761-87E9-11d3-AF80-00A024FFC08C"); //$NON-NLS-1$
+	public static final nsID NS_IWEBBROWSER_31_CID = new nsID ("cda5863a-aa9c-411e-be49-ea0d525ab4b5"); //$NON-NLS-1$
 	public static final nsID NS_IXPCONNECT_CID = new nsID ("CB6593E0-F9B2-11d2-BDD6-000064657374"); //$NON-NLS-1$
 
 	/* IID constants */
@@ -71,21 +71,22 @@ public class XPCOM extends C {
 	public static final nsID NS_IDIRECTORYSERVICE_IID = new nsID ("57a66a60-d43a-11d3-8cc2-00609792278c"); //$NON-NLS-1$
 	public static final nsID NS_IDIRECTORYSERVICEPROVIDER_IID = new nsID ("bbf8cab0-d43a-11d3-8cc2-00609792278c"); //$NON-NLS-1$
 	public static final nsID NS_IDIRECTORYSERVICEPROVIDER2_IID = new nsID ("2f977d4b-5485-11d4-87e2-0010a4e75ef2"); //$NON-NLS-1$
+	public static final nsID NS_IDOWNLOAD_IID = new nsID ("06cb92f2-1dd2-11b2-95f2-96dfdfb804a1"); //$NON-NLS-1$
+	public static final nsID NS_IDOWNLOAD_1_8_IID = new nsID ("9e1fd9f2-9727-4926-85cd-f16c375bba6d"); //$NON-NLS-1$
 	public static final nsID NS_IFACTORY_IID = new nsID ("00000001-0000-0000-c000-000000000046"); //$NON-NLS-1$
 	public static final nsID NS_IHELPERAPPLAUNCHERDIALOG_IID = new nsID ("d7ebddf0-4c84-11d4-807a-00600811a9c3"); //$NON-NLS-1$
 	public static final nsID NS_IHELPERAPPLAUNCHERDIALOG_1_9_IID = new nsID ("f3704fdc-8ae6-4eba-a3c3-f02958ac0649"); //$NON-NLS-1$
+	public static final nsID NS_IHTTPHEADERVISITOR_IID = new nsID("0cf40717-d7c1-4a94-8c1e-d6c9734101bb"); //$NON-NLS-1$
+	public static final nsID NS_IHTTPHEADERVISITOR_10_IID = new nsID("35412859-b9d9-423c-8866-2d4559fdd2be"); //$NON-NLS-1$
+	public static final nsID NS_IPROGRESSDIALOG_IID = new nsID("88a478b3-af65-440a-94dc-ed9b154d2990"); //$NON-NLS-1$
+	public static final nsID NS_IPROGRESSDIALOG_1_8_IID = new nsID("20e790a2-76c6-462d-851a-22ab6cbbe48b"); //$NON-NLS-1$
+	public static final nsID NS_IPROMPT_IID = new nsID("a63f70c0-148b-11d3-9333-00104ba0fd40"); //$NON-NLS-1$
 	public static final nsID NS_IPROMPTFACTORY_IID = new nsID ("2532b748-75db-4732-9173-78d3bf34f694"); //$NON-NLS-1$
+	public static final nsID NS_IPROMPTSERVICE_IID = new nsID ("1630c61a-325e-49ca-8759-a31b16c47aa5"); //$NON-NLS-1$
 	public static final nsID NS_IPROMPTSERVICE2_IID = new nsID ("cf86d196-dbee-4482-9dfa-3477aa128319"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTCONTEXT_1_9_IID = new nsID ("e7b9871d-3adc-4bf7-850d-7fb9554886bf"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTCONTEXT_1_9_2_IID = new nsID ("87482b5e-e019-4df5-9bc2-b2a51b1f2d28"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTCONTEXT_10_IID = new nsID ("2e583bf4-3c1f-432d-8283-8dee7eccc88b"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTCONTEXT_17_IID = new nsID ("d012cdb3-8f1e-4440-8cbd-327f981d37b4"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTGLOBALOBJECT_1_9_2_IID = new nsID ("e9f3f2c1-2d94-4722-bbd4-2bf6fdf42f48"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTGLOBALOBJECT_10_IID = new nsID ("08f73284-26e3-4fa6-bf89-8326f92a94b3"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTGLOBALOBJECT_17_IID = new nsID ("92569431-6e6e-408a-a88c-45285c1c8573"); //$NON-NLS-1$
-	public static final nsID NS_ISCRIPTGLOBALOBJECT_1_9_IID = new nsID ("6afecd40-0b9a-4cfd-8c42-0f645cd91829"); //$NON-NLS-1$
 	public static final nsID NS_ISCRIPTOBJECTOWNER_IID = new nsID ("8f6bca7e-ce42-11d1-b724-00600891d8c9"); //$NON-NLS-1$
 	public static final nsID NS_ISECURITYCHECKEDCOMPONENT_IID = new nsID ("0dad9e8c-a12d-4dcb-9a6f-7d09839356e1"); //$NON-NLS-1$
+	public static final nsID NS_ISUPPORTS_IID = new nsID ("00000000-0000-0000-c000-000000000046"); //$NON-NLS-1$
 	public static final nsID NS_ISUPPORTSWEAKREFERENCE_IID = new nsID ("9188bc86-f92e-11d2-81ef-0060083a0bcf"); //$NON-NLS-1$
 	public static final nsID NS_ITOOLTIPLISTENER_IID = new nsID ("44b78386-1dd2-11b2-9ad2-e4eee2ca1916"); //$NON-NLS-1$
 	public static final nsID NS_IURICONTENTLISTENER_IID = new nsID ("94928ab3-8b63-11d3-989d-001083010e9b"); //$NON-NLS-1$
@@ -93,8 +94,10 @@ public class XPCOM extends C {
 	public static final nsID NS_IWEBBROWSERCHROMEFOCUS_IID = new nsID ("d2206418-1dd1-11b2-8e55-acddcd2bcfb8"); //$NON-NLS-1$
 	public static final nsID NS_IWINDOWCREATOR_IID = new nsID ("30465632-a777-44cc-90f9-8145475ef999"); //$NON-NLS-1$
 	public static final nsID NS_IWINDOWCREATOR2_IID = new nsID ("f673ec81-a4b0-11d6-964b-eb5a2bf216fc"); //$NON-NLS-1$
+	public static final nsID NS_IXPCSCRIPTABLE_IID = new nsID ("155d1863-2b0b-4f5e-b800-05184944156b"); //$NON-NLS-1$
 
 	/* contract ID constants */
+	public static final String EXECUTE_CONTRACTID = "@eclipse.org/execute;1"; //$NON-NLS-1$
 	public static final String EXTERNAL_CONTRACTID = "@eclipse.org/external;1"; //$NON-NLS-1$
 	public static final String NS_AUTHPROMPTER_CONTRACTID = "@mozilla.org/passwordmanager/authpromptfactory;1"; //$NON-NLS-1$
 	public static final String NS_CERTOVERRIDE_CONTRACTID = "@mozilla.org/security/certoverride;1"; //$NON-NLS-1$
@@ -108,6 +111,7 @@ public class XPCOM extends C {
 	public static final String NS_FILEPICKER_CONTRACTID = "@mozilla.org/filepicker;1"; //$NON-NLS-1$
 	public static final String NS_FOCUSMANAGER_CONTRACTID = "@mozilla.org/focus-manager;1"; //$NON-NLS-1$
 	public static final String NS_HELPERAPPLAUNCHERDIALOG_CONTRACTID = "@mozilla.org/helperapplauncherdialog;1"; //$NON-NLS-1$
+	public static final String NS_INTERFACEINFOMANAGER_CONTRACTID = "@mozilla.org/xpti/interfaceinfomanager-service;1";
 	public static final String NS_MEMORY_CONTRACTID = "@mozilla.org/xpcom/memory-service;1"; //$NON-NLS-1$
 	public static final String NS_MIMEINPUTSTREAM_CONTRACTID = "@mozilla.org/network/mime-input-stream;1"; //$NON-NLS-1$
 	public static final String NS_SCRIPTSECURITYMANAGER_CONTRACTID = "@mozilla.org/scriptsecuritymanager;1"; //$NON-NLS-1$
@@ -178,6 +182,8 @@ public class XPCOM extends C {
 	public static final int SEC_ERROR_UNTRUSTED_CERT = 0x805A1FEB;
 	public static final int SEC_ERROR_UNTRUSTED_ISSUER = 0x805A1FEC;
 	public static final int SSL_ERROR_BAD_CERT_DOMAIN = 0x805A2FF4;
+	public static final int USE_JSSTUB_FOR_ADDPROPERTY = 1 << 17;
+	public static final int WANT_POSTCREATE = 4;
 
 	/* JSAPI constants */
 	public static final int JSPROP_ENUMERATE = 0x1;
@@ -189,7 +195,7 @@ public class XPCOM extends C {
 public static final native int nsDynamicFunctionLoad_sizeof ();
 
 public static void memmove(int /*long*/ dest, boolean[] src) {
-	if (nsISupports.IsXULRunner10 || nsISupports.IsXULRunner17) { // TODO change this reference
+	if (MozillaVersion.CheckVersion (MozillaVersion.VERSION_XR10)) {
 		memmove (dest, new byte[] {src[0] ? (byte)1 : 0}, 1);
 	} else {
 		memmove (dest, new int[] {src[0] ? 1 : 0}, 4);
@@ -197,7 +203,7 @@ public static void memmove(int /*long*/ dest, boolean[] src) {
 }
 
 public static void memmove(boolean[] dest, int /*long*/ src) {
-	if (nsISupports.IsXULRunner10 || nsISupports.IsXULRunner17) { // TODO change this reference
+	if (MozillaVersion.CheckVersion (MozillaVersion.VERSION_XR10)) {
 		byte[] result = new byte[1];
 		memmove (result, src, 1);
 		dest[0] = result[0] != 0;
@@ -230,6 +236,8 @@ public static final native void memmove(int /*long*/ dest, nsID src, int nbytes)
 public static final native int strlen_PRUnichar(int /*long*/ s);
 
 /** @method flags=no_gen */
+public static final native int /*long*/ CALLBACK_GetScriptableFlags24(int /*long*/ func);
+/** @method flags=no_gen */
 public static final native int /*long*/ CALLBACK_JSNative(int /*long*/ func);
 
 /** @method flags=no_gen */
@@ -243,11 +251,51 @@ public static final int /*long*/ JS_DefineFunction(byte[] mozillaPath, int /*lon
 	}
 }
 /** @method flags=no_gen */
+public static final native int /*long*/ _JS_DefineFunction24(int /*long*/ cx, int /*long*/ obj, byte[] name, int /*long*/ call, int nargs, int flags);	
+public static final int /*long*/ JS_DefineFunction24(int /*long*/ cx, int /*long*/ obj, byte[] name, int /*long*/ call, int nargs, int flags) {
+	lock.lock();
+	try {
+		return _JS_DefineFunction24(cx, obj, name, call, nargs, flags);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
 public static final native int _JS_EvaluateUCScriptForPrincipals(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/[] retVal);	
 public static final int JS_EvaluateUCScriptForPrincipals(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/[] retVal) {
 	lock.lock();
 	try {
 		return _JS_EvaluateUCScriptForPrincipals(mozillaPath, cx, obj, principals, chars, length, filename, lineno, retVal);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
+public static final native int _JS_EvaluateUCScriptForPrincipals191(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/ retVal);	
+public static final int JS_EvaluateUCScriptForPrincipals191(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/ retVal) {
+	lock.lock();
+	try {
+		return _JS_EvaluateUCScriptForPrincipals191(mozillaPath, cx, obj, principals, chars, length, filename, lineno, retVal);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
+public static final native int _JS_EvaluateUCScriptForPrincipals24(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/ retVal);	
+public static final int JS_EvaluateUCScriptForPrincipals24(byte[] mozillaPath, int /*long*/ cx, int /*long*/ obj, int /*long*/ principals, char[] chars, int length, byte[] filename, int lineno, int /*long*/ retVal) {
+	lock.lock();
+	try {
+		return _JS_EvaluateUCScriptForPrincipals24(mozillaPath, cx, obj, principals, chars, length, filename, lineno, retVal);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
+public static final native int /*long*/ _JS_GetGlobalForScopeChain24(int /*long*/ cx);	
+public static final int /*long*/ JS_GetGlobalForScopeChain24(int /*long*/ cx) {
+	lock.lock();
+	try {
+		return _JS_GetGlobalForScopeChain24(cx);
 	} finally {
 		lock.unlock();
 	}
@@ -404,15 +452,22 @@ public static final int nsIScriptGlobalObject_EnsureScriptEnvironment(int /*long
 		lock.unlock();
 	}
 }
-/**
- * @method flags=cpp
- * @param ptr cast=(nsIScriptGlobalObject17 *)
- */
-public static final native int _nsIScriptGlobalObject17_EnsureScriptEnvironment(int /*long*/ ptr);
-public static final int nsIScriptGlobalObject17_EnsureScriptEnvironment(int /*long*/ ptr) {
+/** @method flags=no_gen */
+public static final native int _nsIScriptGlobalObject24_EnsureScriptEnvironment(int /*long*/ ptr);
+public static final int nsIScriptGlobalObject24_EnsureScriptEnvironment(int /*long*/ ptr) {
 	lock.lock();
 	try {
-		return _nsIScriptGlobalObject17_EnsureScriptEnvironment(ptr);
+		return _nsIScriptGlobalObject24_EnsureScriptEnvironment(ptr);
+	} finally {
+		lock.unlock();
+	}
+}
+/** @method flags=no_gen */
+public static final native int /*long*/ _nsIScriptGlobalObject24_GetGlobalJSObject(int /*long*/ ptr);
+public static final int /*long*/ nsIScriptGlobalObject24_GetGlobalJSObject(int /*long*/ ptr) {
+	lock.lock();
+	try {
+		return _nsIScriptGlobalObject24_GetGlobalJSObject(ptr);
 	} finally {
 		lock.unlock();
 	}
@@ -430,15 +485,12 @@ public static final int /*long*/ nsIScriptGlobalObject_GetScriptContext(int /*lo
 		lock.unlock();
 	}
 }
-/**
- * @method flags=cpp
- * @param ptr cast=(nsIScriptGlobalObject17 *)
- */
-public static final native int /*long*/ _nsIScriptGlobalObject17_GetScriptContext(int /*long*/ ptr);
-public static final int /*long*/ nsIScriptGlobalObject17_GetScriptContext(int /*long*/ ptr) {
+/** @method flags=no_gen */
+public static final native int /*long*/ _nsIScriptGlobalObject24_GetScriptContext(int /*long*/ ptr);
+public static final int /*long*/ nsIScriptGlobalObject24_GetScriptContext(int /*long*/ ptr) {
 	lock.lock();
 	try {
-		return _nsIScriptGlobalObject17_GetScriptContext(ptr);
+		return _nsIScriptGlobalObject24_GetScriptContext(ptr);
 	} finally {
 		lock.unlock();
 	}
@@ -456,15 +508,12 @@ public static final int /*long*/ nsIScriptContext_GetNativeContext(int /*long*/ 
 		lock.unlock();
 	}
 }
-/**
- * @method flags=cpp
- * @param ptr cast=(nsIScriptContext17 *)
- */
-public static final native int /*long*/ _nsIScriptContext17_GetNativeContext(int /*long*/ ptr);
-public static final int /*long*/ nsIScriptContext17_GetNativeContext(int /*long*/ ptr) {
+/** @method flags=no_gen */
+public static final native int /*long*/ _nsIScriptContext24_GetNativeContext(int /*long*/ ptr);
+public static final int /*long*/ nsIScriptContext24_GetNativeContext(int /*long*/ ptr) {
 	lock.lock();
 	try {
-		return _nsIScriptContext17_GetNativeContext(ptr);
+		return _nsIScriptContext24_GetNativeContext(ptr);
 	} finally {
 		lock.unlock();
 	}
@@ -2615,5 +2664,4 @@ static final int VtblCall(int fnNumber, int /*long*/ ppVtbl, long arg0, int arg1
 		lock.unlock();
 	}
 }
-
 }

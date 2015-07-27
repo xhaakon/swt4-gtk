@@ -11,10 +11,10 @@
 package org.eclipse.swt.opengl;
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.internal.opengl.glx.*;
+import org.eclipse.swt.widgets.*;
 
 /**
  * GLCanvas is a widget capable of displaying OpenGL content.
@@ -104,13 +104,14 @@ public GLCanvas (Composite parent, int style, GLData data) {
 	}
 	glxAttrib [pos++] = 0;
 	OS.gtk_widget_realize (handle);
-	int /*long*/ window;
-	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
-		window = OS.gtk_widget_get_window (handle);
+	int /*long*/ window = OS.gtk_widget_get_window (handle);
+	
+	int /*long*/ xDisplay;
+	if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+		xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_window_get_display(window));
 	} else {
-		window = OS.GTK_WIDGET_WINDOW (handle);
+		xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
 	}
-	int /*long*/ xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
 	int /*long*/ infoPtr = GLX.glXChooseVisual (xDisplay, OS.XDefaultScreen (xDisplay), glxAttrib);
 	if (infoPtr == 0) {
 		dispose ();
@@ -131,8 +132,7 @@ public GLCanvas (Composite parent, int style, GLData data) {
 		OS.GDK_FOCUS_CHANGE_MASK | OS.GDK_POINTER_MOTION_MASK |
 		OS.GDK_BUTTON_PRESS_MASK | OS.GDK_BUTTON_RELEASE_MASK |
 		OS.GDK_ENTER_NOTIFY_MASK | OS.GDK_LEAVE_NOTIFY_MASK |
-		OS.GDK_EXPOSURE_MASK | OS.GDK_VISIBILITY_NOTIFY_MASK |
-		OS.GDK_POINTER_MOTION_HINT_MASK;
+		OS.GDK_EXPOSURE_MASK | OS.GDK_POINTER_MOTION_HINT_MASK;
 	attrs.window_type = OS.GDK_WINDOW_CHILD;
 	attrs.visual = gdkvisual;
 	glWindow = OS.gdk_window_new (window, attrs, OS.GDK_WA_VISUAL);
@@ -165,12 +165,7 @@ public GLCanvas (Composite parent, int style, GLData data) {
 				OS.gdk_window_resize (glWindow, clientArea.width, clientArea.height);
 				break;
 			case SWT.Dispose:
-				int /*long*/ window;
-				if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
-					window = OS.gtk_widget_get_window (handle);
-				} else {
-					window = OS.GTK_WIDGET_WINDOW (handle);
-				}
+				int /*long*/ window = OS.gtk_widget_get_window (handle);
 				int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 				if (context != 0) {
 					if (GLX.glXGetCurrentContext () == context) {
@@ -203,12 +198,7 @@ public GLCanvas (Composite parent, int style, GLData data) {
  */
 public GLData getGLData () {
 	checkWidget ();
-	int /*long*/ window;
-	if (OS.GTK_VERSION >= OS.VERSION(2, 14, 0)){
-		window = OS.gtk_widget_get_window (handle);
-	} else {
-		window = OS.GTK_WIDGET_WINDOW (handle);
-	}
+	int /*long*/ window = OS.gtk_widget_get_window (handle);
 	int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 	GLData data = new GLData ();
 	int [] value = new int [1];
@@ -271,7 +261,7 @@ public boolean isCurrent () {
 public void setCurrent () {
 	checkWidget ();
 	if (GLX.glXGetCurrentContext () == context) return;
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
+	int /*long*/ window = OS.gtk_widget_get_window (handle);
 	int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 	GLX.glXMakeCurrent (xDisplay, xWindow, context);
 }
@@ -286,7 +276,7 @@ public void setCurrent () {
  */
 public void swapBuffers () {
 	checkWidget ();
-	int /*long*/ window = OS.GTK_WIDGET_WINDOW (handle);
+	int /*long*/ window = OS.gtk_widget_get_window (handle);
 	int /*long*/ xDisplay = gdk_x11_display_get_xdisplay (window);
 	GLX.glXSwapBuffers (xDisplay, xWindow);
 }

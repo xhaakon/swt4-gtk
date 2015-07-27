@@ -27,42 +27,19 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIClassInfo extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 8;
 
-	public static final String NS_ICLASSINFO_IID_STR =
-		"986c11d0-f340-11d4-9075-0010a4e73d9a";
+	static final String NS_ICLASSINFO_IID_STR = "986c11d0-f340-11d4-9075-0010a4e73d9a";
 
-	public static final nsID NS_ICLASSINFO_IID =
-		new nsID(NS_ICLASSINFO_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIClassInfo.class, MozillaVersion.VERSION_BASE, new nsID(NS_ICLASSINFO_IID_STR));
+	}
 
 	public nsIClassInfo(int /*long*/ address) {
 		super(address);
-	}
-
-	public int GetInterfaces(int[] count, int /*long*/[] array) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), count, array);
-	}
-
-	public int GetHelperForLanguage(int language, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), language, _retval);
-	}
-
-	public int GetContractID(int /*long*/[] aContractID) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aContractID);
-	}
-
-	public int GetClassDescription(int /*long*/[] aClassDescription) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aClassDescription);
-	}
-
-	public int GetClassID(int /*long*/ aClassID) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aClassID);
-	}
-
-	public int GetImplementationLanguage(int[] aImplementationLanguage) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), aImplementationLanguage);
 	}
 
 	public static final int SINGLETON = 1;
@@ -73,12 +50,4 @@ public class nsIClassInfo extends nsISupports {
 	public static final int EAGER_CLASSINFO = 32;
 	public static final int CONTENT_NODE = 64;
 //	public static final int RESERVED = 2147483648;
-
-	public int GetFlags(int[] aFlags) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aFlags);
-	}
-
-	public int GetClassIDNoAlloc(int /*long*/ aClassIDNoAlloc) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aClassIDNoAlloc);
-	}
 }

@@ -12,10 +12,10 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.internal.*;
 import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.events.*;
 
 /**
  * Instances of this class are selectable user interface
@@ -38,7 +38,7 @@ import org.eclipse.swt.events.*;
  * @see <a href="http://www.eclipse.org/swt/snippets/#spinner">Spinner snippets</a>
  * @see <a href="http://www.eclipse.org/swt/examples.php">SWT Example: ControlExample</a>
  * @see <a href="http://www.eclipse.org/swt/">Sample code and further information</a>
- * 
+ *
  * @since 3.1
  * @noextend This class is not intended to be subclassed by clients.
  */
@@ -49,11 +49,11 @@ public class Spinner extends Composite {
 	int /*long*/ gdkEventKey = 0;
 	int fixStart = -1, fixEnd = -1;
 	double climbRate = 1;
-	
+
 	/**
 	 * the operating system limit for the number of characters
 	 * that the text field in an instance of this class can hold
-	 * 
+	 *
 	 * @since 3.4
 	 */
 	public final static int LIMIT;
@@ -65,14 +65,14 @@ public class Spinner extends Composite {
 	static {
 		LIMIT = 0x7FFFFFFF;
 	}
-	
+
 /**
  * Constructs a new instance of this class given its parent
  * and a style value describing its behavior and appearance.
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -194,10 +194,12 @@ static int checkStyle (int style) {
 	return style & ~(SWT.H_SCROLL | SWT.V_SCROLL);
 }
 
+@Override
 protected void checkSubclass () {
 	if (!isValidSubclass ()) error (SWT.ERROR_INVALID_SUBCLASS);
 }
 
+@Override
 public Point computeSize (int wHint, int hHint, boolean changed) {
 	checkWidget ();
 	if (wHint != SWT.DEFAULT && wHint < 0) wHint = 0;
@@ -206,9 +208,9 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	OS.gtk_widget_realize (handle);
 	int /*long*/ layout = OS.gtk_entry_get_layout (handle);
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
-	double upper = gtk_adjustment_get_upper (hAdjustment);
+	double upper = OS.gtk_adjustment_get_upper (hAdjustment);
 	int digits = OS.gtk_spin_button_get_digits (handle);
-	for (int i = 0; i < digits; i++) upper *= 10; 
+	for (int i = 0; i < digits; i++) upper *= 10;
 	String string = String.valueOf ((int) upper);
 	if (digits > 0) {
 		StringBuffer buffer = new StringBuffer ();
@@ -225,7 +227,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	int /*long*/ ptr = OS.pango_layout_get_text (layout);
 	int length = OS.strlen (ptr);
 	byte [] buffer2 = new byte [length];
-	OS.memmove (buffer2, ptr, length);	
+	OS.memmove (buffer2, ptr, length);
 	OS.pango_layout_set_text (layout, buffer1, buffer1.length);
 	OS.pango_layout_set_text (layout, buffer2, buffer2.length);
 	int width, height = 0 ;
@@ -235,7 +237,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 		GtkRequisition requisition = new GtkRequisition ();
 		OS.gtk_widget_get_preferred_size (handle, requisition, null);
 		width = wHint == SWT.DEFAULT ? requisition.width : wHint;
-		height = hHint == SWT.DEFAULT ? requisition.height : hHint;	
+		height = hHint == SWT.DEFAULT ? requisition.height : hHint;
 	} else {
 		OS.pango_layout_get_pixel_size (layout, w, h);
 		width = wHint == SWT.DEFAULT ? w [0] : wHint;
@@ -245,6 +247,7 @@ public Point computeSize (int wHint, int hHint, boolean changed) {
 	return new Point (trim.width, trim.height);
 }
 
+@Override
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget ();
 	int xborder = 0, yborder = 0;
@@ -269,7 +272,7 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 		int /*long*/ fontDesc = getFontDescription ();
 		int fontSize = OS.pango_font_description_get_size (fontDesc);
 		int arrowSize = Math.max (OS.PANGO_PIXELS (fontSize), MIN_ARROW_WIDTH);
-		arrowSize = arrowSize - arrowSize % 2;		
+		arrowSize = arrowSize - arrowSize % 2;
 		trim.width += arrowSize + (2 * thickness.x);
 	}
 	int [] property = new int [1];
@@ -307,11 +310,12 @@ public void copy () {
 	OS.gtk_editable_copy_clipboard (handle);
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE | MENU;
 	fixedHandle = OS.g_object_new (display.gtk_fixed_get_type (), 0);
 	if (fixedHandle == 0) error (SWT.ERROR_NO_HANDLES);
-	gtk_widget_set_has_window (fixedHandle, true);
+	OS.gtk_widget_set_has_window (fixedHandle, true);
 	int /*long*/ adjustment = OS.gtk_adjustment_new (0, 0, 100, 1, 10, 0);
 	if (adjustment == 0) error (SWT.ERROR_NO_HANDLES);
 	handle = OS.gtk_spin_button_new (adjustment, climbRate, 0);
@@ -322,6 +326,11 @@ void createHandle (int index) {
 	OS.gtk_spin_button_set_wrap (handle, (style & SWT.WRAP) != 0);
 	if (OS.GTK3) {
 		imContext = OS.imContextLast();
+	}
+	// In GTK 3 font description is inherited from parent widget which is not how SWT has always worked,
+	// reset to default font to get the usual behavior
+	if (OS.GTK3) {
+		setFontDescription(defaultFont().handle);
 	}
 }
 
@@ -342,20 +351,24 @@ public void cut () {
 	OS.gtk_editable_cut_clipboard (handle);
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	int /*long*/ imContext = imContext ();
 	if (imContext != 0) display.removeWidget (imContext);
 }
 
+@Override
 int /*long*/ eventWindow () {
 	return paintWindow ();
 }
 
+@Override
 int /*long*/ enterExitHandle () {
 	return fixedHandle;
 }
 
+@Override
 boolean filterKey (int keyval, int /*long*/ event) {
 	int time = OS.gdk_event_get_time (event);
 	if (time != lastEventTime) {
@@ -373,11 +386,11 @@ void fixIM () {
 	/*
 	*  The IM filter has to be called one time for each key press event.
 	*  When the IM is open the key events are duplicated. The first event
-	*  is filtered by SWT and the second event is filtered by GTK.  In some 
-	*  cases the GTK handler does not run (the widget is destroyed, the 
+	*  is filtered by SWT and the second event is filtered by GTK.  In some
+	*  cases the GTK handler does not run (the widget is destroyed, the
 	*  application code consumes the event, etc), for these cases the IM
 	*  filter has to be called by SWT.
-	*/	
+	*/
 	if (gdkEventKey != 0 && gdkEventKey != -1) {
 		int /*long*/ imContext = imContext ();
 		if (imContext != 0) {
@@ -389,10 +402,12 @@ void fixIM () {
 	gdkEventKey = 0;
 }
 
+@Override
 GdkColor getBackgroundColor () {
 	return getBaseColor ();
 }
 
+@Override
 public int getBorderWidth () {
 	checkWidget();
 	if ((this.style & SWT.BORDER) != 0) {
@@ -401,6 +416,7 @@ public int getBorderWidth () {
 	return 0;
 }
 
+@Override
 GdkColor getForegroundColor () {
 	return getTextColor ();
 }
@@ -420,7 +436,7 @@ public int getIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
 	int digits = OS.gtk_spin_button_get_digits (handle);
-	double value = gtk_adjustment_get_step_increment (hAdjustment);
+	double value = OS.gtk_adjustment_get_step_increment (hAdjustment);
 	for (int i = 0; i < digits; i++) value *= 10;
 	return (int) (value > 0 ? value + 0.5 : value - 0.5);
 }
@@ -439,7 +455,7 @@ public int getMaximum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
 	int digits = OS.gtk_spin_button_get_digits (handle);
-	double value = gtk_adjustment_get_upper (hAdjustment);
+	double value = OS.gtk_adjustment_get_upper (hAdjustment);
 	for (int i = 0; i < digits; i++) value *= 10;
 	return (int) (value > 0 ? value + 0.5 : value - 0.5);
 }
@@ -458,7 +474,7 @@ public int getMinimum () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
 	int digits = OS.gtk_spin_button_get_digits (handle);
-	double value = gtk_adjustment_get_lower (hAdjustment);
+	double value = OS.gtk_adjustment_get_lower (hAdjustment);
 	for (int i = 0; i < digits; i++) value *= 10;
 	return (int) (value > 0 ? value + 0.5 : value - 0.5);
 }
@@ -478,7 +494,7 @@ public int getPageIncrement () {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
 	int digits = OS.gtk_spin_button_get_digits (handle);
-	double value = gtk_adjustment_get_page_increment (hAdjustment);
+	double value = OS.gtk_adjustment_get_page_increment (hAdjustment);
 	for (int i = 0; i < digits; i++) value *= 10;
 	return (int) (value > 0 ? value + 0.5 : value - 0.5);
 }
@@ -486,7 +502,7 @@ public int getPageIncrement () {
 /**
  * Returns the <em>selection</em>, which is the receiver's position.
  *
- * @return the selection 
+ * @return the selection
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -494,10 +510,10 @@ public int getPageIncrement () {
  * </ul>
  */
 public int getSelection () {
-	checkWidget ();	
+	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
 	int digits = OS.gtk_spin_button_get_digits (handle);
-	double value = gtk_adjustment_get_value(hAdjustment);
+	double value = OS.gtk_adjustment_get_value (hAdjustment);
 	for (int i = 0; i < digits; i++) value *= 10;
 	return (int) (value > 0 ? value + 0.5 : value - 0.5);
 }
@@ -513,7 +529,7 @@ public int getSelection () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public String getText () {
@@ -531,16 +547,16 @@ public String getText () {
  * text field is capable of holding. If this has not been changed
  * by <code>setTextLimit()</code>, it will be the constant
  * <code>Spinner.LIMIT</code>.
- * 
+ *
  * @return the text limit
- * 
+ *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  *
  * @see #LIMIT
- * 
+ *
  * @since 3.4
  */
 public int getTextLimit () {
@@ -568,15 +584,17 @@ String getDecimalSeparator () {
 	int /*long*/ ptr = OS.localeconv_decimal_point ();
 	int length = OS.strlen (ptr);
 	byte [] buffer = new byte [length];
-	OS.memmove (buffer, ptr, length);	
+	OS.memmove (buffer, ptr, length);
 	return new String (Converter.mbcsToWcs (null, buffer));
 }
 
+@Override
 int /*long*/ gtk_activate (int /*long*/ widget) {
 	sendSelectionEvent (SWT.DefaultSelection);
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_changed (int /*long*/ widget) {
 	int /*long*/ str = OS.gtk_entry_get_text (handle);
 	int length = OS.strlen (str);
@@ -592,7 +610,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
 			}
 		}
 	}
-	
+
 	/*
 	* Feature in GTK.  When the user types, GTK positions
 	* the caret after sending the changed signal.  This
@@ -620,6 +638,7 @@ int /*long*/ gtk_changed (int /*long*/ widget) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
 	if (text == 0) return 0;
 	if (!OS.gtk_editable_get_editable (handle)) return 0;
@@ -658,6 +677,7 @@ int /*long*/ gtk_commit (int /*long*/ imContext, int /*long*/ text) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /*long*/ end_pos) {
 	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
 	int /*long*/ ptr = OS.gtk_entry_get_text (handle);
@@ -683,16 +703,19 @@ int /*long*/ gtk_delete_text (int /*long*/ widget, int /*long*/ start_pos, int /
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_event_after (int /*long*/ widget, int /*long*/ gdkEvent) {
 	if (cursor != null) setCursor (cursor.handle);
 	return super.gtk_event_after (widget, gdkEvent);
 }
 
+@Override
 int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	fixIM ();
 	return super.gtk_focus_out_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*long*/ new_text_length, int /*long*/ position) {
 //	if (!hooks (SWT.Verify) && !filters (SWT.Verify)) return 0;
 	if (new_text == 0 || new_text_length == 0) return 0;
@@ -733,6 +756,7 @@ int /*long*/ gtk_insert_text (int /*long*/ widget, int /*long*/ new_text, int /*
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	int /*long*/ result = super.gtk_key_press_event (widget, event);
 	if (result != 0) fixIM ();
@@ -741,6 +765,7 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
 	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
 		OS.gtk_widget_set_direction (menu, OS.GTK_TEXT_DIR_RTL);
@@ -749,22 +774,24 @@ int /*long*/ gtk_populate_popup (int /*long*/ widget, int /*long*/ menu) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_value_changed (int /*long*/ widget) {
 	sendSelectionEvent (SWT.Selection);
 	return 0;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents();
-	OS.g_signal_connect_closure (handle, OS.changed, display.closures [CHANGED], true);
-	OS.g_signal_connect_closure (handle, OS.insert_text, display.closures [INSERT_TEXT], false);
-	OS.g_signal_connect_closure (handle, OS.delete_text, display.closures [DELETE_TEXT], false);
-	OS.g_signal_connect_closure (handle, OS.value_changed, display.closures [VALUE_CHANGED], false);
-	OS.g_signal_connect_closure (handle, OS.activate, display.closures [ACTIVATE], false);
-	OS.g_signal_connect_closure (handle, OS.populate_popup, display.closures [POPULATE_POPUP], false);
+	OS.g_signal_connect_closure (handle, OS.changed, display.getClosure (CHANGED), true);
+	OS.g_signal_connect_closure (handle, OS.insert_text, display.getClosure (INSERT_TEXT), false);
+	OS.g_signal_connect_closure (handle, OS.delete_text, display.getClosure (DELETE_TEXT), false);
+	OS.g_signal_connect_closure (handle, OS.value_changed, display.getClosure (VALUE_CHANGED), false);
+	OS.g_signal_connect_closure (handle, OS.activate, display.getClosure (ACTIVATE), false);
+	OS.g_signal_connect_closure (handle, OS.populate_popup, display.getClosure (POPULATE_POPUP), false);
 	int /*long*/ imContext = imContext ();
 	if (imContext != 0) {
-		OS.g_signal_connect_closure (imContext, OS.commit, display.closures [COMMIT], false);
+		OS.g_signal_connect_closure (imContext, OS.commit, display.getClosure (COMMIT), false);
 		int id = OS.g_signal_lookup (OS.commit, OS.gtk_im_context_get_type ());
 		int mask =  OS.G_SIGNAL_MATCH_DATA | OS.G_SIGNAL_MATCH_ID;
 		OS.g_signal_handlers_block_matched (imContext, mask, id, 0, 0, 0, handle);
@@ -772,10 +799,11 @@ void hookEvents () {
 }
 
 int /*long*/ imContext () {
-	if (imContext != 0) return imContext; 
+	if (imContext != 0) return imContext;
 	return OS.GTK_ENTRY_IM_CONTEXT (handle);
 }
 
+@Override
 int /*long*/ paintWindow () {
 	int /*long*/ window = super.paintWindow ();
 	int /*long*/ children = OS.gdk_window_get_children (window);
@@ -801,12 +829,14 @@ public void paste () {
 	OS.gtk_editable_paste_clipboard (handle);
 }
 
+@Override
 void register () {
 	super.register ();
 	int /*long*/ imContext = imContext ();
 	if (imContext != 0) display.addWidget (imContext, this);
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	fixIM ();
@@ -833,7 +863,7 @@ public void removeModifyListener (ModifyListener listener) {
 	checkWidget ();
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
-	eventTable.unhook (SWT.Modify, listener);	
+	eventTable.unhook (SWT.Modify, listener);
 }
 
 /**
@@ -858,7 +888,7 @@ public void removeSelectionListener(SelectionListener listener) {
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
 	eventTable.unhook(SWT.Selection, listener);
-	eventTable.unhook(SWT.DefaultSelection,listener);	
+	eventTable.unhook(SWT.DefaultSelection,listener);
 }
 
 /**
@@ -882,13 +912,15 @@ void removeVerifyListener (VerifyListener listener) {
 	checkWidget ();
 	if (listener == null) error (SWT.ERROR_NULL_ARGUMENT);
 	if (eventTable == null) return;
-	eventTable.unhook (SWT.Verify, listener);	
+	eventTable.unhook (SWT.Verify, listener);
 }
 
+@Override
 void setBackgroundColor (int /*long*/ context, int /*long*/ handle, GdkRGBA rgba) {
 	setBackgroundColorGradient (context, handle, rgba);
 }
 
+@Override
 void setBackgroundColor (GdkColor color) {
 	super.setBackgroundColor (color);
 	if (!OS.GTK3) {
@@ -896,6 +928,7 @@ void setBackgroundColor (GdkColor color) {
 	}
 }
 
+@Override
 void setCursor (int /*long*/ cursor) {
 	int /*long*/ defaultCursor = 0;
 	if (cursor == 0) defaultCursor = OS.gdk_cursor_new (OS.GDK_XTERM);
@@ -903,10 +936,7 @@ void setCursor (int /*long*/ cursor) {
 	if (cursor == 0) gdk_cursor_unref (defaultCursor);
 }
 
-void setFontDescription (int /*long*/ font) {
-	super.setFontDescription (font);
-}
-
+@Override
 void setForegroundColor (GdkColor color) {
 	setForegroundColor (handle, color, false);
 }
@@ -927,7 +957,7 @@ public void setIncrement (int value) {
 	checkWidget ();
 	if (value < 1) return;
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
-	double page_increment = gtk_adjustment_get_page_increment (hAdjustment);
+	double page_increment = OS.gtk_adjustment_get_page_increment (hAdjustment);
 	double newValue = value;
 	int digits = OS.gtk_spin_button_get_digits (handle);
 	for (int i = 0; i < digits; i++) newValue /= 10;
@@ -952,7 +982,7 @@ public void setIncrement (int value) {
 public void setMaximum (int value) {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
-	double lower = gtk_adjustment_get_lower (hAdjustment);
+	double lower = OS.gtk_adjustment_get_lower (hAdjustment);
 	double newValue = value;
 	int digits = OS.gtk_spin_button_get_digits (handle);
 	for (int i = 0; i < digits; i++) newValue /= 10;
@@ -978,7 +1008,7 @@ public void setMaximum (int value) {
 public void setMinimum (int value) {
 	checkWidget ();
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
-	double upper = gtk_adjustment_get_upper (hAdjustment);
+	double upper = OS.gtk_adjustment_get_upper (hAdjustment);
 	double newValue = value;
 	int digits = OS.gtk_spin_button_get_digits (handle);
 	for (int i = 0; i < digits; i++) newValue /= 10;
@@ -1004,7 +1034,7 @@ public void setPageIncrement (int value) {
 	checkWidget ();
 	if (value < 1) return;
 	int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
-	double step_increment = gtk_adjustment_get_step_increment(hAdjustment);
+	double step_increment = OS.gtk_adjustment_get_step_increment(hAdjustment);
 	double newValue = value;
 	int digits = OS.gtk_spin_button_get_digits (handle);
 	for (int i = 0; i < digits; i++) newValue /= 10;
@@ -1053,9 +1083,9 @@ public void setSelection (int value) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see #LIMIT
- * 
+ *
  * @since 3.4
  */
 public void setTextLimit (int limit) {
@@ -1068,17 +1098,17 @@ public void setTextLimit (int limit) {
  * Sets the number of decimal places used by the receiver.
  * <p>
  * The digit setting is used to allow for floating point values in the receiver.
- * For example, to set the selection to a floating point value of 1.37 call setDigits() with 
+ * For example, to set the selection to a floating point value of 1.37 call setDigits() with
  * a value of 2 and setSelection() with a value of 137. Similarly, if getDigits() has a value
  * of 2 and getSelection() returns 137 this should be interpreted as 1.37. This applies to all
- * numeric APIs. 
+ * numeric APIs.
  * </p>
- * 
+ *
  * @param value the new digits (must be greater than or equal to zero)
- * 
+ *
  * @exception IllegalArgumentException <ul>
  *    <li>ERROR_INVALID_ARGUMENT - if the value is less than zero</li>
- * </ul> 
+ * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -1110,7 +1140,8 @@ public void setDigits (int value) {
 		adjustment.page_increment /= factor;
 		climbRate /= factor;
 	}
-	gtk_adjustment_configure (hAdjustment, adjustment);
+	OS.gtk_adjustment_configure(hAdjustment, adjustment.value, adjustment.lower, adjustment.upper,
+		adjustment.step_increment, adjustment.page_increment, adjustment.page_size);
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 	OS.gtk_spin_button_configure (handle, hAdjustment, climbRate, value);
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
@@ -1121,7 +1152,7 @@ public void setDigits (int value) {
  * value, digits, increment and page increment all at once.
  * <p>
  * Note: This is similar to setting the values individually
- * using the appropriate methods, but may be implemented in a 
+ * using the appropriate methods, but may be implemented in a
  * more efficient fashion on some platforms.
  * </p>
  *
@@ -1136,7 +1167,7 @@ public void setDigits (int value) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.2
  */
 public void setValues (int selection, int minimum, int maximum, int digits, int increment, int pageIncrement) {
@@ -1147,15 +1178,15 @@ public void setValues (int selection, int minimum, int maximum, int digits, int 
 	if (pageIncrement < 1) return;
 	selection = Math.min (Math.max (minimum, selection), maximum);
 	double factor = 1;
-	for (int i = 0; i < digits; i++) factor *= 10;	
+	for (int i = 0; i < digits; i++) factor *= 10;
 	OS.g_signal_handlers_block_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 	OS.gtk_spin_button_set_range (handle, minimum / factor, maximum / factor);
 	OS.gtk_spin_button_set_increments (handle, increment / factor, pageIncrement / factor);
 	OS.gtk_spin_button_set_value (handle, selection / factor);
 	/*
-	* The value of climb-rate indicates the acceleration rate 
-	* to spin the value when the button is pressed and hold 
-	* on the arrow button. This value should be varied 
+	* The value of climb-rate indicates the acceleration rate
+	* to spin the value when the button is pressed and hold
+	* on the arrow button. This value should be varied
 	* depending upon the value of digits.
 	*/
 	climbRate = 1.0 / factor;
@@ -1164,10 +1195,12 @@ public void setValues (int selection, int minimum, int maximum, int digits, int 
 	OS.g_signal_handlers_unblock_matched (handle, OS.G_SIGNAL_MATCH_DATA, 0, 0, 0, 0, VALUE_CHANGED);
 }
 
+@Override
 boolean checkSubwindow () {
 	return false;
 }
 
+@Override
 boolean translateTraversal (GdkEventKey keyEvent) {
 	int key = keyEvent.keyval;
 	switch (key) {
@@ -1216,7 +1249,7 @@ String verifyText (String string, int start, int end) {
 	}
 	if (string.length () > 0) {
 		int /*long*/ hAdjustment = OS.gtk_spin_button_get_adjustment (handle);
-		double lower = gtk_adjustment_get_lower (hAdjustment);
+		double lower = OS.gtk_adjustment_get_lower (hAdjustment);
 		if (lower < 0 && string.charAt (0) == '-') index++;
 	}
 	while (index < string.length ()) {

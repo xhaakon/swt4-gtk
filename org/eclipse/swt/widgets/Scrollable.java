@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,8 +12,8 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.gtk.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * This class is the abstract superclass of all classes which
@@ -47,7 +47,7 @@ Scrollable () {}
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -91,7 +91,7 @@ int /*long*/ clientHandle () {
  * rectangle described by the arguments (relative to the
  * receiver's parent).
  * </p>
- * 
+ *
  * @param x the desired x coordinate of the client area
  * @param y the desired y coordinate of the client area
  * @param width the desired width of the client area
@@ -136,18 +136,10 @@ ScrollBar createScrollBar (int style) {
 	bar.display = display;
 	bar.state |= HANDLE;
 	if ((style & SWT.H_SCROLL) != 0) {
-		if (OS.GTK_VERSION < OS.VERSION(2, 8, 0)) {
-			bar.handle = OS.GTK_SCROLLED_WINDOW_HSCROLLBAR (scrolledHandle);
-		} else {
-			bar.handle = OS.gtk_scrolled_window_get_hscrollbar (scrolledHandle);
-		}
+		bar.handle = OS.gtk_scrolled_window_get_hscrollbar (scrolledHandle);
 		bar.adjustmentHandle = OS.gtk_scrolled_window_get_hadjustment (scrolledHandle);
 	} else {
-		if (OS.GTK_VERSION < OS.VERSION(2, 8, 0)) {
-			bar.handle = OS.GTK_SCROLLED_WINDOW_VSCROLLBAR (scrolledHandle);
-		} else {
-			bar.handle = OS.gtk_scrolled_window_get_vscrollbar (scrolledHandle);
-		}
+		bar.handle = OS.gtk_scrolled_window_get_vscrollbar (scrolledHandle);
 		bar.adjustmentHandle = OS.gtk_scrolled_window_get_vadjustment (scrolledHandle);
 	}
 	bar.setOrientation (true);
@@ -156,12 +148,35 @@ ScrollBar createScrollBar (int style) {
 	return bar;
 }
 
+@Override
 void createWidget (int index) {
 	super.createWidget (index);
 	if ((style & SWT.H_SCROLL) != 0) horizontalBar = createScrollBar (SWT.H_SCROLL);
 	if ((style & SWT.V_SCROLL) != 0) verticalBar = createScrollBar (SWT.V_SCROLL);
 }
 
+@Override
+void updateBackgroundMode () {
+	super.updateBackgroundMode ();
+	switch (applyThemeBackground ()) {
+		case 0: state &= ~THEME_BACKGROUND; break;
+		case 1: state |= THEME_BACKGROUND; break;
+		default: /* No change */
+	}
+	super.updateBackgroundMode ();
+}
+
+/**
+ * @return
+ * 		<li>0 to remove THEME_BACKGROUND</li>
+ *      <li>1 to apply THEME_BACKGROUND</li>
+ *      <li>otherwise don't change THEME_BACKGROUND state</li>
+ */
+int applyThemeBackground () {
+	return (backgroundAlpha == 0) ? 1 : 0;
+}
+
+@Override
 void deregister () {
 	super.deregister ();
 	if (scrolledHandle != 0) display.removeWidget (scrolledHandle);
@@ -173,6 +188,7 @@ void destroyScrollBar (ScrollBar bar) {
 	//bar.destroyHandle ();
 }
 
+@Override
 public int getBorderWidth () {
 	checkWidget();
 	int border = 0;
@@ -190,7 +206,7 @@ public int getBorderWidth () {
  * Returns a rectangle which describes the area of the
  * receiver which is capable of displaying data (that is,
  * not covered by the "trimmings").
- * 
+ *
  * @return the client area
  *
  * @exception SWTException <ul>
@@ -205,7 +221,7 @@ public Rectangle getClientArea () {
 	forceResize ();
 	int /*long*/ clientHandle = clientHandle ();
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (clientHandle, allocation);
+	OS.gtk_widget_get_allocation (clientHandle, allocation);
 	int x = allocation.x;
 	int y = allocation.y;
 	int width = (state & ZERO_WIDTH) != 0 ? 0 : allocation.width;
@@ -234,18 +250,18 @@ public ScrollBar getHorizontalBar () {
  * <li><code>SWT.SCROLLBAR_OVERLAY</code> - if receiver
  * uses overlay scrollbars</li>
  * <li><code>SWT.NONE</code> - otherwise</li>
- * 
+ *
  * @return the mode of scrollbars
- * 
+ *
  * @exception SWTException <ul>
  * <li>ERROR_WIDGET_DISPOSED - if the receiver has been
  * disposed</li>
  * <li>ERROR_THREAD_INVALID_ACCESS - if not called from the
  * thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @see SWT#SCROLLBAR_OVERLAY
- * 
+ *
  * @since 3.8
  */
 public int getScrollbarsMode () {
@@ -268,9 +284,10 @@ public ScrollBar getVerticalBar () {
 	return verticalBar;
 }
 
+@Override
 int /*long*/ gtk_scroll_event (int /*long*/ widget, int /*long*/ eventPtr) {
 	int /*long*/ result = super.gtk_scroll_event (widget, eventPtr);
-	
+
 	/*
 	* Feature in GTK.  Scrolled windows do not scroll if the scrollbars
 	* are hidden.  This is not a bug, but is inconsistent with other platforms.
@@ -285,7 +302,7 @@ int /*long*/ gtk_scroll_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			if (OS.gdk_event_get_scroll_deltas (eventPtr, delta_x, delta_y)) {
 				if (delta_x [0] != 0) {
 					scrollBar = horizontalBar;
-					if (scrollBar != null && !gtk_widget_get_visible (scrollBar.handle) && scrollBar.getEnabled()) {
+					if (scrollBar != null && !OS.gtk_widget_get_visible (scrollBar.handle) && scrollBar.getEnabled()) {
 						GtkAdjustment adjustment = new GtkAdjustment ();
 						gtk_adjustment_get (scrollBar.adjustmentHandle, adjustment);
 						double delta = Math.pow(adjustment.page_size, 2.0 / 3.0) * delta_x [0];
@@ -297,7 +314,7 @@ int /*long*/ gtk_scroll_event (int /*long*/ widget, int /*long*/ eventPtr) {
 				}
 				if (delta_y [0] != 0) {
 					scrollBar = verticalBar;
-					if (scrollBar != null && !gtk_widget_get_visible (scrollBar.handle) && scrollBar.getEnabled()) {
+					if (scrollBar != null && !OS.gtk_widget_get_visible (scrollBar.handle) && scrollBar.getEnabled()) {
 						GtkAdjustment adjustment = new GtkAdjustment ();
 						gtk_adjustment_get (scrollBar.adjustmentHandle, adjustment);
 						double delta = Math.pow(adjustment.page_size, 2.0 / 3.0) * delta_y [0];
@@ -314,7 +331,7 @@ int /*long*/ gtk_scroll_event (int /*long*/ widget, int /*long*/ eventPtr) {
 			} else {
 				scrollBar = horizontalBar;
 			}
-			if (scrollBar != null && !gtk_widget_get_visible (scrollBar.handle) && scrollBar.getEnabled()) {
+			if (scrollBar != null && !OS.gtk_widget_get_visible (scrollBar.handle) && scrollBar.getEnabled()) {
 				GtkAdjustment adjustment = new GtkAdjustment ();
 				gtk_adjustment_get (scrollBar.adjustmentHandle, adjustment);
 				/* Calculate wheel delta to match GTK+ 2.4 and higher */
@@ -334,11 +351,7 @@ int /*long*/ gtk_scroll_event (int /*long*/ widget, int /*long*/ eventPtr) {
 int hScrollBarWidth() {
 	if (horizontalBar==null) return 0;
 	int /*long*/ hBarHandle = 0;
-	if (OS.GTK_VERSION < OS.VERSION(2, 8, 0)) {
-		hBarHandle = OS.GTK_SCROLLED_WINDOW_HSCROLLBAR (scrolledHandle);
-	} else {
-		hBarHandle = OS.gtk_scrolled_window_get_hscrollbar (scrolledHandle);
-	}
+	hBarHandle = OS.gtk_scrolled_window_get_hscrollbar (scrolledHandle);
 	if (hBarHandle==0) return 0;
 	GtkRequisition requisition = new GtkRequisition();
 	gtk_widget_get_preferred_size (hBarHandle, requisition);
@@ -346,16 +359,19 @@ int hScrollBarWidth() {
 	return requisition.height + spacing;
 }
 
+@Override
 void reskinChildren (int flags) {
 	if (horizontalBar != null) horizontalBar.reskin (flags);
 	if (verticalBar != null) verticalBar.reskin (flags);
 	super.reskinChildren (flags);
 }
 
+@Override
 boolean sendLeaveNotify () {
 	return scrolledHandle != 0;
 }
 
+@Override
 void setOrientation (boolean create) {
 	super.setOrientation (create);
 	if ((style & SWT.RIGHT_TO_LEFT) != 0 || !create) {
@@ -365,7 +381,7 @@ void setOrientation (boolean create) {
 		}
 	}
 	if (horizontalBar != null) horizontalBar.setOrientation (create);
-	if (verticalBar != null) verticalBar.setOrientation (create);	
+	if (verticalBar != null) verticalBar.setOrientation (create);
 }
 
 boolean setScrollBarVisible (ScrollBar bar, boolean visible) {
@@ -387,6 +403,7 @@ boolean setScrollBarVisible (ScrollBar bar, boolean visible) {
 void redrawBackgroundImage () {
 }
 
+@Override
 void redrawWidget (int x, int y, int width, int height, boolean redrawAll, boolean all, boolean trim) {
 	super.redrawWidget (x, y, width, height, redrawAll, all, trim);
 	if (!gtk_widget_get_realized (handle)) return;
@@ -397,7 +414,7 @@ void redrawWidget (int x, int y, int width, int height, boolean redrawAll, boole
 	GdkRectangle rect = new GdkRectangle ();
 	if (redrawAll) {
 		GtkAllocation allocation = new GtkAllocation ();
-		gtk_widget_get_allocation (topHandle, allocation);
+		OS.gtk_widget_get_allocation (topHandle, allocation);
 		rect.width = allocation.width;
 		rect.height = allocation.height;
 	} else {
@@ -405,22 +422,25 @@ void redrawWidget (int x, int y, int width, int height, boolean redrawAll, boole
 		OS.gtk_widget_translate_coordinates (paintHandle, topHandle, x, y, destX, destY);
 		rect.x = destX [0];
 		rect.y = destY [0];
-		rect.width = width;
-		rect.height = height;
+		rect.width = Math.max (0, width);
+		rect.height = Math.max (0, height);
 	}
 	OS.gdk_window_invalidate_rect (window, rect, all);
 }
 
+@Override
 void register () {
 	super.register ();
 	if (scrolledHandle != 0) display.addWidget (scrolledHandle, this);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	scrolledHandle = 0;
 }
 
+@Override
 void releaseChildren (boolean destroy) {
 	if (horizontalBar != null) {
 		horizontalBar.release (false);
@@ -433,6 +453,7 @@ void releaseChildren (boolean destroy) {
 	super.releaseChildren (destroy);
 }
 
+@Override
 void resizeHandle (int width, int height) {
 	if (OS.GTK3) {
 		if (fixedHandle != 0) {
@@ -446,11 +467,13 @@ void resizeHandle (int width, int height) {
 	}
 }
 
+@Override
 void showWidget () {
 	super.showWidget ();
 	if (scrolledHandle != 0) OS.gtk_widget_show (scrolledHandle);
 }
 
+@Override
 int /*long*/ topHandle () {
 	if (fixedHandle != 0) return fixedHandle;
 	if (scrolledHandle != 0) return scrolledHandle;
@@ -464,11 +487,7 @@ void updateScrollBarValue (ScrollBar bar) {
 int vScrollBarWidth() {
 	if (verticalBar == null) return 0;
 	int /*long*/ vBarHandle = 0;
-	if (OS.GTK_VERSION < OS.VERSION(2, 8, 0)) {
-		vBarHandle = OS.GTK_SCROLLED_WINDOW_VSCROLLBAR (scrolledHandle);
-	} else {
-		vBarHandle = OS.gtk_scrolled_window_get_vscrollbar (scrolledHandle);
-	}
+	vBarHandle = OS.gtk_scrolled_window_get_vscrollbar (scrolledHandle);
 	if (vBarHandle == 0) return 0;
 	GtkRequisition requisition = new GtkRequisition();
 	gtk_widget_get_preferred_size (vBarHandle, requisition);

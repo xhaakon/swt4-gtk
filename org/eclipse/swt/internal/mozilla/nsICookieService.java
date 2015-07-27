@@ -27,37 +27,28 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsICookieService extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 5;
 
-	public static final String NS_ICOOKIESERVICE_IID_STR =
-		"011c3190-1434-11d6-a618-0010a401eb10";
-
-	public static final nsID NS_ICOOKIESERVICE_IID =
-		new nsID(NS_ICOOKIESERVICE_IID_STR);
+	static final String NS_ICOOKIESERVICE_IID_STR = "011c3190-1434-11d6-a618-0010a401eb10";
+	static final String NS_ICOOKIESERVICE_1_9_IID_STR = "2aaa897a-293c-4d2b-a657-8c9b7136996d";
 
 	public nsICookieService(int /*long*/ address) {
 		super(address);
 	}
 
-	public int GetCookieString(int /*long*/ aURI, int /*long*/ aChannel, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aURI, aChannel, _retval);
+	static {
+		IIDStore.RegisterIID(nsICookieService.class, MozillaVersion.VERSION_BASE, new nsID(NS_ICOOKIESERVICE_IID_STR));
+		IIDStore.RegisterIID(nsICookieService.class, MozillaVersion.VERSION_XR1_9, new nsID(NS_ICOOKIESERVICE_1_9_IID_STR));
 	}
 
-	public int GetCookieStringFromHttp(int /*long*/ aURI, int /*long*/ aFirstURI, int /*long*/ aChannel, int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aURI, aFirstURI, aChannel, _retval);
+	public int GetCookieString(int /*long*/ aURI, int /*long*/ aChannel, int /*long*/[] _retval) {
+		return XPCOM.VtblCall(this.getMethodIndex("getCookieString"), getAddress(), aURI, aChannel, _retval);
 	}
 
 	public int SetCookieString(int /*long*/ aURI, int /*long*/ aPrompt, byte[] aCookie, int /*long*/ aChannel) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aURI, aPrompt, aCookie, aChannel);
-	}
-
-	public int SetCookieStringFromHttp(int /*long*/ aURI, int /*long*/ aFirstURI, int /*long*/ aPrompt, byte[] aCookie, byte[] aServerTime, int /*long*/ aChannel) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aURI, aFirstURI, aPrompt, aCookie, aServerTime, aChannel);
-	}
-
-	public int GetCookieIconIsVisible(int[] aCookieIconIsVisible) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aCookieIconIsVisible);
+		return XPCOM.VtblCall(this.getMethodIndex("setCookieString"), getAddress(), aURI, aPrompt, aCookie, aChannel);
 	}
 }

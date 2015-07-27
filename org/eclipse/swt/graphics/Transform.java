@@ -54,6 +54,9 @@ public class Transform extends Resource {
  * graphics subsystem which may not be available on some
  * platforms.
  * </p>
+ * <p>
+ * You must dispose the transform when it is no longer required. 
+ * </p>
  * 
  * @param device the device on which to allocate the Transform
  * 
@@ -80,6 +83,9 @@ public Transform (Device device) {
  * This operation requires the operating system's advanced
  * graphics subsystem which may not be available on some
  * platforms.
+ * </p>
+ * <p>
+ * You must dispose the transform when it is no longer required. 
  * </p>
  * 
  * @param device the device on which to allocate the Transform
@@ -109,6 +115,9 @@ public Transform(Device device, float[] elements) {
  * This operation requires the operating system's advanced
  * graphics subsystem which may not be available on some
  * platforms.
+ * </p>
+ * <p>
+ * You must dispose the transform when it is no longer required. 
  * </p>
  * 
  * @param device the device on which to allocate the Transform
@@ -146,6 +155,7 @@ static float[] checkTransform(float[] elements) {
 	return elements;
 }
 
+@Override
 void destroy() {
 	handle = null;
 }
@@ -217,6 +227,7 @@ public void invert() {
  *
  * @return <code>true</code> when the Transform is disposed, and <code>false</code> otherwise
  */
+@Override
 public boolean isDisposed() {
 	return handle == null;
 }
@@ -379,6 +390,7 @@ public void translate(float offsetX, float offsetY) {
  *
  * @return a string representation of the receiver
  */
+@Override
 public String toString() {
 	if (isDisposed()) return "Transform {*DISPOSED*}";
 	float[] elements = new float[6];

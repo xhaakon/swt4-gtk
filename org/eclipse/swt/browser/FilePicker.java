@@ -39,29 +39,50 @@ int AddRef () {
 void createCOMInterfaces () {
 	/* Create each of the interfaces that this object implements */
 	supports = new XPCOMObject (new int[] {2, 0, 0}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
 	};
 
 	filePicker = new XPCOMObject (new int[] {2, 0, 0, 3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}) {
+		@Override
 		public int /*long*/ method0 (int /*long*/[] args) {return QueryInterface (args[0], args[1]);}
+		@Override
 		public int /*long*/ method1 (int /*long*/[] args) {return AddRef ();}
+		@Override
 		public int /*long*/ method2 (int /*long*/[] args) {return Release ();}
+		@Override
 		public int /*long*/ method3 (int /*long*/[] args) {return Init (args[0], args[1], (short)args[2]);}
+		@Override
 		public int /*long*/ method4 (int /*long*/[] args) {return AppendFilters ((int)/*64*/args[0]);}
+		@Override
 		public int /*long*/ method5 (int /*long*/[] args) {return AppendFilter (args[0], args[1]);}
+		@Override
 		public int /*long*/ method6 (int /*long*/[] args) {return GetDefaultString (args[0]);}
+		@Override
 		public int /*long*/ method7 (int /*long*/[] args) {return SetDefaultString (args[0]);}
+		@Override
 		public int /*long*/ method8 (int /*long*/[] args) {return GetDefaultExtension (args[0]);}
+		@Override
 		public int /*long*/ method9 (int /*long*/[] args) {return SetDefaultExtension (args[0]);}
+		@Override
 		public int /*long*/ method10 (int /*long*/[] args) {return GetFilterIndex (args[0]);}
+		@Override
 		public int /*long*/ method11 (int /*long*/[] args) {return SetFilterIndex ((int)/*64*/args[0]);}
+		@Override
 		public int /*long*/ method12 (int /*long*/[] args) {return GetDisplayDirectory (args[0]);}
+		@Override
 		public int /*long*/ method13 (int /*long*/[] args) {return SetDisplayDirectory (args[0]);}
+		@Override
 		public int /*long*/ method14 (int /*long*/[] args) {return GetFile (args[0]);}
+		@Override
 		public int /*long*/ method15 (int /*long*/[] args) {return GetFileURL (args[0]);}
+		@Override
 		public int /*long*/ method16 (int /*long*/[] args) {return GetFiles (args[0]);}
+		@Override
 		public int /*long*/ method17 (int /*long*/[] args) {return Show (args[0]);}
 	};
 }
@@ -86,27 +107,12 @@ int QueryInterface (int /*long*/ riid, int /*long*/ ppvObject) {
 	nsID guid = new nsID ();
 	XPCOM.memmove (guid, riid, nsID.sizeof);
 
-	if (guid.Equals (nsISupports.NS_ISUPPORTS_IID)) {
+	if (guid.Equals (XPCOM.NS_ISUPPORTS_IID)) {
 		XPCOM.memmove (ppvObject, new int /*long*/[] {supports.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
 	}
-	if (guid.Equals (nsIFilePicker.NS_IFILEPICKER_17_IID)) {
-		XPCOM.memmove(ppvObject, new int /*long*/[] {filePicker.getAddress ()}, C.PTR_SIZEOF);
-		AddRef ();
-		return XPCOM.NS_OK;
-	}
-	if (guid.Equals (nsIFilePicker.NS_IFILEPICKER_10_IID)) {
-		XPCOM.memmove(ppvObject, new int /*long*/[] {filePicker.getAddress ()}, C.PTR_SIZEOF);
-		AddRef ();
-		return XPCOM.NS_OK;
-	}
-	if (guid.Equals (nsIFilePicker.NS_IFILEPICKER_1_8_IID)) {
-		XPCOM.memmove(ppvObject, new int /*long*/[] {filePicker.getAddress ()}, C.PTR_SIZEOF);
-		AddRef ();
-		return XPCOM.NS_OK;
-	}
-	if (guid.Equals (nsIFilePicker.NS_IFILEPICKER_IID)) {
+	if (guid.Equals (IIDStore.GetIID (nsIFilePicker.class))) {
 		XPCOM.memmove(ppvObject, new int /*long*/[] {filePicker.getAddress ()}, C.PTR_SIZEOF);
 		AddRef ();
 		return XPCOM.NS_OK;
@@ -220,15 +226,11 @@ int GetFile (int /*long*/ aFile) {
 int SetDisplayDirectory (int /*long*/ aDisplayDirectory) {
 	if (aDisplayDirectory == 0) return XPCOM.NS_OK;
 	nsILocalFile file = new nsILocalFile (aDisplayDirectory);
-	int /*long*/ pathname = XPCOM.nsEmbedString_new ();
-	int rc = file.GetPath (pathname);
+	nsEmbedString pathname = new nsEmbedString ();
+	int rc = file.GetPath (pathname.getAddress());
 	if (rc != XPCOM.NS_OK) Mozilla.error (rc);
-	int length = XPCOM.nsEmbedString_Length (pathname);
-	int /*long*/ buffer = XPCOM.nsEmbedString_get (pathname);
-	char[] chars = new char[length];
-	XPCOM.memmove (chars, buffer, length * 2);
-	XPCOM.nsEmbedString_delete (pathname);
-	directory = new String (chars);
+	directory = pathname.toString ();
+	pathname.dispose ();
 	return XPCOM.NS_OK;
 }
 

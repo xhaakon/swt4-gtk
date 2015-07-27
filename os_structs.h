@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2000, 2015 IBM Corporation and others. All rights reserved.
  * The contents of this file are made available under the terms
  * of the GNU Lesser General Public License (LGPL) Version 2.1 that
  * accompanies this distribution (lgpl-v21.txt).  The LGPL is also
@@ -207,18 +207,6 @@ void setGdkEventScrollFields(JNIEnv *env, jobject lpObject, GdkEventScroll *lpSt
 #define GdkEventScroll_sizeof() 0
 #endif
 
-#ifndef NO_GdkEventVisibility
-void cacheGdkEventVisibilityFields(JNIEnv *env, jobject lpObject);
-GdkEventVisibility *getGdkEventVisibilityFields(JNIEnv *env, jobject lpObject, GdkEventVisibility *lpStruct);
-void setGdkEventVisibilityFields(JNIEnv *env, jobject lpObject, GdkEventVisibility *lpStruct);
-#define GdkEventVisibility_sizeof() sizeof(GdkEventVisibility)
-#else
-#define cacheGdkEventVisibilityFields(a,b)
-#define getGdkEventVisibilityFields(a,b,c) NULL
-#define setGdkEventVisibilityFields(a,b,c)
-#define GdkEventVisibility_sizeof() 0
-#endif
-
 #ifndef NO_GdkEventWindowState
 void cacheGdkEventWindowStateFields(JNIEnv *env, jobject lpObject);
 GdkEventWindowState *getGdkEventWindowStateFields(JNIEnv *env, jobject lpObject, GdkEventWindowState *lpStruct);
@@ -363,18 +351,6 @@ void setGtkCellRendererClassFields(JNIEnv *env, jobject lpObject, GtkCellRendere
 #define GtkCellRendererClass_sizeof() 0
 #endif
 
-#ifndef NO_GtkColorSelectionDialog
-void cacheGtkColorSelectionDialogFields(JNIEnv *env, jobject lpObject);
-GtkColorSelectionDialog *getGtkColorSelectionDialogFields(JNIEnv *env, jobject lpObject, GtkColorSelectionDialog *lpStruct);
-void setGtkColorSelectionDialogFields(JNIEnv *env, jobject lpObject, GtkColorSelectionDialog *lpStruct);
-#define GtkColorSelectionDialog_sizeof() sizeof(GtkColorSelectionDialog)
-#else
-#define cacheGtkColorSelectionDialogFields(a,b)
-#define getGtkColorSelectionDialogFields(a,b,c) NULL
-#define setGtkColorSelectionDialogFields(a,b,c)
-#define GtkColorSelectionDialog_sizeof() 0
-#endif
-
 #ifndef NO_GtkFixed
 void cacheGtkFixedFields(JNIEnv *env, jobject lpObject);
 GtkFixed *getGtkFixedFields(JNIEnv *env, jobject lpObject, GtkFixed *lpStruct);
@@ -397,18 +373,6 @@ void setGtkRequisitionFields(JNIEnv *env, jobject lpObject, GtkRequisition *lpSt
 #define getGtkRequisitionFields(a,b,c) NULL
 #define setGtkRequisitionFields(a,b,c)
 #define GtkRequisition_sizeof() 0
-#endif
-
-#ifndef NO_GtkSelectionData
-void cacheGtkSelectionDataFields(JNIEnv *env, jobject lpObject);
-GtkSelectionData *getGtkSelectionDataFields(JNIEnv *env, jobject lpObject, GtkSelectionData *lpStruct);
-void setGtkSelectionDataFields(JNIEnv *env, jobject lpObject, GtkSelectionData *lpStruct);
-#define GtkSelectionData_sizeof() sizeof(GtkSelectionData)
-#else
-#define cacheGtkSelectionDataFields(a,b)
-#define getGtkSelectionDataFields(a,b,c) NULL
-#define setGtkSelectionDataFields(a,b,c)
-#define GtkSelectionData_sizeof() 0
 #endif
 
 #ifndef NO_GtkTargetEntry
@@ -543,30 +507,6 @@ void setXAnyEventFields(JNIEnv *env, jobject lpObject, XAnyEvent *lpStruct);
 #define XAnyEvent_sizeof() 0
 #endif
 
-#ifndef NO_XClientMessageEvent
-void cacheXClientMessageEventFields(JNIEnv *env, jobject lpObject);
-XClientMessageEvent *getXClientMessageEventFields(JNIEnv *env, jobject lpObject, XClientMessageEvent *lpStruct);
-void setXClientMessageEventFields(JNIEnv *env, jobject lpObject, XClientMessageEvent *lpStruct);
-#define XClientMessageEvent_sizeof() sizeof(XClientMessageEvent)
-#else
-#define cacheXClientMessageEventFields(a,b)
-#define getXClientMessageEventFields(a,b,c) NULL
-#define setXClientMessageEventFields(a,b,c)
-#define XClientMessageEvent_sizeof() 0
-#endif
-
-#ifndef NO_XCrossingEvent
-void cacheXCrossingEventFields(JNIEnv *env, jobject lpObject);
-XCrossingEvent *getXCrossingEventFields(JNIEnv *env, jobject lpObject, XCrossingEvent *lpStruct);
-void setXCrossingEventFields(JNIEnv *env, jobject lpObject, XCrossingEvent *lpStruct);
-#define XCrossingEvent_sizeof() sizeof(XCrossingEvent)
-#else
-#define cacheXCrossingEventFields(a,b)
-#define getXCrossingEventFields(a,b,c) NULL
-#define setXCrossingEventFields(a,b,c)
-#define XCrossingEvent_sizeof() 0
-#endif
-
 #ifndef NO_XEvent
 void cacheXEventFields(JNIEnv *env, jobject lpObject);
 XEvent *getXEventFields(JNIEnv *env, jobject lpObject, XEvent *lpStruct);
@@ -613,29 +553,5 @@ void setXRenderPictureAttributesFields(JNIEnv *env, jobject lpObject, XRenderPic
 #define getXRenderPictureAttributesFields(a,b,c) NULL
 #define setXRenderPictureAttributesFields(a,b,c)
 #define XRenderPictureAttributes_sizeof() 0
-#endif
-
-#ifndef NO_XVisibilityEvent
-void cacheXVisibilityEventFields(JNIEnv *env, jobject lpObject);
-XVisibilityEvent *getXVisibilityEventFields(JNIEnv *env, jobject lpObject, XVisibilityEvent *lpStruct);
-void setXVisibilityEventFields(JNIEnv *env, jobject lpObject, XVisibilityEvent *lpStruct);
-#define XVisibilityEvent_sizeof() sizeof(XVisibilityEvent)
-#else
-#define cacheXVisibilityEventFields(a,b)
-#define getXVisibilityEventFields(a,b,c) NULL
-#define setXVisibilityEventFields(a,b,c)
-#define XVisibilityEvent_sizeof() 0
-#endif
-
-#ifndef NO_XWindowChanges
-void cacheXWindowChangesFields(JNIEnv *env, jobject lpObject);
-XWindowChanges *getXWindowChangesFields(JNIEnv *env, jobject lpObject, XWindowChanges *lpStruct);
-void setXWindowChangesFields(JNIEnv *env, jobject lpObject, XWindowChanges *lpStruct);
-#define XWindowChanges_sizeof() sizeof(XWindowChanges)
-#else
-#define cacheXWindowChangesFields(a,b)
-#define getXWindowChangesFields(a,b,c) NULL
-#define setXWindowChangesFields(a,b,c)
-#define XWindowChanges_sizeof() 0
 #endif
 

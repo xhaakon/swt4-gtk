@@ -27,13 +27,18 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
-public class nsIPromptService {
 
-	public static final String NS_IPROMPTSERVICE_IID_STR =
-		"1630c61a-325e-49ca-8759-a31b16c47aa5";
+public class nsIPromptService extends nsISupports {
 
-	public static final nsID NS_IPROMPTSERVICE_IID =
-		new nsID(NS_IPROMPTSERVICE_IID_STR);
+	public static final String NS_IPROMPTSERVICE_IID_STR = "1630c61a-325e-49ca-8759-a31b16c47aa5";
+
+	static {
+		IIDStore.RegisterIID(nsIPromptService.class, MozillaVersion.VERSION_BASE, new nsID(NS_IPROMPTSERVICE_IID_STR));
+	}
+
+	public nsIPromptService(int /*long*/ address) {
+		super(address);
+	}
 
 	public static final int BUTTON_POS_0 = 1;
 	public static final int BUTTON_POS_1 = 256;
@@ -52,6 +57,4 @@ public class nsIPromptService {
 	public static final int BUTTON_DELAY_ENABLE = 67108864;
 	public static final int STD_OK_CANCEL_BUTTONS = 513;
 	public static final int STD_YES_NO_BUTTONS = 1027;
-
-	/* outgoing functions removed because this is an implemented interface */
 }

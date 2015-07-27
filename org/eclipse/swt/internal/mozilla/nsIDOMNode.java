@@ -27,27 +27,20 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIDOMNode extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + ((IsXULRunner10 || IsXULRunner17) ? 36 : 25);
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRVersionOrLater(MozillaVersion.VERSION_XR24) ? 34 : (IsXULRunner10() ? 36 : 25));
 
-	public static final String NS_IDOMNODE_IID_STR =
-		"a6cf907c-15b3-11d2-932e-00805f8add32";
+	static final String NS_IDOMNODE_IID_STR = "a6cf907c-15b3-11d2-932e-00805f8add32";
+	static final String NS_IDOMNODE_10_IID_STR = "ce82fb71-60f2-4c38-be31-de5f2f90dada";
+	static final String NS_IDOMNODE_24_IID_STR = "56545150-a001-484e-9ed4-cb319eebd7b3";
 
-	public static final String NS_IDOMNODE_10_IID_STR =
-		"ce82fb71-60f2-4c38-be31-de5f2f90dada";
-	
-	public static final String NS_IDOMNODE_17_IID_STR =
-		"5e9bcec9-5928-4f77-8a9c-424ef01c20e1";
-
-	public static final nsID NS_IDOMNODE_IID =
-		new nsID(NS_IDOMNODE_IID_STR);
-
-	public static final nsID NS_IDOMNODE_10_IID =
-		new nsID(NS_IDOMNODE_10_IID_STR);
-
-	public static final nsID NS_IDOMNODE_17_IID =
-		new nsID(NS_IDOMNODE_17_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIDOMNode.class, MozillaVersion.VERSION_BASE, new nsID(NS_IDOMNODE_IID_STR));
+		IIDStore.RegisterIID(nsIDOMNode.class, MozillaVersion.VERSION_XR10, new nsID(NS_IDOMNODE_10_IID_STR));
+		IIDStore.RegisterIID(nsIDOMNode.class, MozillaVersion.VERSION_XR24, new nsID(NS_IDOMNODE_24_IID_STR));
+	}
 
 	public nsIDOMNode(int /*long*/ address) {
 		super(address);

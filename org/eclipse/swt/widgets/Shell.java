@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,29 +12,30 @@ package org.eclipse.swt.widgets;
 
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.internal.*;
-import org.eclipse.swt.internal.gtk.*;
-import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.*;
+import org.eclipse.swt.internal.cairo.*;
+import org.eclipse.swt.internal.gtk.*;
 
 /**
  * Instances of this class represent the "windows"
  * which the desktop or "window manager" is managing.
  * Instances that do not have a parent (that is, they
- * are built using the constructor, which takes a 
+ * are built using the constructor, which takes a
  * <code>Display</code> as the argument) are described
  * as <em>top level</em> shells. Instances that do have
  * a parent are described as <em>secondary</em> or
  * <em>dialog</em> shells.
  * <p>
- * Instances are always displayed in one of the maximized, 
+ * Instances are always displayed in one of the maximized,
  * minimized or normal states:
  * <ul>
  * <li>
  * When an instance is marked as <em>maximized</em>, the
  * window manager will typically resize it to fill the
  * entire visible area of the display, and the instance
- * is usually put in a state where it can not be resized 
+ * is usually put in a state where it can not be resized
  * (even if it has style <code>RESIZE</code>) until it is
  * no longer maximized.
  * </li><li>
@@ -92,19 +93,19 @@ import org.eclipse.swt.events.*;
  * <dt><code>SHELL_TRIM</code></dt>
  * <dd>
  * the result of combining the constants which are required
- * to produce a typical application top level shell: (that 
+ * to produce a typical application top level shell: (that
  * is, <code>CLOSE | TITLE | MIN | MAX | RESIZE</code>)
  * </dd>
  * <dt><code>DIALOG_TRIM</code></dt>
  * <dd>
  * the result of combining the constants which are required
- * to produce a typical application dialog shell: (that 
+ * to produce a typical application dialog shell: (that
  * is, <code>TITLE | CLOSE | BORDER</code>)
  * </dd>
  * </dl>
  * </p>
  * <p>
- * Note: Only one of the styles APPLICATION_MODAL, MODELESS, 
+ * Note: Only one of the styles APPLICATION_MODAL, MODELESS,
  * PRIMARY_MODAL and SYSTEM_MODAL may be specified.
  * </p><p>
  * IMPORTANT: This class is <em>not</em> intended to be subclassed.
@@ -124,6 +125,8 @@ public class Shell extends Decorations {
 	int minWidth, minHeight;
 	Control lastActive;
 	ToolTip [] toolTips;
+	boolean ignoreFocusOut;
+	Region originalRegion;
 
 	static final int MAXIMUM_TRIM = 128;
 	static final int BORDER = 3;
@@ -147,7 +150,7 @@ public Shell () {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -160,7 +163,7 @@ public Shell () {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the parent</li>
  *    <li>ERROR_INVALID_SUBCLASS - if this class is not an allowed subclass</li>
  * </ul>
- * 
+ *
  * @see SWT#BORDER
  * @see SWT#CLOSE
  * @see SWT#MIN
@@ -188,7 +191,7 @@ public Shell (int style) {
  * <p>
  * Note: Currently, null can be passed in for the display argument.
  * This has the effect of creating the shell on the currently active
- * display if there is one. If there is no current display, the 
+ * display if there is one. If there is no current display, the
  * shell is created on a "default" display. <b>Passing in null as
  * the display argument is not considered to be good coding style,
  * and may not be supported in a future release of SWT.</b>
@@ -211,7 +214,7 @@ public Shell (Display display) {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -219,7 +222,7 @@ public Shell (Display display) {
  * </p><p>
  * Note: Currently, null can be passed in for the display argument.
  * This has the effect of creating the shell on the currently active
- * display if there is one. If there is no current display, the 
+ * display if there is one. If there is no current display, the
  * shell is created on a "default" display. <b>Passing in null as
  * the display argument is not considered to be good coding style,
  * and may not be supported in a future release of SWT.</b>
@@ -232,7 +235,7 @@ public Shell (Display display) {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the parent</li>
  *    <li>ERROR_INVALID_SUBCLASS - if this class is not an allowed subclass</li>
  * </ul>
- * 
+ *
  * @see SWT#BORDER
  * @see SWT#CLOSE
  * @see SWT#MIN
@@ -263,7 +266,7 @@ Shell (Display display, Shell parent, int style, int /*long*/ handle, boolean em
 		error (SWT.ERROR_THREAD_INVALID_ACCESS);
 	}
 	if (parent != null && parent.isDisposed ()) {
-		error (SWT.ERROR_INVALID_ARGUMENT);	
+		error (SWT.ERROR_INVALID_ARGUMENT);
 	}
 	this.center = parent != null && (style & SWT.SHEET) != 0;
 	this.style = checkStyle (parent, style);
@@ -287,7 +290,7 @@ Shell (Display display, Shell parent, int style, int /*long*/ handle, boolean em
  * <p>
  * Note: Currently, null can be passed in for the parent.
  * This has the effect of creating the shell on the currently active
- * display if there is one. If there is no current display, the 
+ * display if there is one. If there is no current display, the
  * shell is created on a "default" display. <b>Passing in null as
  * the parent is not considered to be good coding style,
  * and may not be supported in a future release of SWT.</b>
@@ -296,7 +299,7 @@ Shell (Display display, Shell parent, int style, int /*long*/ handle, boolean em
  * @param parent a shell which will be the parent of the new instance
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the parent is disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the parent is disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the parent</li>
@@ -313,7 +316,7 @@ public Shell (Shell parent) {
  * <p>
  * The style value is either one of the style constants defined in
  * class <code>SWT</code> which is applicable to instances of this
- * class, or must be built by <em>bitwise OR</em>'ing together 
+ * class, or must be built by <em>bitwise OR</em>'ing together
  * (that is, using the <code>int</code> "|" operator) two or more
  * of those <code>SWT</code> style constants. The class description
  * lists the style constants that are applicable to the class.
@@ -321,7 +324,7 @@ public Shell (Shell parent) {
  * </p><p>
  * Note: Currently, null can be passed in for the parent.
  * This has the effect of creating the shell on the currently active
- * display if there is one. If there is no current display, the 
+ * display if there is one. If there is no current display, the
  * shell is created on a "default" display. <b>Passing in null as
  * the parent is not considered to be good coding style,
  * and may not be supported in a future release of SWT.</b>
@@ -331,13 +334,13 @@ public Shell (Shell parent) {
  * @param style the style of control to construct
  *
  * @exception IllegalArgumentException <ul>
- *    <li>ERROR_INVALID_ARGUMENT - if the parent is disposed</li> 
+ *    <li>ERROR_INVALID_ARGUMENT - if the parent is disposed</li>
  * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the parent</li>
  *    <li>ERROR_INVALID_SUBCLASS - if this class is not an allowed subclass</li>
  * </ul>
- * 
+ *
  * @see SWT#BORDER
  * @see SWT#CLOSE
  * @see SWT#MIN
@@ -359,7 +362,7 @@ public Shell (Shell parent, int style) {
 	this (parent != null ? parent.display : null, parent, style, 0, false);
 }
 
-/**	 
+/**
  * Invokes platform specific functionality to allocate a new shell
  * that is embedded.
  * <p>
@@ -373,14 +376,14 @@ public Shell (Shell parent, int style) {
  * @param display the display for the shell
  * @param handle the handle for the shell
  * @return a new shell object containing the specified display and handle
- * 
+ *
  * @noreference This method is not intended to be referenced by clients.
  */
 public static Shell gtk_new (Display display, int /*long*/ handle) {
 	return new Shell (display, null, SWT.NO_TRIM, handle, true);
 }
 
-/**	 
+/**
  * Invokes platform specific functionality to allocate a new shell
  * that is not embedded.
  * <p>
@@ -394,9 +397,9 @@ public static Shell gtk_new (Display display, int /*long*/ handle) {
  * @param display the display for the shell
  * @param handle the handle for the shell
  * @return a new shell object containing the specified display and handle
- * 
+ *
  * @noreference This method is not intended to be referenced by clients.
- * 
+ *
  * @since 3.3
  */
 public static Shell internal_new (Display display, int /*long*/ handle) {
@@ -469,7 +472,7 @@ void addToolTip (ToolTip toolTip) {
 void adjustTrim () {
 	if (display.ignoreTrim) return;
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (shellHandle, allocation);
+	OS.gtk_widget_get_allocation (shellHandle, allocation);
 	int width = allocation.width;
 	int height = allocation.height;
 	int /*long*/ window = gtk_widget_get_window (shellHandle);
@@ -520,7 +523,7 @@ void adjustTrim () {
 }
 
 void bringToTop (boolean force) {
-	if (!gtk_widget_get_visible (shellHandle)) return;
+	if (!OS.gtk_widget_get_visible (shellHandle)) return;
 	Display display = this.display;
 	Shell activeShell = display.activeShell;
 	if (activeShell == this) return;
@@ -528,7 +531,7 @@ void bringToTop (boolean force) {
 		if (activeShell == null) return;
 		if (!display.activePending) {
 			int /*long*/ focusHandle = OS.gtk_window_get_focus (activeShell.shellHandle);
-			if (focusHandle != 0 && !gtk_widget_has_focus (focusHandle)) return;
+			if (focusHandle != 0 && !OS.gtk_widget_has_focus (focusHandle)) return;
 		}
 	}
 	/*
@@ -538,14 +541,11 @@ void bringToTop (boolean force) {
 	* the shell is hidden or disposed. The fix is to use XSetInputFocus()
 	* to assign focus when ever the active shell has not managed by
 	* the window manager.
-	* 
+	*
 	* NOTE: This bug is fixed in GTK+ 2.6.8 and above.
 	*/
 	boolean xFocus = false;
 	if (activeShell != null) {
-		if (OS.GTK_VERSION < OS.VERSION (2, 6, 8)) {
-			xFocus = activeShell.isUndecorated ();
-		}
 		display.activeShell = null;
 		display.activePending = true;
 	}
@@ -556,29 +556,34 @@ void bringToTop (boolean force) {
 	* the focus.
 	*/
 	int /*long*/ window = gtk_widget_get_window (shellHandle);
-	if ((xFocus || (style & SWT.ON_TOP) != 0) && OS.GDK_WINDOWING_X11 ()) {
-		int /*long*/ xDisplay;
-		if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
-			xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_window_get_display(window));
+	if ((xFocus || (style & SWT.ON_TOP) != 0)) {
+		if (OS.isX11()) {
+			int /*long*/ xDisplay;
+			if (OS.GTK_VERSION >= OS.VERSION(2, 24, 0)) {
+				xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_window_get_display(window));
+			} else {
+				xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+			}
+			int /*long*/ xWindow;
+			if (OS.GTK3) {
+				xWindow = OS.gdk_x11_window_get_xid (window);
+			} else {
+				xWindow = OS.gdk_x11_drawable_get_xid (window);
+			}
+			OS.gdk_error_trap_push ();
+			/* Use CurrentTime instead of the last event time to ensure that the shell becomes active */
+			OS.XSetInputFocus (xDisplay, xWindow, OS.RevertToParent, OS.CurrentTime);
+			OS.gdk_error_trap_pop ();
 		} else {
-			xDisplay = OS.gdk_x11_drawable_get_xdisplay (window);
+//	TODO find the proper fix as this doesn't seem to have effect
+//			OS.gtk_window_present(window);
 		}
-		int /*long*/ xWindow;
-		if (OS.GTK3) {
-			xWindow = OS.gdk_x11_window_get_xid (window);
-		} else {
-			xWindow = OS.gdk_x11_drawable_get_xid (window);
-		}
-		OS.gdk_error_trap_push ();
-		/* Use CurrentTime instead of the last event time to ensure that the shell becomes active */
-		OS.XSetInputFocus (xDisplay, xWindow, OS.RevertToParent, OS.CurrentTime);
-		OS.gdk_error_trap_pop ();
 	} else {
 		/*
 		* Bug in metacity.  Calling gdk_window_focus() with a timestamp more
 		* recent than the last user interaction time can cause windows not
 		* to come forward in versions > 2.10.0.  The fix is to use the last
-		* user event time. 
+		* user event time.
 		*/
 		if (display.windowManager.toLowerCase ().equals ("metacity")) {
 			OS.gdk_window_focus (window, display.lastUserEventTime);
@@ -610,14 +615,17 @@ void center () {
 	setLocation (x, y);
 }
 
+@Override
 void checkBorder () {
 	/* Do nothing */
 }
 
+@Override
 void checkOpen () {
 	if (!opened) resized = false;
 }
 
+@Override
 int /*long*/ childStyle () {
 	return 0;
 }
@@ -647,6 +655,7 @@ void closeWidget () {
 	if (event.doit && !isDisposed ()) dispose ();
 }
 
+@Override
 public Rectangle computeTrim (int x, int y, int width, int height) {
 	checkWidget();
 	Rectangle trim = super.computeTrim (x, y, width, height);
@@ -665,7 +674,7 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	if (menuBar != null) {
 		forceResize ();
 		GtkAllocation allocation = new GtkAllocation ();
-		gtk_widget_get_allocation (menuBar.handle, allocation);
+		OS.gtk_widget_get_allocation (menuBar.handle, allocation);
 		int menuBarHeight = allocation.height;
 		trim.y -= menuBarHeight;
 		trim.height += menuBarHeight;
@@ -673,6 +682,7 @@ public Rectangle computeTrim (int x, int y, int width, int height) {
 	return trim;
 }
 
+@Override
 void createHandle (int index) {
 	state |= HANDLE | CANVAS;
 	if (shellHandle == 0) {
@@ -687,11 +697,18 @@ void createHandle (int index) {
 		if (parent != null) {
 			OS.gtk_window_set_transient_for (shellHandle, parent.topHandle ());
 			OS.gtk_window_set_destroy_with_parent (shellHandle, true);
-			if (!isUndecorated ()) {
-				OS.gtk_window_set_type_hint (shellHandle, OS.GDK_WINDOW_TYPE_HINT_DIALOG);
-			} else {
-				OS.gtk_window_set_skip_taskbar_hint (shellHandle, true);
-			}
+			OS.gtk_window_set_skip_taskbar_hint(shellHandle, true);
+			
+			/*
+			 * For systems running Metacity, by applying the dialog type hint
+			 * to a window only the close button can be placed on the title bar.
+			 * The style hints for the minimize and maximize buttons are ignored.
+			 * See bug 445456.
+			 *
+			 */
+//			if (!isUndecorated ()) {
+//				OS.gtk_window_set_type_hint (shellHandle, OS.GDK_WINDOW_TYPE_HINT_DIALOG);
+//			}
 		}
 		/*
 		* Feature in GTK.  The window size must be set when the window
@@ -717,7 +734,7 @@ void createHandle (int index) {
 		}
 		if (isCustomResize ()) {
 			OS.gtk_container_set_border_width (shellHandle, BORDER);
-		} 
+		}
 	}
 	vboxHandle = gtk_box_new (OS.GTK_ORIENTATION_VERTICAL, false, 0);
 	if (vboxHandle == 0) error (SWT.ERROR_NO_HANDLES);
@@ -735,21 +752,19 @@ void createHandle (int index) {
 	OS.gtk_widget_realize (shellHandle);
 }
 
+@Override
 int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*/ data2) {
 	int eventType = OS.X_EVENT_TYPE (xEvent);
 	if (eventType != OS.FocusOut && eventType != OS.FocusIn) return 0;
 	XFocusChangeEvent xFocusEvent = new XFocusChangeEvent();
 	OS.memmove (xFocusEvent, xEvent, XFocusChangeEvent.sizeof);
 	switch (eventType) {
-		case OS.FocusIn: 
+		case OS.FocusIn:
 			if (xFocusEvent.mode == OS.NotifyNormal || xFocusEvent.mode == OS.NotifyWhileGrabbed) {
 				switch (xFocusEvent.detail) {
 					case OS.NotifyNonlinear:
 					case OS.NotifyNonlinearVirtual:
 					case OS.NotifyAncestor:
-						if (tooltipsHandle != 0 && OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-						    OS.gtk_tooltips_enable (tooltipsHandle);
-						}
 						display.activeShell = this;
 						display.activePending = false;
 						sendEvent (SWT.Activate);
@@ -759,7 +774,7 @@ int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*
 						}
 						break;
 				}
-			} 
+			}
 			break;
 		case OS.FocusOut:
 			if (xFocusEvent.mode == OS.NotifyNormal || xFocusEvent.mode == OS.NotifyWhileGrabbed) {
@@ -767,9 +782,6 @@ int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*
 					case OS.NotifyNonlinear:
 					case OS.NotifyNonlinearVirtual:
 					case OS.NotifyVirtual:
-						if (tooltipsHandle != 0 && OS.GTK_VERSION < OS.VERSION (2, 12, 0)) {
-							OS.gtk_tooltips_disable (tooltipsHandle);
-						}
 						Display display = this.display;
 						sendEvent (SWT.Deactivate);
 						setActiveControl (null);
@@ -778,7 +790,7 @@ int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*
 							display.activePending = false;
 						}
 						if (isDisposed ()) return 0;
-						if (isCustomResize ()) {				
+						if (isCustomResize ()) {
 							OS.gdk_window_invalidate_rect (gtk_widget_get_window (shellHandle), null, false);
 						}
 						break;
@@ -789,10 +801,12 @@ int /*long*/ filterProc (int /*long*/ xEvent, int /*long*/ gdkEvent, int /*long*
 	return 0;
 }
 
+@Override
 Control findBackgroundControl () {
 	return (state & BACKGROUND) != 0 || backgroundImage != null ? this : null;
 }
 
+@Override
 Composite findDeferredControl () {
 	return layoutCount > 0 ? this : null;
 }
@@ -800,17 +814,17 @@ Composite findDeferredControl () {
 /**
  * Returns a ToolBar object representing the tool bar that can be shown in the receiver's
  * trim. This will return <code>null</code> if the platform does not support tool bars that
- * are not part of the content area of the shell, or if the Shell's style does not support 
- * having a tool bar. 
+ * are not part of the content area of the shell, or if the Shell's style does not support
+ * having a tool bar.
  * <p>
- * 
+ *
  * @return a ToolBar object representing the Shell's tool bar, or <ocde>null</code>.
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.7
  */
 public ToolBar getToolBar() {
@@ -818,37 +832,40 @@ public ToolBar getToolBar() {
 	return null;
 }
 
+@Override
 boolean hasBorder () {
 	return false;
 }
 
+@Override
 void hookEvents () {
 	super.hookEvents ();
-	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [KEY_PRESS_EVENT], 0, display.closures [KEY_PRESS_EVENT], false);
-	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [WINDOW_STATE_EVENT], 0, display.closures [WINDOW_STATE_EVENT], false);
-	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [SIZE_ALLOCATE], 0, display.closures [SIZE_ALLOCATE], false);
-	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [CONFIGURE_EVENT], 0, display.closures [CONFIGURE_EVENT], false);
-	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [DELETE_EVENT], 0, display.closures [DELETE_EVENT], false);
+	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [KEY_PRESS_EVENT], 0, display.getClosure (KEY_PRESS_EVENT), false);
+	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [WINDOW_STATE_EVENT], 0, display.getClosure (WINDOW_STATE_EVENT), false);
+	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [SIZE_ALLOCATE], 0, display.getClosure (SIZE_ALLOCATE), false);
+	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [CONFIGURE_EVENT], 0, display.getClosure (CONFIGURE_EVENT), false);
+	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [DELETE_EVENT], 0, display.getClosure (DELETE_EVENT), false);
 	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [MAP_EVENT], 0, display.shellMapProcClosure, false);
-	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [ENTER_NOTIFY_EVENT], 0, display.closures [ENTER_NOTIFY_EVENT], false);
-	OS.g_signal_connect_closure (shellHandle, OS.move_focus, display.closures [MOVE_FOCUS], false);
+	OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [ENTER_NOTIFY_EVENT], 0, display.getClosure (ENTER_NOTIFY_EVENT), false);
+	OS.g_signal_connect_closure (shellHandle, OS.move_focus, display.getClosure (MOVE_FOCUS), false);
 	if (!OS.GTK3) {
 		int /*long*/ window = gtk_widget_get_window (shellHandle);
 		OS.gdk_window_add_filter  (window, display.filterProc, shellHandle);
 	} else {
-		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [FOCUS_IN_EVENT], 0, display.closures [FOCUS_IN_EVENT], false);
-		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [FOCUS_OUT_EVENT], 0, display.closures [FOCUS_OUT_EVENT], false);
+		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [FOCUS_IN_EVENT], 0, display.getClosure (FOCUS_IN_EVENT), false);
+		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [FOCUS_OUT_EVENT], 0, display.getClosure (FOCUS_OUT_EVENT), false);
 	}
 	if (isCustomResize ()) {
 		int mask = OS.GDK_POINTER_MOTION_MASK | OS.GDK_BUTTON_RELEASE_MASK | OS.GDK_BUTTON_PRESS_MASK |  OS.GDK_ENTER_NOTIFY_MASK | OS.GDK_LEAVE_NOTIFY_MASK;
 		OS.gtk_widget_add_events (shellHandle, mask);
-		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [EXPOSE_EVENT], 0, display.closures[EXPOSE_EVENT], false);
-		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [LEAVE_NOTIFY_EVENT], 0, display.closures [LEAVE_NOTIFY_EVENT], false);
-		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [MOTION_NOTIFY_EVENT], 0, display.closures [MOTION_NOTIFY_EVENT], false);
-		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.closures [BUTTON_PRESS_EVENT], false);
+		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [EXPOSE_EVENT], 0, display.getClosure (EXPOSE_EVENT), false);
+		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [LEAVE_NOTIFY_EVENT], 0, display.getClosure (LEAVE_NOTIFY_EVENT), false);
+		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [MOTION_NOTIFY_EVENT], 0, display.getClosure (MOTION_NOTIFY_EVENT), false);
+		OS.g_signal_connect_closure_by_id (shellHandle, display.signalIds [BUTTON_PRESS_EVENT], 0, display.getClosure (BUTTON_PRESS_EVENT), false);
 	}
 }
 
+@Override
 public boolean isEnabled () {
 	checkWidget ();
 	return getEnabled ();
@@ -864,20 +881,24 @@ boolean isCustomResize () {
 	return (style & SWT.NO_TRIM) == 0 && (style & (SWT.RESIZE | SWT.ON_TOP)) == (SWT.RESIZE | SWT.ON_TOP);
 }
 
+@Override
 public boolean isVisible () {
 	checkWidget();
 	return getVisible ();
 }
 
+@Override
 void register () {
 	super.register ();
 	display.addWidget (shellHandle, this);
 }
 
+@Override
 void releaseParent () {
 	/* Do nothing */
 }
 
+@Override
 int /*long*/ topHandle () {
 	return shellHandle;
 }
@@ -909,6 +930,7 @@ void fixShell (Shell newShell, Control control) {
 	}
 }
 
+@Override
 int /*long*/ fixedSizeAllocateProc(int /*long*/ widget, int /*long*/ allocationPtr) {
 	int clientWidth = 0;
 	if ((style & SWT.MIRRORED) != 0) clientWidth = getClientWidth ();
@@ -917,16 +939,22 @@ int /*long*/ fixedSizeAllocateProc(int /*long*/ widget, int /*long*/ allocationP
 	return result;
 }
 
+@Override
 void fixStyle (int /*long*/ handle) {
 }
 
+@Override
 void forceResize () {
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (vboxHandle, allocation);
+	OS.gtk_widget_get_allocation (vboxHandle, allocation);
 	forceResize (allocation.width, allocation.height);
 }
 
 void forceResize (int width, int height) {
+	int clientWidth = 0;
+	if (OS.GTK3) {
+		if ((style & SWT.MIRRORED) != 0) clientWidth = getClientWidth ();
+	}
 	GtkRequisition requisition = new GtkRequisition ();
 	gtk_widget_get_preferred_size (vboxHandle, requisition);
 	GtkAllocation allocation = new GtkAllocation ();
@@ -936,6 +964,9 @@ void forceResize (int width, int height) {
 	allocation.width = width;
 	allocation.height = height;
 	OS.gtk_widget_size_allocate (vboxHandle, allocation);
+	if (OS.GTK3) {
+		if ((style & SWT.MIRRORED) != 0) moveChildren (clientWidth);
+	}
 }
 
 /**
@@ -948,22 +979,20 @@ void forceResize (int width, int height) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public int getAlpha () {
 	checkWidget ();
-	if (OS.GTK_VERSION >= OS.VERSION (2, 12, 0)) {
-		if (OS.gtk_widget_is_composited (shellHandle)) {
-			return (int) (OS.gtk_window_get_opacity (shellHandle) * 255);
-		}
+	if (OS.gtk_widget_is_composited (shellHandle)) {
+		return (int) (OS.gtk_window_get_opacity (shellHandle) * 255);
 	}
-	return 255;  
+	return 255;
 }
 
 int getResizeMode (double x, double y) {
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (shellHandle, allocation);
+	OS.gtk_widget_get_allocation (shellHandle, allocation);
 	int width = allocation.width;
 	int height = allocation.height;
 	int border = OS.gtk_container_get_border_width (shellHandle);
@@ -990,7 +1019,7 @@ int getResizeMode (double x, double y) {
 
 /**
  * Returns <code>true</code> if the receiver is currently
- * in fullscreen state, and false otherwise. 
+ * in fullscreen state, and false otherwise.
  * <p>
  *
  * @return the fullscreen state
@@ -1007,6 +1036,7 @@ public boolean getFullScreen () {
 	return fullScreen;
 }
 
+@Override
 public Point getLocation () {
 	checkWidget ();
 	int [] x = new int [1], y = new int [1];
@@ -1014,6 +1044,7 @@ public Point getLocation () {
 	return new Point (x [0], y [0]);
 }
 
+@Override
 public boolean getMaximized () {
 	checkWidget();
 	return !fullScreen && super.getMaximized ();
@@ -1031,7 +1062,7 @@ public boolean getMaximized () {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public Point getMinimumSize () {
@@ -1073,12 +1104,12 @@ Shell getModalShell () {
  * Gets the receiver's modified state.
  *
  * @return <code>true</code> if the receiver is marked as modified, or <code>false</code> otherwise
- * 
+ *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.5
  */
 public boolean getModified () {
@@ -1086,10 +1117,11 @@ public boolean getModified () {
 	return modified;
 }
 
+@Override
 public Point getSize () {
 	checkWidget ();
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (vboxHandle, allocation);
+	OS.gtk_widget_get_allocation (vboxHandle, allocation);
 	int width = allocation.width;
 	int height = allocation.height;
 	int border = 0;
@@ -1099,17 +1131,18 @@ public Point getSize () {
 	return new Point (width + trimWidth () + 2*border, height + trimHeight () + 2*border);
 }
 
+@Override
 public boolean getVisible () {
 	checkWidget();
-	return gtk_widget_get_visible (shellHandle); 
+	return OS.gtk_widget_get_visible (shellHandle);
 }
 
-/** 
+/**
  * Returns the region that defines the shape of the shell,
  * or <code>null</code> if the shell has the default shape.
  *
  * @return the region that defines the shape of the shell, or <code>null</code>
- *	
+ *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -1118,9 +1151,11 @@ public boolean getVisible () {
  * @since 3.0
  *
  */
+@Override
 public Region getRegion () {
 	/* This method is needed for @since 3.0 Javadoc */
 	checkWidget ();
+	if (originalRegion != null) return originalRegion;
 	return region;
 }
 
@@ -1129,7 +1164,7 @@ public Region getRegion () {
  * will be the result of bitwise OR'ing together one or
  * more of the following constants defined in class
  * <code>SWT</code>:
- * <code>NONE</code>, <code>ROMAN</code>, <code>DBCS</code>, 
+ * <code>NONE</code>, <code>ROMAN</code>, <code>DBCS</code>,
  * <code>PHONETIC</code>, <code>NATIVE</code>, <code>ALPHA</code>.
  *
  * @return the IME mode
@@ -1146,11 +1181,12 @@ public int getImeInputMode () {
 	return SWT.NONE;
 }
 
+@Override
 Shell _getShell () {
 	return this;
 }
 /**
- * Returns an array containing all shells which are 
+ * Returns an array containing all shells which are
  * descendants of the receiver.
  * <p>
  * @return the dialog shells
@@ -1185,6 +1221,7 @@ public Shell [] getShells () {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget == shellHandle) {
 		if (isCustomResize ()) {
@@ -1201,7 +1238,7 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 				display.resizeBoundsX = x [0];
 				display.resizeBoundsY = y [0];
 				GtkAllocation allocation = new GtkAllocation ();
-				gtk_widget_get_allocation (shellHandle, allocation);
+				OS.gtk_widget_get_allocation (shellHandle, allocation);
 				display.resizeBoundsWidth = allocation.width;
 				display.resizeBoundsHeight = allocation.height;
 			}
@@ -1211,9 +1248,15 @@ int /*long*/ gtk_button_press_event (int /*long*/ widget, int /*long*/ event) {
 	return super.gtk_button_press_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_configure_event (int /*long*/ widget, int /*long*/ event) {
 	int [] x = new int [1], y = new int [1];
 	OS.gtk_window_get_position (shellHandle, x, y);
+
+	if (!isVisible ()) {
+		return 0; //We shouldn't handle move/resize events if shell is hidden.
+	}
+	
 	if (!moved || oldX != x [0] || oldY != y [0]) {
 		moved = true;
 		oldX = x [0];
@@ -1224,11 +1267,13 @@ int /*long*/ gtk_configure_event (int /*long*/ widget, int /*long*/ event) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_delete_event (int /*long*/ widget, int /*long*/ event) {
 	if (isEnabled()) closeWidget ();
 	return 1;
 }
 
+@Override
 int /*long*/ gtk_enter_notify_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget != shellHandle) {
 		return super.gtk_enter_notify_event (widget, event);
@@ -1236,6 +1281,7 @@ int /*long*/ gtk_enter_notify_event (int /*long*/ widget, int /*long*/ event) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_draw (int /*long*/ widget, int /*long*/ cairo) {
 	if (widget == shellHandle) {
 		if (isCustomResize ()) {
@@ -1260,6 +1306,7 @@ int /*long*/ gtk_draw (int /*long*/ widget, int /*long*/ cairo) {
 	return super.gtk_draw (widget, cairo);
 }
 
+@Override
 int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget == shellHandle) {
 		if (isCustomResize ()) {
@@ -1290,6 +1337,7 @@ int /*long*/ gtk_expose_event (int /*long*/ widget, int /*long*/ event) {
 	return super.gtk_expose_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_focus (int /*long*/ widget, int /*long*/ directionType) {
 	switch ((int)/*64*/directionType) {
 		case OS.GTK_DIR_TAB_FORWARD:
@@ -1307,6 +1355,7 @@ int /*long*/ gtk_focus (int /*long*/ widget, int /*long*/ directionType) {
 	return super.gtk_focus (widget, directionType);
 }
 
+@Override
 int /*long*/ gtk_focus_in_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget != shellHandle) {
 		return super.gtk_focus_in_event (widget, event);
@@ -1317,6 +1366,7 @@ int /*long*/ gtk_focus_in_event (int /*long*/ widget, int /*long*/ event) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget != shellHandle) {
 		return super.gtk_focus_out_event (widget, event);
@@ -1324,13 +1374,14 @@ int /*long*/ gtk_focus_out_event (int /*long*/ widget, int /*long*/ event) {
 	Display display = this.display;
 	sendEvent (SWT.Deactivate);
 	setActiveControl (null);
-	if (display.activeShell == this) {
+	if (display.activeShell == this && !ignoreFocusOut) {
 		display.activeShell = null;
 		display.activePending = false;
 	}
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_leave_notify_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget == shellHandle) {
 		if (isCustomResize ()) {
@@ -1347,6 +1398,7 @@ int /*long*/ gtk_leave_notify_event (int /*long*/ widget, int /*long*/ event) {
 	return super.gtk_leave_notify_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_move_focus (int /*long*/ widget, int /*long*/ directionType) {
 	Control control = display.getFocusControl ();
 	if (control != null) {
@@ -1357,6 +1409,7 @@ int /*long*/ gtk_move_focus (int /*long*/ widget, int /*long*/ directionType) {
 	return 1;
 }
 
+@Override
 int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget == shellHandle) {
 		if (isCustomResize ()) {
@@ -1429,11 +1482,12 @@ int /*long*/ gtk_motion_notify_event (int /*long*/ widget, int /*long*/ event) {
 	return super.gtk_motion_notify_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	if (widget == shellHandle) {
 		/* Stop menu mnemonics when the shell is disabled */
 		if ((state & DISABLED) != 0) return 1;
-		
+
 		if (menuBar != null && !menuBar.isDisposed ()) {
 			Control focusControl = display.getFocusControl ();
 			if (focusControl != null && (focusControl.hooks (SWT.KeyDown) || focusControl.filters (SWT.KeyDown))) {
@@ -1461,9 +1515,10 @@ int /*long*/ gtk_key_press_event (int /*long*/ widget, int /*long*/ event) {
 	return super.gtk_key_press_event (widget, event);
 }
 
+@Override
 int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	GtkAllocation widgetAllocation = new GtkAllocation ();
-	gtk_widget_get_allocation (shellHandle, widgetAllocation);
+	OS.gtk_widget_get_allocation (shellHandle, widgetAllocation);
 	int width = widgetAllocation.width;
 	int height = widgetAllocation.height;
 	if (!resized || oldWidth != width || oldHeight != height) {
@@ -1474,18 +1529,30 @@ int /*long*/ gtk_size_allocate (int /*long*/ widget, int /*long*/ allocation) {
 	return 0;
 }
 
+@Override
 int /*long*/ gtk_realize (int /*long*/ widget) {
 	int /*long*/ result = super.gtk_realize (widget);
 	int /*long*/ window = gtk_widget_get_window (shellHandle);
 	if ((style & SWT.SHELL_TRIM) != SWT.SHELL_TRIM) {
 		int decorations = 0;
+		int functions = 0;
 		if ((style & SWT.NO_TRIM) == 0) {
-			if ((style & SWT.MIN) != 0) decorations |= OS.GDK_DECOR_MINIMIZE;
-			if ((style & SWT.MAX) != 0) decorations |= OS.GDK_DECOR_MAXIMIZE;
-			if ((style & SWT.RESIZE) != 0) decorations |= OS.GDK_DECOR_RESIZEH;
+				if ((style & SWT.MIN) != 0) {
+					decorations |= OS.GDK_DECOR_MINIMIZE;
+					functions |= OS.GDK_FUNC_MINIMIZE;
+				}
+				if ((style & SWT.MAX) != 0) {
+					decorations |= OS.GDK_DECOR_MAXIMIZE;
+					functions |= OS.GDK_FUNC_MAXIMIZE;
+				}
+				if ((style & SWT.RESIZE) != 0) {
+					decorations |= OS.GDK_DECOR_RESIZEH;
+					functions |= OS.GDK_FUNC_RESIZE;
+				}
 			if ((style & SWT.BORDER) != 0) decorations |= OS.GDK_DECOR_BORDER;
 			if ((style & SWT.MENU) != 0) decorations |= OS.GDK_DECOR_MENU;
 			if ((style & SWT.TITLE) != 0) decorations |= OS.GDK_DECOR_TITLE;
+			if ((style & SWT.CLOSE) != 0) functions |= OS.GDK_FUNC_CLOSE;
 			/*
 			* Feature in GTK.  Under some Window Managers (Sawmill), in order
 			* to get any border at all from the window manager it is necessary to
@@ -1493,8 +1560,17 @@ int /*long*/ gtk_realize (int /*long*/ widget) {
 			* kind of border is requested.
 			*/
 			if ((style & SWT.RESIZE) != 0) decorations |= OS.GDK_DECOR_BORDER;
+			functions |=  OS.GDK_FUNC_MOVE;
 		}
 		OS.gdk_window_set_decorations (window, decorations);
+
+		/*
+		* For systems running Metacity, this call forces the style hints to
+		* be displayed in a window's titlebar. Otherwise, the decorations
+		* set by the function gdk_window_set_decorations (window,
+		* decorations) are ignored by the window manager.
+		*/
+		OS.gdk_window_set_functions(window, functions);
 	}
 	if ((style & SWT.ON_TOP) != 0) {
 		OS.gdk_window_set_override_redirect (window, true);
@@ -1502,6 +1578,7 @@ int /*long*/ gtk_realize (int /*long*/ widget) {
 	return result;
 }
 
+@Override
 int /*long*/ gtk_window_state_event (int /*long*/ widget, int /*long*/ event) {
 	GdkEventWindowState gdkEvent = new GdkEventWindowState ();
 	OS.memmove (gdkEvent, event, GdkEventWindowState.sizeof);
@@ -1543,11 +1620,14 @@ int /*long*/ gtk_window_state_event (int /*long*/ widget, int /*long*/ event) {
 public void open () {
 	checkWidget ();
 	bringToTop (false);
+	if (Shell.class.isInstance(getParent()) && !getParent().isVisible())
+		Shell.class.cast(getParent()).open();
 	setVisible (true);
 	if (isDisposed ()) return;
 	if (!restoreFocus () && !traverseGroup (true)) setFocus ();
 }
 
+@Override
 public boolean print (GC gc) {
 	checkWidget ();
 	if (gc == null) error (SWT.ERROR_NULL_ARGUMENT);
@@ -1593,6 +1673,7 @@ void removeTooTip (ToolTip toolTip) {
 	}
 }
 
+@Override
 void reskinChildren (int flags) {
 	Shell [] shells = getShells ();
 	for (int i=0; i<shells.length; i++) {
@@ -1609,11 +1690,11 @@ void reskinChildren (int flags) {
 }
 
 /**
- * If the receiver is visible, moves it to the top of the 
- * drawing order for the display on which it was created 
- * (so that all other shells on that display, which are not 
- * the receiver's children will be drawn behind it) and asks 
- * the window manager to make the shell active 
+ * If the receiver is visible, moves it to the top of the
+ * drawing order for the display on which it was created
+ * (so that all other shells on that display, which are not
+ * the receiver's children will be drawn behind it) and asks
+ * the window manager to make the shell active
  *
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
@@ -1642,7 +1723,7 @@ void setActiveControl (Control control, int type) {
 	if (control != null && control.isDisposed ()) control = null;
 	if (lastActive != null && lastActive.isDisposed ()) lastActive = null;
 	if (lastActive == control) return;
-	
+
 	/*
 	* Compute the list of controls to be activated and
 	* deactivated by finding the first common parent
@@ -1656,7 +1737,7 @@ void setActiveControl (Control control, int type) {
 		if (activate [index] != deactivate [index]) break;
 		index++;
 	}
-	
+
 	/*
 	* It is possible (but unlikely), that application
 	* code could have destroyed some of the widgets. If
@@ -1691,16 +1772,14 @@ void setActiveControl (Control control, int type) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.4
  */
 public void setAlpha (int alpha) {
 	checkWidget ();
-	if (OS.GTK_VERSION >= OS.VERSION (2, 12, 0)) {
-		if (OS.gtk_widget_is_composited (shellHandle)) {
-			alpha &= 0xFF;
-			OS.gtk_window_set_opacity (shellHandle, alpha / 255f);
-		}
+	if (OS.gtk_widget_is_composited (shellHandle)) {
+		alpha &= 0xFF;
+		OS.gtk_window_set_opacity (shellHandle, alpha / 255f);
 	}
 }
 
@@ -1729,6 +1808,7 @@ void resizeBounds (int width, int height, boolean notify) {
 	}
 }
 
+@Override
 int setBounds (int x, int y, int width, int height, boolean move, boolean resize) {
 	if (fullScreen) setFullScreen (false);
 	/*
@@ -1778,10 +1858,11 @@ int setBounds (int x, int y, int width, int height, boolean move, boolean resize
 	return result;
 }
 
+@Override
 void setCursor (int /*long*/ cursor) {
 	if (enableWindow != 0) {
 		OS.gdk_window_set_cursor (enableWindow, cursor);
-		if (!OS.GDK_WINDOWING_X11 ()) {
+		if (!OS.isX11()) {
 			OS.gdk_flush ();
 		} else {
 			int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
@@ -1791,6 +1872,7 @@ void setCursor (int /*long*/ cursor) {
 	super.setCursor (cursor);
 }
 
+@Override
 public void setEnabled (boolean enabled) {
 	checkWidget();
 	if (((state & DISABLED) == 0) == enabled) return;
@@ -1812,9 +1894,7 @@ public void setEnabled (boolean enabled) {
 	if (isDisposed ()) return;
 	if (enabled) {
 		if (enableWindow != 0) {
-			OS.gdk_window_set_user_data (enableWindow, 0);
-			OS.gdk_window_destroy (enableWindow);
-			enableWindow = 0;
+			cleanupEnableWindow();
 		}
 	} else {
 		int /*long*/ parentHandle = shellHandle;
@@ -1831,13 +1911,20 @@ public void setEnabled (boolean enabled) {
 		if (enableWindow != 0) {
 			if (cursor != null) {
 				OS.gdk_window_set_cursor (enableWindow, cursor.handle);
-				if (!OS.GDK_WINDOWING_X11 ()) {
+				if (!OS.isX11()) {
 					OS.gdk_flush ();
 				} else {
 					int /*long*/ xDisplay = OS.gdk_x11_display_get_xdisplay(OS.gdk_display_get_default());
 					OS.XFlush (xDisplay);
 				}
 			}
+			/* 427776: we need to listen to all enter-notify-event signals to
+			 * see if this new GdkWindow has been added to a widget's internal
+			 * hash table, so when the GdkWindow is destroyed we can also remove
+			 * that reference. */
+			if (enterNotifyEventFunc != null)
+				enterNotifyEventId = OS.g_signal_add_emission_hook (enterNotifyEventSignalId, 0, enterNotifyEventFunc.getAddress (), enableWindow, 0);
+
 			OS.gdk_window_set_user_data (enableWindow, parentHandle);
 			OS.gdk_window_show (enableWindow);
 		}
@@ -1856,12 +1943,12 @@ public void setEnabled (boolean enabled) {
  * into full screen state, causes the receiver to switch back
  * to either the maximized or normal states.
  * <p>
- * Note: The result of intermixing calls to <code>setFullScreen(true)</code>, 
- * <code>setMaximized(true)</code> and <code>setMinimized(true)</code> will 
- * vary by platform. Typically, the behavior will match the platform user's 
+ * Note: The result of intermixing calls to <code>setFullScreen(true)</code>,
+ * <code>setMaximized(true)</code> and <code>setMinimized(true)</code> will
+ * vary by platform. Typically, the behavior will match the platform user's
  * expectations, but not always. This should be avoided if possible.
  * </p>
- * 
+ *
  * @param fullScreen the new fullscreen state
  *
  * @exception SWTException <ul>
@@ -1885,10 +1972,10 @@ public void setFullScreen (boolean fullScreen) {
 }
 
 /**
- * Sets the input method editor mode to the argument which 
+ * Sets the input method editor mode to the argument which
  * should be the result of bitwise OR'ing together one or more
  * of the following constants defined in class <code>SWT</code>:
- * <code>NONE</code>, <code>ROMAN</code>, <code>DBCS</code>, 
+ * <code>NONE</code>, <code>ROMAN</code>, <code>DBCS</code>,
  * <code>PHONETIC</code>, <code>NATIVE</code>, <code>ALPHA</code>.
  *
  * @param mode the new IME mode
@@ -1904,11 +1991,12 @@ public void setImeInputMode (int mode) {
 	checkWidget();
 }
 
+@Override
 void setInitialBounds () {
 	int width, height;
 	if ((state & FOREIGN_HANDLE) != 0) {
 		GtkAllocation allocation = new GtkAllocation ();
-		gtk_widget_get_allocation (shellHandle, allocation);
+		OS.gtk_widget_get_allocation (shellHandle, allocation);
 		width = allocation.width;
 		height = allocation.height;
 	} else {
@@ -1931,6 +2019,7 @@ void setInitialBounds () {
 	resizeBounds (width, height, false);
 }
 
+@Override
 public void setMaximized (boolean maximized) {
 	checkWidget();
 	super.setMaximized (maximized);
@@ -1941,6 +2030,7 @@ public void setMaximized (boolean maximized) {
 	}
 }
 
+@Override
 public void setMenuBar (Menu menu) {
 	checkWidget();
 	if (menuBar == menu) return;
@@ -1962,12 +2052,13 @@ public void setMenuBar (Menu menu) {
 		menuBar.addAccelerators (accelGroup);
 	}
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (vboxHandle, allocation);
+	OS.gtk_widget_get_allocation (vboxHandle, allocation);
 	int width = allocation.width;
 	int height = allocation.height;
 	resizeBounds (width, height, !both);
 }
 
+@Override
 public void setMinimized (boolean minimized) {
 	checkWidget();
 	if (this.minimized == minimized) return;
@@ -1992,7 +2083,7 @@ public void setMinimized (boolean minimized) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public void setMinimumSize (int width, int height) {
@@ -2017,7 +2108,7 @@ public void setMinimumSize (int width, int height) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.1
  */
 public void setMinimumSize (Point size) {
@@ -2036,7 +2127,7 @@ public void setMinimumSize (Point size) {
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
- * 
+ *
  * @since 3.5
  */
 public void setModified (boolean modified) {
@@ -2050,12 +2141,17 @@ public void setModified (boolean modified) {
  * default shape of the shell is restored.  The shell
  * must be created with the style SWT.NO_TRIM in order
  * to specify a region.
+ * <p>
+ * NOTE: This method also sets the size of the shell. Clients should
+ * not call {@link #setSize} or {@link #setBounds} on this shell.
+ * Furthermore, the passed region should not be modified any more.
+ * </p>
  *
  * @param region the region that defines the shape of the shell (or null)
  *
  * @exception IllegalArgumentException <ul>
  *    <li>ERROR_INVALID_ARGUMENT - if the region has been disposed</li>
- * </ul>  
+ * </ul>
  * @exception SWTException <ul>
  *    <li>ERROR_WIDGET_DISPOSED - if the receiver has been disposed</li>
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
@@ -2064,22 +2160,73 @@ public void setModified (boolean modified) {
  * @since 3.0
  *
  */
+@Override
 public void setRegion (Region region) {
 	checkWidget ();
 	if ((style & SWT.NO_TRIM) == 0) return;
+
+	if (region != null) {
+		Rectangle bounds = region.getBounds ();
+		setSize (bounds.x + bounds.width, bounds.y + bounds.height);
+	}
+	Region regionToDispose = null;
+	if ((style & SWT.RIGHT_TO_LEFT) != 0) {
+		if (originalRegion != null) regionToDispose = this.region;
+		originalRegion = region;
+		region = mirrorRegion (region);
+	} else {
+		originalRegion = null;
+	}
 	super.setRegion (region);
+	if (regionToDispose != null) regionToDispose.dispose();
+}
+
+//copied from Region:
+static void gdk_region_get_rectangles(int /*long*/ region, int /*long*/[] rectangles, int[] n_rectangles) {
+	if (!OS.GTK3) {
+		OS.gdk_region_get_rectangles (region, rectangles, n_rectangles);
+		return;
+	}
+	int num = Cairo.cairo_region_num_rectangles (region);
+	if (n_rectangles != null) n_rectangles[0] = num;
+	rectangles[0] = OS.g_malloc(GdkRectangle.sizeof * num);
+	for (int n = 0; n < num; n++) {
+		Cairo.cairo_region_get_rectangle (region, n, rectangles[0] + (n * GdkRectangle.sizeof));
+	}
+}
+
+static Region mirrorRegion (Region region) {
+	if (region == null) return null;
+
+	Region mirrored = new Region (region.getDevice ());
+
+	int /*long*/ rgn = region.handle;
+	int [] nRects = new int [1];
+	int /*long*/ [] rects = new int /*long*/ [1];
+	gdk_region_get_rectangles (rgn, rects, nRects);
+	Rectangle bounds = region.getBounds ();
+	GdkRectangle rect = new GdkRectangle ();
+	for (int i = 0; i < nRects [0]; i++) {
+		OS.memmove (rect, rects[0] + (i * GdkRectangle.sizeof), GdkRectangle.sizeof);
+		rect.x = bounds.x + bounds.width - rect.x - rect.width;
+		OS.gdk_region_union_with_rect (mirrored.handle, rect);
+	}
+	if (rects [0] != 0) OS.g_free (rects [0]);
+	return mirrored;
 }
 
 /*
  * Shells are never labelled by other widgets, so no initialization is needed.
  */
+@Override
 void setRelations() {
 }
 
+@Override
 public void setText (String string) {
 	super.setText (string);
 
-	/* 
+	/*
 	* GTK bug 82013.  For some reason, if the title string
 	* is less than 7 bytes long and is not terminated by
 	* a space, some window managers occasionally draw
@@ -2094,8 +2241,13 @@ public void setText (String string) {
 	OS.gtk_window_set_title (shellHandle, buffer);
 }
 
+@Override
 public void setVisible (boolean visible) {
 	checkWidget();
+	
+	if (moved) { //fix shell location if it was moved.
+		setLocation(oldX, oldY);
+	}
 	int mask = SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SYSTEM_MODAL;
 	if ((style & mask) != 0) {
 		if (visible) {
@@ -2123,7 +2275,7 @@ public void setVisible (boolean visible) {
 		* and fully painted, dispatch events such as
 		* GDK_MAP and GDK_CONFIGURE, until the GDK_MAP
 		* event for the shell is received.
-		* 
+		*
 		* Note that if the parent is minimized or withdrawn
 		* from the desktop, this should not be done since
 		* the shell not will be mapped until the parent is
@@ -2141,8 +2293,7 @@ public void setVisible (boolean visible) {
 				OS.GDK_MAP,
 				OS.GDK_UNMAP,
 				OS.GDK_NO_EXPOSE,
-				OS.GDK_VISIBILITY_NOTIFY,
-				OS.GDK_WINDOW_STATE 
+				OS.GDK_WINDOW_STATE
 			};
 			Display display = this.display;
 			display.putGdkEvents();
@@ -2153,7 +2304,7 @@ public void setVisible (boolean visible) {
 				* This call to gdk_threads_leave() is a temporary work around
 				* to avoid deadlocks when gdk_threads_init() is called by native
 				* code outside of SWT (i.e AWT, etc). It ensures that the current
-				* thread leaves the GTK lock before calling the function below. 
+				* thread leaves the GTK lock before calling the function below.
 				*/
 				OS.gdk_threads_leave();
 				OS.g_main_context_iteration (0, false);
@@ -2201,6 +2352,7 @@ public void setVisible (boolean visible) {
 	}
 }
 
+@Override
 void setZOrder (Control sibling, boolean above, boolean fixRelations) {
 	/*
 	* Bug in GTK+.  Changing the toplevel window Z-order causes
@@ -2213,16 +2365,18 @@ void setZOrder (Control sibling, boolean above, boolean fixRelations) {
 	if (mapped) setZOrder (sibling, above, false, false);
 }
 
+@Override
 int /*long*/ shellMapProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	mapped = true;
 	display.dispatchEvents = null;
 	return 0;
 }
 
+@Override
 void showWidget () {
 	if ((state & FOREIGN_HANDLE) != 0) {
 		/*
-		* In case of foreign handles, activeShell might not be initialised as 
+		* In case of foreign handles, activeShell might not be initialised as
 		* no focusIn events are generated on the window until the window loses
 		* and gain focus.
 		*/
@@ -2243,6 +2397,7 @@ void showWidget () {
 	if (vboxHandle != 0) OS.gtk_widget_show (vboxHandle);
 }
 
+@Override
 int /*long*/ sizeAllocateProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	int offset = 16;
 	int [] x = new int [1], y = new int [1];
@@ -2254,7 +2409,7 @@ int /*long*/ sizeAllocateProc (int /*long*/ handle, int /*long*/ arg0, int /*lon
 		GdkRectangle dest = new GdkRectangle ();
 		OS.gdk_screen_get_monitor_geometry (screen, monitorNumber, dest);
 		GtkAllocation allocation = new GtkAllocation ();
-		gtk_widget_get_allocation (handle, allocation);
+		OS.gtk_widget_get_allocation (handle, allocation);
 		int width = allocation.width;
 		int height = allocation.height;
 		if (x[0] + width > dest.x + dest.width) {
@@ -2263,16 +2418,18 @@ int /*long*/ sizeAllocateProc (int /*long*/ handle, int /*long*/ arg0, int /*lon
 		if (y[0] + height > dest.y + dest.height) {
 			y[0] = (dest.y + dest.height) - height;
 		}
-	} 
+	}
 	OS.gtk_window_move (handle, x [0], y [0]);
 	return 0;
 }
 
+@Override
 int /*long*/ sizeRequestProc (int /*long*/ handle, int /*long*/ arg0, int /*long*/ user_data) {
 	OS.gtk_widget_hide (handle);
 	return 0;
 }
 
+@Override
 boolean traverseEscape () {
 	if (parent == null) return false;
 	if (!isVisible () || !isEnabled ()) return false;
@@ -2327,7 +2484,7 @@ void updateModal () {
 				/*
 				* Feature in GTK. If a modal shell is reassigned to
 				* a different group, then it's modal state is not.
-				* persisted against the new group. 
+				* persisted against the new group.
 				* The fix is to reset the modality before it is changed
 				* into a different group and then, set back after it
 				* assigned into new group.
@@ -2348,16 +2505,16 @@ void updateModal () {
 			shell = shell.parent;
 		}
 		/*
-		* If a modal shell doesn't have any parent (or modal shell as it's parent), 
-		* then we incorrectly add the modal shell to the default group, due to which 
-		* children of that modal shell are not interactive. The fix is to ensure 
+		* If a modal shell doesn't have any parent (or modal shell as it's parent),
+		* then we incorrectly add the modal shell to the default group, due to which
+		* children of that modal shell are not interactive. The fix is to ensure
 		* that whenever there is a modal shell in the hierarchy, then we always
 		* add the modal shell's group to that modal shell and it's modelless children
 		* in a different group.
 		*/
 		if (group == 0 && topModalShell != null) group = topModalShell.getShell ().group;
 	}
-	if (OS.GTK_VERSION >= OS.VERSION (2, 10, 0) && group == 0) { 
+	if (group == 0) {
 		/*
 		* Feature in GTK. Starting with GTK version 2.10, GTK
 		* doesn't assign windows to a default group. The fix is to
@@ -2402,11 +2559,13 @@ void updateMinimized (boolean minimized) {
 	}
 }
 
+@Override
 void deregister () {
 	super.deregister ();
 	display.removeWidget (shellHandle);
 }
 
+@Override
 public void dispose () {
 	/*
 	* Note:  It is valid to attempt to dispose a widget
@@ -2419,10 +2578,10 @@ public void dispose () {
 }
 
 /**
- * If the receiver is visible, moves it to the top of the 
- * drawing order for the display on which it was created 
- * (so that all other shells on that display, which are not 
- * the receiver's children will be drawn behind it) and forces 
+ * If the receiver is visible, moves it to the top of the
+ * drawing order for the display on which it was created
+ * (so that all other shells on that display, which are not
+ * the receiver's children will be drawn behind it) and forces
  * the window manager to make the shell active.
  *
  * @exception SWTException <ul>
@@ -2444,12 +2603,13 @@ public void forceActive () {
 	bringToTop (true);
 }
 
+@Override
 public Rectangle getBounds () {
 	checkWidget ();
 	int [] x = new int [1], y = new int [1];
 	OS.gtk_window_get_position (shellHandle, x, y);
 	GtkAllocation allocation = new GtkAllocation ();
-	gtk_widget_get_allocation (vboxHandle, allocation);
+	OS.gtk_widget_get_allocation (vboxHandle, allocation);
 	int width = allocation.width;
 	int height = allocation.height;
 	int border = 0;
@@ -2459,11 +2619,13 @@ public Rectangle getBounds () {
 	return new Rectangle (x [0], y [0], width + trimWidth () + 2*border, height + trimHeight () + 2*border);
 }
 
+@Override
 void releaseHandle () {
 	super.releaseHandle ();
 	shellHandle = 0;
 }
 
+@Override
 void releaseChildren (boolean destroy) {
 	Shell [] shells = getShells ();
 	for (int i=0; i<shells.length; i++) {
@@ -2484,7 +2646,10 @@ void releaseChildren (boolean destroy) {
 	super.releaseChildren (destroy);
 }
 
+@Override
 void releaseWidget () {
+	Region regionToDispose = null;
+	if (originalRegion != null) regionToDispose  = region;
 	super.releaseWidget ();
 	destroyAccelGroup ();
 	display.clearModal (this);
@@ -2498,6 +2663,9 @@ void releaseWidget () {
 		OS.gdk_window_remove_filter(window, display.filterProc, shellHandle);
 	}
 	lastActive = null;
+	if (regionToDispose != null) {
+		regionToDispose.dispose();
+	}
 }
 
 void setToolTipText (int /*long*/ tipWidget, String string) {
@@ -2505,138 +2673,36 @@ void setToolTipText (int /*long*/ tipWidget, String string) {
 }
 
 void setToolTipText (int /*long*/ rootWidget, int /*long*/ tipWidget, String string) {
-	if (OS.GTK_VERSION >= OS.VERSION (2, 12, 0)) {
-		byte [] buffer = null;
-		if (string != null && string.length () > 0) {
-			char [] chars = fixMnemonic (string, false);
-			buffer = Converter.wcsToMbcs (null, chars, true);
-		}
-		int /*long*/ oldTooltip = OS.gtk_widget_get_tooltip_text (rootWidget);
-		boolean same = false;
-		if (buffer == null && oldTooltip == 0) {
-			same = true;
-		} else if (buffer != null && oldTooltip != 0) {
-			same = OS.strcmp (oldTooltip, buffer) == 0;
-		}
-		if (oldTooltip != 0) OS.g_free(oldTooltip);
-		if (same) return;
-		
-		int /*long*/ eventPtr = 0;
-		if (OS.GTK_VERSION < OS.VERSION (2, 18, 0)) {
-			OS.gtk_widget_set_tooltip_text (rootWidget, null);
-			/*
-			 * Bug in GTK. In GTK 2.12, due to a miscalculation of window
-			 * coordinates, using gtk_tooltip_trigger_tooltip_query ()
-			 * to update an existing a toboltip will result in the tooltip 
-			 * being displayed at a wrong position. The fix is to send out 
-			 * 2 fake GDK_MOTION_NOTIFY events (to mimic the GTK call) which 
-			 * contain the proper x and y coordinates.
-			 */
-			int /*long*/ tipWindow = gtk_widget_get_window (rootWidget);
-			if (tipWindow != 0) {
-				int [] x = new int [1], y = new int [1];
-				int /*long*/ window = OS.gdk_window_at_pointer (x, y);
-				int /*long*/ [] user_data = new int /*long*/ [1];
-				if (window != 0) OS.gdk_window_get_user_data (window, user_data);
-				if (tipWidget == user_data [0]) {
-					eventPtr = OS.gdk_event_new (OS.GDK_MOTION_NOTIFY);
-					GdkEventMotion event = new GdkEventMotion ();
-					event.type = OS.GDK_MOTION_NOTIFY;
-					event.window = OS.g_object_ref (tipWindow);
-					event.x = x [0];
-					event.y = y [0];
-					OS.gdk_window_get_origin (window, x, y);
-					event.x_root = event.x + x [0];
-					event.y_root = event.y + y [0];
-					OS.memmove (eventPtr, event, GdkEventMotion.sizeof);
-					OS.gtk_main_do_event (eventPtr);
-				}
-			}
-		}
-		OS.gtk_widget_set_tooltip_text (rootWidget, buffer);
-		if (eventPtr != 0) {
-			OS.gtk_main_do_event (eventPtr);
-			OS.gdk_event_free (eventPtr);
-		}
-	} else {
-		byte [] buffer = null;
-		if (string != null && string.length () > 0) {
-			char [] chars = fixMnemonic (string, false);
-			buffer = Converter.wcsToMbcs (null, chars, true);
-		}
-		int /*long*/ tipData = OS.gtk_tooltips_data_get(tipWidget);
-		if (tipData != 0) {
-			int /*long*/ oldTooltip = OS.GTK_TOOLTIPS_GET_TIP_TEXT(tipData);
-			if (string == null && oldTooltip == 0) {
-				return;
-			} else if (string != null && oldTooltip != 0) {
-				if (buffer != null) {
-					if (OS.strcmp (oldTooltip, buffer) == 0) return;
-				}
-			}
-		}
-		if (tooltipsHandle == 0) {
-			tooltipsHandle = OS.gtk_tooltips_new ();
-			if (tooltipsHandle == 0) error (SWT.ERROR_NO_HANDLES);
-			OS.g_object_ref (tooltipsHandle);
-			g_object_ref_sink (tooltipsHandle);
-		}
-	
-		/*
-		* Feature in GTK.  There is no API to position a tooltip.
-		* The fix is to connect to the size_allocate signal for
-		* the tooltip window and position it before it is mapped.
-		*
-		* Bug in Solaris-GTK.  Invoking gtk_tooltips_force_window()
-		* can cause a crash in older versions of GTK.  The fix is
-		* to avoid this call if the GTK version is older than 2.2.x.
-		* The call is to be avoided on GTK versions newer than 2.12.0
-		* where it's deprecated.
-		*/
-		OS.gtk_tooltips_force_window (tooltipsHandle);
-		int /*long*/ tipWindow = OS.GTK_TOOLTIPS_TIP_WINDOW (tooltipsHandle);
-		if (tipWindow != 0 && tipWindow != tooltipWindow) {
-			OS.g_signal_connect (tipWindow, OS.size_allocate, display.sizeAllocateProc, shellHandle);
-			tooltipWindow = tipWindow;
-		}
-		
-		/*
-		* Bug in GTK.  If the cursor is inside the window when a new
-		* tooltip is set and the old tooltip is hidden, the new tooltip
-		* is not displayed until the mouse re-enters the window.  The
-		* fix is force the new tooltip to be active.
-		*/
-		boolean set = true;
-		if (tipWindow != 0) {
-			if (gtk_widget_get_visible (tipWidget) || gtk_widget_get_realized (tipWidget)) {
-				int [] x = new int [1], y = new int [1];
-				int /*long*/ window = OS.gdk_window_at_pointer (x, y);
-				if (window != 0) {
-					int /*long*/ [] user_data = new int /*long*/ [1];
-					OS.gdk_window_get_user_data (window, user_data);
-					if (tipWidget == user_data [0]) {
-						/* 
-						* Feature in GTK.  Calling gtk_tooltips_set_tip() positions and
-						* shows the tooltip.  If the tooltip is already visible, moving
-						* it to a new location in the size_allocate signal causes flashing.
-						* The fix is to hide the tip window in the size_request signal
-						* and before the new tooltip is forced to be active. 
-						*/
-						set = false;
-						int handler_id = OS.g_signal_connect (tipWindow, OS.size_request, display.sizeRequestProc, shellHandle);
-						OS.gtk_tooltips_set_tip (tooltipsHandle, tipWidget, buffer, null);
-						OS.gtk_widget_hide (tipWindow);
-						int /*long*/ data = OS.gtk_tooltips_data_get (tipWidget);
-						OS.GTK_TOOLTIPS_SET_ACTIVE (tooltipsHandle, data);
-						OS.gtk_tooltips_set_tip (tooltipsHandle, tipWidget, buffer, null);
-						if (handler_id != 0) OS.g_signal_handler_disconnect (tipWindow, handler_id);
-					}
-				}
-			}
-		}
-		if (set) OS.gtk_tooltips_set_tip (tooltipsHandle, tipWidget, buffer, null);
+	byte [] buffer = null;
+	if (string != null && string.length () > 0) {
+		char [] chars = fixMnemonic (string, false);
+		buffer = Converter.wcsToMbcs (null, chars, true);
 	}
-		
-}
+	int /*long*/ oldTooltip = OS.gtk_widget_get_tooltip_text (rootWidget);
+	boolean same = false;
+	if (buffer == null && oldTooltip == 0) {
+		same = true;
+	} else if (buffer != null && oldTooltip != 0) {
+		same = OS.strcmp (oldTooltip, buffer) == 0;
+	}
+	if (oldTooltip != 0) OS.g_free(oldTooltip);
+	if (same) return;
 
+	OS.gtk_widget_set_tooltip_text (rootWidget, buffer);
+}
+@Override
+Point getWindowOrigin () {
+	if (!mapped) {
+		/*
+		 * Special case: The handle attributes are not initialized until the
+		 * shell is made visible, so gdk_window_get_origin () always returns {0, 0}.
+		 *
+		 * Once the shell is realized, gtk_window_get_position () includes
+		 * window trims etc. from the window manager. That's why getLocation ()
+		 * is not safe to use for coordinate mappings after the shell has been made visible.
+		 */
+		return getLocation ();
+	}
+	return super.getWindowOrigin( );
+}
 }

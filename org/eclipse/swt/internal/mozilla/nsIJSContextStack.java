@@ -27,33 +27,26 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIJSContextStack extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 4;
 
-	public static final String NS_IJSCONTEXTSTACK_IID_STR =
-		"c67d8270-3189-11d3-9885-006008962422";
+	static final String NS_IJSCONTEXTSTACK_IID_STR = "c67d8270-3189-11d3-9885-006008962422";
 
-	public static final nsID NS_IJSCONTEXTSTACK_IID =
-		new nsID(NS_IJSCONTEXTSTACK_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIJSContextStack.class, MozillaVersion.VERSION_BASE, new nsID(NS_IJSCONTEXTSTACK_IID_STR));
+	}
 
 	public nsIJSContextStack(int /*long*/ address) {
 		super(address);
 	}
 
-	public int GetCount(int[] aCount) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aCount);
-	}
-
-	public int Peek(int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), _retval);
-	}
-
 	public int Pop(int /*long*/[] _retval) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), _retval);
+		return XPCOM.VtblCall(this.getMethodIndex("pop"), getAddress(), _retval);
 	}
 
 	public int Push(int /*long*/ cx) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), cx);
+		return XPCOM.VtblCall(this.getMethodIndex("push"), getAddress(), cx);
 	}
 }

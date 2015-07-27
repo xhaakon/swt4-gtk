@@ -26,7 +26,7 @@ public class Library {
 	/**
 	 * SWT Minor version number (must be in the range 0..999)
 	 */
-    static int MINOR_VERSION = 335;
+    static int MINOR_VERSION = 527;
 	
 	/**
 	 * SWT revision number (must be >= 0)
@@ -171,19 +171,15 @@ static boolean isLoadable () {
 		return true;
 	}
 
-	try {
-		url = new URL (url.getPath ());
-	} catch (MalformedURLException e) {
-		/* should never happen since url's initial path value must be valid */
-	}
-	String path = url.getPath ();
-	int index = path.indexOf ('!');
-	File file = new File (path.substring (0, index));
-
 	Attributes attributes = null;
 	try {
-		JarFile jar = new JarFile (file);
-		attributes = jar.getManifest ().getMainAttributes ();
+		URLConnection connection = url.openConnection();
+		if (!(connection instanceof JarURLConnection)) {
+			/* should never happen for a "jar:" url */
+			return false;
+		}
+		JarURLConnection jc = (JarURLConnection) connection;
+		attributes = jc.getMainAttributes();
 	} catch (IOException e) {
 		/* should never happen for a valid SWT jar with the expected manifest values */
 		return false;

@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.*;
  * 
  * @deprecated As of 3.1 use Tree, TreeItem and TreeColumn
  */
+@Deprecated
 public class TableTreeItem extends Item {
 	TableItem tableItem;
 	TableTree parent;
@@ -357,6 +358,7 @@ public Color getForeground () {
  *    <li>ERROR_THREAD_INVALID_ACCESS - if not called from the thread that created the receiver</li>
  * </ul>
  */
+@Override
 public Image getImage () {
 	checkWidget();
 	return getImage(0);
@@ -468,6 +470,7 @@ public TableTreeItem getParentItem () {
 	//checkWidget();
 	return parentItem;
 }
+@Override
 public String getText () {
 	checkWidget();
 	return getText(0);
@@ -549,6 +552,7 @@ int visibleChildrenCount () {
 	return count;
 }
 
+@Override
 public void dispose () {
 	if (isDisposed()) return;
 	for (int i = items.length - 1; i >= 0; i--) {
@@ -784,6 +788,7 @@ public void setImage (int index, Image image) {
  *		<li>ERROR_WIDGET_DISPOSED when the widget has been disposed</li>
  *	</ul>
  */
+@Override
 public void setImage (Image image) {
 	setImage(0, image);
 }
@@ -820,6 +825,7 @@ public void setText(int index, String text) {
 	texts[index] = text;
 	if (tableItem != null) tableItem.setText(index, text);
 }
+@Override
 public void setText (String string) {
 	setText(0, string);
 }

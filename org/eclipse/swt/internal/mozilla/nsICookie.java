@@ -27,66 +27,36 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsICookie extends nsISupports {
 
 	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 9;
 
-	public static final String NS_ICOOKIE_IID_STR =
-		"e9fcb9a4-d376-458f-b720-e65e7df593bc";
+	static final String NS_ICOOKIE_IID_STR = "e9fcb9a4-d376-458f-b720-e65e7df593bc";
+	static final String NS_ICOOKIE_24_IID_STR = "8684966b-1877-4f0f-8155-be4490b96bf7";
 
-	public static final nsID NS_ICOOKIE_IID =
-		new nsID(NS_ICOOKIE_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsICookie.class, MozillaVersion.VERSION_BASE, new nsID(NS_ICOOKIE_IID_STR));
+		IIDStore.RegisterIID(nsICookie.class, MozillaVersion.VERSION_XR24, new nsID(NS_ICOOKIE_24_IID_STR));
+	}
 
 	public nsICookie(int /*long*/ address) {
 		super(address);
 	}
 
 	public int GetName(int /*long*/ aName) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 1, getAddress(), aName);
-	}
-
-	public int GetValue(int /*long*/ aValue) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aValue);
-	}
-
-	public int GetIsDomain(int[] aIsDomain) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 3, getAddress(), aIsDomain);
+		return XPCOM.VtblCall(this.getGetterIndex("name"), getAddress(), aName);
 	}
 
 	public int GetHost(int /*long*/ aHost) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 4, getAddress(), aHost);
+		return XPCOM.VtblCall(this.getGetterIndex("host"), getAddress(), aHost);
 	}
 
 	public int GetPath(int /*long*/ aPath) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 5, getAddress(), aPath);
-	}
-
-	public int GetIsSecure(int[] aIsSecure) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 6, getAddress(), aIsSecure);
+		return XPCOM.VtblCall(this.getGetterIndex("path"), getAddress(), aPath);
 	}
 
 	public int GetExpires(long[] aExpires) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 7, getAddress(), aExpires);
-	}
-
-	public static final int STATUS_UNKNOWN = 0;
-	public static final int STATUS_ACCEPTED = 1;
-	public static final int STATUS_DOWNGRADED = 2;
-	public static final int STATUS_FLAGGED = 3;
-	public static final int STATUS_REJECTED = 4;
-
-	public int GetStatus(int /*long*/ aStatus) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 8, getAddress(), aStatus);
-	}
-
-	public static final int POLICY_UNKNOWN = 0;
-	public static final int POLICY_NONE = 1;
-	public static final int POLICY_NO_CONSENT = 2;
-	public static final int POLICY_IMPLICIT_CONSENT = 3;
-	public static final int POLICY_EXPLICIT_CONSENT = 4;
-	public static final int POLICY_NO_II = 5;
-
-	public int GetPolicy(int /*long*/ aPolicy) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 9, getAddress(), aPolicy);
+		return XPCOM.VtblCall(this.getGetterIndex("expires"), getAddress(), aExpires);
 	}
 }

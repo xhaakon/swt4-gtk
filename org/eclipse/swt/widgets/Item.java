@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2015 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -98,6 +98,7 @@ public Item (Widget parent, int style, int index) {
 	this (parent, style);
 }
 
+@Override
 protected void checkSubclass () {
 	/* Do Nothing - Subclassing is allowed */
 }
@@ -118,6 +119,7 @@ public Image getImage () {
 	return image;
 }
 
+@Override
 String getNameText () {
 	return getText ();
 }
@@ -138,6 +140,7 @@ public String getText () {
 	return text;
 }
 
+@Override
 void releaseWidget () {
 	super.releaseWidget ();
 	text = null;
@@ -166,7 +169,10 @@ public void setImage (Image image) {
 
 /**
  * Sets the receiver's text.
- *
+ * <p>
+ * Note: If control characters like '\n', '\t' etc. are used
+ * in the string, then the behavior is platform dependent.
+ * </p>
  * @param string the new text
  *
  * @exception IllegalArgumentException <ul>
@@ -181,15 +187,23 @@ public void setText (String string) {
 	checkWidget ();
 	if (string == null) error (SWT.ERROR_NULL_ARGUMENT);
 	text = string;
+	if ((state & HAS_AUTO_DIRECTION) != 0) {
+		updateTextDirection (AUTO_TEXT_DIRECTION);
+	}
 }
 
 boolean updateTextDirection(int textDirection) {
-	if (((style  & SWT.FLIP_TEXT_DIRECTION) ^ textDirection) != 0) {
+	if (textDirection == AUTO_TEXT_DIRECTION) {
+		state |= HAS_AUTO_DIRECTION;
+		textDirection = (style ^ resolveTextDirection (text)) == 0 ? 0 : SWT.FLIP_TEXT_DIRECTION;
+	} else {
+		state &= ~HAS_AUTO_DIRECTION;
+	}
+	if (((style & SWT.FLIP_TEXT_DIRECTION) ^ textDirection) != 0) {
 		style ^= SWT.FLIP_TEXT_DIRECTION;
 		return true;
 	}
-	return false;
+	return textDirection == AUTO_TEXT_DIRECTION;
 }
-
 
 }

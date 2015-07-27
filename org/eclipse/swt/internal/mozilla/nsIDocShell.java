@@ -27,39 +27,36 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIDocShell extends nsISupports {
 
-	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + 51;
+	static final int LAST_METHOD_ID = nsISupports.LAST_METHOD_ID + (IsXULRunner31 () ? 146 : 51);
 
-	public static final String NS_IDOCSHELL_IID_STR =
-		"69e5de00-7b8b-11d3-af61-00a024ffc08c";
+	static final String NS_IDOCSHELL_IID_STR = "69e5de00-7b8b-11d3-af61-00a024ffc08c";
+	static final String NS_IDOCSHELL_1_8_IID_STR = "9f0c7461-b9a4-47f6-b88c-421dce1bce66";
+	static final String NS_IDOCSHELL_1_9_IID_STR = "7d1cf6b9-daa3-476d-8f9f-9eb2a971a95c";
+	static final String NS_IDOCSHELL_1_9_1_IID_STR = "dc4daea1-b43d-406f-bd62-c2ee879192ad";
+	static final String NS_IDOCSHELL_1_9_2_IID_STR = "8adfb831-1053-4a19-884d-bcdad7277b4b";
+	static final String NS_IDOCSHELL_10_IID_STR = "0666adf8-8738-4ca7-a917-0348f47d2f40";
+	static final String NS_IDOCSHELL_24_IID_STR = "f453d2ee-bac7-46f9-a553-df918f0cc0d0";
+	static final String NS_IDOCSHELL_31_IID_STR = "e46d924d-c20f-4add-8cf5-1e1c817b2181";
 
-	public static final nsID NS_IDOCSHELL_IID =
-		new nsID(NS_IDOCSHELL_IID_STR);
-
-	public static final String NS_IDOCSHELL_1_8_IID_STR =
-		"9f0c7461-b9a4-47f6-b88c-421dce1bce66";
-
-	public static final nsID NS_IDOCSHELL_1_8_IID =
-		new nsID(NS_IDOCSHELL_1_8_IID_STR);
-
-	public static final String NS_IDOCSHELL_10_IID_STR =
-		"0666adf8-8738-4ca7-a917-0348f47d2f40";
-
-	public static final nsID NS_IDOCSHELL_10_IID =
-		new nsID(NS_IDOCSHELL_10_IID_STR);
-	
-	public static final String NS_IDOCSHELL_17_IID_STR =
-		"9b283337-097d-4fa8-a2da-916318eaf828";
-
-	public static final nsID NS_IDOCSHELL_17_IID =
-		new nsID(NS_IDOCSHELL_17_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_BASE, new nsID(NS_IDOCSHELL_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR1_8, new nsID(NS_IDOCSHELL_1_8_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR1_9, new nsID(NS_IDOCSHELL_1_9_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR1_9_1, new nsID(NS_IDOCSHELL_1_9_1_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR1_9_2, new nsID(NS_IDOCSHELL_1_9_2_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR10, new nsID(NS_IDOCSHELL_10_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR24, new nsID(NS_IDOCSHELL_24_IID_STR));
+		IIDStore.RegisterIID(nsIDocShell.class, MozillaVersion.VERSION_XR31, new nsID(NS_IDOCSHELL_31_IID_STR));
+	}
 
 	public nsIDocShell(int /*long*/ address) {
 		super(address);
 	}
 
 	public int LoadStream(int /*long*/ aStream, int /*long*/ aURI, int /*long*/ aContentType, int /*long*/ aContentCharset, int /*long*/ aLoadInfo) {
-		return XPCOM.VtblCall(nsISupports.LAST_METHOD_ID + 2, getAddress(), aStream, aURI, aContentType, aContentCharset, aLoadInfo);
+		return XPCOM.VtblCall(this.getMethodIndex("loadStream"), getAddress(), aStream, aURI, aContentType, aContentCharset, aLoadInfo);
 	}
 }

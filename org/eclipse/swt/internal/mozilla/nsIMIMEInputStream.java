@@ -27,33 +27,30 @@
  * ***** END LICENSE BLOCK ***** */
 package org.eclipse.swt.internal.mozilla;
 
+
 public class nsIMIMEInputStream extends nsIInputStream {
 
 	static final int LAST_METHOD_ID = nsIInputStream.LAST_METHOD_ID + 4;
 
-	public static final String NS_IMIMEINPUTSTREAM_IID_STR =
-		"dcbce63c-1dd1-11b2-b94d-91f6d49a3161";
+	static final String NS_IMIMEINPUTSTREAM_IID_STR = "dcbce63c-1dd1-11b2-b94d-91f6d49a3161";
 
-	public static final nsID NS_IMIMEINPUTSTREAM_IID =
-		new nsID(NS_IMIMEINPUTSTREAM_IID_STR);
+	static {
+		IIDStore.RegisterIID(nsIMIMEInputStream.class, MozillaVersion.VERSION_BASE, new nsID(NS_IMIMEINPUTSTREAM_IID_STR));
+	}
 
 	public nsIMIMEInputStream(int /*long*/ address) {
 		super(address);
 	}
 
-	public int GetAddContentLength(int[] aAddContentLength) {
-		return XPCOM.VtblCall(nsIInputStream.LAST_METHOD_ID + 1, getAddress(), aAddContentLength);
-	}
-
 	public int SetAddContentLength(int aAddContentLength) {
-		return XPCOM.VtblCall(nsIInputStream.LAST_METHOD_ID + 2, getAddress(), aAddContentLength);
+		return XPCOM.VtblCall(this.getSetterIndex("addContentLength"), getAddress(), aAddContentLength);
 	}
 
 	public int AddHeader(byte[] name, byte[] value) {
-		return XPCOM.VtblCall(nsIInputStream.LAST_METHOD_ID + 3, getAddress(), name, value);
+		return XPCOM.VtblCall(this.getMethodIndex("addHeader"), getAddress(), name, value);
 	}
 
 	public int SetData(int /*long*/ stream) {
-		return XPCOM.VtblCall(nsIInputStream.LAST_METHOD_ID + 4, getAddress(), stream);
+		return XPCOM.VtblCall(this.getMethodIndex("setData"), getAddress(), stream);
 	}
 }
