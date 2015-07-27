@@ -13,11 +13,18 @@ Copyright: 2009-2010 Adrian Perez <adrianperez.deb@gmail.com>
            2011-2012 أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>
 License: GPL-3+
 
-Files: gnome*.[c|h] os*[.c|h] atk*.[c|h]
+Files: gnome*.c
+       gnome*.h
+       os*.c
+       os*.h
+       atk*.c
+       atk*.h
 Copyright: 2000-2010 IBM Corporation and others
 License: LGPL-2.1
 
-Files: cairo*.[c|h] org/eclipse/swt/internal/cairo/*
+Files: cairo*.c
+       cairo*.h
+       org/eclipse/swt/internal/cairo/*
 Copyright: 2000-2009 IBM Corporation
 License: MPL-1.1
 
@@ -35,9 +42,13 @@ Files: org/eclipse/swt/internal/accessibility/gtk/*
 Copyright: 2000-2010 IBM Corporation
 License: LGPL-2.1
 
-Files: org/eclipse/swt/internal/gtk/[^X]*.java
+Files: org/eclipse/swt/internal/gtk/*.java
 Copyright: 2000-2011 IBM Corporation and others
 License: LGPL-2.1
+
+Files: org/eclipse/swt/internal/gtk/X*.java
+Copyright: 2000-2012 IBM Corporation and others
+License: EPL-1.0
 
 Files: org/eclipse/swt/internal/gnome/*
 Copyright: 2000-2010 IBM Corporation and others
@@ -51,8 +62,9 @@ Files: org/eclipse/swt/internal/image/JPEGFileFormat.java
 Copyright: 2000-2008 IBM Corporation and others
 License: other
 
-Files: webkitgtk* org/eclipse/internal/webkit/*
-Copyright: 2009-2011 IBM Corporation and others
+Files: webkitgtk*
+       org/eclipse/swt/internal/webkit/*
+Copyright: 2009-2012 IBM Corporation and others
 License: LGPL-2.1
 
 
