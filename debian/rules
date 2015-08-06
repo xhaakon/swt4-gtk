@@ -19,6 +19,7 @@ AWT_LIB_DIR := $(JAVA_ARCH)
 
 export AWT_LIB_PATH=/usr/lib/jvm/default-java/jre/lib/$(AWT_LIB_DIR)
 
+export GTK_VERSION=3.0
 
 makecleanbuildir::patch
 
