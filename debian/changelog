@@ -7,6 +7,7 @@ swt4-gtk (4.5.0-1) UNRELEASED; urgency=medium
   * Bump Standards-Version to 3.9.6.
   * Fix wildcard-matches-nothing-in-dep5-copyright Lintian warning.
   * Build with GTK+ 3.0.
+  * Streamline build dependencies.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 27 Jul 2015 18:14:47 +0200
 
