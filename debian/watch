@@ -1,2 +1,4 @@
 version=3
-http://mirror.cc.vt.edu/pub/eclipse/eclipse/downloads/drops/R-(.*)/swt-(.*)-gtk-linux-x86\.zip
+opts=uversionmangle=s/\.$/.0/ \
+http://git.eclipse.org/c/platform/eclipse.platform.swt.git/refs \
+.*/snapshot/R(\d+)_(\d+)(?:_(\d+))?.tar.xz
