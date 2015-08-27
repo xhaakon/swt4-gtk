@@ -8,6 +8,7 @@ swt4-gtk (4.5.0-1) UNRELEASED; urgency=medium
   * Fix wildcard-matches-nothing-in-dep5-copyright Lintian warning.
   * Build with GTK+ 3.0.
   * Streamline build dependencies.
+  * Don't suggest nonexistent libswt-gtk-4-java-gcj.
 
  -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 27 Jul 2015 18:14:47 +0200
 
