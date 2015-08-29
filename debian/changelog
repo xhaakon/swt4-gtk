@@ -1,4 +1,4 @@
-swt4-gtk (4.5.0-1) UNRELEASED; urgency=medium
+swt4-gtk (4.5.0-1) unstable; urgency=medium
 
   * New upstream release.
   * Removed Niels Thykier from Uploaders (Closes: #770583). Thanks for
