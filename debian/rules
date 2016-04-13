@@ -27,6 +27,10 @@ DEB_MAKE_MAKEFILE = debian/Makefile
 
 post-patches:: patch_64_bit
 
+install/libswt-gtk-4-java::
+	mh_installpoms -plibswt-gtk-4-java
+	mh_linkjar -plibswt-gtk-4-java -l debian/pom.xml usr/share/java/swt4.jar
+
 clean:: unpatch_64_bit
 
 patch_64_bit:

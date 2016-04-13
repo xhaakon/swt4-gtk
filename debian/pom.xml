@@ -1,0 +1,7 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.eclipse.swt</groupId>
+	<artifactId>org.eclipse.swt</artifactId>
+	<version>4.x</version>
+	<packaging>jar</packaging>
+</project>
