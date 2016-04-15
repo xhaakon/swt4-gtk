@@ -1,4 +1,4 @@
-swt4-gtk (4.5.0-2) UNRELEASED; urgency=medium
+swt4-gtk (4.5.0-2) unstable; urgency=medium
 
   * Install artifacts into /usr/share/maven-repo.
   * Use secure URIs in Vcs-* fields.
