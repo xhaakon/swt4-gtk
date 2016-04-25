@@ -1,3 +1,14 @@
+swt4-gtk (4.5.0-3) UNRELEASED; urgency=medium
+
+  * Enable compatibility with GTK 2.0
+    - GTK 3.20 introduced some incompatible API changes causing broken UI in
+      SWT. Since SWT upstream hasn't released a fixed version yet, the only
+      solution for now is to enable legacy GTK 2.0 support and run affected
+      applications with SWT_GTK3=0. The GTK+ 2.0 version of SWT JNI
+      libraries is packaged as libswt-gtk2-4-jni.
+
+ -- Jakub Adam <jakub.adam@ktknet.cz>  Mon, 25 Apr 2016 17:08:51 +0200
+
 swt4-gtk (4.5.0-2) unstable; urgency=medium
 
   * Install artifacts into /usr/share/maven-repo.

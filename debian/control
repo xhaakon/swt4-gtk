@@ -6,7 +6,7 @@ Uploaders: Adrian Perez <blackxored@debian.org>,
            أحمد المحمودي (Ahmed El-Mahmoudy) <aelmahmoudy@sabily.org>,
            Jakub Adam <jakub.adam@ktknet.cz>
 Build-Depends: default-jdk, libgnomeui-dev, libxt-dev, libglu1-mesa-dev, fastjar, cdbs,
- debhelper (>= 9), javahelper, maven-repo-helper, libgtk-3-dev
+ debhelper (>= 9), javahelper, maven-repo-helper, libgtk-3-dev, libgtk2.0-dev
 Standards-Version: 3.9.7
 Vcs-Git: https://anonscm.debian.org/git/pkg-java/swt-gtk.git
 Vcs-Browser: https://anonscm.debian.org/gitweb/?p=pkg-java/swt-gtk.git
@@ -32,6 +32,19 @@ Description: Standard Widget Toolkit for GTK+ JNI library
  and fast access to native controls and user interface facilities.
  .
  This package includes the JNI libraries (atk, awt, gtk, pi).
+
+Package: libswt-gtk2-4-jni
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: libswt-gnome-gtk-4-jni
+Description: Standard Widget Toolkit for GTK+ JNI library
+ The Standard Widget Toolkit (SWT) is a fast and rich Java GUI toolkit.
+ For platforms with existing SWT implementations it provides efficient, portable
+ and fast access to native controls and user interface facilities.
+ .
+ This package includes legacy version of pi JNI library that uses GTK+ 2.0 as
+ its native GUI back end. Set environment variable SWT_GTK3=0 before launching
+ the SWT application to use it.
 
 Package: libswt-gnome-gtk-4-jni
 Architecture: any

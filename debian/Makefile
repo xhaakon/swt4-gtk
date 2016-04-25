@@ -9,6 +9,8 @@ RM=rm -f
 all: $(JAVA)
 	$(MAKE) -f make_linux.mak make_atk make_awt make_cairo make_glx \
 		make_gnome make_swt make_webkit
+	rm -f *.o
+	GTK_VERSION=2.0 $(MAKE) -f make_linux.mak make_swtpi
 
 clean distclean:
 	$(RM) $(CLEANFILES)
